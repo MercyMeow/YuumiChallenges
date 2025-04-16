@@ -123,7 +123,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, title = 'Yuum.Ai Dash
 							</svg>
 						</a>
 					</div>
-					<p className='text-yuumi-light'>&copy; {new Date().getFullYear()} Yuum.Ai Dashboard. All rights reserved.</p>
+					<div className='space-y-2'>
+						<p className='text-yuumi-light'>&copy; {new Date().getFullYear()} Yuum.Ai Dashboard. All rights reserved.</p>
+						<div className='flex justify-center space-x-4 text-sm'>
+							<Link href='/legal/terms' className='text-yuumi-light hover:text-yuumi-accent transition-colors duration-300'>
+								Terms of Service
+							</Link>
+							<Link href='/legal/privacy' className='text-yuumi-light hover:text-yuumi-accent transition-colors duration-300'>
+								Privacy Policy
+							</Link>
+						</div>
+					</div>
 				</div>
 			</footer>
 		</div>
