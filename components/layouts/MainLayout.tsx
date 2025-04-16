@@ -123,7 +123,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, title = 'Yuum.Ai Dash
 							</svg>
 						</a>
 					</div>
-					<div className='space-y-2'>
+					<div className='space-y-4'>
 						<p className='text-yuumi-light'>&copy; {new Date().getFullYear()} Yuum.Ai Dashboard. All rights reserved.</p>
 						<div className='flex justify-center space-x-4 text-sm'>
 							<Link href='/legal/terms' className='text-yuumi-light hover:text-yuumi-accent transition-colors duration-300'>
@@ -132,6 +132,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, title = 'Yuum.Ai Dash
 							<Link href='/legal/privacy' className='text-yuumi-light hover:text-yuumi-accent transition-colors duration-300'>
 								Privacy Policy
 							</Link>
+						</div>
+						<div className='text-xs text-yuumi-light/70 max-w-2xl mx-auto'>
+							<p>Yuum.Ai Dashboard isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</p>
 						</div>
 					</div>
 				</div>

@@ -68,6 +68,12 @@ export default function PrivacyPolicy() {
 						<h2 className='text-xl font-semibold yuumi-gradient-text mt-6 mb-4'>7. Third-Party Services</h2>
 						<p>Our Services may contain links to third-party websites or services that are not owned or controlled by us. We have no control over, and assume no responsibility for, the content, privacy policies, or practices of any third-party websites or services. We strongly advise you to review the privacy policy of every site you visit.</p>
 
+						<h3 className='text-lg font-semibold text-yuumi-primary mt-4 mb-2'>Riot Games API</h3>
+						<p className='mb-4'>We use Riot Games API to provide League of Legends data. When you connect your Riot Games account, your data is processed according to Riot Games' Privacy Policy. We only collect the minimum necessary information to provide our Services.</p>
+						<div className='bg-yuumi-darker p-4 rounded-md my-4 text-sm'>
+							<p className='mb-2'>Yuum.Ai Dashboard isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</p>
+						</div>
+
 						<h2 className='text-xl font-semibold yuumi-gradient-text mt-6 mb-4'>8. Data Retention</h2>
 						<p>We will retain your personal information only for as long as is necessary for the purposes set out in this Privacy Policy. We will retain and use your information to the extent necessary to comply with our legal obligations, resolve disputes, and enforce our policies.</p>
 

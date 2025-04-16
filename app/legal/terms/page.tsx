@@ -77,7 +77,14 @@ export default function TermsOfService() {
 						<h2 className='text-xl font-semibold yuumi-gradient-text mt-6 mb-4'>12. Governing Law</h2>
 						<p>These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which we are located, without regard to its conflict of law provisions.</p>
 
-						<h2 className='text-xl font-semibold yuumi-gradient-text mt-6 mb-4'>13. Contact Information</h2>
+						<h2 className='text-xl font-semibold yuumi-gradient-text mt-6 mb-4'>13. Riot Games API</h2>
+						<p>Yuum.Ai Dashboard uses Riot Games API to provide League of Legends data and functionality. By using our Services, you acknowledge and agree to the following:</p>
+						<div className='bg-yuumi-darker p-4 rounded-md my-4 text-sm'>
+							<p className='mb-2'>Yuum.Ai Dashboard isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</p>
+						</div>
+						<p>Our use of Riot Games' API is subject to Riot Games' API Terms of Service. Your use of League of Legends data through our Services is also subject to Riot Games' Terms of Service and Privacy Policy.</p>
+
+						<h2 className='text-xl font-semibold yuumi-gradient-text mt-6 mb-4'>14. Contact Information</h2>
 						<p>
 							If you have any questions about these Terms, please contact us at{' '}
 							<a href='mailto:legal@yuumai.com' className='text-yuumi-primary hover:underline'>
