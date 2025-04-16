@@ -7,11 +7,15 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
-		"create-branch": "node scripts/create-branch.js"
+		"create-branch": "node scripts/create-branch.js",
+		"test-db": "node scripts/test-db.js",
+		"db:init": "curl -X GET http://localhost:3000/api/db/init",
+		"db:status": "curl -X GET http://localhost:3000/api/db/status"
 	},
 	"dependencies": {
 		"@auth/core": "^0.34.2",
 		"@auth/mongodb-adapter": "^3.8.0",
+		"dotenv": "^16.5.0",
 		"mongodb": "^6.15.0",
 		"next": "15.3.0",
 		"next-auth": "^4.24.11",

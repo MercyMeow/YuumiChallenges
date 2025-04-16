@@ -13,7 +13,8 @@ This document outlines the current development tasks, requirements, and prioriti
 
 | Task ID  | Title                          | Priority | Assigned To | Status      | Due Date       |
 | -------- | ------------------------------ | -------- | ----------- | ----------- | -------------- |
-| TASK-002 | Implement Discord OAuth        | High     | Team        | In Progress | April 20, 2025 |
+| TASK-002 | Implement Discord OAuth        | High     | Team        | Completed   | April 20, 2025 |
+| TASK-011 | Set up MongoDB Database        | High     | Team        | In Progress | April 22, 2025 |
 | TASK-005 | Implement Riot API integration | Medium   | -           | Not Started | April 27, 2025 |
 | TASK-008 | Set up CI/CD pipeline          | Medium   | -           | Not Started | April 29, 2025 |
 
@@ -142,3 +143,31 @@ Create reusable UI components for the application interface.
 - Use Tailwind CSS for styling
 - Follow accessibility best practices
 - Create storybook documentation for components
+
+### TASK-011: Set up MongoDB Database
+
+**Description:**
+Implement a robust MongoDB database setup with proper repositories, services, and error handling.
+
+**Requirements:**
+
+- Configure MongoDB connection with proper error handling
+- Create repository pattern for database operations
+- Implement service layer for business logic
+- Set up database initialization and indexing
+- Create admin interface for database management
+
+**Acceptance Criteria:**
+
+- MongoDB connection is properly configured and resilient
+- Repository pattern provides CRUD operations for all models
+- Service layer includes proper validation and error handling
+- Database indexes are created for performance optimization
+- Admin interface allows monitoring of database status
+
+**Notes:**
+
+- Follow MongoDB best practices for connection management
+- Implement proper error handling and logging
+- Ensure database operations are properly typed with TypeScript
+- Create utility scripts for database maintenance
