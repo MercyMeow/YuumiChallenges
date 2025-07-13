@@ -37,12 +37,15 @@ const authOptions: NextAuthOptions = {
           const discordAPI = new DiscordAPI(process.env.DISCORD_BOT_TOKEN!);
           
           // Check if user is in Yuumi Discord server
+          console.log('Checking Discord server membership for user:', (profile as DiscordProfile).username);
           const isYuumiMember = await discordAPI.isUserInYuumiServer((profile as DiscordProfile).id);
+          console.log('User is Yuumi member:', isYuumiMember);
           
           // Get guild member info for roles
           let memberInfo = null;
           if (isYuumiMember) {
             memberInfo = await discordAPI.getGuildMember((profile as DiscordProfile).id);
+            console.log('Member info retrieved:', memberInfo ? 'Success' : 'Failed');
           }
           
           // Update or create user in database
@@ -67,6 +70,11 @@ const authOptions: NextAuthOptions = {
           }
         } catch (error) {
           console.error('Error in signIn callback:', error);
+          console.error('Error details:', {
+            name: error?.name,
+            message: error?.message,
+            stack: error?.stack?.split('\n').slice(0, 3)
+          });
           return false;
         }
       }

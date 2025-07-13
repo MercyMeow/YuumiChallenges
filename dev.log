@@ -8,22 +8,9 @@
    - Environments: .env
 
  ✓ Starting...
- ✓ Ready in 14.8s
- ○ Compiling / ...
- ✓ Compiled / in 13.2s
- ⨯ ./src/app/globals.css:2:2
-Module not found: Can't resolve 'tw-animate-css'
-[0m [90m 1 |[39m[0m
-[0m[31m[1m>[22m[39m[90m 2 |[39m [33m@[39m[36mimport[39m [32m"tw-animate-css"[39m[33m;[39m[0m
-[0m [90m   |[39m  [31m[1m^[22m[39m[0m
-[0m [90m 3 |[39m[0m
-[0m [90m 4 |[39m [33m@[39mcustom[33m-[39mvariant dark ([33m&[39m[33m:[39mis([33m.[39mdark [33m*[39m))[33m;[39m[0m
-[0m [90m 5 |[39m[0m
-
-
-
-https://nextjs.org/docs/messages/module-not-found
-
-
- ○ Compiling /_error ...
- ✓ Compiled /_error in 2.1s
+ ✓ Ready in 12.6s
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 2.3s
+[next-auth][warn][DEBUG_ENABLED] 
+https://next-auth.js.org/warnings#debug_enabled
+ GET /api/auth/providers 200 in 10087ms
