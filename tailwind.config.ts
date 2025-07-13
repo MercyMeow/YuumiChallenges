@@ -77,6 +77,14 @@ const config: Config = {
         sans: ["var(--font-geist-sans)", "sans-serif"],
         mono: ["var(--font-geist-mono)", "monospace"],
       },
+      width: {
+        "sidebar": "var(--sidebar-width)",
+        "sidebar-icon": "var(--sidebar-width-icon)",
+      },
+      spacing: {
+        "sidebar": "var(--sidebar-width)",
+        "sidebar-icon": "var(--sidebar-width-icon)",
+      },
     },
   },
   plugins: [],
