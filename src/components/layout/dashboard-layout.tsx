@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import {
   Home,
   Target,
@@ -128,7 +129,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="mr-2 h-4" />
-              <div className="w-24 h-6 bg-muted rounded animate-pulse"></div>
+              <div className="flex items-center justify-between flex-1">
+                <div className="w-24 h-6 bg-muted rounded animate-pulse"></div>
+                <ThemeToggle />
+              </div>
             </header>
             <main className="flex-1 overflow-auto p-6">
               <div className="flex flex-col items-center justify-center h-96 space-y-4">
@@ -277,8 +281,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center justify-between flex-1">
               <span className="text-lg font-semibold">Dashboard</span>
+              <ThemeToggle />
             </div>
           </header>
           <main className="flex-1 overflow-auto p-6">
