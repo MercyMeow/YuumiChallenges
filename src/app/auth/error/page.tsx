@@ -20,10 +20,10 @@ function AuthErrorContent() {
   const errorMessage = errorMessages[error] || errorMessages.Default;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-100 to-pink-100 dark:from-red-900 dark:to-pink-900">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-red-600">Authentication Error</CardTitle>
+          <CardTitle className="text-2xl font-bold text-destructive">Authentication Error</CardTitle>
           <CardDescription>
             Something went wrong during sign in
           </CardDescription>
@@ -38,8 +38,8 @@ function AuthErrorContent() {
             </p>
             
             {error === 'AccessDenied' && (
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4">
-                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              <div className="bg-muted border border-border rounded-lg p-4 mb-4">
+                <p className="text-sm text-muted-foreground">
                   You must be a member of the Yuumi Mains Discord server to access this application.
                 </p>
               </div>
@@ -70,8 +70,8 @@ export default function AuthError() {
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
       </div>
     }>

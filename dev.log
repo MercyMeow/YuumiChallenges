@@ -1,0 +1,29 @@
+
+> yuumi-challenges@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.3.5 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://10.255.255.254:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 14.8s
+ ○ Compiling / ...
+ ✓ Compiled / in 13.2s
+ ⨯ ./src/app/globals.css:2:2
+Module not found: Can't resolve 'tw-animate-css'
+[0m [90m 1 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 2 |[39m [33m@[39m[36mimport[39m [32m"tw-animate-css"[39m[33m;[39m[0m
+[0m [90m   |[39m  [31m[1m^[22m[39m[0m
+[0m [90m 3 |[39m[0m
+[0m [90m 4 |[39m [33m@[39mcustom[33m-[39mvariant dark ([33m&[39m[33m:[39mis([33m.[39mdark [33m*[39m))[33m;[39m[0m
+[0m [90m 5 |[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 2.1s

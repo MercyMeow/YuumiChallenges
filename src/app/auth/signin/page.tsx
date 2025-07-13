@@ -32,7 +32,7 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Welcome to Yuum.Ai</CardTitle>
@@ -46,7 +46,7 @@ export default function SignIn() {
               <span className="text-4xl">🐱</span>
             </div>
             <p className="text-sm text-muted-foreground mb-6">
-              Join the magical world of Yuumi challenges and compete with fellow enchanters!
+              Join the Yuumi Mains community and track your League of Legends progress!
             </p>
           </div>
           

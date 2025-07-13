@@ -19,8 +19,8 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -30,7 +30,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-indigo-100 dark:from-purple-900 dark:via-pink-900 dark:to-indigo-900">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto text-center">
           {/* Hero Section */}
@@ -38,14 +38,14 @@ export default function Home() {
             <div className="mb-8">
               <span className="text-8xl">🐱</span>
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-foreground">
               Yuum.Ai Dashboard
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-8">
-              The magical challenge platform for League of Legends Yuumi Mains
+              Professional challenge tracking for League of Legends Yuumi Mains
             </p>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12">
-              Track your progress, compete with friends, and become the ultimate enchanter 
+              Track your progress, compete with friends, and excel as an enchanter 
               in the Yuumi Mains Discord community.
             </p>
             
@@ -96,15 +96,15 @@ export default function Home() {
           </div>
 
           {/* Discord CTA */}
-          <Card className="bg-[#5865F2] text-white">
+          <Card className="bg-primary text-primary-foreground">
             <CardHeader>
-              <CardTitle className="text-white">Join the Yuumi Mains Discord</CardTitle>
-              <CardDescription className="text-blue-100">
+              <CardTitle className="text-primary-foreground">Join the Yuumi Mains Discord</CardTitle>
+              <CardDescription className="text-primary-foreground/80">
                 Connect with thousands of Yuumi players worldwide
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="mb-4">
+              <p className="mb-4 text-primary-foreground/90">
                 You must be a member of our Discord server to access the dashboard
               </p>
               <Button asChild variant="secondary">
