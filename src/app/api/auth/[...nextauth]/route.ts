@@ -1,9 +1,6 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import DiscordProvider from 'next-auth/providers/discord';
-import { SupabaseAdapter } from '@next-auth/supabase-adapter';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { DISCORD_SCOPES } from '@/lib/utils/constants';
-import { DiscordAPI } from '@/lib/apis/discord';
 
 interface DiscordProfile {
   id: string;
@@ -11,8 +8,6 @@ interface DiscordProfile {
   discriminator: string;
   avatar: string | null;
 }
-
-const supabase = createServerSupabaseClient();
 
 const authOptions: NextAuthOptions = {
   providers: [
@@ -36,11 +31,11 @@ const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async session({ session, token }) {
+    async session({ session }) {
       console.log('Session callback triggered');
       return session;
     },
-    async jwt({ token, account, profile }) {
+    async jwt({ token }) {
       console.log('JWT callback triggered');
       return token;
     },
