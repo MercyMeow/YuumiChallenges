@@ -23,7 +23,6 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import {
   Home,
   Target,
@@ -131,7 +130,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <Separator orientation="vertical" className="mr-2 h-4" />
               <div className="flex items-center justify-between flex-1">
                 <div className="w-24 h-6 bg-muted rounded animate-pulse"></div>
-                <ThemeToggle />
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span>All systems operational</span>
+                </div>
               </div>
             </header>
             <main className="flex-1 overflow-auto p-6">
@@ -283,7 +285,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <Separator orientation="vertical" className="mr-2 h-4" />
             <div className="flex items-center justify-between flex-1">
               <span className="text-lg font-semibold">Dashboard</span>
-              <ThemeToggle />
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span>Connected</span>
+              </div>
             </div>
           </header>
           <main className="flex-1 overflow-auto p-6">

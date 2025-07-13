@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import Link from 'next/link';
 
 export default function Home() {
@@ -54,12 +53,6 @@ export default function Home() {
         <div className="absolute animate-float delay-1200 top-1/5 left-4/5 w-2 h-2 bg-fuchsia-400/40 rounded-full shadow-lg shadow-fuchsia-400/30"></div>
       </div>
 
-      {/* Fixed Theme Toggle */}
-      <div className="fixed top-6 right-6 z-50">
-        <div className="backdrop-blur-md bg-white/10 dark:bg-black/10 p-2 rounded-xl border border-white/20">
-          <ThemeToggle />
-        </div>
-      </div>
       
       <div className="relative z-10 container mx-auto px-6 py-20">
         <div className="max-w-6xl mx-auto">

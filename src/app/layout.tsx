@@ -34,19 +34,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                const theme = localStorage.getItem('yuumi-ui-theme');
-                if (theme === 'dark') {
-                  document.documentElement.classList.add('dark');
-                } else if (theme === 'light') {
-                  document.documentElement.classList.add('light');
-                } else {
-                  // system theme or no theme set
-                  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    document.documentElement.classList.add('dark');
-                  } else {
-                    document.documentElement.classList.add('light');
-                  }
-                }
+                document.documentElement.classList.add('dark');
               } catch (_) {}
             `,
           }}
@@ -55,10 +43,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          defaultTheme="system"
-          storageKey="yuumi-ui-theme"
-        >
+        <ThemeProvider>
           <AuthProvider>
             {children}
           </AuthProvider>

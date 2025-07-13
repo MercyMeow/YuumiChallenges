@@ -22,60 +22,71 @@ import {
 
 export function ChallengesCard() {
   return (
-    <Card className="h-full hover:shadow-md transition-shadow">
+    <Card className="h-full hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-purple-500/5 to-blue-500/5 border-purple-500/20">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Target className="h-5 w-5 text-primary" />
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-purple-500/20 rounded-xl">
+              <Target className="h-6 w-6 text-purple-400" />
             </div>
             <div>
-              <CardTitle className="text-lg">My Challenges</CardTitle>
-              <CardDescription>Active challenges and progress</CardDescription>
+              <CardTitle className="text-xl font-bold">My Challenges</CardTitle>
+              <CardDescription className="text-muted-foreground/80">Active challenges and progress</CardDescription>
             </div>
           </div>
-          <Badge variant="secondary" className="bg-primary/10 text-primary">
+          <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 px-3 py-1">
             3 Active
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         {/* Sample challenge progress */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center space-x-2">
-              <Zap className="h-4 w-4 text-yellow-500" />
-              <span className="font-medium">10-Game Win Streak</span>
+        <div className="space-y-4">
+          <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+            <div className="flex items-center justify-between text-sm mb-3">
+              <div className="flex items-center space-x-2">
+                <div className="p-1.5 bg-yellow-500/20 rounded-lg">
+                  <Zap className="h-4 w-4 text-yellow-400" />
+                </div>
+                <span className="font-medium text-white">10-Game Win Streak</span>
+              </div>
+              <span className="text-yellow-400 font-bold">7/10</span>
             </div>
-            <span className="text-muted-foreground">7/10</span>
+            <Progress value={70} className="h-3 bg-slate-700" />
+            <p className="text-xs text-muted-foreground mt-2">3 more wins to complete</p>
           </div>
-          <Progress value={70} className="h-2" />
+
+          <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+            <div className="flex items-center justify-between text-sm mb-3">
+              <div className="flex items-center space-x-2">
+                <div className="p-1.5 bg-amber-500/20 rounded-lg">
+                  <Crown className="h-4 w-4 text-amber-400" />
+                </div>
+                <span className="font-medium text-white">Reach Gold Rank</span>
+              </div>
+              <span className="text-amber-400 font-bold">Silver I</span>
+            </div>
+            <Progress value={85} className="h-3 bg-slate-700" />
+            <p className="text-xs text-muted-foreground mt-2">So close! Keep climbing</p>
+          </div>
+
+          <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+            <div className="flex items-center justify-between text-sm mb-3">
+              <div className="flex items-center space-x-2">
+                <div className="p-1.5 bg-blue-500/20 rounded-lg">
+                  <Star className="h-4 w-4 text-blue-400" />
+                </div>
+                <span className="font-medium text-white">Yuumi Mastery 7</span>
+              </div>
+              <span className="text-blue-400 font-bold">M6</span>
+            </div>
+            <Progress value={45} className="h-3 bg-slate-700" />
+            <p className="text-xs text-muted-foreground mt-2">Keep showing off those skills!</p>
+          </div>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center space-x-2">
-              <Crown className="h-4 w-4 text-amber-500" />
-              <span className="font-medium">Reach Gold Rank</span>
-            </div>
-            <span className="text-muted-foreground">Silver I</span>
-          </div>
-          <Progress value={85} className="h-2" />
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center space-x-2">
-              <Star className="h-4 w-4 text-blue-500" />
-              <span className="font-medium">Yuumi Mastery 7</span>
-            </div>
-            <span className="text-muted-foreground">M6</span>
-          </div>
-          <Progress value={45} className="h-2" />
-        </div>
-
-        <div className="pt-2 border-t">
-          <Button variant="outline" size="sm" className="w-full">
+        <div className="pt-4 border-t border-slate-700/50">
+          <Button variant="outline" className="w-full bg-slate-800/50 border-slate-700 hover:bg-slate-700/50 text-white">
             <Plus className="h-4 w-4 mr-2" />
             Join New Challenge
           </Button>
@@ -87,64 +98,71 @@ export function ChallengesCard() {
 
 export function LeagueProfileCard() {
   return (
-    <Card className="h-full hover:shadow-md transition-shadow">
+    <Card className="h-full hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-blue-500/5 to-green-500/5 border-blue-500/20">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="p-2 bg-chart-2/10 rounded-lg">
-              <BarChart3 className="h-5 w-5 text-chart-2" />
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-blue-500/20 rounded-xl">
+              <BarChart3 className="h-6 w-6 text-blue-400" />
             </div>
             <div>
-              <CardTitle className="text-lg">League Profile</CardTitle>
-              <CardDescription>Your linked League accounts</CardDescription>
+              <CardTitle className="text-xl font-bold">League Profile</CardTitle>
+              <CardDescription className="text-muted-foreground/80">Your linked League accounts</CardDescription>
             </div>
           </div>
-          <Badge variant="outline" className="bg-chart-2/10 text-chart-2 border-chart-2">
-            <div className="w-2 h-2 bg-chart-2 rounded-full mr-1"></div>
+          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 px-3 py-1">
+            <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
             Verified
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         {/* Sample account info */}
-        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-          <div>
-            <p className="font-medium">YuumiCarry</p>
-            <p className="text-sm text-muted-foreground">NA1 • Gold II</p>
+        <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xl">
+                🐱
+              </div>
+              <div>
+                <p className="font-bold text-white text-lg">YuumiCarry</p>
+                <p className="text-blue-400 font-medium">NA1 • Gold II</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-lg font-bold text-yellow-400">67 LP</p>
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className="flex items-center space-x-1 text-green-400">
+                    <TrendingUp className="h-4 w-4" />
+                    <span className="font-medium">+23 LP</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Last game: +23 LP (Victory)</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm font-medium">67 LP</p>
-            <Tooltip>
-              <TooltipTrigger>
-                <div className="flex items-center space-x-1 text-xs text-chart-2">
-                  <TrendingUp className="h-3 w-3" />
-                  <span>+23 LP</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Last game: +23 LP (Victory)</p>
-              </TooltipContent>
-            </Tooltip>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center p-3 bg-slate-700/50 rounded-lg">
+              <p className="text-2xl font-bold text-blue-400">127</p>
+              <p className="text-xs text-muted-foreground">Games</p>
+            </div>
+            <div className="text-center p-3 bg-slate-700/50 rounded-lg">
+              <p className="text-2xl font-bold text-green-400">68%</p>
+              <p className="text-xs text-muted-foreground">Win Rate</p>
+            </div>
+            <div className="text-center p-3 bg-slate-700/50 rounded-lg">
+              <p className="text-lg font-bold text-purple-400">2.3 KDA</p>
+              <p className="text-xs text-muted-foreground">Average</p>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Yuumi Games This Season</span>
-            <span className="font-medium">127</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Win Rate</span>
-            <span className="font-medium text-chart-2">68%</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Average KDA</span>
-            <span className="font-medium">2.3 / 1.8 / 14.2</span>
-          </div>
-        </div>
-
-        <div className="pt-2 border-t">
-          <Button variant="outline" size="sm" className="w-full">
+        <div className="pt-4 border-t border-slate-700/50">
+          <Button variant="outline" className="w-full bg-slate-800/50 border-slate-700 hover:bg-slate-700/50 text-white">
             <Plus className="h-4 w-4 mr-2" />
             Add Account
           </Button>
@@ -156,63 +174,76 @@ export function LeagueProfileCard() {
 
 export function LeaderboardCard() {
   return (
-    <Card className="h-full hover:shadow-md transition-shadow">
+    <Card className="h-full hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-yellow-500/5 to-orange-500/5 border-yellow-500/20">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="p-2 bg-chart-3/10 rounded-lg">
-              <Trophy className="h-5 w-5 text-chart-3" />
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-yellow-500/20 rounded-xl">
+              <Trophy className="h-6 w-6 text-yellow-400" />
             </div>
             <div>
-              <CardTitle className="text-lg">Leaderboard</CardTitle>
-              <CardDescription>Your ranking this month</CardDescription>
+              <CardTitle className="text-xl font-bold">Leaderboard</CardTitle>
+              <CardDescription className="text-muted-foreground/80">Your ranking this month</CardDescription>
             </div>
           </div>
-          <Badge className="bg-chart-3 text-chart-3-foreground">
+          <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 px-3 py-1 text-lg font-bold">
             #12
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         {/* Top 3 players */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between p-2 bg-chart-3/10 rounded-lg border border-chart-3/20">
-            <div className="flex items-center space-x-2">
-              <Crown className="h-4 w-4 text-chart-3" />
-              <span className="text-sm font-medium">YuumiMaster</span>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 rounded-xl border border-yellow-500/30">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                <Crown className="h-4 w-4 text-yellow-900" />
+              </div>
+              <div>
+                <span className="font-bold text-white">YuumiMaster</span>
+                <p className="text-xs text-yellow-400">Enchanter God</p>
+              </div>
             </div>
-            <span className="text-sm font-bold text-chart-3">2,547 pts</span>
+            <span className="text-lg font-bold text-yellow-400">2,547 pts</span>
           </div>
 
-          <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 flex items-center justify-center bg-muted rounded text-xs font-bold text-muted-foreground">2</div>
-              <span className="text-sm font-medium">CatSupport</span>
+          <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-slate-600 rounded-full flex items-center justify-center text-sm font-bold text-slate-300">2</div>
+              <div>
+                <span className="font-medium text-white">CatSupport</span>
+                <p className="text-xs text-muted-foreground">Support Main</p>
+              </div>
             </div>
-            <span className="text-sm font-medium">2,341 pts</span>
+            <span className="font-bold text-slate-300">2,341 pts</span>
           </div>
 
-          <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 flex items-center justify-center bg-chart-5/20 rounded text-xs font-bold text-chart-5">3</div>
-              <span className="text-sm font-medium">BookLover</span>
+          <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl border border-slate-700/50">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-orange-500/30 rounded-full flex items-center justify-center text-sm font-bold text-orange-400">3</div>
+              <div>
+                <span className="font-medium text-white">BookLover</span>
+                <p className="text-xs text-muted-foreground">Cat Whisperer</p>
+              </div>
             </div>
-            <span className="text-sm font-medium">2,198 pts</span>
+            <span className="font-bold text-orange-400">2,198 pts</span>
           </div>
         </div>
 
-        <div className="pt-2 border-t">
-          <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-muted-foreground">Your Progress</span>
-            <span className="font-medium">1,876 pts</span>
-          </div>
-          <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-            <Clock className="h-3 w-3" />
-            <span>Updated 5 minutes ago</span>
+        <div className="pt-4 border-t border-slate-700/50">
+          <div className="p-3 bg-slate-800/50 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-muted-foreground">Your Progress</span>
+              <span className="font-bold text-blue-400">1,876 pts</span>
+            </div>
+            <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              <span>Updated 5 minutes ago</span>
+            </div>
           </div>
         </div>
 
-        <Button variant="outline" size="sm" className="w-full">
+        <Button variant="outline" className="w-full bg-slate-800/50 border-slate-700 hover:bg-slate-700/50 text-white">
           View Full Leaderboard
           <ArrowRight className="h-4 w-4 ml-2" />
         </Button>
@@ -223,43 +254,54 @@ export function LeaderboardCard() {
 
 export function StatsOverviewCard() {
   return (
-    <Card className="h-full hover:shadow-md transition-shadow">
+    <Card className="h-full hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-indigo-500/5 to-cyan-500/5 border-indigo-500/20">
       <CardHeader className="pb-3">
-        <div className="flex items-center space-x-2">
-          <div className="p-2 bg-chart-4/10 rounded-lg">
-            <Users className="h-5 w-5 text-chart-4" />
+        <div className="flex items-center space-x-3">
+          <div className="p-3 bg-indigo-500/20 rounded-xl">
+            <Users className="h-6 w-6 text-indigo-400" />
           </div>
           <div>
-            <CardTitle className="text-lg">Community Stats</CardTitle>
-            <CardDescription>Yuumi Mains activity</CardDescription>
+            <CardTitle className="text-xl font-bold">Community Stats</CardTitle>
+            <CardDescription className="text-muted-foreground/80">Yuumi Mains activity overview</CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <div className="text-2xl font-bold text-primary">1,247</div>
+          <div className="text-center p-4 bg-gradient-to-br from-purple-500/10 to-purple-600/5 rounded-xl border border-purple-500/20">
+            <div className="text-3xl font-bold text-purple-400 mb-1">1,247</div>
             <div className="text-xs text-muted-foreground">Active Members</div>
+            <div className="w-full bg-slate-700 rounded-full h-1 mt-2">
+              <div className="bg-purple-400 h-1 rounded-full" style={{width: '87%'}}></div>
+            </div>
           </div>
-          <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <div className="text-2xl font-bold text-chart-1">89</div>
+          <div className="text-center p-4 bg-gradient-to-br from-green-500/10 to-green-600/5 rounded-xl border border-green-500/20">
+            <div className="text-3xl font-bold text-green-400 mb-1">89</div>
             <div className="text-xs text-muted-foreground">Online Now</div>
+            <div className="flex items-center justify-center mt-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-1"></div>
+              <span className="text-xs text-green-400">Live</span>
+            </div>
           </div>
-          <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <div className="text-2xl font-bold text-chart-2">342</div>
+          <div className="text-center p-4 bg-gradient-to-br from-blue-500/10 to-blue-600/5 rounded-xl border border-blue-500/20">
+            <div className="text-3xl font-bold text-blue-400 mb-1">342</div>
             <div className="text-xs text-muted-foreground">Challenges Active</div>
+            <div className="text-xs text-blue-400 mt-1">+12 this week</div>
           </div>
-          <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <div className="text-2xl font-bold text-chart-3">15.2k</div>
+          <div className="text-center p-4 bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 rounded-xl border border-yellow-500/20">
+            <div className="text-3xl font-bold text-yellow-400 mb-1">15.2k</div>
             <div className="text-xs text-muted-foreground">Games Tracked</div>
+            <div className="text-xs text-yellow-400 mt-1">+156 today</div>
           </div>
         </div>
 
-        <div className="pt-2 border-t">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Server Activity</span>
-            <Badge variant="outline" className="bg-chart-2/10 text-chart-2 border-chart-2">
-              <div className="w-2 h-2 bg-chart-2 rounded-full mr-1"></div>
+        <div className="pt-4 border-t border-slate-700/50">
+          <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium">Server Activity</span>
+            </div>
+            <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
               High
             </Badge>
           </div>
