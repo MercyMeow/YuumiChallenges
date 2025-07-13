@@ -26,84 +26,22 @@ const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  adapter: SupabaseAdapter({
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  }),
   callbacks: {
     async signIn({ account, profile }) {
+      console.log('SignIn callback triggered for provider:', account?.provider);
+      
       if (account?.provider === 'discord' && profile) {
-        try {
-          const discordAPI = new DiscordAPI(process.env.DISCORD_BOT_TOKEN!);
-          
-          // Check if user is in Yuumi Discord server
-          console.log('Checking Discord server membership for user:', (profile as DiscordProfile).username);
-          const isYuumiMember = await discordAPI.isUserInYuumiServer((profile as DiscordProfile).id);
-          console.log('User is Yuumi member:', isYuumiMember);
-          
-          // Get guild member info for roles
-          let memberInfo = null;
-          if (isYuumiMember) {
-            memberInfo = await discordAPI.getGuildMember((profile as DiscordProfile).id);
-            console.log('Member info retrieved:', memberInfo ? 'Success' : 'Failed');
-          }
-          
-          // Update or create user in database
-          const { error } = await supabase
-            .from('users')
-            .upsert({
-              discord_id: (profile as DiscordProfile).id,
-              username: (profile as DiscordProfile).username,
-              discriminator: (profile as DiscordProfile).discriminator,
-              avatar: (profile as DiscordProfile).avatar,
-              roles: memberInfo?.roles || [],
-              is_yuumi_member: isYuumiMember,
-              joined_discord_at: memberInfo?.joined_at ? new Date(memberInfo.joined_at) : null,
-              updated_at: new Date(),
-            }, {
-              onConflict: 'discord_id',
-            });
-
-          if (error) {
-            console.error('Error updating user:', error);
-            return false;
-          }
-        } catch (error) {
-          console.error('Error in signIn callback:', error);
-          console.error('Error details:', {
-            name: (error as Error)?.name,
-            message: (error as Error)?.message,
-            stack: (error as Error)?.stack?.split('\n').slice(0, 3)
-          });
-          return false;
-        }
+        console.log('Processing Discord login for user:', (profile as DiscordProfile).username);
+        return true;
       }
       return true;
     },
     async session({ session, token }) {
-      if (session.user && token.sub) {
-        // Get user info from database
-        const { data: userData } = await supabase
-          .from('users')
-          .select('*')
-          .eq('discord_id', token.sub)
-          .single();
-
-        if (userData) {
-          session.user.id = userData.id;
-          session.user.discord_id = userData.discord_id;
-          session.user.user_role = userData.user_role;
-          session.user.is_yuumi_member = userData.is_yuumi_member;
-          session.user.roles = userData.roles;
-        }
-      }
+      console.log('Session callback triggered');
       return session;
     },
     async jwt({ token, account, profile }) {
-      if (account && profile) {
-        token.discord_id = (profile as DiscordProfile).id;
-        token.access_token = account.access_token;
-      }
+      console.log('JWT callback triggered');
       return token;
     },
   },
