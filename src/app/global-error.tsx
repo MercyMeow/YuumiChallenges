@@ -1,6 +1,7 @@
 'use client';
 
 export default function GlobalError({
+  error: _error, // eslint-disable-line @typescript-eslint/no-unused-vars
   reset,
 }: {
   error: Error & { digest?: string };
