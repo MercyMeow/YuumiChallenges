@@ -20,7 +20,7 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-950 via-blue-950 to-indigo-950">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
         <div className="relative">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
           <div className="absolute inset-0 animate-ping rounded-full h-12 w-12 border border-purple-400/30"></div>
@@ -36,7 +36,7 @@ export default function Home() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Magical Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-blue-950 to-indigo-950">
+      <div className="absolute inset-0 bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(147,51,234,0.3)_0%,_transparent_50%)]"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_rgba(59,130,246,0.3)_0%,_transparent_50%)]"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,_rgba(139,69,234,0.2)_0%,_transparent_50%)]"></div>
@@ -76,11 +76,11 @@ export default function Home() {
               Yuum.Ai Dashboard
             </h1>
             
-            <p className="text-xl md:text-3xl text-purple-100 mb-8 font-medium">
+            <p className="text-xl md:text-3xl text-landing-text-primary mb-8 font-medium">
               Professional challenge tracking for League of Legends Yuumi Mains
             </p>
             
-            <p className="text-lg md:text-xl text-blue-200/80 max-w-3xl mx-auto mb-16 leading-relaxed">
+            <p className="text-lg md:text-xl text-landing-text-secondary/80 max-w-3xl mx-auto mb-16 leading-relaxed">
               Track your progress, compete with friends, and excel as an enchanter 
               in the Yuumi Mains Discord community. Master the art of support gameplay 
               with advanced analytics and community challenges.
@@ -134,7 +134,7 @@ export default function Home() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <CardDescription className="text-blue-100/80 text-center leading-relaxed">
+                    <CardDescription className="text-landing-text-primary/80 text-center leading-relaxed">
                       {feature.description}
                     </CardDescription>
                   </CardContent>
@@ -152,12 +152,12 @@ export default function Home() {
                 <CardTitle className="text-white text-3xl font-bold mb-2">
                   Join the Yuumi Mains Discord
                 </CardTitle>
-                <CardDescription className="text-blue-100 text-lg">
+                <CardDescription className="text-landing-text-primary text-lg">
                   Connect with thousands of Yuumi players worldwide
                 </CardDescription>
               </CardHeader>
               <CardContent className="relative text-center">
-                <p className="mb-8 text-purple-100 text-lg leading-relaxed">
+                <p className="mb-8 text-landing-text-primary text-lg leading-relaxed">
                   You must be a member of our Discord server to access the dashboard. 
                   Join our community to unlock challenges, leaderboards, and connect with fellow enchanters.
                 </p>
@@ -183,10 +183,10 @@ export default function Home() {
 
           {/* Bottom Decoration */}
           <div className="mt-20 text-center">
-            <div className="inline-flex items-center gap-4 text-purple-300/60 text-sm">
-              <div className="w-16 h-px bg-gradient-to-r from-transparent to-purple-300/60"></div>
+            <div className="inline-flex items-center gap-4 text-muted-foreground text-sm">
+              <div className="w-16 h-px bg-gradient-to-r from-transparent to-border"></div>
               <span>Crafted for the Yuumi Community</span>
-              <div className="w-16 h-px bg-gradient-to-l from-transparent to-purple-300/60"></div>
+              <div className="w-16 h-px bg-gradient-to-l from-transparent to-border"></div>
             </div>
           </div>
         </div>
