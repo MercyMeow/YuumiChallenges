@@ -73,7 +73,7 @@ export class DiscordAPI {
     try {
       const member = await this.getGuildMember(userId);
       return member !== null;
-    } catch (error) {
+    } catch {
       return false;
     }
   }

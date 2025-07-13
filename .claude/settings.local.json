@@ -9,7 +9,11 @@
       "mcp__sequential-thinking__sequentialthinking",
       "Bash(npx shadcn@latest add:*)",
       "Bash(mkdir:*)",
-      "mcp__supabase__execute_sql"
+      "mcp__supabase__execute_sql",
+      "Bash(npm run build:*)",
+      "Bash(npm run lint)",
+      "Bash(npx tsc:*)",
+      "Bash(gemini:*)"
     ]
   },
   "enabledMcpjsonServers": [

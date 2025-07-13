@@ -76,8 +76,8 @@ export default function Dashboard() {
             {!isYuumiMember && (
               <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                 <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  ⚠️ You're not detected as a member of the Yuumi Mains Discord server. 
-                  Some features may be limited. Please ensure you've joined the server and try signing in again.
+                  ⚠️ You&apos;re not detected as a member of the Yuumi Mains Discord server. 
+                  Some features may be limited. Please ensure you&apos;ve joined the server and try signing in again.
                 </p>
               </div>
             )}

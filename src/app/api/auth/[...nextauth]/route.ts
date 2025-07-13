@@ -2,8 +2,15 @@ import NextAuth, { NextAuthOptions } from 'next-auth';
 import DiscordProvider from 'next-auth/providers/discord';
 import { SupabaseAdapter } from '@next-auth/supabase-adapter';
 import { createServerSupabaseClient } from '@/lib/supabase';
-import { DISCORD_SCOPES, YUUMI_DISCORD_SERVER_ID } from '@/lib/utils/constants';
+import { DISCORD_SCOPES } from '@/lib/utils/constants';
 import { DiscordAPI } from '@/lib/apis/discord';
+
+interface DiscordProfile {
+  id: string;
+  username: string;
+  discriminator: string;
+  avatar: string | null;
+}
 
 const supabase = createServerSupabaseClient();
 
@@ -24,28 +31,28 @@ const authOptions: NextAuthOptions = {
     secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
   }),
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ account, profile }) {
       if (account?.provider === 'discord' && profile) {
         try {
           const discordAPI = new DiscordAPI(process.env.DISCORD_BOT_TOKEN!);
           
           // Check if user is in Yuumi Discord server
-          const isYuumiMember = await discordAPI.isUserInYuumiServer(profile.id as string);
+          const isYuumiMember = await discordAPI.isUserInYuumiServer((profile as DiscordProfile).id);
           
           // Get guild member info for roles
           let memberInfo = null;
           if (isYuumiMember) {
-            memberInfo = await discordAPI.getGuildMember(profile.id as string);
+            memberInfo = await discordAPI.getGuildMember((profile as DiscordProfile).id);
           }
           
           // Update or create user in database
           const { error } = await supabase
             .from('users')
             .upsert({
-              discord_id: profile.id,
-              username: profile.username,
-              discriminator: profile.discriminator,
-              avatar: profile.avatar,
+              discord_id: (profile as DiscordProfile).id,
+              username: (profile as DiscordProfile).username,
+              discriminator: (profile as DiscordProfile).discriminator,
+              avatar: (profile as DiscordProfile).avatar,
               roles: memberInfo?.roles || [],
               is_yuumi_member: isYuumiMember,
               joined_discord_at: memberInfo?.joined_at ? new Date(memberInfo.joined_at) : null,
@@ -86,7 +93,7 @@ const authOptions: NextAuthOptions = {
     },
     async jwt({ token, account, profile }) {
       if (account && profile) {
-        token.discord_id = profile.id;
+        token.discord_id = (profile as DiscordProfile).id;
         token.access_token = account.access_token;
       }
       return token;

@@ -1,4 +1,4 @@
-import { REGIONS, REGION_TO_ROUTE } from '@/lib/utils/constants';
+import { REGION_TO_ROUTE } from '@/lib/utils/constants';
 
 export class RiotAPI {
   private apiKey: string;
