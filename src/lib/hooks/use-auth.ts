@@ -1,0 +1,39 @@
+'use client';
+
+import { useSession } from 'next-auth/react';
+import { useMemo } from 'react';
+
+export function useAuth() {
+  const { data: session, status } = useSession();
+
+  const user = useMemo(() => {
+    if (!session?.user) return null;
+    
+    return {
+      id: session.user.id,
+      discord_id: session.user.discord_id,
+      name: session.user.name,
+      image: session.user.image,
+      user_role: session.user.user_role,
+      is_yuumi_member: session.user.is_yuumi_member,
+      roles: session.user.roles,
+    };
+  }, [session]);
+
+  const isLoading = status === 'loading';
+  const isAuthenticated = status === 'authenticated' && !!session;
+
+  const isAdmin = user?.user_role === 'admin';
+  const isModerator = user?.user_role === 'moderator' || isAdmin;
+  const isYuumiMember = user?.is_yuumi_member || false;
+
+  return {
+    user,
+    isLoading,
+    isAuthenticated,
+    isAdmin,
+    isModerator,
+    isYuumiMember,
+    status,
+  };
+}
