@@ -71,9 +71,9 @@ const authOptions: NextAuthOptions = {
         } catch (error) {
           console.error('Error in signIn callback:', error);
           console.error('Error details:', {
-            name: error?.name,
-            message: error?.message,
-            stack: error?.stack?.split('\n').slice(0, 3)
+            name: (error as Error)?.name,
+            message: (error as Error)?.message,
+            stack: (error as Error)?.stack?.split('\n').slice(0, 3)
           });
           return false;
         }
