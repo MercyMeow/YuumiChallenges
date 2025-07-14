@@ -342,14 +342,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </header>
           <main className="flex-1 overflow-auto p-6">
             {!isYuumiMember && (
-              <div className="mb-6 p-4 bg-yellow-500/20 backdrop-blur-md border border-yellow-500/30 rounded-lg">
+              <div className="mb-6 p-4 bg-red-500/10 backdrop-blur-md border border-red-500/30 rounded-lg">
                 <div className="flex items-start space-x-2">
-                  <span className="text-yellow-400 mt-0.5">⚠️</span>
+                  <span className="text-red-400 mt-0.5">⚠️</span>
                   <div>
-                    <p className="text-sm font-medium text-yellow-200">
+                    <p className="text-sm font-medium text-red-200">
                       Limited Access
                     </p>
-                    <p className="text-sm text-yellow-300 mt-1">
+                    <p className="text-sm text-red-300 mt-1">
                       You&apos;re not detected as a member of the Yuumi Mains Discord server. 
                       Some features may be limited. Please ensure you&apos;ve joined the server and try signing in again.
                     </p>
