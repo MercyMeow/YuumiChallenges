@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 // Define rule GIFs with metadata
 const ruleGifs = [
@@ -185,24 +184,9 @@ export default function GalleryPage() {
               <span>Back to Home</span>
             </Link>
             
-            <div className="mb-8 relative">
-              <div className="text-6xl mb-4 relative inline-block animate-subtle-float">
-                <span className="relative z-10">🖼️</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-yuumi-teal to-yuumi-blue blur-3xl opacity-20 animate-glow"></div>
-              </div>
-            </div>
-            
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-landing-text-primary via-yuumi-teal to-yuumi-blue bg-clip-text text-transparent leading-tight">
-              Rule Gallery
+              Yuumi Rule Gallery
             </h1>
-            
-            <p className="text-xl text-landing-text-primary mb-4">
-              Browse and share Discord server rule GIFs
-            </p>
-            
-            <p className="text-lg text-landing-text-secondary/80 max-w-2xl mx-auto leading-relaxed">
-              Click on any GIF to copy its short link for easy sharing and Discord embedding
-            </p>
           </div>
 
           {/* Gallery Grid */}
