@@ -8,7 +8,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto rounded-lg border border-border/50 bg-card/50 backdrop-blur-sm shadow-lg"
+      className="relative w-full overflow-x-auto rounded-lg border border-border border-opacity-50 bg-card bg-opacity-50 backdrop-blur-sm shadow-lg"
     >
       <table
         data-slot="table"
@@ -57,7 +57,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "hover:bg-primary/5 data-[state=selected]:bg-primary/10 border-b border-border/50 transition-all duration-200",
+        "hover:bg-primary hover:bg-opacity-5 data-[state=selected]:bg-primary data-[state=selected]:bg-opacity-10 border-b border-border border-opacity-50 transition-all duration-200",
         className
       )}
       {...props}
@@ -70,7 +70,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "text-foreground h-12 px-4 text-left align-middle font-semibold whitespace-nowrap bg-muted/30 first:rounded-tl-lg last:rounded-tr-lg [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        "text-foreground h-12 px-4 text-left align-middle font-semibold whitespace-nowrap bg-muted bg-opacity-30 first:rounded-tl-lg last:rounded-tr-lg [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}

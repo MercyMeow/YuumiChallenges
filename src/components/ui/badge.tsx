@@ -10,17 +10,17 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-primary/20 [a&]:hover:shadow-md [a&]:hover:shadow-primary/30 [a&]:hover:scale-105",
+          "border-transparent bg-gradient-to-r from-primary to-primary to-opacity-80 text-primary-foreground shadow-primary shadow-opacity-20 [a&]:hover:shadow-md [a&]:hover:shadow-primary [a&]:hover:shadow-opacity-30 [a&]:hover:scale-105",
         secondary:
-          "border-secondary/30 bg-secondary/20 backdrop-blur-sm text-secondary-foreground [a&]:hover:bg-secondary/30 [a&]:hover:border-secondary/50",
+          "border-secondary border-opacity-30 bg-secondary bg-opacity-20 backdrop-blur-sm text-secondary-foreground [a&]:hover:bg-secondary [a&]:hover:bg-opacity-30 [a&]:hover:border-secondary [a&]:hover:border-opacity-50",
         destructive:
-          "border-transparent bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground shadow-destructive/20 [a&]:hover:shadow-md [a&]:hover:shadow-destructive/30 [a&]:hover:scale-105",
+          "border-transparent bg-gradient-to-r from-destructive to-destructive to-opacity-80 text-destructive-foreground shadow-destructive shadow-opacity-20 [a&]:hover:shadow-md [a&]:hover:shadow-destructive [a&]:hover:shadow-opacity-30 [a&]:hover:scale-105",
         outline:
-          "border-input/50 bg-background/50 backdrop-blur-sm text-foreground [a&]:hover:bg-accent/30 [a&]:hover:text-accent-foreground [a&]:hover:border-primary/50",
+          "border-input border-opacity-50 bg-background bg-opacity-50 backdrop-blur-sm text-foreground [a&]:hover:bg-accent [a&]:hover:bg-opacity-30 [a&]:hover:text-accent-foreground [a&]:hover:border-primary [a&]:hover:border-opacity-50",
         success:
-          "border-transparent bg-gradient-to-r from-green-600 to-green-500 text-white shadow-green-500/20 [a&]:hover:shadow-md [a&]:hover:shadow-green-500/30 [a&]:hover:scale-105",
+          "border-transparent bg-gradient-to-r from-green-600 to-green-500 text-white shadow-green-500 shadow-opacity-20 [a&]:hover:shadow-md [a&]:hover:shadow-green-500 [a&]:hover:shadow-opacity-30 [a&]:hover:scale-105",
         warning:
-          "border-transparent bg-gradient-to-r from-yellow-600 to-yellow-500 text-white shadow-yellow-500/20 [a&]:hover:shadow-md [a&]:hover:shadow-yellow-500/30 [a&]:hover:scale-105",
+          "border-transparent bg-gradient-to-r from-yellow-600 to-yellow-500 text-white shadow-yellow-500 shadow-opacity-20 [a&]:hover:shadow-md [a&]:hover:shadow-yellow-500 [a&]:hover:shadow-opacity-30 [a&]:hover:scale-105",
       },
     },
     defaultVariants: {
