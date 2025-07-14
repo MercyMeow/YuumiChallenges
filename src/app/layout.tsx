@@ -21,12 +21,9 @@ export const metadata: Metadata = {
   keywords: ["League of Legends", "Yuumi", "Discord", "Challenges", "Gaming"],
   authors: [{ name: "Yuumi Mains Community" }],
   icons: {
-    icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico", sizes: "any" }
-    ],
+    icon: "/favicon.ico",
     shortcut: "/favicon.ico",
-    apple: "/favicon.svg",
+    apple: "/favicon.ico",
   },
 };
 
