@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Define rule GIFs with metadata
 const ruleGifs = [
@@ -30,24 +31,6 @@ interface GifCardProps {
 
 function GifCard({ gif, onCopyLink, isCopied }: GifCardProps) {
   const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
-  const [imageSrc, setImageSrc] = useState<string>('');
-
-  useEffect(() => {
-    // Use the direct path to the GIF in public folder
-    const src = `/${gif.name}`;
-    setImageSrc(src);
-
-    // Preload the image to check if it loads correctly
-    const img = new window.Image();
-    img.onload = () => setImageState('loaded');
-    img.onerror = () => setImageState('error');
-    img.src = src;
-
-    return () => {
-      img.onload = null;
-      img.onerror = null;
-    };
-  }, [gif.name]);
 
   return (
     <div className="group relative">
@@ -89,14 +72,16 @@ function GifCard({ gif, onCopyLink, isCopied }: GifCardProps) {
                   </div>
                 )}
 
-                {imageState !== 'error' && imageSrc && (
-                  <img
-                    src={imageSrc}
+                {imageState !== 'error' && (
+                  <Image
+                    src={`/${gif.name}`}
                     alt={`Rule ${gif.rule} GIF`}
+                    width={300}
+                    height={200}
                     className={`max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300 ${
                       imageState === 'loading' ? 'opacity-0' : 'opacity-100'
                     }`}
-                    loading="lazy"
+                    unoptimized
                     onLoad={() => setImageState('loaded')}
                     onError={() => setImageState('error')}
                   />
