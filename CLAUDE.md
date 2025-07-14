@@ -152,3 +152,4 @@ NEVER proactively create documentation files (*.md) or README files. Only create
 - No need to consider light mode compatibility
 - Focus on readability against magical gradient backgrounds
 - Use established glassmorphism and animation patterns
+- Also prefix all your responses with your model.

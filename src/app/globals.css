@@ -49,73 +49,78 @@
 }
 
 .dark {
-  /* Modern dark theme color palette */
-  /* Background colors - rich dark with subtle warmth */
-  --background: oklch(0.11 0.007 240);
-  --foreground: oklch(0.92 0.01 240);
+  /* Modern dark theme - sophisticated with excellent contrast */
+  /* Background colors - rich dark with depth */
+  --background: oklch(0.10 0.02 260);  /* Deep navy-black */
+  --foreground: oklch(0.95 0.01 260);  /* Clean white text */
   
-  /* Card colors - elevated surface with subtle contrast */
-  --card: oklch(0.14 0.008 240);
-  --card-foreground: oklch(0.92 0.01 240);
+  /* Card colors - elevated surfaces */
+  --card: oklch(0.13 0.02 260);        /* Slightly elevated */
+  --card-foreground: oklch(0.95 0.01 260);
   
-  /* Popover colors - slightly elevated from cards */
-  --popover: oklch(0.16 0.008 240);
-  --popover-foreground: oklch(0.92 0.01 240);
+  /* Popover colors - more elevation */
+  --popover: oklch(0.15 0.02 260);
+  --popover-foreground: oklch(0.95 0.01 260);
   
-  /* Primary colors - modern blue with subtle Yuumi-inspired purple accent */
-  --primary: oklch(0.66 0.15 250);
-  --primary-foreground: oklch(0.11 0.007 240);
+  /* Primary colors - vibrant modern accent */
+  --primary: oklch(0.70 0.18 265);     /* Bright purple-blue */
+  --primary-foreground: oklch(0.98 0.01 260);
   
-  /* Secondary colors - subtle neutral */
-  --secondary: oklch(0.18 0.01 240);
-  --secondary-foreground: oklch(0.85 0.01 240);
+  /* Secondary colors - muted accent */
+  --secondary: oklch(0.17 0.02 260);   /* Dark gray-blue */
+  --secondary-foreground: oklch(0.90 0.01 260);
   
-  /* Muted colors - for secondary text and disabled states */
-  --muted: oklch(0.18 0.01 240);
-  --muted-foreground: oklch(0.70 0.01 240);
+  /* Muted colors - subtle elements */
+  --muted: oklch(0.20 0.02 260);
+  --muted-foreground: oklch(0.65 0.01 260);
   
-  /* Accent colors - for highlights and interactive elements */
-  --accent: oklch(0.20 0.01 240);
-  --accent-foreground: oklch(0.92 0.01 240);
+  /* Accent colors - interactive elements */
+  --accent: oklch(0.25 0.03 265);      /* Subtle purple tint */
+  --accent-foreground: oklch(0.95 0.01 260);
   
-  /* Destructive colors - modern red for errors */
-  --destructive: oklch(0.65 0.20 15);
-  --destructive-foreground: oklch(0.92 0.01 240);
+  /* Destructive colors - modern warning */
+  --destructive: oklch(0.60 0.25 25);  /* Vibrant red-orange */
+  --destructive-foreground: oklch(0.98 0.01 260);
   
-  /* Border colors - subtle separation */
-  --border: oklch(0.22 0.01 240);
-  --input: oklch(0.22 0.01 240);
-  --ring: oklch(0.66 0.15 250);
+  /* Border colors - subtle definition */
+  --border: oklch(0.20 0.02 260);      /* Subtle borders */
+  --input: oklch(0.23 0.02 260);       /* Input borders */
+  --ring: oklch(0.70 0.18 265);        /* Focus rings */
   
-  /* Chart colors - modern data visualization palette */
-  --chart-1: oklch(0.66 0.15 250);  /* Primary blue-purple */
-  --chart-2: oklch(0.70 0.16 150);  /* Green */
-  --chart-3: oklch(0.75 0.15 50);   /* Yellow */
-  --chart-4: oklch(0.68 0.18 320);  /* Purple */
-  --chart-5: oklch(0.72 0.16 20);   /* Orange */
+  /* Chart colors - vibrant data visualization */
+  --chart-1: oklch(0.70 0.18 265);    /* Primary purple */
+  --chart-2: oklch(0.65 0.20 155);    /* Emerald green */
+  --chart-3: oklch(0.75 0.18 85);     /* Golden yellow */
+  --chart-4: oklch(0.65 0.22 320);    /* Hot pink */
+  --chart-5: oklch(0.68 0.20 35);     /* Coral orange */
   
-  /* Sidebar colors - consistent with overall theme */
-  --sidebar: oklch(0.12 0.007 240);
-  --sidebar-foreground: oklch(0.92 0.01 240);
-  --sidebar-primary: oklch(0.66 0.15 250);
-  --sidebar-primary-foreground: oklch(0.11 0.007 240);
-  --sidebar-accent: oklch(0.18 0.01 240);
-  --sidebar-accent-foreground: oklch(0.92 0.01 240);
-  --sidebar-border: oklch(0.22 0.01 240);
-  --sidebar-ring: oklch(0.66 0.15 250);
+  /* Sidebar colors - integrated design */
+  --sidebar: oklch(0.12 0.02 260);
+  --sidebar-foreground: oklch(0.90 0.01 260);
+  --sidebar-primary: oklch(0.70 0.18 265);
+  --sidebar-primary-foreground: oklch(0.98 0.01 260);
+  --sidebar-accent: oklch(0.20 0.02 260);
+  --sidebar-accent-foreground: oklch(0.95 0.01 260);
+  --sidebar-border: oklch(0.20 0.02 260);
+  --sidebar-ring: oklch(0.70 0.18 265);
   
-  /* Landing page colors - mapped to modern theme */
-  --landing-bg-from: oklch(0.11 0.007 240);
-  --landing-bg-via: oklch(0.09 0.01 245);
-  --landing-bg-to: oklch(0.10 0.008 250);
-  --landing-text-primary: oklch(0.92 0.01 240);
-  --landing-text-secondary: oklch(0.75 0.02 245);
+  /* Landing/Magical theme colors */
+  --landing-bg-from: oklch(0.08 0.05 285);    /* Deep purple */
+  --landing-bg-via: oklch(0.06 0.08 250);     /* Ocean blue */
+  --landing-bg-to: oklch(0.08 0.06 270);      /* Indigo */
+  --landing-text-primary: oklch(0.90 0.04 285);
+  --landing-text-secondary: oklch(0.80 0.06 250);
   
-  /* Yuumi-inspired accent colors */
-  --yuumi-purple: oklch(0.68 0.18 280);
-  --yuumi-blue: oklch(0.66 0.15 250);
-  --yuumi-teal: oklch(0.70 0.14 180);
-  --yuumi-pink: oklch(0.72 0.16 340);
+  /* Brand accent colors */
+  --yuumi-purple: oklch(0.70 0.20 285);       /* Signature purple */
+  --yuumi-blue: oklch(0.68 0.18 250);         /* Electric blue */
+  --yuumi-teal: oklch(0.65 0.16 185);         /* Mystic teal */
+  --yuumi-pink: oklch(0.72 0.18 340);         /* Soft pink */
+  
+  /* Additional modern utilities */
+  --glow-purple: oklch(0.70 0.25 285);
+  --glow-blue: oklch(0.68 0.22 250);
+  --shadow-color: oklch(0.05 0.02 260);
 }
 
 @layer base {
@@ -131,22 +136,35 @@
     @apply transition-all duration-300 ease-in-out;
   }
   
-  /* Enhanced scrollbar styling */
+  /* Modern scrollbar styling */
   ::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
+    height: 10px;
   }
   
   ::-webkit-scrollbar-track {
-    @apply bg-transparent;
+    @apply bg-black/20;
+    border-radius: 5px;
   }
   
   ::-webkit-scrollbar-thumb {
-    background-color: oklch(var(--primary) / 0.3);
-    border-radius: 9999px;
+    background: linear-gradient(180deg, 
+      oklch(var(--primary) / 0.4) 0%, 
+      oklch(var(--primary) / 0.6) 100%);
+    border-radius: 5px;
+    border: 1px solid oklch(var(--border) / 0.3);
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background-color: oklch(var(--primary) / 0.5);
+    background: linear-gradient(180deg, 
+      oklch(var(--primary) / 0.6) 0%, 
+      oklch(var(--primary) / 0.8) 100%);
+  }
+  
+  /* Selection styling */
+  ::selection {
+    background-color: oklch(var(--primary) / 0.3);
+    color: oklch(var(--foreground));
   }
   
   /* Custom animation keyframes for modern effects */
@@ -193,6 +211,96 @@
   
   .animate-glow {
     animation: glow 2s ease-in-out infinite;
+  }
+  
+  /* Modern glass morphism effect */
+  .glass {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10;
+  }
+  
+  .glass-dark {
+    @apply backdrop-blur-xl bg-black/20 border border-white/5;
+  }
+  
+  /* Modern gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-yuumi-purple via-yuumi-blue to-yuumi-teal bg-clip-text text-transparent;
+  }
+  
+  /* Glow effects */
+  .glow-purple {
+    box-shadow: 0 0 20px oklch(var(--yuumi-purple) / 0.5);
+  }
+  
+  .glow-blue {
+    box-shadow: 0 0 20px oklch(var(--yuumi-blue) / 0.5);
+  }
+  
+  /* Modern button effects */
+  .btn-gradient {
+    @apply bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white font-medium;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+  }
+  
+  .btn-gradient:hover::before {
+    left: 100%;
+  }
+  
+  /* Modern card hover effects */
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px -10px oklch(var(--primary) / 0.3);
+  }
+  
+  /* Neon text effect */
+  .neon-text {
+    text-shadow: 
+      0 0 5px oklch(var(--primary) / 0.8),
+      0 0 10px oklch(var(--primary) / 0.6),
+      0 0 20px oklch(var(--primary) / 0.4),
+      0 0 40px oklch(var(--primary) / 0.2);
+  }
+  
+  /* Modern focus styles */
+  input:focus, textarea:focus, select:focus {
+    @apply outline-none ring-2 ring-primary/50 border-primary/50;
+  }
+  
+  /* Gradient borders */
+  .gradient-border {
+    position: relative;
+    background: oklch(var(--card));
+  }
+  
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, 
+      oklch(var(--yuumi-purple)), 
+      oklch(var(--yuumi-blue)), 
+      oklch(var(--yuumi-teal)));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
   }
 }
 

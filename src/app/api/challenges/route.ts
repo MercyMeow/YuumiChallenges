@@ -1,14 +1,16 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+// import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { requireAuth, createAuthResponse } from '@/lib/api/middleware/auth';
+import { handleApiError, ApiError } from '@/lib/api/utils/error-handler';
+import { createSuccessResponse } from '@/lib/api/utils/response-helpers';
 
 export async function GET() {
   try {
-    const session = await getServerSession();
+    const authResult = await requireAuth();
+    const authResponse = createAuthResponse(authResult);
+    if (authResponse) return authResponse;
     
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = authResult.session!;
 
     const supabase = createServerSupabaseClient();
     
@@ -34,8 +36,7 @@ export async function GET() {
       .order('created_at', { ascending: false });
 
     if (activeError) {
-      console.error('Error fetching active challenges:', activeError);
-      return NextResponse.json({ error: 'Failed to fetch active challenges' }, { status: 500 });
+      throw new ApiError(500, 'Failed to fetch active challenges', 'DATABASE_ERROR', activeError);
     }
 
     // Get available challenges that user hasn't joined
@@ -54,8 +55,7 @@ export async function GET() {
     const { data: availableChallenges, error: availableError } = await availableQuery;
 
     if (availableError) {
-      console.error('Error fetching available challenges:', availableError);
-      return NextResponse.json({ error: 'Failed to fetch available challenges' }, { status: 500 });
+      throw new ApiError(500, 'Failed to fetch available challenges', 'DATABASE_ERROR', availableError);
     }
 
     // Get completed challenges
@@ -80,24 +80,34 @@ export async function GET() {
       .order('completed_at', { ascending: false });
 
     if (completedError) {
-      console.error('Error fetching completed challenges:', completedError);
-      return NextResponse.json({ error: 'Failed to fetch completed challenges' }, { status: 500 });
+      throw new ApiError(500, 'Failed to fetch completed challenges', 'DATABASE_ERROR', completedError);
     }
 
-    // Get participant counts for available challenges
-    const challengeParticipants = await Promise.all(
-      (availableChallenges || []).map(async (challenge) => {
-        const { count } = await supabase
-          .from('user_challenges')
-          .select('*', { count: 'exact', head: true })
-          .eq('challenge_id', challenge.id);
-        
-        return {
-          ...challenge,
-          participants: count || 0
-        };
-      })
-    );
+    // Get participant counts for all available challenges in a single query
+    const challengeIds = availableChallenges?.map(c => c.id) || [];
+    const participantCounts: Record<string, number> = {};
+    
+    if (challengeIds.length > 0) {
+      const { data: participantData, error: participantError } = await supabase
+        .from('user_challenges')
+        .select('challenge_id')
+        .in('challenge_id', challengeIds);
+      
+      if (participantError) {
+        console.error('Error fetching participant counts:', participantError);
+      } else if (participantData) {
+        // Count participants per challenge
+        participantData.forEach(p => {
+          participantCounts[p.challenge_id] = (participantCounts[p.challenge_id] || 0) + 1;
+        });
+      }
+    }
+    
+    // Map participant counts to challenges
+    const challengeParticipants = (availableChallenges || []).map(challenge => ({
+      ...challenge,
+      participants: participantCounts[challenge.id] || 0
+    }));
 
     // Calculate stats
     const stats = {
@@ -106,7 +116,7 @@ export async function GET() {
       activeCount: activeChallenges?.length || 0,
     };
 
-    return NextResponse.json({
+    return createSuccessResponse({
       active: activeChallenges?.map(uc => ({
         id: uc.id,
         challenge_id: uc.challenge_id,
@@ -148,8 +158,7 @@ export async function GET() {
       stats,
     });
   } catch (error) {
-    console.error('Error in challenges API:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleApiError(error, 'GET /api/challenges');
   }
 }
 

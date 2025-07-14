@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Get all rule GIFs from the public directory
 const ruleGifs = [
@@ -121,11 +122,14 @@ export default function GalleryPage() {
                           </div>
                         )}
                         <div className="relative w-full h-48 flex items-center justify-center">
-                          <img 
+                          <Image 
                             src={`/${gif}`} 
                             alt={`Rule ${ruleNumber} GIF`}
+                            width={192}
+                            height={192}
                             className="max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300"
                             loading="lazy"
+                            unoptimized // GIFs don't benefit from Next.js optimization
                           />
                         </div>
                       </div>

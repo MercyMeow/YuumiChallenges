@@ -1,19 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { NextRequest } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { requireAuth, createAuthResponse } from '@/lib/api/middleware/auth';
+import { handleApiError, ApiError } from '@/lib/api/utils/error-handler';
+import { createSuccessResponse } from '@/lib/api/utils/response-helpers';
+import { getPaginationParams, createPaginatedResponse } from '@/lib/api/utils/pagination';
+// import { executeQuery, batchQuery } from '@/lib/api/utils/query-helpers';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const authResult = await requireAuth();
+    const authResponse = createAuthResponse(authResult);
+    if (authResponse) return authResponse;
     
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    const session = authResult.session!;
     const supabase = createServerSupabaseClient();
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const paginationParams = getPaginationParams(request);
 
     // Get user points with ranking calculation
     const { data: pointsData, error: pointsError } = await supabase
@@ -35,30 +36,29 @@ export async function GET(request: NextRequest) {
       `)
       .eq('users.is_yuumi_member', true)
       .order('rank_position', { ascending: true })
-      .range(offset, offset + limit - 1);
+      .range(paginationParams.offset, paginationParams.offset + paginationParams.limit - 1);
 
     if (pointsError) {
-      console.error('Error fetching points leaderboard:', pointsError);
-      return NextResponse.json({ error: 'Failed to fetch points leaderboard' }, { status: 500 });
+      throw new ApiError(500, 'Failed to fetch points leaderboard', 'DATABASE_ERROR', pointsError);
     }
 
     // Get challenge completion counts for each user
     const userIds = pointsData?.map(p => p.user_id) || [];
-    const { data: challengeData, error: challengeError } = await supabase
-      .from('user_challenges')
-      .select('user_id, completed')
-      .in('user_id', userIds)
-      .eq('completed', true);
-
-    if (challengeError) {
-      console.error('Error fetching challenge completions:', challengeError);
+    let challengeCompletions: Record<string, number> = {};
+    
+    if (userIds.length > 0) {
+      const { data: challengeData } = await supabase
+        .from('user_challenges')
+        .select('user_id, completed')
+        .in('user_id', userIds)
+        .eq('completed', true);
+      
+      // Group challenge completions by user
+      challengeCompletions = (challengeData || []).reduce((acc, challenge) => {
+        acc[challenge.user_id] = (acc[challenge.user_id] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
     }
-
-    // Group challenge completions by user
-    const challengeCompletions = (challengeData || []).reduce((acc, challenge) => {
-      acc[challenge.user_id] = (acc[challenge.user_id] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
 
     // Get total count for pagination
     const { count, error: countError } = await supabase
@@ -91,15 +91,20 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json({
+    const response = createPaginatedResponse(
       rankings,
+      count || 0,
+      paginationParams
+    );
+    
+    return createSuccessResponse({
+      ...response,
       userPosition: currentUserPosition,
       totalPlayers: count || 0,
       lastUpdated: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error in points leaderboard API:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return handleApiError(error, 'GET /api/leaderboard/points');
   }
 }
 

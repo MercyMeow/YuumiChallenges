@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // List of valid rule GIFs
 const validGifs = [
@@ -97,11 +98,14 @@ export default async function GifPage({ params }: PageProps) {
 
           {/* GIF Display */}
           <div className="relative mb-8 rounded-2xl overflow-hidden bg-card/50 backdrop-blur-sm border border-border/50 inline-block">
-            <img 
+            <Image 
               src={`/${gifName}`} 
               alt={`Rule ${ruleNumber} GIF`}
+              width={500}
+              height={500}
               className="max-w-full h-auto"
               style={{ maxWidth: '500px', width: '100%' }}
+              unoptimized // GIFs don't benefit from Next.js optimization
             />
           </div>
 
