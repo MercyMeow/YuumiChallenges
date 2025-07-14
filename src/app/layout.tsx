@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   description: "Challenge tracking dashboard for League of Legends Yuumi Mains Discord community",
   keywords: ["League of Legends", "Yuumi", "Discord", "Challenges", "Gaming"],
   authors: [{ name: "Yuumi Mains Community" }],
+  icons: {
+    icon: "/yuumi-favicon.svg",
+    shortcut: "/yuumi-favicon.svg",
+    apple: "/yuumi-favicon.svg",
+  },
 };
 
 export default function RootLayout({

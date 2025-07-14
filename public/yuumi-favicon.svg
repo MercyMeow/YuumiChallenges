@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Yuumi's face/head shape -->
+  <ellipse cx="16" cy="18" rx="12" ry="10" fill="#9b7dff" stroke="#7c5ce6" stroke-width="1"/>
+  
+  <!-- Ears -->
+  <path d="M 6 12 Q 4 4 8 8 L 10 14" fill="#9b7dff" stroke="#7c5ce6" stroke-width="1"/>
+  <path d="M 26 12 Q 28 4 24 8 L 22 14" fill="#9b7dff" stroke="#7c5ce6" stroke-width="1"/>
+  
+  <!-- Inner ears -->
+  <path d="M 8 10 Q 7 8 8.5 9 L 9 12" fill="#b19aff"/>
+  <path d="M 24 10 Q 25 8 23.5 9 L 23 12" fill="#b19aff"/>
+  
+  <!-- Eyes -->
+  <ellipse cx="11" cy="17" rx="2" ry="3" fill="#2d1b69"/>
+  <ellipse cx="21" cy="17" rx="2" ry="3" fill="#2d1b69"/>
+  <circle cx="11.5" cy="16" r="0.8" fill="#fff"/>
+  <circle cx="21.5" cy="16" r="0.8" fill="#fff"/>
+  
+  <!-- Nose -->
+  <path d="M 16 20 L 14 22 L 16 23 L 18 22 Z" fill="#7c5ce6"/>
+  
+  <!-- Mouth -->
+  <path d="M 16 23 Q 13 24 13 22" stroke="#7c5ce6" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <path d="M 16 23 Q 19 24 19 22" stroke="#7c5ce6" stroke-width="1" fill="none" stroke-linecap="round"/>
+  
+  <!-- Magical sparkles -->
+  <circle cx="7" cy="8" r="1" fill="#e0d5ff" opacity="0.8"/>
+  <circle cx="25" cy="7" r="1.2" fill="#e0d5ff" opacity="0.6"/>
+  <circle cx="28" cy="20" r="0.8" fill="#e0d5ff" opacity="0.7"/>
+  <circle cx="4" cy="22" r="1" fill="#e0d5ff" opacity="0.5"/>
+  
+  <!-- Book element (Yuumi's signature item) -->
+  <rect x="10" y="26" width="12" height="4" rx="0.5" fill="#4a3a8c" stroke="#7c5ce6" stroke-width="0.5"/>
+  <line x1="16" y1="26" x2="16" y2="30" stroke="#7c5ce6" stroke-width="0.5"/>
+</svg>
