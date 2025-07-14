@@ -4,7 +4,7 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
@@ -13,7 +13,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const challengeId = params.id;
+    const { id: challengeId } = await params;
     const supabase = createServerSupabaseClient();
 
     // Find the user's participation in this challenge

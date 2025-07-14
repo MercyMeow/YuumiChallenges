@@ -4,7 +4,7 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
@@ -13,7 +13,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const challengeId = params.id;
+    const { id } = await params;
+    const challengeId = id;
     const supabase = createServerSupabaseClient();
 
     // Get challenge details

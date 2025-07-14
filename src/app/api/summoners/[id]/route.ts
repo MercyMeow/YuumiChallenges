@@ -4,7 +4,7 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
@@ -13,7 +13,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const summonerId = params.id;
+    const { id } = await params;
+    const summonerId = id;
     const supabase = createServerSupabaseClient();
 
     // Verify the summoner belongs to the user
@@ -51,7 +52,7 @@ export async function DELETE(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
@@ -60,7 +61,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const summonerId = params.id;
+    const { id } = await params;
+    const summonerId = id;
     const supabase = createServerSupabaseClient();
 
     // Get summoner with related data

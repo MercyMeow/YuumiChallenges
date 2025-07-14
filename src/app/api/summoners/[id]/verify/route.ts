@@ -5,7 +5,7 @@ import { RiotAPI } from '@/lib/apis/riot';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
@@ -15,7 +15,8 @@ export async function PUT(
     }
 
     const { verificationCode } = await request.json();
-    const summonerId = params.id;
+    const { id } = await params;
+    const summonerId = id;
 
     if (!verificationCode) {
       return NextResponse.json({ error: 'Verification code is required' }, { status: 400 });
@@ -124,7 +125,7 @@ export async function PUT(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
@@ -133,7 +134,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const summonerId = params.id;
+    const { id } = await params;
+    const summonerId = id;
     const supabase = createServerSupabaseClient();
     
     // Get summoner data
