@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
+import { CheckCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 // Define rule GIFs with metadata
 const ruleGifs = [
@@ -30,8 +29,6 @@ interface GifCardProps {
 }
 
 function GifCard({ gif, onCopyLink, isCopied }: GifCardProps) {
-  const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
-
   return (
     <div className="group relative">
       <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/50 to-teal-500/50 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
@@ -58,34 +55,11 @@ function GifCard({ gif, onCopyLink, isCopied }: GifCardProps) {
 
               {/* Image container */}
               <div className="relative w-full h-48 flex items-center justify-center p-4">
-                {imageState === 'loading' && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
-                  </div>
-                )}
-
-                {imageState === 'error' && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-                    <AlertCircle className="w-8 h-8 text-red-400 mb-2" />
-                    <p className="text-sm text-red-300">Failed to load GIF</p>
-                    <p className="text-xs text-gray-400 mt-1">Click to copy link anyway</p>
-                  </div>
-                )}
-
-                {imageState !== 'error' && (
-                  <Image
-                    src={`/${gif.name}`}
-                    alt={`Rule ${gif.rule} GIF`}
-                    width={300}
-                    height={200}
-                    className={`max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300 ${
-                      imageState === 'loading' ? 'opacity-0' : 'opacity-100'
-                    }`}
-                    unoptimized
-                    onLoad={() => setImageState('loaded')}
-                    onError={() => setImageState('error')}
-                  />
-                )}
+                <img
+                  src={`/${gif.name}`}
+                  alt={`Rule ${gif.rule} GIF`}
+                  className="max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300"
+                />
               </div>
 
               {/* Rule label */}
