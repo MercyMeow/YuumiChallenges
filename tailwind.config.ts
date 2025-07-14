@@ -59,12 +59,18 @@ const config: Config = {
           border: "oklch(var(--sidebar-border))",
           ring: "oklch(var(--sidebar-ring))",
         },
-        landing: {
-          "bg-from": "oklch(var(--landing-bg-from))",
-          "bg-via": "oklch(var(--landing-bg-via))",
-          "bg-to": "oklch(var(--landing-bg-to))",
-          "text-primary": "oklch(var(--landing-text-primary))",
-          "text-secondary": "oklch(var(--landing-text-secondary))",
+        // Modern dark theme utility colors
+        success: {
+          DEFAULT: "oklch(0.70 0.16 150)",
+          foreground: "oklch(0.11 0.007 240)",
+        },
+        warning: {
+          DEFAULT: "oklch(0.75 0.15 50)",
+          foreground: "oklch(0.11 0.007 240)",
+        },
+        info: {
+          DEFAULT: "oklch(0.66 0.17 240)",
+          foreground: "oklch(0.11 0.007 240)",
         },
       },
       borderRadius: {

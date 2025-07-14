@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Get all rule GIFs from the public directory
 const ruleGifs = [
@@ -120,28 +121,22 @@ export default function GalleryPage() {
                             </div>
                           </div>
                         )}
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img 
-                          src={`/${gif}`} 
-                          alt={`Rule ${ruleNumber} GIF`}
-                          className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                          onError={(e) => {
-                            console.error(`Failed to load image: ${gif}`, e);
-                            const target = e.currentTarget as HTMLImageElement;
-                            target.parentElement!.innerHTML = `
-                              <div class="w-full h-48 bg-red-500/20 border border-red-500/40 rounded-lg flex items-center justify-center">
-                                <div class="text-red-300 text-center">
-                                  <p class="text-sm font-medium">Failed to load</p>
-                                  <p class="text-xs">${gif}</p>
-                                </div>
-                              </div>
-                            `;
-                          }}
-                          onLoad={() => {
-                            console.log(`Successfully loaded image: ${gif}`);
-                          }}
-                        />
+                        <div className="relative w-full h-48">
+                          <Image 
+                            src={`/${gif}`} 
+                            alt={`Rule ${ruleNumber} GIF`}
+                            fill
+                            className="object-cover hover:scale-105 transition-transform duration-300"
+                            unoptimized // Important for GIFs to work properly
+                            priority={false}
+                            onError={(e) => {
+                              console.error(`Failed to load image: ${gif}`, e);
+                            }}
+                            onLoad={() => {
+                              console.log(`Successfully loaded image: ${gif}`);
+                            }}
+                          />
+                        </div>
                       </div>
                     </CardContent>
                     </Card>
