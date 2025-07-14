@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Copy, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { CheckCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 // Get all rule GIFs from the public directory
@@ -101,17 +100,20 @@ export default function GalleryPage() {
               return (
                 <div key={gif} className="group relative">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/50 to-teal-500/50 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
-                  <Card className="relative backdrop-blur-md bg-gradient-to-br from-cyan-500/10 to-teal-500/10 border border-cyan-500/20 hover:border-cyan-400/40 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl overflow-hidden">
-                    <CardHeader className="text-center pb-3">
-                      <CardTitle className="text-white text-lg font-bold">
-                        Rule {ruleNumber}
-                      </CardTitle>
-                      <CardDescription className="text-cyan-300/80 text-sm">
-                        yuumi.quest/rule{ruleNumber}.gif
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <div className="relative mb-4 rounded-lg overflow-hidden bg-black/20 backdrop-blur-sm">
+                  <Card 
+                    className="relative backdrop-blur-md bg-gradient-to-br from-cyan-500/10 to-teal-500/10 border border-cyan-500/20 hover:border-cyan-400/40 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl overflow-hidden cursor-pointer"
+                    onClick={() => handleCopyLink(gif)}
+                  >
+                    <CardContent className="p-0">
+                      <div className="relative rounded-lg overflow-hidden bg-black/20 backdrop-blur-sm">
+                        {isCopied && (
+                          <div className="absolute inset-0 bg-green-500/20 border-2 border-green-400 rounded-lg flex items-center justify-center z-10">
+                            <div className="bg-black/60 rounded-lg px-3 py-2 flex items-center gap-2">
+                              <CheckCircle className="w-5 h-5 text-green-400" />
+                              <span className="text-green-300 font-medium">Copied!</span>
+                            </div>
+                          </div>
+                        )}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
                           src={`/${gif}`} 
@@ -135,24 +137,6 @@ export default function GalleryPage() {
                           }}
                         />
                       </div>
-                      
-                      <Button
-                        onClick={() => handleCopyLink(gif)}
-                        variant="outline"
-                        className="w-full bg-gradient-to-r from-cyan-600/20 to-teal-600/20 border-cyan-500/40 hover:border-cyan-400/60 text-cyan-200 hover:text-cyan-100 hover:bg-gradient-to-r hover:from-cyan-600/30 hover:to-teal-600/30 transition-all duration-300"
-                      >
-                        {isCopied ? (
-                          <>
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Copied!
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-4 h-4 mr-2" />
-                            Copy Link
-                          </>
-                        )}
-                      </Button>
                     </CardContent>
                   </Card>
                 </div>
