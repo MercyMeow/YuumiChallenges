@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 export function ChallengesCard() {
-  const [challenges, setChallenges] = useState<any[]>([]);
+  const [challenges, setChallenges] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -139,7 +139,7 @@ export function ChallengesCard() {
 }
 
 export function LeagueProfileCard() {
-  const [summoner, setSummoner] = useState<any>(null);
+  const [summoner, setSummoner] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -286,7 +286,7 @@ export function LeagueProfileCard() {
 }
 
 export function LeaderboardCard() {
-  const [leaderboard, setLeaderboard] = useState<any>(null);
+  const [leaderboard, setLeaderboard] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -367,7 +367,7 @@ export function LeaderboardCard() {
       <CardContent className="space-y-6">
         {leaderboard?.topUsers && leaderboard.topUsers.length > 0 ? (
           <div className="space-y-3">
-            {leaderboard.topUsers.map((user: any, index: number) => (
+            {leaderboard.topUsers.map((user: any) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
               <div key={user.user.id} className={`flex items-center justify-between p-4 rounded-xl ${getRankStyle(user.position)}`}>
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getRankCircleStyle(user.position)}`}>
@@ -415,7 +415,7 @@ export function LeaderboardCard() {
 }
 
 export function StatsOverviewCard() {
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

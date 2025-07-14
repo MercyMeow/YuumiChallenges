@@ -57,7 +57,7 @@ export default function ProfilePage() {
   const router = useRouter();
   
   const [summoners, setSummoners] = useState<Summoner[]>([]);
-  const [performanceStats, setPerformanceStats] = useState<PerformanceStats | null>(null);
+  const [, setPerformanceStats] = useState<PerformanceStats | null>(null);
   const [userStats, setUserStats] = useState<UserStats>({
     totalGames: 0,
     overallKDA: 0,
@@ -65,7 +65,7 @@ export default function ProfilePage() {
     currentRank: 'Unranked',
   });
   const [loadingSummoners, setLoadingSummoners] = useState(true);
-  const [loadingStats, setLoadingStats] = useState(true);
+  const [, setLoadingStats] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch summoners data

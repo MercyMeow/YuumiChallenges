@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     const to = from + limit - 1;
     query = query.range(from, to);
 
-    const { data: actions, error, count } = await query;
+    const { data: actions, error } = await query;
 
     if (error) {
       console.error('Error fetching audit log:', error);

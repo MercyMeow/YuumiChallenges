@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Crown, User, Activity, AlertTriangle } from 'lucide-react';
+import { Shield, Crown, User, Activity } from 'lucide-react';
 
 interface AdminHeaderProps {
   user: {

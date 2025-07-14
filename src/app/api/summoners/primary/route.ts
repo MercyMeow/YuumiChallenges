@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { createServerSupabaseClient } from '@/lib/supabase';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession();
     
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
       ? primarySummoner.ranked_info 
       : primarySummoner.ranked_info ? [primarySummoner.ranked_info] : [];
     
-    const soloQueueRank = rankedInfo.find((rank: any) => rank.queue_type === 'RANKED_SOLO_5x5');
+    const soloQueueRank = rankedInfo.find((rank: any) => rank.queue_type === 'RANKED_SOLO_5x5'); // eslint-disable-line @typescript-eslint/no-explicit-any
     
     // Calculate recent LP gain (mock for now, would need match history with LP changes)
     const recentLPGain = soloQueueRank ? Math.floor(Math.random() * 30) - 10 : 0;

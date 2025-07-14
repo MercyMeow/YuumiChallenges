@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { createServerSupabaseClient } from '@/lib/supabase';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession();
     
@@ -173,7 +173,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function calculateAverageRank(rankData: any[]): string {
+function calculateAverageRank(rankData: any[]): string { // eslint-disable-line @typescript-eslint/no-explicit-any
   if (!rankData || rankData.length === 0) return 'Unranked';
 
   const rankValues = {
@@ -220,7 +220,7 @@ function calculateAverageRank(rankData: any[]): string {
   return `${tierNames[avgTier]} ${levelNames[avgLevel]}`;
 }
 
-function calculateRankDistribution(rankData: any[]): Record<string, number> {
+function calculateRankDistribution(rankData: any[]): Record<string, number> { // eslint-disable-line @typescript-eslint/no-explicit-any
   const distribution: Record<string, number> = {};
   
   for (const rank of rankData) {

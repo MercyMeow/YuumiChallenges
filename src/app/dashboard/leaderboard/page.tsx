@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,7 +24,6 @@ import {
   Award,
   Shield,
   User,
-  ChevronRight
 } from 'lucide-react';
 
 // Types for leaderboard data
@@ -356,7 +354,7 @@ const LeaderboardHeader = ({ stats, userPosition }: { stats: CommunityStats; use
   </Card>
 );
 
-const PointsLeaderboard = ({ rankings, userPosition }: { rankings: UserRanking[]; userPosition: number | null }) => {
+const PointsLeaderboard = ({ rankings }: { rankings: UserRanking[]; userPosition: number | null }) => {
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'admin':

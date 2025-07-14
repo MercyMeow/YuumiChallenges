@@ -105,7 +105,7 @@ export class RiotAPI {
     return this.getSummonerByRiotId(gameName, tagLine, region);
   }
 
-  async getItemSets(summonerId: string, region: string) {
+  async getItemSets() {
     // Item sets are not available in the current Riot API
     // Return empty array as a placeholder
     return [];

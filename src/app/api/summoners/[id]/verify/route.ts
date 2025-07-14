@@ -48,8 +48,8 @@ export async function PUT(
     const riotAPI = new RiotAPI(process.env.RIOT_API_KEY!);
     
     try {
-      const itemSets = await riotAPI.getItemSets(summoner.summoner_id, summoner.region);
-      const hasVerificationSet = itemSets.some((set: any) => set.title === verificationCode);
+      const itemSets = await riotAPI.getItemSets();
+      const hasVerificationSet = itemSets.some((set: any) => set.title === verificationCode); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       if (!hasVerificationSet) {
         return NextResponse.json({ 

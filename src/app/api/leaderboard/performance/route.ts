@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Format KDA rankings
-    const kdaRankings = (kdaData || []).map((entry: any, index: number) => ({
+    const kdaRankings = (kdaData || []).map((entry: any, index: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
       position: index + 1,
       user: {
         id: entry.user_id,
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
     }));
 
     // Format Win Rate rankings
-    const winRateRankings = (winRateData || []).map((entry: any, index: number) => ({
+    const winRateRankings = (winRateData || []).map((entry: any, index: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
       position: index + 1,
       user: {
         id: entry.user_id,
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
     }));
 
     // Format Champion Mastery rankings
-    const masteryRankings = (masteryData || []).map((entry: any, index: number) => {
+    const masteryRankings = (masteryData || []).map((entry: any, index: number) => { // eslint-disable-line @typescript-eslint/no-explicit-any
       const user = Array.isArray(entry.users) ? entry.users[0] : entry.users;
       return {
         position: index + 1,

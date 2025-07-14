@@ -29,7 +29,7 @@ export async function POST(
     }
 
     // Check if user already participates in this challenge
-    const { data: existingParticipation, error: existingError } = await supabase
+    const { data: existingParticipation } = await supabase
       .from('user_challenges')
       .select('id')
       .eq('user_id', session.user.id)
@@ -102,7 +102,7 @@ export async function POST(
   }
 }
 
-function calculateMaxProgress(challenge: any): number {
+function calculateMaxProgress(challenge: any): number { // eslint-disable-line @typescript-eslint/no-explicit-any
   // Calculate max progress based on challenge type and criteria
   switch (challenge.type) {
     case 'kda':

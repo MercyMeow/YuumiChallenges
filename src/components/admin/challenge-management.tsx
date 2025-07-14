@@ -20,7 +20,6 @@ import {
   Trophy, 
   BarChart3, 
   RefreshCw,
-  MoreHorizontal
 } from 'lucide-react';
 
 interface AdminPermissions {
@@ -46,7 +45,7 @@ interface AdminChallengeView {
   title: string;
   description: string;
   type: string;
-  criteria: any;
+  criteria: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   reward_points: number;
   active: boolean;
   featured: boolean;
@@ -71,7 +70,7 @@ interface ChallengeFormData {
   };
 }
 
-export function ChallengeManagement({ permissions }: ChallengeManagementProps) {
+export function ChallengeManagement() {
   const [challenges, setChallenges] = useState<AdminChallengeView[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);

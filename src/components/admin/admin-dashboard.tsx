@@ -12,7 +12,6 @@ import {
   TrendingUp, 
   Activity,
   Clock,
-  Trophy,
   BarChart3
 } from 'lucide-react';
 
@@ -30,7 +29,7 @@ interface AdminPermissions {
   systemSettings: boolean;
 }
 
-interface AdminDashboardProps {
+interface AdminDashboardProps { // eslint-disable-line @typescript-eslint/no-unused-vars
   permissions: AdminPermissions;
 }
 
@@ -56,7 +55,7 @@ interface RecentActivity {
   };
 }
 
-export function AdminDashboard({ permissions }: AdminDashboardProps) {
+export function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     activeUsers: 0,

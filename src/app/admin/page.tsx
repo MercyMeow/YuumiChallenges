@@ -9,8 +9,6 @@ import { AdminNavigation } from '@/components/admin/admin-navigation';
 import { AdminDashboard } from '@/components/admin/admin-dashboard';
 import { UserManagement } from '@/components/admin/user-management';
 import { ChallengeManagement } from '@/components/admin/challenge-management';
-import { ReportsManagement } from '@/components/admin/reports-management';
-import { AuditLog } from '@/components/admin/audit-log';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
@@ -65,7 +63,7 @@ export default function AdminPage() {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Access Denied</AlertTitle>
             <AlertDescription>
-              You don't have permission to access the admin panel. 
+              You don&apos;t have permission to access the admin panel. 
               Contact a system administrator if you believe this is an error.
             </AlertDescription>
           </Alert>
@@ -92,11 +90,11 @@ export default function AdminPage() {
   const renderContent = () => {
     switch (activeSection) {
       case 'dashboard':
-        return <AdminDashboard permissions={permissions} />;
+        return <AdminDashboard />;
       case 'users':
-        return <UserManagement permissions={permissions} />;
+        return <UserManagement />;
       case 'challenges':
-        return <ChallengeManagement permissions={permissions} />;
+        return <ChallengeManagement />;
       case 'settings':
         return (
           <Card className="bg-gradient-to-br from-slate-500/5 to-slate-600/5 border-slate-500/20">
@@ -111,7 +109,7 @@ export default function AdminPage() {
           </Card>
         );
       default:
-        return <AdminDashboard permissions={permissions} />;
+        return <AdminDashboard />;
     }
   };
 

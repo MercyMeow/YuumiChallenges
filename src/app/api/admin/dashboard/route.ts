@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { createServerSupabaseClient } from '@/lib/supabase';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession();
     
@@ -81,8 +81,8 @@ export async function GET(request: NextRequest) {
       description: getActionDescription(action.action_type, action.target_type, action.details),
       timestamp: action.created_at,
       user: {
-        name: (Array.isArray(action.users) ? action.users[0]?.name : (action.users as any)?.name) || 'System',
-        image: (Array.isArray(action.users) ? action.users[0]?.image : (action.users as any)?.image) || undefined
+        name: (Array.isArray(action.users) ? action.users[0]?.name : (action.users as { name?: string })?.name) || 'System',
+        image: (Array.isArray(action.users) ? action.users[0]?.image : (action.users as { image?: string })?.image) || undefined
       }
     })) || [];
 
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function getActionDescription(actionType: string, targetType: string, details: any): string {
+function getActionDescription(actionType: string, targetType: string, details: any): string { // eslint-disable-line @typescript-eslint/no-explicit-any
   switch (actionType) {
     case 'user_role_changed':
       return `Changed user role to ${details.newRole}`;

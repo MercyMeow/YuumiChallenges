@@ -131,7 +131,7 @@ export function VerificationDialog({
                   <li>1. Open League of Legends client</li>
                   <li>2. Go to Collection → Item Sets</li>
                   <li>3. Create new item set</li>
-                  <li>4. Name it exactly: <code className="bg-slate-800/50 px-1 rounded">"{summoner.verification_code}"</code></li>
+                  <li>4. Name it exactly: <code className="bg-slate-800/50 px-1 rounded">&quot;{summoner.verification_code}&quot;</code></li>
                   <li>5. Save the item set</li>
                 </ol>
               </div>

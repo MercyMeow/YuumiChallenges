@@ -61,10 +61,10 @@ export async function GET(
       acc[champion].total_assists += match.assists;
 
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, any>); // eslint-disable-line @typescript-eslint/no-explicit-any
 
     // Convert to array and calculate derived stats
-    const championStatsArray = Object.values(championStats).map((stats: any) => ({
+    const championStatsArray = Object.values(championStats).map((stats: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
       ...stats,
       win_rate: (stats.wins / stats.games_played * 100).toFixed(1),
       avg_kills: (stats.total_kills / stats.games_played).toFixed(1),

@@ -8,8 +8,6 @@ import {
   Users, 
   Target, 
   Settings, 
-  FileText, 
-  Flag 
 } from 'lucide-react';
 
 type AdminSection = 'dashboard' | 'users' | 'challenges' | 'reports' | 'audit' | 'settings';

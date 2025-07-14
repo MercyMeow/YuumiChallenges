@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { RiotAPI } from '@/lib/apis/riot';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession();
     
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     const favoriteChampion = Object.entries(championCounts)
       .sort(([,a], [,b]) => b - a)[0]?.[0] || 'None';
 
-    const currentRank = summoners?.find(s => s.verified)?.ranked_info?.find((r: any) => r.queue_type === 'RANKED_SOLO_5x5')?.tier || 'Unranked';
+    const currentRank = summoners?.find(s => s.verified)?.ranked_info?.find((r: any) => r.queue_type === 'RANKED_SOLO_5x5')?.tier || 'Unranked'; // eslint-disable-line @typescript-eslint/no-explicit-any
 
     return NextResponse.json({
       summoners: summoners || [],

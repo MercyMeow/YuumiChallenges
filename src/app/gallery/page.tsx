@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Copy, CheckCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 // Get all rule GIFs from the public directory
 const ruleGifs = [
@@ -113,6 +112,7 @@ export default function GalleryPage() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="relative mb-4 rounded-lg overflow-hidden bg-black/20 backdrop-blur-sm">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
                           src={`/${gif}`} 
                           alt={`Rule ${ruleNumber} GIF`}

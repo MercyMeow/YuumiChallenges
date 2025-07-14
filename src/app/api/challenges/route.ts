@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { createServerSupabaseClient } from '@/lib/supabase';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession();
     
@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function calculateDifficulty(challenge: any): string {
+function calculateDifficulty(challenge: any): string { // eslint-disable-line @typescript-eslint/no-explicit-any
   // Simple difficulty calculation based on challenge type and criteria
   switch (challenge.type) {
     case 'kda':

@@ -52,7 +52,7 @@ interface AdminUserView {
   created_at: string;
 }
 
-export function UserManagement({ permissions }: UserManagementProps) {
+export function UserManagement() {
   const [users, setUsers] = useState<AdminUserView[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<AdminUserView[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -155,7 +155,7 @@ export function UserManagement({ permissions }: UserManagementProps) {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string) => { // eslint-disable-line @typescript-eslint/no-unused-vars
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',

@@ -36,7 +36,7 @@ interface AdminPermissions {
   systemSettings: boolean;
 }
 
-interface AuditLogProps {
+interface AuditLogProps { // eslint-disable-line @typescript-eslint/no-unused-vars
   permissions: AdminPermissions;
 }
 
@@ -45,7 +45,7 @@ interface AuditLogEntry {
   action_type: string;
   target_type: string;
   target_id?: string;
-  details: any;
+  details: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   ip_address?: string;
   created_at: string;
   admin: {
@@ -61,7 +61,7 @@ interface Pagination {
   hasMore: boolean;
 }
 
-export function AuditLog({ permissions }: AuditLogProps) {
+export function AuditLog() {
   const [auditEntries, setAuditEntries] = useState<AuditLogEntry[]>([]);
   const [filteredEntries, setFilteredEntries] = useState<AuditLogEntry[]>([]);
   const [pagination, setPagination] = useState<Pagination>({
@@ -141,10 +141,10 @@ export function AuditLog({ permissions }: AuditLogProps) {
       const response = await fetch('/api/admin/users');
       if (response.ok) {
         const data = await response.json();
-        const admins = data.users.filter((user: any) => 
+        const admins = data.users.filter((user: any) => // eslint-disable-line @typescript-eslint/no-explicit-any
           user.user_role === 'admin' || user.user_role === 'moderator'
         );
-        setAvailableAdmins(admins.map((admin: any) => ({
+        setAvailableAdmins(admins.map((admin: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
           id: admin.id,
           username: admin.name
         })));
@@ -224,7 +224,7 @@ export function AuditLog({ permissions }: AuditLogProps) {
     });
   };
 
-  const formatDetails = (details: any) => {
+  const formatDetails = (details: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     if (!details || typeof details !== 'object') return '';
     
     const keys = Object.keys(details);
