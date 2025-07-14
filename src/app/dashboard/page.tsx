@@ -19,11 +19,11 @@ export default function Dashboard() {
         {/* Hero Welcome Section */}
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-indigo-500/10 rounded-2xl"></div>
-          <div className="relative p-8 rounded-2xl border bg-card/50 backdrop-blur-sm">
+          <div className="relative p-4 rounded-2xl border border-purple-500/20 bg-black/30 backdrop-blur-md">
             <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
                     Welcome back! 🐱
                   </h1>
                   <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
@@ -31,15 +31,15 @@ export default function Dashboard() {
                     Online
                   </Badge>
                 </div>
-                <p className="text-xl text-muted-foreground">
+                <p className="text-lg text-white/70">
                   Ready to climb the ranks with your enchanter skills?
                 </p>
                 <div className="flex items-center space-x-4 text-sm">
-                  <div className="flex items-center space-x-1 text-green-400">
+                  <div className="flex items-center space-x-1 text-green-300">
                     <Activity className="h-4 w-4" />
                     <span>All systems operational</span>
                   </div>
-                  <div className="flex items-center space-x-1 text-blue-400">
+                  <div className="flex items-center space-x-1 text-blue-300">
                     <Users className="h-4 w-4" />
                     <span>1,247 active members</span>
                   </div>
@@ -47,11 +47,11 @@ export default function Dashboard() {
               </div>
               <div className="hidden md:block">
                 <div className="relative">
-                  <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center text-4xl animate-pulse">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center text-2xl animate-pulse">
                     🌟
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                    <Sparkles className="h-4 w-4 text-yellow-900" />
+                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <Sparkles className="h-3 w-3 text-yellow-900" />
                   </div>
                 </div>
               </div>
@@ -61,67 +61,64 @@ export default function Dashboard() {
 
         {/* Quick Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="p-4 bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20">
+          <Card className="p-4 bg-black/30 backdrop-blur-md border-purple-500/20 hover:border-purple-400/30 hover:bg-purple-500/5 transition-all duration-300 cursor-pointer group">
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-purple-500/20 rounded-lg">
-                <Zap className="h-4 w-4 text-purple-400" />
+              <div className="p-2 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-all duration-300">
+                <Zap className="h-4 w-4 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-purple-400">7</p>
-                <p className="text-xs text-muted-foreground">Win Streak</p>
+                <p className="text-2xl font-bold text-purple-400 group-hover:text-purple-300 transition-colors duration-300">7</p>
+                <p className="text-xs text-white/70">Win Streak</p>
               </div>
             </div>
           </Card>
-          <Card className="p-4 bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20">
+          <Card className="p-4 bg-black/30 backdrop-blur-md border-blue-500/20 hover:border-blue-400/30 hover:bg-blue-500/5 transition-all duration-300 cursor-pointer group">
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-blue-500/20 rounded-lg">
-                <Award className="h-4 w-4 text-blue-400" />
+              <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-all duration-300">
+                <Award className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-blue-400">12</p>
-                <p className="text-xs text-muted-foreground">Rank</p>
+                <p className="text-2xl font-bold text-blue-400 group-hover:text-blue-300 transition-colors duration-300">12</p>
+                <p className="text-xs text-white/70">Rank</p>
               </div>
             </div>
           </Card>
-          <Card className="p-4 bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
+          <Card className="p-4 bg-black/30 backdrop-blur-md border-green-500/20 hover:border-green-400/30 hover:bg-green-500/5 transition-all duration-300 cursor-pointer group">
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-green-500/20 rounded-lg">
-                <Activity className="h-4 w-4 text-green-400" />
+              <div className="p-2 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-all duration-300">
+                <Activity className="h-4 w-4 text-green-400 group-hover:scale-110 transition-transform duration-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-green-400">68%</p>
-                <p className="text-xs text-muted-foreground">Win Rate</p>
+                <p className="text-2xl font-bold text-green-400 group-hover:text-green-300 transition-colors duration-300">68%</p>
+                <p className="text-xs text-white/70">Win Rate</p>
               </div>
             </div>
           </Card>
-          <Card className="p-4 bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border-yellow-500/20">
+          <Card className="p-4 bg-black/30 backdrop-blur-md border-yellow-500/20 hover:border-yellow-400/30 hover:bg-yellow-500/5 transition-all duration-300 cursor-pointer group">
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-yellow-500/20 rounded-lg">
-                <Users className="h-4 w-4 text-yellow-400" />
+              <div className="p-2 bg-yellow-500/20 rounded-lg group-hover:bg-yellow-500/30 transition-all duration-300">
+                <Users className="h-4 w-4 text-yellow-400 group-hover:scale-110 transition-transform duration-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-yellow-400">3</p>
-                <p className="text-xs text-muted-foreground">Active Challenges</p>
+                <p className="text-2xl font-bold text-yellow-400 group-hover:text-yellow-300 transition-colors duration-300">3</p>
+                <p className="text-xs text-white/70">Active Challenges</p>
               </div>
             </div>
           </Card>
         </div>
 
-        {/* Main Dashboard Grid */}
+        {/* Main Dashboard Grid - Reordered by Priority */}
         <div className="grid gap-6 lg:grid-cols-3">
+          {/* Left Column - Primary User Actions */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Top Row - Most Important Cards */}
             <div className="grid gap-6 md:grid-cols-2">
               <ChallengesCard />
               <LeagueProfileCard />
             </div>
-            <StatsOverviewCard />
-          </div>
-          
-          <div className="space-y-6">
-            <LeaderboardCard />
             
-            {/* Enhanced Quick Actions Card */}
-            <Card className="relative overflow-hidden">
+            {/* Quick Actions - Moved to left side for better accessibility */}
+            <Card className="relative overflow-hidden bg-black/30 backdrop-blur-md border-indigo-500/20">
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5"></div>
               <CardHeader className="relative pb-3">
                 <div className="flex items-center space-x-2">
@@ -129,58 +126,66 @@ export default function Dashboard() {
                     <Settings className="h-5 w-5 text-indigo-400" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg">Quick Actions</CardTitle>
-                    <CardDescription>Common tasks and shortcuts</CardDescription>
+                    <CardTitle className="text-lg text-white">Quick Actions</CardTitle>
+                    <CardDescription className="text-white/70">Common tasks and shortcuts</CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="relative space-y-3">
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start h-auto p-4 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-blue-500/20 rounded-lg">
-                      <TrendingUp className="h-4 w-4 text-blue-400" />
+              <CardContent className="relative">
+                <div className="grid gap-3 md:grid-cols-3">
+                  <Button 
+                    variant="ghost" 
+                    className="h-auto p-4 bg-black/30 hover:bg-purple-500/20 border border-purple-500/20 hover:border-purple-400/30 transition-all duration-300 group hover:scale-105 hover:shadow-lg"
+                  >
+                    <div className="flex flex-col items-center space-y-2">
+                      <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-all duration-300">
+                        <TrendingUp className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
+                      </div>
+                      <div className="text-center">
+                        <p className="font-medium text-white text-sm group-hover:text-blue-200 transition-colors duration-300">Update League Account</p>
+                        <p className="text-xs text-white/70">Sync your latest matches</p>
+                      </div>
                     </div>
-                    <div className="text-left">
-                      <p className="font-medium">Update League Account</p>
-                      <p className="text-xs text-muted-foreground">Sync your latest matches</p>
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    className="h-auto p-4 bg-black/30 hover:bg-purple-500/20 border border-purple-500/20 hover:border-purple-400/30 transition-all duration-300 group hover:scale-105 hover:shadow-lg"
+                  >
+                    <div className="flex flex-col items-center space-y-2">
+                      <div className="p-2 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-all duration-300">
+                        <Zap className="h-4 w-4 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
+                      </div>
+                      <div className="text-center">
+                        <p className="font-medium text-white text-sm group-hover:text-purple-200 transition-colors duration-300">Join Weekly Challenge</p>
+                        <p className="text-xs text-white/70">Earn points and rewards</p>
+                      </div>
                     </div>
-                  </div>
-                </Button>
-                
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start h-auto p-4 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-purple-500/20 rounded-lg">
-                      <Zap className="h-4 w-4 text-purple-400" />
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    className="h-auto p-4 bg-black/30 hover:bg-purple-500/20 border border-purple-500/20 hover:border-purple-400/30 transition-all duration-300 group hover:scale-105 hover:shadow-lg"
+                  >
+                    <div className="flex flex-col items-center space-y-2">
+                      <div className="p-2 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-all duration-300">
+                        <Activity className="h-4 w-4 text-green-400 group-hover:scale-110 transition-transform duration-300" />
+                      </div>
+                      <div className="text-center">
+                        <p className="font-medium text-white text-sm group-hover:text-green-200 transition-colors duration-300">View Match History</p>
+                        <p className="text-xs text-white/70">Analyze your performance</p>
+                      </div>
                     </div>
-                    <div className="text-left">
-                      <p className="font-medium">Join Weekly Challenge</p>
-                      <p className="text-xs text-muted-foreground">Earn points and rewards</p>
-                    </div>
-                  </div>
-                </Button>
-                
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start h-auto p-4 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-green-500/20 rounded-lg">
-                      <Activity className="h-4 w-4 text-green-400" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-medium">View Match History</p>
-                      <p className="text-xs text-muted-foreground">Analyze your performance</p>
-                    </div>
-                  </div>
-                </Button>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
+          </div>
+          
+          {/* Right Column - Community & Secondary Info */}
+          <div className="space-y-6">
+            <LeaderboardCard />
+            <StatsOverviewCard />
           </div>
         </div>
       </div>

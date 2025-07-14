@@ -33,6 +33,7 @@ import {
   User,
   Shield,
   Crown,
+  Image,
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -59,6 +60,11 @@ const navigation = [
     title: 'Leaderboard',
     url: '/dashboard/leaderboard',
     icon: Trophy,
+  },
+  {
+    title: 'Gallery',
+    url: '/gallery',
+    icon: Image,
   },
 ];
 
@@ -105,7 +111,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
         <SidebarProvider>
           <div className="relative z-10 min-h-screen flex w-full">
-            <Sidebar variant="inset" className="backdrop-blur-md bg-black/20 border-purple-500/20">
+            <Sidebar variant="inset" className="backdrop-blur-md bg-black/20 border-purple-500/20 [&_*]:!text-inherit">
               <SidebarHeader className="p-4">
                 <div className="flex items-center space-x-2">
                   <div className="flex items-center justify-center h-8 w-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg shadow-lg">
@@ -218,7 +224,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       <SidebarProvider>
         <div className="relative z-10 min-h-screen flex w-full">
-        <Sidebar variant="inset" className="backdrop-blur-md bg-black/20 border-purple-500/20">
+        <Sidebar variant="inset" className="backdrop-blur-md bg-black/20 border-purple-500/20 [&_*]:!text-inherit">
           <SidebarHeader className="p-4">
             <div className="flex items-center space-x-2">
               <div className="flex items-center justify-center h-8 w-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg shadow-lg">
@@ -242,9 +248,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         asChild
                         tooltip={item.title}
                         isActive={pathname === item.url}
+                        className="data-[active=true]:bg-purple-500/30 data-[active=true]:text-white hover:bg-purple-500/20"
                       >
-                        <a href={item.url} className="flex items-center space-x-2">
-                          <item.icon className="h-4 w-4" />
+                        <a href={item.url} className="flex items-center space-x-2 text-white hover:text-purple-200">
+                          <item.icon className="h-4 w-4 text-purple-300" />
                           <span>{item.title}</span>
                         </a>
                       </SidebarMenuButton>
@@ -266,9 +273,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                             asChild
                             tooltip={item.title}
                             isActive={pathname === item.url}
+                            className="data-[active=true]:bg-purple-500/30 data-[active=true]:text-white hover:bg-purple-500/20"
                           >
-                            <a href={item.url} className="flex items-center space-x-2">
-                              <item.icon className="h-4 w-4" />
+                            <a href={item.url} className="flex items-center space-x-2 text-white hover:text-purple-200">
+                              <item.icon className="h-4 w-4 text-purple-300" />
                               <span>{item.title}</span>
                             </a>
                           </SidebarMenuButton>
