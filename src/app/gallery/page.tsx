@@ -201,26 +201,6 @@ export default function GalleryPage() {
             ))}
           </div>
 
-          {/* Additional Information */}
-          <div className="mt-16 text-center">
-            <div className="backdrop-blur-md bg-black/20 border border-purple-500/20 rounded-2xl p-8 max-w-2xl mx-auto">
-              <h2 className="text-2xl font-bold mb-4 text-landing-text-primary">Quick Share Tips</h2>
-              <ul className="text-landing-text-secondary space-y-2 text-left max-w-lg mx-auto">
-                <li className="flex items-start gap-2">
-                  <span className="text-cyan-400 mt-1">•</span>
-                  <span>Links are automatically formatted for Discord embedding</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-cyan-400 mt-1">•</span>
-                  <span>GIFs will display inline in Discord channels</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-cyan-400 mt-1">•</span>
-                  <span>Perfect for quickly referencing server rules</span>
-                </li>
-              </ul>
-            </div>
-          </div>
         </div>
       </div>
     </div>
