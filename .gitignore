@@ -39,6 +39,9 @@ yarn-error.log*
 # claude
 .claude/
 
+# Static assets
+# Note: rule*.gif files should be kept in public/ directory for Next.js serving
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

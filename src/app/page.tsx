@@ -94,7 +94,7 @@ export default function Home() {
           </div>
 
           {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-8 mb-20">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
             {[
               {
                 icon: "🎯",
@@ -113,25 +113,52 @@ export default function Home() {
                 title: "Game Analytics",
                 description: "Get deep insights into your gameplay with detailed match history, statistics, and improvement recommendations",
                 gradient: "from-indigo-500/20 to-purple-500/20"
+              },
+              {
+                icon: "🖼️",
+                title: "Rule Gallery",
+                description: "Browse and share Discord server rule GIFs with short links for easy embedding",
+                gradient: "from-cyan-500/20 to-teal-500/20",
+                href: "/gallery"
               }
             ].map((feature, index) => (
               <div key={index} className="group relative">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/50 to-blue-500/50 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
-                <Card className={`relative backdrop-blur-md bg-gradient-to-br ${feature.gradient} border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl`}>
-                  <CardHeader className="text-center">
-                    <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                      {feature.icon}
-                    </div>
-                    <CardTitle className="text-white text-xl font-bold">
-                      {feature.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-landing-text-primary/80 text-center leading-relaxed">
-                      {feature.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
+                {feature.href ? (
+                  <Link href={feature.href}>
+                    <Card className={`relative backdrop-blur-md bg-gradient-to-br ${feature.gradient} border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl cursor-pointer`}>
+                      <CardHeader className="text-center">
+                        <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                          {feature.icon}
+                        </div>
+                        <CardTitle className="text-white text-xl font-bold">
+                          {feature.title}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <CardDescription className="text-landing-text-primary/80 text-center leading-relaxed">
+                          {feature.description}
+                        </CardDescription>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ) : (
+                  <Card className={`relative backdrop-blur-md bg-gradient-to-br ${feature.gradient} border border-white/20 hover:border-white/40 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl`}>
+                    <CardHeader className="text-center">
+                      <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                        {feature.icon}
+                      </div>
+                      <CardTitle className="text-white text-xl font-bold">
+                        {feature.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription className="text-landing-text-primary/80 text-center leading-relaxed">
+                        {feature.description}
+                      </CardDescription>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             ))}
           </div>
