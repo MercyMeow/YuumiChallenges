@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,57 @@ import {
 } from 'lucide-react';
 
 export function ChallengesCard() {
+  const [challenges, setChallenges] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchActiveChallenges();
+  }, []);
+
+  const fetchActiveChallenges = async () => {
+    try {
+      const response = await fetch('/api/challenges/active');
+      if (response.ok) {
+        const data = await response.json();
+        setChallenges(data.challenges || []);
+      }
+    } catch (error) {
+      console.error('Error fetching active challenges:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getChallengeIcon = (type: string) => {
+    switch (type) {
+      case 'kda':
+        return <Zap className="h-4 w-4 text-yellow-400" />;
+      case 'ranked':
+        return <Crown className="h-4 w-4 text-amber-400" />;
+      case 'mastery':
+        return <Star className="h-4 w-4 text-blue-400" />;
+      default:
+        return <Target className="h-4 w-4 text-purple-400" />;
+    }
+  };
+
+  const getChallengeColor = (type: string) => {
+    switch (type) {
+      case 'kda':
+        return 'yellow';
+      case 'ranked':
+        return 'amber';
+      case 'mastery':
+        return 'blue';
+      default:
+        return 'purple';
+    }
+  };
+
+  if (loading) {
+    return <DashboardCardSkeleton />;
+  }
+
   return (
     <Card className="h-full hover:shadow-lg transition-all duration-300 bg-black/30 backdrop-blur-md border-purple-500/20">
       <CardHeader className="pb-3">
@@ -35,55 +87,45 @@ export function ChallengesCard() {
             </div>
           </div>
           <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 px-3 py-1">
-            3 Active
+            {challenges.length} Active
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Sample challenge progress */}
-        <div className="space-y-4">
-          <div className="p-4 bg-black/30 backdrop-blur-md rounded-xl border border-yellow-500/20">
-            <div className="flex items-center justify-between text-sm mb-3">
-              <div className="flex items-center space-x-2">
-                <div className="p-1.5 bg-yellow-500/20 rounded-lg">
-                  <Zap className="h-4 w-4 text-yellow-400" />
+        {challenges.length > 0 ? (
+          <div className="space-y-4">
+            {challenges.slice(0, 3).map((challenge) => {
+              const color = getChallengeColor(challenge.type);
+              return (
+                <div key={challenge.id} className={`p-4 bg-black/30 backdrop-blur-md rounded-xl border border-${color}-500/20`}>
+                  <div className="flex items-center justify-between text-sm mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className={`p-1.5 bg-${color}-500/20 rounded-lg`}>
+                        {getChallengeIcon(challenge.type)}
+                      </div>
+                      <span className="font-medium text-white">{challenge.title}</span>
+                    </div>
+                    <span className={`text-${color}-400 font-bold`}>
+                      {challenge.progress}/{challenge.maxProgress}
+                    </span>
+                  </div>
+                  <Progress value={challenge.progressPercentage} className="h-3 bg-black/50" />
+                  <p className="text-xs text-white/70 mt-2">
+                    {challenge.progressPercentage >= 100 
+                      ? 'Completed! 🎉' 
+                      : `${challenge.maxProgress - challenge.progress} more to complete`}
+                  </p>
                 </div>
-                <span className="font-medium text-white">10-Game Win Streak</span>
-              </div>
-              <span className="text-yellow-400 font-bold">7/10</span>
-            </div>
-            <Progress value={70} className="h-3 bg-black/50" />
-            <p className="text-xs text-white/70 mt-2">3 more wins to complete</p>
+              );
+            })}
           </div>
-
-          <div className="p-4 bg-black/30 backdrop-blur-md rounded-xl border border-amber-500/20">
-            <div className="flex items-center justify-between text-sm mb-3">
-              <div className="flex items-center space-x-2">
-                <div className="p-1.5 bg-amber-500/20 rounded-lg">
-                  <Crown className="h-4 w-4 text-amber-400" />
-                </div>
-                <span className="font-medium text-white">Reach Gold Rank</span>
-              </div>
-              <span className="text-amber-400 font-bold">Silver I</span>
-            </div>
-            <Progress value={85} className="h-3 bg-black/50" />
-            <p className="text-xs text-white/70 mt-2">So close! Keep climbing</p>
+        ) : (
+          <div className="text-center py-8">
+            <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-400 mb-4">No active challenges yet</p>
+            <p className="text-sm text-gray-500">Join a challenge to start earning points!</p>
           </div>
-
-          <div className="p-4 bg-black/30 backdrop-blur-md rounded-xl border border-blue-500/20">
-            <div className="flex items-center justify-between text-sm mb-3">
-              <div className="flex items-center space-x-2">
-                <div className="p-1.5 bg-blue-500/20 rounded-lg">
-                  <Star className="h-4 w-4 text-blue-400" />
-                </div>
-                <span className="font-medium text-white">Yuumi Mastery 7</span>
-              </div>
-              <span className="text-blue-400 font-bold">M6</span>
-            </div>
-            <Progress value={45} className="h-3 bg-black/50" />
-            <p className="text-xs text-white/70 mt-2">Keep showing off those skills!</p>
-          </div>
-        </div>
+        )}
 
         <div className="pt-4 border-t border-purple-500/20">
           <Button variant="outline" className="w-full bg-black/30 border-purple-500/20 hover:bg-purple-500/20 text-white hover:text-purple-200 transition-all">
@@ -97,6 +139,68 @@ export function ChallengesCard() {
 }
 
 export function LeagueProfileCard() {
+  const [summoner, setSummoner] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPrimarySummoner();
+  }, []);
+
+  const fetchPrimarySummoner = async () => {
+    try {
+      const response = await fetch('/api/summoners/primary');
+      if (response.ok) {
+        const data = await response.json();
+        setSummoner(data.summoner);
+      }
+    } catch (error) {
+      console.error('Error fetching primary summoner:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <DashboardCardSkeleton />;
+  }
+
+  if (!summoner) {
+    return (
+      <Card className="h-full hover:shadow-lg transition-all duration-300 bg-black/30 backdrop-blur-md border-blue-500/20">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-blue-500/20 rounded-xl">
+                <BarChart3 className="h-6 w-6 text-blue-400" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-bold">League Profile</CardTitle>
+                <CardDescription className="text-white/70">Your linked League accounts</CardDescription>
+              </div>
+            </div>
+            <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30 px-3 py-1">
+              No Account
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="text-center py-8">
+            <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-400 mb-4">No League account linked</p>
+            <p className="text-sm text-gray-500">Connect your League account to track your progress</p>
+          </div>
+          
+          <div className="pt-4 border-t border-blue-500/20">
+            <Button variant="outline" className="w-full bg-black/30 border-blue-500/20 hover:bg-blue-500/20 text-white hover:text-blue-200 transition-all">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Account
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="h-full hover:shadow-lg transition-all duration-300 bg-black/30 backdrop-blur-md border-blue-500/20">
       <CardHeader className="pb-3">
@@ -117,7 +221,6 @@ export function LeagueProfileCard() {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Sample account info */}
         <div className="p-4 bg-black/30 backdrop-blur-md rounded-xl border border-blue-500/20">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
@@ -125,37 +228,47 @@ export function LeagueProfileCard() {
                 🐱
               </div>
               <div>
-                <p className="font-bold text-white text-lg">YuumiCarry</p>
-                <p className="text-blue-400 font-medium">NA1 • Gold II</p>
+                <p className="font-bold text-white text-lg">
+                  {summoner.name}#{summoner.tagLine}
+                </p>
+                <p className="text-blue-400 font-medium">
+                  {summoner.region.toUpperCase()} • {summoner.rank ? `${summoner.rank.tier} ${summoner.rank.rank}` : 'Unranked'}
+                </p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-lg font-bold text-yellow-400">67 LP</p>
-              <Tooltip>
-                <TooltipTrigger>
-                  <div className="flex items-center space-x-1 text-green-400">
-                    <TrendingUp className="h-4 w-4" />
-                    <span className="font-medium">+23 LP</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Last game: +23 LP (Victory)</p>
-                </TooltipContent>
-              </Tooltip>
+              {summoner.rank && (
+                <>
+                  <p className="text-lg font-bold text-yellow-400">{summoner.rank.leaguePoints} LP</p>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <div className="flex items-center space-x-1 text-green-400">
+                        <TrendingUp className="h-4 w-4" />
+                        <span className="font-medium">
+                          {summoner.recentStats.recentLPGain > 0 ? '+' : ''}{summoner.recentStats.recentLPGain} LP
+                        </span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Recent LP change</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center p-3 bg-black/40 backdrop-blur-md rounded-lg border border-blue-500/20">
-              <p className="text-2xl font-bold text-blue-400">127</p>
+              <p className="text-2xl font-bold text-blue-400">{summoner.recentStats.totalGames}</p>
               <p className="text-xs text-white/70">Games</p>
             </div>
             <div className="text-center p-3 bg-black/40 backdrop-blur-md rounded-lg border border-green-500/20">
-              <p className="text-2xl font-bold text-green-400">68%</p>
+              <p className="text-2xl font-bold text-green-400">{summoner.recentStats.winRate}%</p>
               <p className="text-xs text-white/70">Win Rate</p>
             </div>
             <div className="text-center p-3 bg-black/40 backdrop-blur-md rounded-lg border border-purple-500/20">
-              <p className="text-lg font-bold text-purple-400">2.3 KDA</p>
+              <p className="text-lg font-bold text-purple-400">{summoner.recentStats.kda} KDA</p>
               <p className="text-xs text-white/70">Average</p>
             </div>
           </div>
@@ -173,6 +286,66 @@ export function LeagueProfileCard() {
 }
 
 export function LeaderboardCard() {
+  const [leaderboard, setLeaderboard] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLeaderboardPreview();
+  }, []);
+
+  const fetchLeaderboardPreview = async () => {
+    try {
+      const response = await fetch('/api/leaderboard/preview');
+      if (response.ok) {
+        const data = await response.json();
+        setLeaderboard(data);
+      }
+    } catch (error) {
+      console.error('Error fetching leaderboard preview:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <DashboardCardSkeleton />;
+  }
+
+  const getRankIcon = (position: number) => {
+    switch (position) {
+      case 1:
+        return <Crown className="h-4 w-4 text-yellow-900" />;
+      default:
+        return <span className="text-sm font-bold">{position}</span>;
+    }
+  };
+
+  const getRankStyle = (position: number) => {
+    switch (position) {
+      case 1:
+        return 'bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border-yellow-500/30';
+      case 2:
+        return 'bg-black/30 backdrop-blur-md border-slate-500/20';
+      case 3:
+        return 'bg-black/30 backdrop-blur-md border-orange-500/20';
+      default:
+        return 'bg-black/30 backdrop-blur-md border-gray-500/20';
+    }
+  };
+
+  const getRankCircleStyle = (position: number) => {
+    switch (position) {
+      case 1:
+        return 'bg-yellow-500';
+      case 2:
+        return 'bg-slate-600 text-slate-300';
+      case 3:
+        return 'bg-orange-500/30 text-orange-400';
+      default:
+        return 'bg-gray-500/30 text-gray-400';
+    }
+  };
+
   return (
     <Card className="h-full hover:shadow-lg transition-all duration-300 bg-black/30 backdrop-blur-md border-yellow-500/20">
       <CardHeader className="pb-3">
@@ -187,58 +360,47 @@ export function LeaderboardCard() {
             </div>
           </div>
           <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 px-3 py-1 text-lg font-bold">
-            #12
+            #{leaderboard?.currentUser?.position || 'N/A'}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Top 3 players */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 rounded-xl border border-yellow-500/30">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                <Crown className="h-4 w-4 text-yellow-900" />
+        {leaderboard?.topUsers && leaderboard.topUsers.length > 0 ? (
+          <div className="space-y-3">
+            {leaderboard.topUsers.map((user: any, index: number) => (
+              <div key={user.user.id} className={`flex items-center justify-between p-4 rounded-xl ${getRankStyle(user.position)}`}>
+                <div className="flex items-center space-x-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getRankCircleStyle(user.position)}`}>
+                    {getRankIcon(user.position)}
+                  </div>
+                  <div>
+                    <span className="font-bold text-white">{user.user.name}</span>
+                    <p className="text-xs text-yellow-400">#{user.position}</p>
+                  </div>
+                </div>
+                <span className="text-lg font-bold text-yellow-400">{user.points.toLocaleString()} pts</span>
               </div>
-              <div>
-                <span className="font-bold text-white">YuumiMaster</span>
-                <p className="text-xs text-yellow-400">Enchanter God</p>
-              </div>
-            </div>
-            <span className="text-lg font-bold text-yellow-400">2,547 pts</span>
+            ))}
           </div>
-
-          <div className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-md rounded-xl border border-slate-500/20">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-slate-600 rounded-full flex items-center justify-center text-sm font-bold text-slate-300">2</div>
-              <div>
-                <span className="font-medium text-white">CatSupport</span>
-                <p className="text-xs text-white/70">Support Main</p>
-              </div>
-            </div>
-            <span className="font-bold text-slate-300">2,341 pts</span>
+        ) : (
+          <div className="text-center py-8">
+            <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-400 mb-2">No leaderboard data</p>
+            <p className="text-sm text-gray-500">Complete challenges to climb the ranks!</p>
           </div>
-
-          <div className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-md rounded-xl border border-orange-500/20">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-orange-500/30 rounded-full flex items-center justify-center text-sm font-bold text-orange-400">3</div>
-              <div>
-                <span className="font-medium text-white">BookLover</span>
-                <p className="text-xs text-white/70">Cat Whisperer</p>
-              </div>
-            </div>
-            <span className="font-bold text-orange-400">2,198 pts</span>
-          </div>
-        </div>
+        )}
 
         <div className="pt-4 border-t border-yellow-500/20">
           <div className="p-3 bg-black/30 backdrop-blur-md rounded-lg border border-yellow-500/20">
             <div className="flex items-center justify-between mb-2">
               <span className="text-white/70">Your Progress</span>
-              <span className="font-bold text-blue-400">1,876 pts</span>
+              <span className="font-bold text-blue-400">
+                {leaderboard?.currentUser?.points?.toLocaleString() || 0} pts
+              </span>
             </div>
             <div className="flex items-center space-x-2 text-xs text-white/70">
               <Clock className="h-3 w-3" />
-              <span>Updated 5 minutes ago</span>
+              <span>Updated recently</span>
             </div>
           </div>
         </div>
@@ -253,6 +415,38 @@ export function LeaderboardCard() {
 }
 
 export function StatsOverviewCard() {
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCommunityStats();
+  }, []);
+
+  const fetchCommunityStats = async () => {
+    try {
+      const response = await fetch('/api/community/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      }
+    } catch (error) {
+      console.error('Error fetching community stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <DashboardCardSkeleton />;
+  }
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'k';
+    }
+    return num.toString();
+  };
+
   return (
     <Card className="h-full hover:shadow-lg transition-all duration-300 bg-black/30 backdrop-blur-md border-indigo-500/20">
       <CardHeader className="pb-3">
@@ -269,14 +463,21 @@ export function StatsOverviewCard() {
       <CardContent className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-4 bg-black/30 backdrop-blur-md rounded-xl border border-purple-500/20">
-            <div className="text-3xl font-bold text-purple-400 mb-1">1,247</div>
-            <div className="text-xs text-white/70">Active Members</div>
+            <div className="text-3xl font-bold text-purple-400 mb-1">
+              {stats?.totalMembers?.toLocaleString() || 0}
+            </div>
+            <div className="text-xs text-white/70">Total Members</div>
             <div className="w-full bg-black/50 rounded-full h-1 mt-2">
-              <div className="bg-purple-400 h-1 rounded-full" style={{width: '87%'}}></div>
+              <div 
+                className="bg-purple-400 h-1 rounded-full transition-all duration-300" 
+                style={{width: `${Math.min((stats?.activeMembers || 0) / Math.max(stats?.totalMembers || 1, 1) * 100, 100)}%`}}
+              ></div>
             </div>
           </div>
           <div className="text-center p-4 bg-black/30 backdrop-blur-md rounded-xl border border-green-500/20">
-            <div className="text-3xl font-bold text-green-400 mb-1">89</div>
+            <div className="text-3xl font-bold text-green-400 mb-1">
+              {stats?.onlineMembers || 0}
+            </div>
             <div className="text-xs text-white/70">Online Now</div>
             <div className="flex items-center justify-center mt-2">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-1"></div>
@@ -284,14 +485,22 @@ export function StatsOverviewCard() {
             </div>
           </div>
           <div className="text-center p-4 bg-black/30 backdrop-blur-md rounded-xl border border-blue-500/20">
-            <div className="text-3xl font-bold text-blue-400 mb-1">342</div>
-            <div className="text-xs text-white/70">Challenges Active</div>
-            <div className="text-xs text-blue-400 mt-1">+12 this week</div>
+            <div className="text-3xl font-bold text-blue-400 mb-1">
+              {stats?.activeChallenges || 0}
+            </div>
+            <div className="text-xs text-white/70">Active Challenges</div>
+            <div className="text-xs text-blue-400 mt-1">
+              {stats?.challengesCompleted || 0} completed
+            </div>
           </div>
           <div className="text-center p-4 bg-black/30 backdrop-blur-md rounded-xl border border-yellow-500/20">
-            <div className="text-3xl font-bold text-yellow-400 mb-1">15.2k</div>
+            <div className="text-3xl font-bold text-yellow-400 mb-1">
+              {formatNumber(stats?.totalGamesTracked || 0)}
+            </div>
             <div className="text-xs text-white/70">Games Tracked</div>
-            <div className="text-xs text-yellow-400 mt-1">+156 today</div>
+            <div className="text-xs text-yellow-400 mt-1">
+              +{stats?.gamesToday || 0} today
+            </div>
           </div>
         </div>
 
@@ -302,7 +511,7 @@ export function StatsOverviewCard() {
               <span className="text-sm font-medium text-white">Server Activity</span>
             </div>
             <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-              High
+              {stats?.activeMembers > 100 ? 'High' : stats?.activeMembers > 50 ? 'Medium' : 'Low'}
             </Badge>
           </div>
         </div>

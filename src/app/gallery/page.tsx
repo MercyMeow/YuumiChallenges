@@ -113,13 +113,26 @@ export default function GalleryPage() {
                     </CardHeader>
                     <CardContent className="p-4">
                       <div className="relative mb-4 rounded-lg overflow-hidden bg-black/20 backdrop-blur-sm">
-                        <Image 
+                        <img 
                           src={`/${gif}`} 
                           alt={`Rule ${ruleNumber} GIF`}
-                          width={400}
-                          height={192}
                           className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
-                          unoptimized
+                          loading="lazy"
+                          onError={(e) => {
+                            console.error(`Failed to load image: ${gif}`, e);
+                            const target = e.currentTarget as HTMLImageElement;
+                            target.parentElement!.innerHTML = `
+                              <div class="w-full h-48 bg-red-500/20 border border-red-500/40 rounded-lg flex items-center justify-center">
+                                <div class="text-red-300 text-center">
+                                  <p class="text-sm font-medium">Failed to load</p>
+                                  <p class="text-xs">${gif}</p>
+                                </div>
+                              </div>
+                            `;
+                          }}
+                          onLoad={() => {
+                            console.log(`Successfully loaded image: ${gif}`);
+                          }}
                         />
                       </div>
                       

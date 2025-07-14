@@ -12,8 +12,8 @@ export function useAuth() {
     return {
       id: session.user.id,
       discord_id: session.user.discord_id,
-      name: session.user.name,
-      image: session.user.image,
+      name: session.user.name || '',
+      image: session.user.image || undefined,
       user_role: session.user.user_role,
       is_yuumi_member: session.user.is_yuumi_member,
       roles: session.user.roles,

@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { 
   ChallengesCard, 
@@ -10,9 +12,77 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Sparkles, TrendingUp, Zap, Activity, Users, Award } from 'lucide-react';
+import { Settings, Sparkles, TrendingUp, Zap, Activity, Users, Award, Loader2 } from 'lucide-react';
+
+interface DashboardStats {
+  winStreak: number;
+  userRank: string;
+  winRate: number;
+  activeChallenges: number;
+  currentRank: number | null;
+}
+
+interface CommunityStats {
+  totalMembers: number;
+  activeMembers: number;
+  onlineMembers: number;
+  activeChallenges: number;
+}
 
 export default function Dashboard() {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [communityStats, setCommunityStats] = useState<CommunityStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchDashboardData();
+    }
+  }, [isAuthenticated, user]);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoadingStats(true);
+      
+      // Fetch dashboard stats and community stats in parallel
+      const [dashboardRes, communityRes] = await Promise.all([
+        fetch('/api/user/dashboard-stats'),
+        fetch('/api/community/stats')
+      ]);
+
+      if (dashboardRes.ok) {
+        const dashboardData = await dashboardRes.json();
+        setDashboardStats(dashboardData);
+      }
+
+      if (communityRes.ok) {
+        const communityData = await communityRes.json();
+        setCommunityStats(communityData);
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  if (isLoading || loadingStats) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-purple-400 mx-auto mb-4" />
+            <p className="text-gray-400">Loading dashboard...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!isAuthenticated || !user) {
+    return null;
+  }
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -41,7 +111,7 @@ export default function Dashboard() {
                   </div>
                   <div className="flex items-center space-x-1 text-blue-300">
                     <Users className="h-4 w-4" />
-                    <span>1,247 active members</span>
+                    <span>{communityStats?.totalMembers || 0} active members</span>
                   </div>
                 </div>
               </div>
@@ -67,7 +137,9 @@ export default function Dashboard() {
                 <Zap className="h-4 w-4 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-purple-400 group-hover:text-purple-300 transition-colors duration-300">7</p>
+                <p className="text-2xl font-bold text-purple-400 group-hover:text-purple-300 transition-colors duration-300">
+                  {dashboardStats?.winStreak || 0}
+                </p>
                 <p className="text-xs text-white/70">Win Streak</p>
               </div>
             </div>
@@ -78,7 +150,9 @@ export default function Dashboard() {
                 <Award className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-blue-400 group-hover:text-blue-300 transition-colors duration-300">12</p>
+                <p className="text-2xl font-bold text-blue-400 group-hover:text-blue-300 transition-colors duration-300">
+                  {dashboardStats?.currentRank || 'N/A'}
+                </p>
                 <p className="text-xs text-white/70">Rank</p>
               </div>
             </div>
@@ -89,7 +163,9 @@ export default function Dashboard() {
                 <Activity className="h-4 w-4 text-green-400 group-hover:scale-110 transition-transform duration-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-green-400 group-hover:text-green-300 transition-colors duration-300">68%</p>
+                <p className="text-2xl font-bold text-green-400 group-hover:text-green-300 transition-colors duration-300">
+                  {dashboardStats?.winRate || 0}%
+                </p>
                 <p className="text-xs text-white/70">Win Rate</p>
               </div>
             </div>
@@ -100,7 +176,9 @@ export default function Dashboard() {
                 <Users className="h-4 w-4 text-yellow-400 group-hover:scale-110 transition-transform duration-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-yellow-400 group-hover:text-yellow-300 transition-colors duration-300">3</p>
+                <p className="text-2xl font-bold text-yellow-400 group-hover:text-yellow-300 transition-colors duration-300">
+                  {dashboardStats?.activeChallenges || 0}
+                </p>
                 <p className="text-xs text-white/70">Active Challenges</p>
               </div>
             </div>

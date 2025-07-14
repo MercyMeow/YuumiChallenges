@@ -99,4 +99,15 @@ export class RiotAPI {
 
     return response.json();
   }
+
+  async getAccountByRiotId(gameName: string, tagLine: string, region: string) {
+    // This is an alias for getSummonerByRiotId for consistency
+    return this.getSummonerByRiotId(gameName, tagLine, region);
+  }
+
+  async getItemSets(summonerId: string, region: string) {
+    // Item sets are not available in the current Riot API
+    // Return empty array as a placeholder
+    return [];
+  }
 }
