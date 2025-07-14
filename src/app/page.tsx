@@ -20,17 +20,10 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
-        {/* Magical Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(147,51,234,0.3)_0%,_transparent_50%)]"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_rgba(59,130,246,0.3)_0%,_transparent_50%)]"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,_rgba(139,69,234,0.2)_0%,_transparent_50%)]"></div>
-        </div>
-        
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center magical-bg">
         <div className="relative z-10">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yuumi-purple"></div>
-          <div className="absolute inset-0 animate-ping rounded-full h-12 w-12 border border-yuumi-purple/30"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <div className="absolute inset-0 animate-ping rounded-full h-12 w-12 border border-primary/30"></div>
         </div>
       </div>
     );
@@ -41,24 +34,13 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Magical Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(147,51,234,0.3)_0%,_transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_rgba(59,130,246,0.3)_0%,_transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,_rgba(139,69,234,0.2)_0%,_transparent_50%)]"></div>
-      </div>
-
-      {/* Subtle Animated Particles */}
+    <div className="min-h-screen relative overflow-hidden magical-bg">
+      {/* Animated Particles */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute animate-subtle-pulse top-1/4 left-1/4 w-1.5 h-1.5 bg-yuumi-purple/40 rounded-full shadow-lg shadow-yuumi-purple/20"></div>
-        <div className="absolute animate-subtle-pulse delay-1000 top-3/4 left-3/4 w-1 h-1 bg-yuumi-blue/40 rounded-full shadow-lg shadow-yuumi-blue/20"></div>
-        <div className="absolute animate-subtle-pulse delay-2000 top-1/2 left-1/6 w-1.5 h-1.5 bg-yuumi-teal/40 rounded-full shadow-lg shadow-yuumi-teal/20"></div>
-        <div className="absolute animate-subtle-pulse delay-500 top-1/6 left-2/3 w-1 h-1 bg-yuumi-pink/40 rounded-full shadow-lg shadow-yuumi-pink/20"></div>
-        <div className="absolute animate-subtle-float delay-700 top-1/3 left-1/2 w-1.5 h-1.5 bg-primary/40 rounded-full shadow-lg shadow-primary/20"></div>
-        <div className="absolute animate-subtle-float delay-300 top-2/3 left-1/5 w-1 h-1 bg-yuumi-teal/40 rounded-full shadow-lg shadow-yuumi-teal/20"></div>
-        <div className="absolute animate-float delay-500 top-5/6 left-5/6 w-2 h-2 bg-yuumi-purple/30 rounded-full shadow-lg shadow-yuumi-purple/20"></div>
-        <div className="absolute animate-float delay-1000 top-1/6 left-1/3 w-1.5 h-1.5 bg-yuumi-blue/30 rounded-full shadow-lg shadow-yuumi-blue/20"></div>
+        <div className="absolute animate-pulse-glow top-1/4 left-1/4 w-2 h-2 bg-primary rounded-full glow"></div>
+        <div className="absolute animate-pulse-glow delay-300 top-3/4 left-3/4 w-1.5 h-1.5 bg-yuumi-blue rounded-full"></div>
+        <div className="absolute animate-float delay-500 top-1/2 left-1/6 w-2 h-2 bg-yuumi-teal rounded-full"></div>
+        <div className="absolute animate-float delay-700 top-1/6 left-2/3 w-1.5 h-1.5 bg-yuumi-pink rounded-full"></div>
       </div>
 
       <div className="relative z-10 container mx-auto px-6 py-20">
@@ -74,26 +56,25 @@ export default function Home() {
               </div>
             </div>
             
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 bg-gradient-to-r from-landing-text-primary via-yuumi-blue to-yuumi-purple bg-clip-text text-transparent leading-tight animate-gradient">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 gradient-text leading-tight animate-gradient">
               Yuum.Ai Dashboard
             </h1>
             
-            <p className="text-xl md:text-3xl text-landing-text-primary mb-8 font-medium">
+            <p className="text-xl md:text-3xl text-foreground mb-8 font-medium">
               Professional challenge tracking for League of Legends Yuumi Mains
             </p>
             
-            <p className="text-lg md:text-xl text-landing-text-secondary max-w-3xl mx-auto mb-16 leading-relaxed">
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-16 leading-relaxed">
               Track your progress, compete with friends, and excel as an enchanter 
               in the Yuumi Mains Discord community. Master the art of support gameplay 
               with advanced analytics and community challenges.
             </p>
             
-            <div className="relative inline-block group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-yuumi-purple to-yuumi-blue rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-300"></div>
+            <div className="relative inline-block">
               <Button 
                 asChild 
                 size="lg" 
-                className="relative text-lg px-12 py-4 bg-gradient-to-r from-yuumi-purple to-yuumi-blue hover:from-yuumi-purple/90 hover:to-yuumi-blue/90 text-white border-0 rounded-2xl font-semibold shadow-2xl transform hover:scale-105 transition-all duration-300"
+                className="btn-modern bg-gradient-to-r from-primary to-yuumi-blue text-white hover:shadow-lg hover:shadow-primary/30 px-12 py-6 text-lg font-semibold"
               >
                 <Link href="/auth/signin">
                   Begin Your Journey

@@ -1,26 +1,20 @@
 import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-full border px-2.5 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none transition-all duration-200 overflow-hidden shadow-sm",
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-gradient-to-r from-primary to-primary to-opacity-80 text-primary-foreground shadow-primary shadow-opacity-20 [a&]:hover:shadow-md [a&]:hover:shadow-primary [a&]:hover:shadow-opacity-30 [a&]:hover:scale-105",
+          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
         secondary:
-          "border-secondary border-opacity-30 bg-secondary bg-opacity-20 backdrop-blur-sm text-secondary-foreground [a&]:hover:bg-secondary [a&]:hover:bg-opacity-30 [a&]:hover:border-secondary [a&]:hover:border-opacity-50",
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
-          "border-transparent bg-gradient-to-r from-destructive to-destructive to-opacity-80 text-destructive-foreground shadow-destructive shadow-opacity-20 [a&]:hover:shadow-md [a&]:hover:shadow-destructive [a&]:hover:shadow-opacity-30 [a&]:hover:scale-105",
-        outline:
-          "border-input border-opacity-50 bg-background bg-opacity-50 backdrop-blur-sm text-foreground [a&]:hover:bg-accent [a&]:hover:bg-opacity-30 [a&]:hover:text-accent-foreground [a&]:hover:border-primary [a&]:hover:border-opacity-50",
-        success:
-          "border-transparent bg-gradient-to-r from-green-600 to-green-500 text-white shadow-green-500 shadow-opacity-20 [a&]:hover:shadow-md [a&]:hover:shadow-green-500 [a&]:hover:shadow-opacity-30 [a&]:hover:scale-105",
-        warning:
-          "border-transparent bg-gradient-to-r from-yellow-600 to-yellow-500 text-white shadow-yellow-500 shadow-opacity-20 [a&]:hover:shadow-md [a&]:hover:shadow-yellow-500 [a&]:hover:shadow-opacity-30 [a&]:hover:scale-105",
+          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+        outline: "text-foreground",
       },
     },
     defaultVariants: {
@@ -29,21 +23,13 @@ const badgeVariants = cva(
   }
 )
 
-function Badge({
-  className,
-  variant,
-  asChild = false,
-  ...props
-}: React.ComponentProps<"span"> &
-  VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : "span"
+export interface BadgeProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof badgeVariants> {}
 
+function Badge({ className, variant, ...props }: BadgeProps) {
   return (
-    <Comp
-      data-slot="badge"
-      className={cn(badgeVariants({ variant }), className)}
-      {...props}
-    />
+    <div className={cn(badgeVariants({ variant }), className)} {...props} />
   )
 }
 
