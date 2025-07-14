@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 // Get all rule GIFs from the public directory
 const ruleGifs = [
@@ -51,35 +50,35 @@ export default function GalleryPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,_rgba(139,69,234,0.2)_0%,_transparent_50%)]"></div>
       </div>
 
-      {/* Animated Particles */}
+      {/* Subtle Animated Particles */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute animate-pulse top-1/4 left-1/4 w-2 h-2 bg-purple-400/60 rounded-full shadow-lg shadow-purple-400/30"></div>
-        <div className="absolute animate-pulse delay-1000 top-3/4 left-3/4 w-1 h-1 bg-blue-400/60 rounded-full shadow-lg shadow-blue-400/30"></div>
-        <div className="absolute animate-pulse delay-2000 top-1/2 left-1/6 w-1.5 h-1.5 bg-indigo-400/60 rounded-full shadow-lg shadow-indigo-400/30"></div>
-        <div className="absolute animate-pulse delay-500 top-1/6 left-2/3 w-1 h-1 bg-purple-300/60 rounded-full shadow-lg shadow-purple-300/30"></div>
-        <div className="absolute animate-pulse delay-1500 bottom-1/4 right-1/4 w-2 h-2 bg-blue-300/60 rounded-full shadow-lg shadow-blue-300/30"></div>
-        <div className="absolute animate-float delay-700 top-1/3 left-1/2 w-1.5 h-1.5 bg-violet-400/50 rounded-full shadow-lg shadow-violet-400/30"></div>
-        <div className="absolute animate-float delay-300 top-2/3 left-1/5 w-1 h-1 bg-cyan-400/50 rounded-full shadow-lg shadow-cyan-400/30"></div>
-        <div className="absolute animate-float delay-1200 top-1/5 left-4/5 w-2 h-2 bg-fuchsia-400/40 rounded-full shadow-lg shadow-fuchsia-400/30"></div>
+        <div className="absolute animate-subtle-pulse top-1/4 left-1/4 w-1.5 h-1.5 bg-yuumi-purple/40 rounded-full shadow-lg shadow-yuumi-purple/20"></div>
+        <div className="absolute animate-subtle-pulse delay-1000 top-3/4 left-3/4 w-1 h-1 bg-yuumi-blue/40 rounded-full shadow-lg shadow-yuumi-blue/20"></div>
+        <div className="absolute animate-subtle-pulse delay-2000 top-1/2 left-1/6 w-1.5 h-1.5 bg-yuumi-teal/40 rounded-full shadow-lg shadow-yuumi-teal/20"></div>
+        <div className="absolute animate-subtle-pulse delay-500 top-1/6 left-2/3 w-1 h-1 bg-yuumi-pink/40 rounded-full shadow-lg shadow-yuumi-pink/20"></div>
+        <div className="absolute animate-subtle-pulse delay-1500 bottom-1/4 right-1/4 w-1.5 h-1.5 bg-yuumi-blue/40 rounded-full shadow-lg shadow-yuumi-blue/20"></div>
+        <div className="absolute animate-subtle-float delay-700 top-1/3 left-1/2 w-1.5 h-1.5 bg-primary/40 rounded-full shadow-lg shadow-primary/20"></div>
+        <div className="absolute animate-subtle-float delay-300 top-2/3 left-1/5 w-1 h-1 bg-yuumi-teal/40 rounded-full shadow-lg shadow-yuumi-teal/20"></div>
+        <div className="absolute animate-subtle-float delay-1200 top-1/5 left-4/5 w-1.5 h-1.5 bg-yuumi-pink/40 rounded-full shadow-lg shadow-yuumi-pink/20"></div>
       </div>
 
       <div className="relative z-10 container mx-auto px-6 py-20">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-16">
-            <Link href="/" className="inline-flex items-center gap-2 text-purple-300 hover:text-purple-200 transition-colors mb-8">
+            <Link href="/" className="inline-flex items-center gap-2 text-yuumi-purple hover:text-yuumi-blue transition-colors mb-8">
               <ArrowLeft className="w-5 h-5" />
               <span>Back to Home</span>
             </Link>
             
             <div className="mb-8 relative">
-              <div className="text-6xl mb-4 relative inline-block animate-float">
+              <div className="text-6xl mb-4 relative inline-block animate-subtle-float">
                 <span className="relative z-10">🖼️</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-teal-400 blur-3xl opacity-30 animate-glow"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-yuumi-teal to-yuumi-blue blur-3xl opacity-20 animate-glow"></div>
               </div>
             </div>
             
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-cyan-300 via-teal-300 to-blue-300 bg-clip-text text-transparent leading-tight">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-landing-text-primary via-yuumi-teal to-yuumi-blue bg-clip-text text-transparent leading-tight">
               Rule Gallery
             </h1>
             
@@ -121,20 +120,12 @@ export default function GalleryPage() {
                             </div>
                           </div>
                         )}
-                        <div className="relative w-full h-48">
-                          <Image 
+                        <div className="relative w-full h-48 flex items-center justify-center">
+                          <img 
                             src={`/${gif}`} 
                             alt={`Rule ${ruleNumber} GIF`}
-                            fill
-                            className="object-cover hover:scale-105 transition-transform duration-300"
-                            unoptimized // Important for GIFs to work properly
-                            priority={false}
-                            onError={(e) => {
-                              console.error(`Failed to load image: ${gif}`, e);
-                            }}
-                            onLoad={() => {
-                              console.log(`Successfully loaded image: ${gif}`);
-                            }}
+                            className="max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
                           />
                         </div>
                       </div>
@@ -146,24 +137,6 @@ export default function GalleryPage() {
             })}
           </div>
 
-          {/* Bottom Info */}
-          <div className="mt-16 text-center">
-            <div className="relative group max-w-2xl mx-auto">
-              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-600 to-teal-600 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-300"></div>
-              <Card className="relative backdrop-blur-md bg-gradient-to-br from-cyan-600/20 to-teal-600/20 border border-cyan-500/30 rounded-2xl">
-                <CardContent className="p-6">
-                  <h3 className="text-white text-xl font-bold mb-4">
-                    How to Use
-                  </h3>
-                  <div className="space-y-2 text-landing-text-primary/90">
-                    <p>• Click any GIF to copy its short link</p>
-                    <p>• Links are optimized for Discord embedding</p>
-                    <p>• Share rules quickly in your server</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
         </div>
       </div>
     </div>

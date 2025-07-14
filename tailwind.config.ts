@@ -59,6 +59,17 @@ const config: Config = {
           border: "oklch(var(--sidebar-border))",
           ring: "oklch(var(--sidebar-ring))",
         },
+        // Landing page colors
+        "landing-bg-from": "oklch(var(--landing-bg-from))",
+        "landing-bg-via": "oklch(var(--landing-bg-via))",
+        "landing-bg-to": "oklch(var(--landing-bg-to))",
+        "landing-text-primary": "oklch(var(--landing-text-primary))",
+        "landing-text-secondary": "oklch(var(--landing-text-secondary))",
+        // Yuumi-inspired accent colors
+        "yuumi-purple": "oklch(var(--yuumi-purple))",
+        "yuumi-blue": "oklch(var(--yuumi-blue))",
+        "yuumi-teal": "oklch(var(--yuumi-teal))",
+        "yuumi-pink": "oklch(var(--yuumi-pink))",
         // Modern dark theme utility colors
         success: {
           DEFAULT: "oklch(0.70 0.16 150)",

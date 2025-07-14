@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import Link from 'next/link';
 
 export default function SignIn() {
@@ -42,22 +41,16 @@ export default function SignIn() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,_rgba(139,69,234,0.2)_0%,_transparent_50%)]"></div>
       </div>
 
-      {/* Animated Particles */}
+      {/* Subtle Animated Particles */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute animate-pulse top-1/4 left-1/4 w-2 h-2 bg-purple-400/60 rounded-full shadow-lg shadow-purple-400/30"></div>
-        <div className="absolute animate-pulse delay-1000 top-3/4 left-3/4 w-1 h-1 bg-blue-400/60 rounded-full shadow-lg shadow-blue-400/30"></div>
-        <div className="absolute animate-pulse delay-2000 top-1/2 left-1/6 w-1.5 h-1.5 bg-indigo-400/60 rounded-full shadow-lg shadow-indigo-400/30"></div>
-        <div className="absolute animate-pulse delay-500 top-1/6 left-2/3 w-1 h-1 bg-purple-300/60 rounded-full shadow-lg shadow-purple-300/30"></div>
-        <div className="absolute animate-float delay-700 top-1/3 left-1/2 w-1.5 h-1.5 bg-violet-400/50 rounded-full shadow-lg shadow-violet-400/30"></div>
-        <div className="absolute animate-float delay-300 top-2/3 left-1/5 w-1 h-1 bg-cyan-400/50 rounded-full shadow-lg shadow-cyan-400/30"></div>
+        <div className="absolute animate-subtle-pulse top-1/4 left-1/4 w-1.5 h-1.5 bg-yuumi-purple/40 rounded-full shadow-lg shadow-yuumi-purple/20"></div>
+        <div className="absolute animate-subtle-pulse delay-1000 top-3/4 left-3/4 w-1 h-1 bg-yuumi-blue/40 rounded-full shadow-lg shadow-yuumi-blue/20"></div>
+        <div className="absolute animate-subtle-pulse delay-2000 top-1/2 left-1/6 w-1.5 h-1.5 bg-yuumi-teal/40 rounded-full shadow-lg shadow-yuumi-teal/20"></div>
+        <div className="absolute animate-subtle-pulse delay-500 top-1/6 left-2/3 w-1 h-1 bg-yuumi-pink/40 rounded-full shadow-lg shadow-yuumi-pink/20"></div>
+        <div className="absolute animate-subtle-float delay-700 top-1/3 left-1/2 w-1.5 h-1.5 bg-primary/40 rounded-full shadow-lg shadow-primary/20"></div>
+        <div className="absolute animate-subtle-float delay-300 top-2/3 left-1/5 w-1 h-1 bg-yuumi-teal/40 rounded-full shadow-lg shadow-yuumi-teal/20"></div>
       </div>
 
-      {/* Fixed Theme Toggle */}
-      <div className="fixed top-6 right-6 z-50">
-        <div className="backdrop-blur-md bg-white/10 dark:bg-black/10 p-2 rounded-xl border border-white/20">
-          <ThemeToggle />
-        </div>
-      </div>
 
       {/* Back to Home Link */}
       <div className="fixed top-6 left-6 z-50">
@@ -65,7 +58,7 @@ export default function SignIn() {
           asChild
           variant="ghost" 
           size="sm"
-          className="backdrop-blur-md bg-white/10 dark:bg-black/10 text-landing-text-primary hover:bg-white/20 hover:text-landing-text-primary border border-white/20"
+          className="backdrop-blur-md bg-card/50 text-landing-text-primary hover:bg-card/70 hover:text-landing-text-primary border border-border/50"
         >
           <Link href="/">
             ← Back to Home
@@ -77,18 +70,18 @@ export default function SignIn() {
         <div className="w-full max-w-md">
           {/* Main Sign In Card */}
           <div className="relative group mb-8">
-            <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/50 to-blue-500/50 rounded-3xl blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
-            <Card className="relative backdrop-blur-md bg-gradient-to-br from-white/10 to-white/5 dark:from-black/20 dark:to-black/10 border border-white/20 rounded-3xl shadow-2xl">
+            <div className="absolute -inset-1 bg-gradient-to-r from-yuumi-purple/30 to-yuumi-blue/30 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
+            <Card className="relative backdrop-blur-md bg-gradient-to-br from-card/80 to-card/60 border border-border/50 rounded-3xl shadow-2xl">
               <CardHeader className="text-center pb-6 pt-8">
                 {/* Animated Yuumi Icon */}
                 <div className="mb-6 relative">
-                  <div className="text-6xl mb-4 relative inline-block animate-float">
+                  <div className="text-6xl mb-4 relative inline-block animate-subtle-float">
                     <span className="relative z-10">🐱</span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 blur-2xl opacity-30 animate-glow"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-yuumi-purple to-yuumi-blue blur-2xl opacity-20 animate-glow"></div>
                   </div>
                 </div>
                 
-                <CardTitle className="text-3xl font-bold mb-3 bg-gradient-to-r from-landing-text-primary to-blue-300 bg-clip-text text-transparent">
+                <CardTitle className="text-3xl font-bold mb-3 bg-gradient-to-r from-landing-text-primary to-yuumi-blue bg-clip-text text-transparent">
                   Welcome Back
                 </CardTitle>
                 <CardDescription className="text-landing-text-secondary text-lg leading-relaxed">
@@ -99,11 +92,11 @@ export default function SignIn() {
               <CardContent className="space-y-6 px-8 pb-8">
                 {/* Discord Sign In Button */}
                 <div className="relative group/btn">
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-[#5865F2] to-[#4752C4] rounded-xl blur opacity-75 group-hover/btn:opacity-100 transition duration-300"></div>
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-[#5865F2] to-[#4752C4] rounded-xl blur opacity-50 group-hover/btn:opacity-75 transition duration-300"></div>
                   <Button
                     onClick={handleDiscordSignIn}
                     disabled={isLoading}
-                    className="relative w-full bg-[#5865F2] hover:bg-[#4752C4] text-white font-semibold py-4 text-lg rounded-xl transform hover:scale-[1.02] transition-all duration-300 shadow-xl"
+                    className="relative w-full bg-[#5865F2] hover:bg-[#4752C4] text-white font-semibold py-4 text-lg rounded-xl transform hover:scale-[1.01] transition-all duration-300 shadow-xl"
                     size="lg"
                   >
                     {isLoading ? (
@@ -123,21 +116,21 @@ export default function SignIn() {
                 </div>
 
                 {/* Features Preview */}
-                <div className="mt-8 pt-6 border-t border-white/20">
+                <div className="mt-8 pt-6 border-t border-border/50">
                   <p className="text-center text-landing-text-secondary/80 text-sm mb-4 font-medium">
                     What awaits you:
                   </p>
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div className="group">
-                      <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">🎯</div>
+                      <div className="text-2xl mb-2 group-hover:scale-105 transition-transform duration-300">🎯</div>
                       <p className="text-xs text-landing-text-secondary/70">Challenges</p>
                     </div>
                     <div className="group">
-                      <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">🏆</div>
+                      <div className="text-2xl mb-2 group-hover:scale-105 transition-transform duration-300">🏆</div>
                       <p className="text-xs text-landing-text-secondary/70">Leaderboards</p>
                     </div>
                     <div className="group">
-                      <div className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-300">📊</div>
+                      <div className="text-2xl mb-2 group-hover:scale-105 transition-transform duration-300">📊</div>
                       <p className="text-xs text-landing-text-secondary/70">Analytics</p>
                     </div>
                   </div>
@@ -165,7 +158,7 @@ export default function SignIn() {
               asChild
               variant="outline"
               size="sm"
-              className="backdrop-blur-md bg-white/5 hover:bg-white/10 text-landing-text-primary border border-white/30 hover:border-white/50"
+              className="backdrop-blur-md bg-card/30 hover:bg-card/50 text-landing-text-primary border border-border/50 hover:border-border/70"
             >
               <a 
                 href="https://discord.gg/yuumi" 

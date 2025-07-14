@@ -62,8 +62,8 @@
   --popover: oklch(0.16 0.008 240);
   --popover-foreground: oklch(0.92 0.01 240);
   
-  /* Primary colors - modern blue accent */
-  --primary: oklch(0.66 0.17 240);
+  /* Primary colors - modern blue with subtle Yuumi-inspired purple accent */
+  --primary: oklch(0.66 0.15 250);
   --primary-foreground: oklch(0.11 0.007 240);
   
   /* Secondary colors - subtle neutral */
@@ -85,10 +85,10 @@
   /* Border colors - subtle separation */
   --border: oklch(0.22 0.01 240);
   --input: oklch(0.22 0.01 240);
-  --ring: oklch(0.66 0.17 240);
+  --ring: oklch(0.66 0.15 250);
   
   /* Chart colors - modern data visualization palette */
-  --chart-1: oklch(0.66 0.17 240);  /* Primary blue */
+  --chart-1: oklch(0.66 0.15 250);  /* Primary blue-purple */
   --chart-2: oklch(0.70 0.16 150);  /* Green */
   --chart-3: oklch(0.75 0.15 50);   /* Yellow */
   --chart-4: oklch(0.68 0.18 320);  /* Purple */
@@ -97,12 +97,25 @@
   /* Sidebar colors - consistent with overall theme */
   --sidebar: oklch(0.12 0.007 240);
   --sidebar-foreground: oklch(0.92 0.01 240);
-  --sidebar-primary: oklch(0.66 0.17 240);
+  --sidebar-primary: oklch(0.66 0.15 250);
   --sidebar-primary-foreground: oklch(0.11 0.007 240);
   --sidebar-accent: oklch(0.18 0.01 240);
   --sidebar-accent-foreground: oklch(0.92 0.01 240);
   --sidebar-border: oklch(0.22 0.01 240);
-  --sidebar-ring: oklch(0.66 0.17 240);
+  --sidebar-ring: oklch(0.66 0.15 250);
+  
+  /* Landing page colors - mapped to modern theme */
+  --landing-bg-from: oklch(0.11 0.007 240);
+  --landing-bg-via: oklch(0.09 0.01 245);
+  --landing-bg-to: oklch(0.10 0.008 250);
+  --landing-text-primary: oklch(0.92 0.01 240);
+  --landing-text-secondary: oklch(0.75 0.02 245);
+  
+  /* Yuumi-inspired accent colors */
+  --yuumi-purple: oklch(0.68 0.18 280);
+  --yuumi-blue: oklch(0.66 0.15 250);
+  --yuumi-teal: oklch(0.70 0.14 180);
+  --yuumi-pink: oklch(0.72 0.16 340);
 }
 
 @layer base {
@@ -152,6 +165,16 @@
     to { opacity: 1; transform: translateY(0); }
   }
   
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
+  
+  @keyframes glow {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+  }
+  
   .animate-subtle-float {
     animation: subtle-float 4s ease-in-out infinite;
   }
@@ -162,6 +185,14 @@
   
   .animate-fade-in {
     animation: fade-in 0.5s ease-out forwards;
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite;
   }
 }
 

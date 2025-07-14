@@ -1,7 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 
 // List of valid rule GIFs
 const validGifs = [
@@ -88,7 +87,7 @@ export default async function GifPage({ params }: PageProps) {
       <div className="relative z-10 container mx-auto px-6 py-20">
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-8">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-300 via-blue-300 to-indigo-300 bg-clip-text text-transparent leading-tight">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-landing-text-primary via-yuumi-purple to-yuumi-blue bg-clip-text text-transparent leading-tight">
               Rule {ruleNumber}
             </h1>
             <p className="text-xl text-landing-text-primary mb-8">
@@ -97,14 +96,12 @@ export default async function GifPage({ params }: PageProps) {
           </div>
 
           {/* GIF Display */}
-          <div className="relative mb-8 rounded-2xl overflow-hidden bg-black/20 backdrop-blur-sm border border-purple-500/20 inline-block">
-            <Image 
+          <div className="relative mb-8 rounded-2xl overflow-hidden bg-card/50 backdrop-blur-sm border border-border/50 inline-block">
+            <img 
               src={`/${gifName}`} 
               alt={`Rule ${ruleNumber} GIF`}
-              width={500}
-              height={500}
               className="max-w-full h-auto"
-              unoptimized
+              style={{ maxWidth: '500px', width: '100%' }}
             />
           </div>
 
@@ -112,13 +109,13 @@ export default async function GifPage({ params }: PageProps) {
           <div className="space-y-4">
             <Link 
               href="/gallery"
-              className="inline-flex items-center gap-2 text-purple-300 hover:text-purple-200 transition-colors"
+              className="inline-flex items-center gap-2 text-yuumi-purple hover:text-yuumi-blue transition-colors"
             >
               ← Back to Gallery
             </Link>
             <p className="text-landing-text-secondary/80">
               Share this link for Discord embedding: <br />
-              <code className="text-cyan-300">https://yuumi.quest/{gifName}</code>
+              <code className="text-yuumi-teal">https://yuumi.quest/{gifName}</code>
             </p>
           </div>
         </div>
