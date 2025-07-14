@@ -70,7 +70,7 @@ interface ChallengeFormData {
   };
 }
 
-export function ChallengeManagement() {
+export function ChallengeManagement({ permissions }: ChallengeManagementProps) {
   const [challenges, setChallenges] = useState<AdminChallengeView[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);

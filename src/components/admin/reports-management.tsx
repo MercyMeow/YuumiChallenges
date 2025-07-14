@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -84,22 +84,6 @@ export function ReportsManagement({ permissions }: ReportsManagementProps) {
   const [resolution, setResolution] = useState('');
   const [isResolving, setIsResolving] = useState(false);
 
-  const reportTypes = [
-    { value: 'harassment', label: 'Harassment' },
-    { value: 'cheating', label: 'Cheating' },
-    { value: 'inappropriate_content', label: 'Inappropriate Content' },
-    { value: 'spam', label: 'Spam' },
-    { value: 'other', label: 'Other' }
-  ];
-
-  useEffect(() => {
-    fetchReports();
-  }, []);
-
-  useEffect(() => {
-    filterReports();
-  }, [reports, searchQuery, statusFilter, typeFilter]);
-
   const fetchReports = async () => {
     try {
       setIsLoading(true);
@@ -116,7 +100,7 @@ export function ReportsManagement({ permissions }: ReportsManagementProps) {
     }
   };
 
-  const filterReports = () => {
+  const filterReports = useCallback(() => {
     let filtered = reports;
 
     if (searchQuery) {
@@ -136,7 +120,31 @@ export function ReportsManagement({ permissions }: ReportsManagementProps) {
     }
 
     setFilteredReports(filtered);
-  };
+  }, [reports, searchQuery, statusFilter, typeFilter]);
+
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  useEffect(() => {
+    filterReports();
+  }, [filterReports]);
+
+  const reportTypes = [
+    { value: 'harassment', label: 'Harassment' },
+    { value: 'cheating', label: 'Cheating' },
+    { value: 'inappropriate_content', label: 'Inappropriate Content' },
+    { value: 'spam', label: 'Spam' },
+    { value: 'other', label: 'Other' }
+  ];
+
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  useEffect(() => {
+    filterReports();
+  }, [filterReports]);
 
   const handleResolveReport = async (reportId: string, status: 'resolved' | 'dismissed') => {
     if (!permissions.moderateContent) return;

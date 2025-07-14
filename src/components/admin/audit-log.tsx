@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -77,35 +77,7 @@ export function AuditLog() {
   const [isLoading, setIsLoading] = useState(true);
   const [availableAdmins, setAvailableAdmins] = useState<Array<{id: string, username: string}>>([]);
 
-  const actionTypes = [
-    { value: 'user_role_changed', label: 'User Role Changed' },
-    { value: 'challenge_created', label: 'Challenge Created' },
-    { value: 'challenge_updated', label: 'Challenge Updated' },
-    { value: 'challenge_deleted', label: 'Challenge Deleted' },
-    { value: 'challenge_activated', label: 'Challenge Activated' },
-    { value: 'challenge_deactivated', label: 'Challenge Deactivated' },
-    { value: 'report_resolved', label: 'Report Resolved' },
-    { value: 'user_banned', label: 'User Banned' },
-    { value: 'settings_updated', label: 'Settings Updated' }
-  ];
-
-  const targetTypes = [
-    { value: 'user', label: 'User' },
-    { value: 'challenge', label: 'Challenge' },
-    { value: 'report', label: 'Report' },
-    { value: 'system', label: 'System' }
-  ];
-
-  useEffect(() => {
-    fetchAuditLog();
-    fetchAvailableAdmins();
-  }, [pagination.page, actionTypeFilter, targetTypeFilter, adminFilter]);
-
-  useEffect(() => {
-    filterEntries();
-  }, [auditEntries, searchQuery]);
-
-  const fetchAuditLog = async () => {
+  const fetchAuditLog = useCallback(async () => {
     try {
       setIsLoading(true);
       const params = new URLSearchParams({
@@ -134,7 +106,7 @@ export function AuditLog() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [pagination.page, pagination.limit, actionTypeFilter, targetTypeFilter, adminFilter]);
 
   const fetchAvailableAdmins = async () => {
     try {
@@ -154,7 +126,7 @@ export function AuditLog() {
     }
   };
 
-  const filterEntries = () => {
+  const filterEntries = useCallback(() => {
     let filtered = auditEntries;
 
     if (searchQuery) {
@@ -167,7 +139,44 @@ export function AuditLog() {
     }
 
     setFilteredEntries(filtered);
-  };
+  }, [auditEntries, searchQuery]);
+
+  useEffect(() => {
+    fetchAuditLog();
+    fetchAvailableAdmins();
+  }, [fetchAuditLog, pagination.page, actionTypeFilter, targetTypeFilter, adminFilter]);
+
+  useEffect(() => {
+    filterEntries();
+  }, [filterEntries]);
+
+  const actionTypes = [
+    { value: 'user_role_changed', label: 'User Role Changed' },
+    { value: 'challenge_created', label: 'Challenge Created' },
+    { value: 'challenge_updated', label: 'Challenge Updated' },
+    { value: 'challenge_deleted', label: 'Challenge Deleted' },
+    { value: 'challenge_activated', label: 'Challenge Activated' },
+    { value: 'challenge_deactivated', label: 'Challenge Deactivated' },
+    { value: 'report_resolved', label: 'Report Resolved' },
+    { value: 'user_banned', label: 'User Banned' },
+    { value: 'settings_updated', label: 'Settings Updated' }
+  ];
+
+  const targetTypes = [
+    { value: 'user', label: 'User' },
+    { value: 'challenge', label: 'Challenge' },
+    { value: 'report', label: 'Report' },
+    { value: 'system', label: 'System' }
+  ];
+
+  useEffect(() => {
+    fetchAuditLog();
+    fetchAvailableAdmins();
+  }, [fetchAuditLog, pagination.page, actionTypeFilter, targetTypeFilter, adminFilter]);
+
+  useEffect(() => {
+    filterEntries();
+  }, [filterEntries]);
 
   const handlePageChange = (newPage: number) => {
     setPagination(prev => ({ ...prev, page: newPage }));

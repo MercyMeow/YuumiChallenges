@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { ProfileHeader } from '@/components/profile/profile-header';
@@ -68,20 +68,6 @@ export default function ProfilePage() {
   const [, setLoadingStats] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch summoners data
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      fetchSummoners();
-    }
-  }, [isAuthenticated, user]);
-
-  // Fetch performance stats when summoners change
-  useEffect(() => {
-    if (summoners.length > 0) {
-      fetchPerformanceStats();
-    }
-  }, [summoners]);
-
   const fetchSummoners = async () => {
     try {
       setLoadingSummoners(true);
@@ -112,7 +98,7 @@ export default function ProfilePage() {
     }
   };
 
-  const fetchPerformanceStats = async () => {
+  const fetchPerformanceStats = useCallback(async () => {
     try {
       setLoadingStats(true);
       
@@ -132,7 +118,21 @@ export default function ProfilePage() {
     } finally {
       setLoadingStats(false);
     }
-  };
+  }, [summoners]);
+
+  // Fetch summoners data
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchSummoners();
+    }
+  }, [isAuthenticated, user]);
+
+  // Fetch performance stats when summoners change
+  useEffect(() => {
+    if (summoners.length > 0) {
+      fetchPerformanceStats();
+    }
+  }, [summoners, fetchPerformanceStats]);
 
   const handleAddSummoner = async (data: { gameName: string; tagLine: string; region: string }) => {
     try {

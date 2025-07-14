@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -52,7 +52,7 @@ interface AdminUserView {
   created_at: string;
 }
 
-export function UserManagement() {
+export function UserManagement({ permissions }: UserManagementProps) {
   const [users, setUsers] = useState<AdminUserView[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<AdminUserView[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,14 +61,6 @@ export function UserManagement() {
   const [selectedUser, setSelectedUser] = useState<AdminUserView | null>(null);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
   const [isUpdatingRole, setIsUpdatingRole] = useState(false);
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  useEffect(() => {
-    filterUsers();
-  }, [users, searchQuery, roleFilter]);
 
   const fetchUsers = async () => {
     try {
@@ -85,7 +77,7 @@ export function UserManagement() {
     }
   };
 
-  const filterUsers = () => {
+  const filterUsers = useCallback(() => {
     let filtered = users;
 
     if (searchQuery) {
@@ -100,7 +92,15 @@ export function UserManagement() {
     }
 
     setFilteredUsers(filtered);
-  };
+  }, [users, searchQuery, roleFilter]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    filterUsers();
+  }, [filterUsers]);
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     if (!permissions.manageRoles) return;

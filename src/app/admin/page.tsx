@@ -92,9 +92,9 @@ export default function AdminPage() {
       case 'dashboard':
         return <AdminDashboard />;
       case 'users':
-        return <UserManagement />;
+        return <UserManagement permissions={permissions} />;
       case 'challenges':
-        return <ChallengeManagement />;
+        return <ChallengeManagement permissions={permissions} />;
       case 'settings':
         return (
           <Card className="bg-gradient-to-br from-slate-500/5 to-slate-600/5 border-slate-500/20">
