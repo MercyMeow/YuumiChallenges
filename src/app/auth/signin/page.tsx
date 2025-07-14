@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
+import { YuumiIcon } from '@/components/ui/datadragon-image';
 
 export default function SignIn() {
   const router = useRouter();
@@ -75,8 +76,10 @@ export default function SignIn() {
               <CardHeader className="text-center pb-6 pt-8">
                 {/* Animated Yuumi Icon */}
                 <div className="mb-6 relative">
-                  <div className="text-6xl mb-4 relative inline-block animate-subtle-float">
-                    <span className="relative z-10">🐱</span>
+                  <div className="relative inline-block animate-subtle-float">
+                    <div className="relative z-10 rounded-3xl overflow-hidden">
+                      <YuumiIcon size="xl" className="rounded-3xl shadow-2xl border-2 border-yuumi-purple/30" />
+                    </div>
                     <div className="absolute inset-0 bg-gradient-to-r from-yuumi-purple to-yuumi-blue blur-2xl opacity-20 animate-glow"></div>
                   </div>
                 </div>
