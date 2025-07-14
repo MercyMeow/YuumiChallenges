@@ -100,10 +100,16 @@ export default function GalleryPage() {
               return (
                 <div key={gif} className="group relative">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/50 to-teal-500/50 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
-                  <Card 
-                    className="relative backdrop-blur-md bg-gradient-to-br from-cyan-500/10 to-teal-500/10 border border-cyan-500/20 hover:border-cyan-400/40 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl overflow-hidden cursor-pointer"
-                    onClick={() => handleCopyLink(gif)}
+                  <div
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleCopyLink(gif);
+                    }}
                   >
+                    <Card className="relative backdrop-blur-md bg-gradient-to-br from-cyan-500/10 to-teal-500/10 border border-cyan-500/20 hover:border-cyan-400/40 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl overflow-hidden"
+                    >
                     <CardContent className="p-0">
                       <div className="relative rounded-lg overflow-hidden bg-black/20 backdrop-blur-sm">
                         {isCopied && (
@@ -138,7 +144,8 @@ export default function GalleryPage() {
                         />
                       </div>
                     </CardContent>
-                  </Card>
+                    </Card>
+                  </div>
                 </div>
               );
             })}
