@@ -87,9 +87,10 @@ export default function Dashboard() {
     <DashboardLayout>
       <div className="space-y-8">
         {/* Hero Welcome Section */}
-        <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-indigo-500/10 rounded-2xl"></div>
-          <div className="relative p-4 rounded-2xl border border-purple-500/20 bg-black/30 backdrop-blur-md">
+        <div className="relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-indigo-500/20 rounded-2xl animate-pulse-glow"></div>
+          <div className="absolute -inset-1 bg-gradient-to-r from-yuumi-purple/30 via-yuumi-blue/30 to-yuumi-teal/30 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-500"></div>
+          <div className="relative p-6 rounded-2xl border border-purple-500/30 bg-black/20 backdrop-blur-md">
             <div className="flex items-center justify-between">
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
@@ -131,7 +132,7 @@ export default function Dashboard() {
 
         {/* Quick Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="p-4 bg-black/30 backdrop-blur-md border-purple-500/20 hover:border-purple-400/30 hover:bg-purple-500/5 transition-all duration-300 cursor-pointer group">
+          <Card className="p-4 bg-black/20 backdrop-blur-md border-purple-500/30 hover:border-purple-400/50 hover:bg-purple-500/10 transition-all duration-300 cursor-pointer group card-hover">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-all duration-300">
                 <Zap className="h-4 w-4 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
@@ -144,7 +145,7 @@ export default function Dashboard() {
               </div>
             </div>
           </Card>
-          <Card className="p-4 bg-black/30 backdrop-blur-md border-blue-500/20 hover:border-blue-400/30 hover:bg-blue-500/5 transition-all duration-300 cursor-pointer group">
+          <Card className="p-4 bg-black/20 backdrop-blur-md border-blue-500/30 hover:border-blue-400/50 hover:bg-blue-500/10 transition-all duration-300 cursor-pointer group card-hover">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-all duration-300">
                 <Award className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
@@ -157,7 +158,7 @@ export default function Dashboard() {
               </div>
             </div>
           </Card>
-          <Card className="p-4 bg-black/30 backdrop-blur-md border-green-500/20 hover:border-green-400/30 hover:bg-green-500/5 transition-all duration-300 cursor-pointer group">
+          <Card className="p-4 bg-black/20 backdrop-blur-md border-green-500/30 hover:border-green-400/50 hover:bg-green-500/10 transition-all duration-300 cursor-pointer group card-hover">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-all duration-300">
                 <Activity className="h-4 w-4 text-green-400 group-hover:scale-110 transition-transform duration-300" />
@@ -170,7 +171,7 @@ export default function Dashboard() {
               </div>
             </div>
           </Card>
-          <Card className="p-4 bg-black/30 backdrop-blur-md border-yellow-500/20 hover:border-yellow-400/30 hover:bg-yellow-500/5 transition-all duration-300 cursor-pointer group">
+          <Card className="p-4 bg-black/20 backdrop-blur-md border-yellow-500/30 hover:border-yellow-400/50 hover:bg-yellow-500/10 transition-all duration-300 cursor-pointer group card-hover">
             <div className="flex items-center space-x-2">
               <div className="p-2 bg-yellow-500/20 rounded-lg group-hover:bg-yellow-500/30 transition-all duration-300">
                 <Users className="h-4 w-4 text-yellow-400 group-hover:scale-110 transition-transform duration-300" />
@@ -196,8 +197,9 @@ export default function Dashboard() {
             </div>
             
             {/* Quick Actions - Moved to left side for better accessibility */}
-            <Card className="relative overflow-hidden bg-black/30 backdrop-blur-md border-indigo-500/20">
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5"></div>
+            <Card className="relative overflow-hidden bg-black/20 backdrop-blur-md border-indigo-500/30 group">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10"></div>
+              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-xl blur opacity-30 group-hover:opacity-50 transition duration-500"></div>
               <CardHeader className="relative pb-3">
                 <div className="flex items-center space-x-2">
                   <div className="p-2 bg-indigo-500/20 rounded-lg">
@@ -213,7 +215,7 @@ export default function Dashboard() {
                 <div className="grid gap-3 md:grid-cols-3">
                   <Button 
                     variant="ghost" 
-                    className="h-auto p-4 bg-black/30 hover:bg-purple-500/20 border border-purple-500/20 hover:border-purple-400/30 transition-all duration-300 group hover:scale-105 hover:shadow-lg"
+                    className="h-auto p-4 bg-black/20 hover:bg-blue-500/20 border border-blue-500/30 hover:border-blue-400/50 transition-all duration-300 group hover:scale-105 card-hover glow-hover"
                   >
                     <div className="flex flex-col items-center space-y-2">
                       <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-all duration-300">
@@ -228,7 +230,7 @@ export default function Dashboard() {
                   
                   <Button 
                     variant="ghost" 
-                    className="h-auto p-4 bg-black/30 hover:bg-purple-500/20 border border-purple-500/20 hover:border-purple-400/30 transition-all duration-300 group hover:scale-105 hover:shadow-lg"
+                    className="h-auto p-4 bg-black/20 hover:bg-purple-500/20 border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 group hover:scale-105 card-hover glow-hover"
                   >
                     <div className="flex flex-col items-center space-y-2">
                       <div className="p-2 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-all duration-300">
@@ -243,7 +245,7 @@ export default function Dashboard() {
                   
                   <Button 
                     variant="ghost" 
-                    className="h-auto p-4 bg-black/30 hover:bg-purple-500/20 border border-purple-500/20 hover:border-purple-400/30 transition-all duration-300 group hover:scale-105 hover:shadow-lg"
+                    className="h-auto p-4 bg-black/20 hover:bg-green-500/20 border border-green-500/30 hover:border-green-400/50 transition-all duration-300 group hover:scale-105 card-hover glow-hover"
                   >
                     <div className="flex flex-col items-center space-y-2">
                       <div className="p-2 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-all duration-300">

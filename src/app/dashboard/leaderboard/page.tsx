@@ -286,7 +286,7 @@ const currentUserId = "6";
 const currentUserPosition = mockPointsRankings.find(r => r.user.id === currentUserId)?.position || null;
 
 const LeaderboardHeader = ({ stats, userPosition }: { stats: CommunityStats; userPosition: number | null }) => (
-  <Card className="bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-indigo-500/5 border-purple-500/20 backdrop-blur-md">
+  <Card className="bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-indigo-500/5 border-purple-500/30 backdrop-blur-md">
     <CardContent className="p-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="md:col-span-1">
@@ -300,7 +300,7 @@ const LeaderboardHeader = ({ stats, userPosition }: { stats: CommunityStats; use
         </div>
         
         <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-black/30 backdrop-blur-md rounded-xl border border-purple-500/20">
+          <div className="text-center p-4 bg-black/20 backdrop-blur-md rounded-xl border border-purple-500/30">
             <div className="text-3xl font-bold text-purple-400 mb-1">{stats.totalMembers}</div>
             <div className="text-sm text-white/70">Total Members</div>
             <div className="flex items-center justify-center mt-2">
@@ -309,7 +309,7 @@ const LeaderboardHeader = ({ stats, userPosition }: { stats: CommunityStats; use
             </div>
           </div>
           
-          <div className="text-center p-4 bg-black/30 backdrop-blur-md rounded-xl border border-blue-500/20">
+          <div className="text-center p-4 bg-black/20 backdrop-blur-md rounded-xl border border-blue-500/30">
             <div className="text-3xl font-bold text-blue-400 mb-1">{stats.activeThisWeek}</div>
             <div className="text-sm text-white/70">Active This Week</div>
             <div className="flex items-center justify-center mt-2">
@@ -318,7 +318,7 @@ const LeaderboardHeader = ({ stats, userPosition }: { stats: CommunityStats; use
             </div>
           </div>
           
-          <div className="text-center p-4 bg-black/30 backdrop-blur-md rounded-xl border border-green-500/20">
+          <div className="text-center p-4 bg-black/20 backdrop-blur-md rounded-xl border border-green-500/30">
             <div className="text-3xl font-bold text-green-400 mb-1">{stats.challengesCompleted}</div>
             <div className="text-sm text-white/70">Challenges Completed</div>
             <div className="flex items-center justify-center mt-2">
@@ -444,7 +444,7 @@ const PointsLeaderboard = ({ rankings }: { rankings: UserRanking[]; userPosition
       </div>
 
       {/* Full Rankings List */}
-      <Card className="bg-black/30 backdrop-blur-md border-purple-500/20">
+      <Card className="bg-black/20 backdrop-blur-md border-purple-500/30">
         <CardHeader>
           <CardTitle className="text-white">Full Rankings</CardTitle>
           <CardDescription className="text-white/70">Complete leaderboard standings</CardDescription>
@@ -511,7 +511,7 @@ const PointsLeaderboard = ({ rankings }: { rankings: UserRanking[]; userPosition
 };
 
 const ChallengesLeaderboard = () => (
-  <Card className="bg-black/30 backdrop-blur-md border-purple-500/20">
+  <Card className="bg-black/20 backdrop-blur-md border-purple-500/30">
     <CardHeader>
       <CardTitle className="flex items-center gap-2 text-white">
         <Target className="h-5 w-5 text-purple-400" />
@@ -575,7 +575,7 @@ const PerformanceLeaderboard = () => (
           {mockPerformanceRankings.map((ranking) => (
             <div
               key={ranking.user.id}
-              className="flex items-center justify-between p-3 bg-black/30 rounded-lg hover:bg-slate-700/30 transition-all"
+              className="flex items-center justify-between p-3 bg-black/20 rounded-lg hover:bg-slate-700/30 transition-all"
             >
               <div className="flex items-center space-x-3">
                 <span className="text-lg font-bold text-green-400">#{ranking.position}</span>
@@ -612,7 +612,7 @@ const PerformanceLeaderboard = () => (
           {mockPerformanceRankings.map((ranking) => (
             <div
               key={ranking.user.id}
-              className="flex items-center justify-between p-3 bg-black/30 rounded-lg hover:bg-slate-700/30 transition-all"
+              className="flex items-center justify-between p-3 bg-black/20 rounded-lg hover:bg-slate-700/30 transition-all"
             >
               <div className="flex items-center space-x-3">
                 <span className="text-lg font-bold text-blue-400">#{ranking.position}</span>
@@ -650,19 +650,19 @@ const CommunityStats = ({ stats }: { stats: CommunityStats }) => (
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-4 bg-black/30 rounded-lg border border-purple-500/20">
+          <div className="text-center p-4 bg-black/20 rounded-lg border border-purple-500/30">
             <div className="text-2xl font-bold text-purple-400">{stats.totalMembers}</div>
             <div className="text-sm text-white/70">Total Members</div>
           </div>
-          <div className="text-center p-4 bg-black/30 rounded-lg border border-blue-500/20">
+          <div className="text-center p-4 bg-black/20 rounded-lg border border-blue-500/20">
             <div className="text-2xl font-bold text-blue-400">{stats.activeThisWeek}</div>
             <div className="text-sm text-white/70">Active This Week</div>
           </div>
-          <div className="text-center p-4 bg-black/30 rounded-lg border border-green-500/20">
+          <div className="text-center p-4 bg-black/20 rounded-lg border border-green-500/20">
             <div className="text-2xl font-bold text-green-400">{stats.challengesCompleted}</div>
             <div className="text-sm text-white/70">Challenges Done</div>
           </div>
-          <div className="text-center p-4 bg-black/30 rounded-lg border border-yellow-500/20">
+          <div className="text-center p-4 bg-black/20 rounded-lg border border-yellow-500/20">
             <div className="text-2xl font-bold text-yellow-400">{stats.averageRank}</div>
             <div className="text-sm text-white/70">Average Rank</div>
           </div>
@@ -683,7 +683,7 @@ const CommunityStats = ({ stats }: { stats: CommunityStats }) => (
           {stats.topContributors.map((contributor) => (
             <div
               key={contributor.user.id}
-              className="flex items-center justify-between p-3 bg-black/30 rounded-lg hover:bg-slate-700/30 transition-all"
+              className="flex items-center justify-between p-3 bg-black/20 rounded-lg hover:bg-slate-700/30 transition-all"
             >
               <div className="flex items-center space-x-3">
                 <span className="text-lg font-bold text-yellow-400">#{contributor.position}</span>
@@ -723,7 +723,7 @@ export default function LeaderboardPage() {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 bg-black/30 backdrop-blur-md border-purple-500/20">
+          <TabsList className="grid w-full grid-cols-4 bg-black/20 backdrop-blur-md border-purple-500/30">
             <TabsTrigger 
               value="points" 
               className="data-[state=active]:bg-purple-500/30 data-[state=active]:text-purple-200"
@@ -782,7 +782,7 @@ export default function LeaderboardPage() {
         </Tabs>
 
         {/* Footer with Activity Update */}
-        <Card className="bg-black/30 backdrop-blur-md border-purple-500/20">
+        <Card className="bg-black/20 backdrop-blur-md border-purple-500/30">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">

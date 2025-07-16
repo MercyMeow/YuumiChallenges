@@ -125,7 +125,8 @@ export default function GalleryPage() {
 
   const handleCopyLink = async (gifName: string) => {
     const ruleNumber = gifName.replace('rule', '').replace('.gif', '');
-    const shortUrl = `https://yuumi.quest/rule/${ruleNumber}`;
+    // Use .gif extension for Discord embedding
+    const shortUrl = `https://yuumi.quest/rule/${ruleNumber}.gif`;
     
     try {
       await navigator.clipboard.writeText(shortUrl);
@@ -188,6 +189,9 @@ export default function GalleryPage() {
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-landing-text-primary via-yuumi-teal to-yuumi-blue bg-clip-text text-transparent leading-tight">
               Yuumi Rule Gallery
             </h1>
+            <p className="text-landing-text-secondary text-lg mb-2">
+              Click any rule to copy its Discord-friendly link
+            </p>
           </div>
 
           {/* Gallery Grid */}

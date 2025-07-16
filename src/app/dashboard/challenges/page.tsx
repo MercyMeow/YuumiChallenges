@@ -141,9 +141,10 @@ function ChallengesHeader({ data, searchQuery, setSearchQuery, selectedType, set
   return (
     <div className="space-y-6">
       {/* Header with stats */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-indigo-500/10 rounded-2xl"></div>
-        <div className="relative p-6 rounded-2xl border border-purple-500/20 bg-black/30 backdrop-blur-md">
+      <div className="relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-indigo-500/20 rounded-2xl animate-pulse-glow"></div>
+        <div className="absolute -inset-1 bg-gradient-to-r from-yuumi-purple/30 via-yuumi-blue/30 to-yuumi-teal/30 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-500"></div>
+        <div className="relative p-6 rounded-2xl border border-purple-500/30 bg-black/20 backdrop-blur-md">
           <div className="flex items-center justify-between">
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
@@ -192,11 +193,11 @@ function ChallengesHeader({ data, searchQuery, setSearchQuery, selectedType, set
             placeholder="Search challenges..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-black/30 border-purple-500/20 text-white placeholder:text-white/50"
+            className="pl-10 bg-black/20 border-purple-500/30 text-white placeholder:text-white/50"
           />
         </div>
         <Select value={selectedType} onValueChange={setSelectedType}>
-          <SelectTrigger className="w-full md:w-48 bg-black/30 border-purple-500/20 text-white">
+          <SelectTrigger className="w-full md:w-48 bg-black/20 border-purple-500/30 text-white">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Filter by type" />
           </SelectTrigger>
@@ -224,7 +225,7 @@ function ActiveChallengeCard({ challenge, onLeave }: {
   const progressPercentage = (challenge.progress / challenge.max_progress) * 100;
 
   return (
-    <Card className={`p-4 bg-black/30 backdrop-blur-md border ${theme.borderClass} ${theme.hoverClass} transition-all duration-300`}>
+    <Card className={`p-4 bg-black/20 backdrop-blur-md border ${theme.borderClass} ${theme.hoverClass} transition-all duration-300 card-hover`}>
       <div className="flex items-center justify-between text-sm mb-3">
         <div className="flex items-center space-x-2">
           <div className={`p-1.5 ${theme.bgClass} rounded-lg`}>
@@ -280,7 +281,7 @@ function AvailableChallengeCard({ challenge, onJoin }: {
   };
 
   return (
-    <Card className={`p-4 bg-black/30 backdrop-blur-md border ${theme.borderClass} ${theme.hoverClass} transition-all duration-300 group`}>
+    <Card className={`p-4 bg-black/20 backdrop-blur-md border ${theme.borderClass} ${theme.hoverClass} transition-all duration-300 group card-hover`}>
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center space-x-3">
           <div className={`p-2 ${theme.bgClass} rounded-lg group-hover:scale-110 transition-transform duration-300`}>
@@ -333,7 +334,7 @@ function AchievementCard({ achievement }: { achievement: UserChallenge }) {
   const Icon = theme.icon;
 
   return (
-    <Card className={`p-4 bg-black/30 backdrop-blur-md border ${theme.borderClass} opacity-90`}>
+    <Card className={`p-4 bg-black/20 backdrop-blur-md border ${theme.borderClass} opacity-95`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className={`p-2 ${theme.bgClass} rounded-lg`}>
@@ -495,7 +496,7 @@ export default function ChallengesPage() {
         />
         
         <Tabs defaultValue="active" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-black/30 backdrop-blur-md border-purple-500/20">
+          <TabsList className="grid w-full grid-cols-3 bg-black/20 backdrop-blur-md border-purple-500/30">
             <TabsTrigger value="active" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-white">
               Active ({challengesData?.active.length || 0})
             </TabsTrigger>
@@ -526,7 +527,7 @@ export default function ChallengesPage() {
                 ))}
               </div>
             ) : (
-              <Card className="p-8 bg-black/30 backdrop-blur-md border-purple-500/20 text-center">
+              <Card className="p-8 bg-black/20 backdrop-blur-md border-purple-500/30 text-center">
                 <div className="flex flex-col items-center space-y-4">
                   <Target className="h-12 w-12 text-purple-400/50" />
                   <div>
@@ -563,7 +564,7 @@ export default function ChallengesPage() {
                 ))}
               </div>
             ) : (
-              <Card className="p-8 bg-black/30 backdrop-blur-md border-purple-500/20 text-center">
+              <Card className="p-8 bg-black/20 backdrop-blur-md border-purple-500/30 text-center">
                 <div className="flex flex-col items-center space-y-4">
                   <Target className="h-12 w-12 text-blue-400/50" />
                   <div>
@@ -590,7 +591,7 @@ export default function ChallengesPage() {
                 ))}
               </div>
             ) : (
-              <Card className="p-8 bg-black/30 backdrop-blur-md border-purple-500/20 text-center">
+              <Card className="p-8 bg-black/20 backdrop-blur-md border-purple-500/30 text-center">
                 <div className="flex flex-col items-center space-y-4">
                   <Trophy className="h-12 w-12 text-yellow-400/50" />
                   <div>
