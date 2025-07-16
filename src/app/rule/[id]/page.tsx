@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const ruleNumber = ruleId;
-  const gifUrl = `https://yuumi.quest/${gifName}`;
+  const gifUrl = `https://yuumi.quest/rule/${ruleId}.gif`;
 
   return {
     title: `Rule ${ruleNumber} - Yuumi Mains Discord`,
@@ -115,7 +115,7 @@ export default async function GifPage({ params }: PageProps) {
             </Link>
             <p className="text-landing-text-secondary/80">
               Share this link for Discord embedding: <br />
-              <code className="text-yuumi-teal">https://yuumi.quest/{gifName}</code>
+              <code className="text-yuumi-teal">https://yuumi.quest/rule/{ruleId}.gif</code>
             </p>
           </div>
         </div>
