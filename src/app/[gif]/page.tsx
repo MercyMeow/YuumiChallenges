@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { MagicalBackground } from '@/components/ui/magical-background';
 
 // List of valid rule GIFs
 const validGifs = [
@@ -77,15 +78,8 @@ export default async function GifPage({ params }: PageProps) {
   const ruleNumber = gifName.replace('rule', '').replace('.gif', '');
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Magical Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(147,51,234,0.3)_0%,_transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_rgba(59,130,246,0.3)_0%,_transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,_rgba(139,69,234,0.2)_0%,_transparent_50%)]"></div>
-      </div>
-
-      <div className="relative z-10 container mx-auto px-6 py-20">
+    <MagicalBackground>
+      <div className="container mx-auto px-6 py-20">
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-8">
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-landing-text-primary via-yuumi-purple to-yuumi-blue bg-clip-text text-transparent leading-tight">
@@ -124,7 +118,7 @@ export default async function GifPage({ params }: PageProps) {
           </div>
         </div>
       </div>
-    </div>
+    </MagicalBackground>
   );
 }
 

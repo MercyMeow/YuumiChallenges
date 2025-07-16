@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Define rule GIFs with metadata
 const ruleGifs = [
@@ -29,6 +30,9 @@ interface GifCardProps {
 }
 
 function GifCard({ gif, onCopyLink, isCopied }: GifCardProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   return (
     <div className="group relative">
       <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/50 to-teal-500/50 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
@@ -55,11 +59,35 @@ function GifCard({ gif, onCopyLink, isCopied }: GifCardProps) {
 
               {/* Image container */}
               <div className="relative w-full h-48 flex items-center justify-center p-4">
-                <img
-                  src={`/${gif.name}`}
-                  alt={`Rule ${gif.rule} GIF`}
-                  className="max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300"
-                />
+                {imageError ? (
+                  <div className="text-red-400 text-center">
+                    <p className="text-sm">Failed to load</p>
+                    <p className="text-xs opacity-70">{gif.name}</p>
+                  </div>
+                ) : (
+                  <>
+                    {!imageLoaded && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="animate-pulse text-cyan-300">Loading...</div>
+                      </div>
+                    )}
+                    <Image
+                      src={`/${gif.name}`}
+                      alt={`Rule ${gif.rule} GIF`}
+                      width={300}
+                      height={200}
+                      className={`max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300 ${
+                        imageLoaded ? 'opacity-100' : 'opacity-0'
+                      }`}
+                      onLoad={() => setImageLoaded(true)}
+                      onError={() => {
+                        setImageError(true);
+                        console.error(`Failed to load image: ${gif.name}`);
+                      }}
+                      unoptimized // Important for GIFs
+                    />
+                  </>
+                )}
               </div>
 
               {/* Rule label */}

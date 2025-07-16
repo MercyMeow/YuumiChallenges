@@ -2,26 +2,13 @@
 
 import Link from 'next/link';
 import { YuumiIcon } from '@/components/ui/datadragon-image';
+import { MagicalBackground } from '@/components/ui/magical-background';
 import { Home, AlertCircle } from 'lucide-react';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Magical Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(147,51,234,0.3)_0%,_transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_rgba(59,130,246,0.3)_0%,_transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,_rgba(139,69,234,0.2)_0%,_transparent_50%)]"></div>
-      </div>
-
-      {/* Subtle Animated Particles */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute animate-subtle-pulse top-1/4 left-1/4 w-1.5 h-1.5 bg-yuumi-purple/40 rounded-full shadow-lg shadow-yuumi-purple/20"></div>
-        <div className="absolute animate-subtle-pulse delay-1000 top-3/4 left-3/4 w-1 h-1 bg-yuumi-blue/40 rounded-full shadow-lg shadow-yuumi-blue/20"></div>
-        <div className="absolute animate-subtle-pulse delay-2000 top-1/2 left-1/6 w-1.5 h-1.5 bg-yuumi-teal/40 rounded-full shadow-lg shadow-yuumi-teal/20"></div>
-      </div>
-
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-6">
+    <MagicalBackground className="flex items-center justify-center">
+      <div className="px-6">
         <div className="text-center max-w-2xl mx-auto">
           {/* Yuumi Icon with glow effect */}
           <div className="mb-8 relative inline-block">
@@ -74,6 +61,6 @@ export default function NotFound() {
           </div>
         </div>
       </div>
-    </div>
+    </MagicalBackground>
   );
 }

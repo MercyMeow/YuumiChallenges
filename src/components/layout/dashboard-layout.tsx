@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { signOut } from 'next-auth/react';
 import { YuumiIcon } from '@/components/ui/datadragon-image';
+import { MagicalBackground } from '@/components/ui/magical-background';
 import {
   Sidebar,
   SidebarContent,
@@ -90,16 +91,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen relative overflow-hidden">
-        {/* Magical Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(147,51,234,0.3)_0%,_transparent_50%)]"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_rgba(59,130,246,0.3)_0%,_transparent_50%)]"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,_rgba(139,69,234,0.2)_0%,_transparent_50%)]"></div>
-        </div>
-
+      <MagicalBackground>
         <SidebarProvider>
-          <div className="relative z-10 min-h-screen flex w-full">
+          <div className="min-h-screen flex w-full">
             <Sidebar variant="inset" className="backdrop-blur-md bg-black/20 border-purple-500/20 [&_*]:!text-inherit">
               <SidebarHeader className="p-4">
                 <div className="flex items-center space-x-2">
@@ -160,7 +154,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </SidebarInset>
           </div>
         </SidebarProvider>
-      </div>
+      </MagicalBackground>
     );
   }
 
@@ -191,26 +185,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Magical Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(147,51,234,0.3)_0%,_transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_rgba(59,130,246,0.3)_0%,_transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,_rgba(139,69,234,0.2)_0%,_transparent_50%)]"></div>
-      </div>
-
-      {/* Subtle Animated Particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute animate-subtle-pulse top-1/4 left-1/4 w-1.5 h-1.5 bg-yuumi-purple/40 rounded-full shadow-lg shadow-yuumi-purple/20"></div>
-        <div className="absolute animate-subtle-pulse delay-1000 top-3/4 left-3/4 w-1 h-1 bg-yuumi-blue/40 rounded-full shadow-lg shadow-yuumi-blue/20"></div>
-        <div className="absolute animate-subtle-pulse delay-2000 top-1/2 left-1/6 w-1.5 h-1.5 bg-yuumi-teal/40 rounded-full shadow-lg shadow-yuumi-teal/20"></div>
-        <div className="absolute animate-subtle-pulse delay-500 top-1/6 left-2/3 w-1 h-1 bg-yuumi-pink/40 rounded-full shadow-lg shadow-yuumi-pink/20"></div>
-        <div className="absolute animate-subtle-float delay-700 top-1/3 left-1/2 w-1.5 h-1.5 bg-primary/40 rounded-full shadow-lg shadow-primary/20"></div>
-        <div className="absolute animate-subtle-float delay-300 top-2/3 left-1/5 w-1 h-1 bg-yuumi-teal/40 rounded-full shadow-lg shadow-yuumi-teal/20"></div>
-      </div>
-
+    <MagicalBackground>
       <SidebarProvider>
-        <div className="relative z-10 min-h-screen flex w-full">
+        <div className="min-h-screen flex w-full">
         <Sidebar variant="inset" className="backdrop-blur-md bg-black/20 border-purple-500/20 [&_*]:!text-inherit">
           <SidebarHeader className="p-4">
             <div className="flex items-center space-x-2">
@@ -349,6 +326,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </SidebarInset>
         </div>
       </SidebarProvider>
-    </div>
+    </MagicalBackground>
   );
 }

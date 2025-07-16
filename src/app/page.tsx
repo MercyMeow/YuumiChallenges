@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { YuumiIcon } from '@/components/ui/datadragon-image';
+import { MagicalBackground } from '@/components/ui/magical-background';
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -20,12 +21,12 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen relative overflow-hidden flex items-center justify-center magical-bg">
+      <MagicalBackground className="flex items-center justify-center">
         <div className="relative z-10">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           <div className="absolute inset-0 animate-ping rounded-full h-12 w-12 border border-primary/30"></div>
         </div>
-      </div>
+      </MagicalBackground>
     );
   }
 
@@ -34,16 +35,8 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden magical-bg">
-      {/* Animated Particles */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute animate-pulse-glow top-1/4 left-1/4 w-2 h-2 bg-primary rounded-full glow"></div>
-        <div className="absolute animate-pulse-glow delay-300 top-3/4 left-3/4 w-1.5 h-1.5 bg-yuumi-blue rounded-full"></div>
-        <div className="absolute animate-float delay-500 top-1/2 left-1/6 w-2 h-2 bg-yuumi-teal rounded-full"></div>
-        <div className="absolute animate-float delay-700 top-1/6 left-2/3 w-1.5 h-1.5 bg-yuumi-pink rounded-full"></div>
-      </div>
-
-      <div className="relative z-10 container mx-auto px-6 py-20">
+    <MagicalBackground>
+      <div className="container mx-auto px-6 py-20">
         <div className="max-w-6xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-24">
@@ -223,6 +216,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </div>
+    </MagicalBackground>
   );
 }

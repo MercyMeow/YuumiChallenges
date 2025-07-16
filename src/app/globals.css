@@ -242,6 +242,17 @@
     100% { background-position: 0% 50%; }
   }
   
+  @keyframes subtle-pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+  }
+  
+  @keyframes subtle-float {
+    0%, 100% { transform: translateY(0) translateX(0); }
+    33% { transform: translateY(-5px) translateX(2px); }
+    66% { transform: translateY(2px) translateX(-2px); }
+  }
+  
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
@@ -259,6 +270,14 @@
     animation: gradient-shift 4s ease infinite;
   }
   
+  .animate-subtle-pulse {
+    animation: subtle-pulse 3s ease-in-out infinite;
+  }
+  
+  .animate-subtle-float {
+    animation: subtle-float 4s ease-in-out infinite;
+  }
+  
   /* Delay utilities for staggered animations */
   .delay-100 { animation-delay: 100ms; }
   .delay-200 { animation-delay: 200ms; }
@@ -266,6 +285,9 @@
   .delay-500 { animation-delay: 500ms; }
   .delay-700 { animation-delay: 700ms; }
   .delay-1000 { animation-delay: 1000ms; }
+  .delay-1200 { animation-delay: 1200ms; }
+  .delay-1500 { animation-delay: 1500ms; }
+  .delay-2000 { animation-delay: 2000ms; }
 }
 
 /* Remove light theme - force dark mode */

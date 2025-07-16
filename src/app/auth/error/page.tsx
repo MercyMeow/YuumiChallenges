@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { YuumiIcon } from '@/components/ui/datadragon-image';
+import { MagicalBackground } from '@/components/ui/magical-background';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 
 const errorMessages = {
@@ -22,21 +23,8 @@ function AuthErrorContent() {
   const errorMessage = errorMessages[error] || errorMessages.Default;
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Magical Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(147,51,234,0.3)_0%,_transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_rgba(59,130,246,0.3)_0%,_transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,_rgba(139,69,234,0.2)_0%,_transparent_50%)]"></div>
-      </div>
-
-      {/* Subtle Animated Particles */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute animate-subtle-pulse top-1/4 left-1/4 w-1.5 h-1.5 bg-red-500/40 rounded-full shadow-lg shadow-red-500/20"></div>
-        <div className="absolute animate-subtle-pulse delay-1000 top-3/4 left-3/4 w-1 h-1 bg-orange-500/40 rounded-full shadow-lg shadow-orange-500/20"></div>
-      </div>
-
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-6">
+    <MagicalBackground className="flex items-center justify-center">
+      <div className="px-6">
         <div className="w-full max-w-md">
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-red-500/30 to-orange-500/30 rounded-3xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
@@ -111,26 +99,19 @@ function AuthErrorContent() {
           </div>
         </div>
       </div>
-    </div>
+    </MagicalBackground>
   );
 }
 
 export default function AuthError() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
-        {/* Magical Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_rgba(147,51,234,0.3)_0%,_transparent_50%)]"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_rgba(59,130,246,0.3)_0%,_transparent_50%)]"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,_rgba(139,69,234,0.2)_0%,_transparent_50%)]"></div>
-        </div>
-        
-        <div className="relative z-10 text-center">
+      <MagicalBackground className="flex items-center justify-center">
+        <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yuumi-purple mx-auto"></div>
           <p className="mt-4 text-landing-text-secondary">Loading...</p>
         </div>
-      </div>
+      </MagicalBackground>
     }>
       <AuthErrorContent />
     </Suspense>
