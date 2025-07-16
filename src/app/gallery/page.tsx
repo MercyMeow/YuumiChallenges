@@ -126,7 +126,7 @@ export default function GalleryPage() {
   const handleCopyLink = async (gifName: string) => {
     const ruleNumber = gifName.replace('rule', '').replace('.gif', '');
     // Use .gif extension for Discord embedding
-    const shortUrl = `https://yuumi.quest/rule/${ruleNumber}.gif`;
+    const shortUrl = `https://yuumi.quest/rule${ruleNumber}.gif`;
     
     try {
       await navigator.clipboard.writeText(shortUrl);
