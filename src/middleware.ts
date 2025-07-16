@@ -20,10 +20,11 @@ const validGifs = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Check if the request is for a rule GIF
-  const isRuleGif = validGifs.some(gif => pathname === `/${gif}`);
+  // Check if the request is for a rule GIF page (not the actual .gif file)
+  const gifName = pathname.slice(1); // Remove leading slash
+  const isRuleGifPage = validGifs.includes(gifName);
   
-  if (isRuleGif) {
+  if (isRuleGifPage) {
     const userAgent = request.headers.get('user-agent') || '';
     
     // Check if the request is from Discord bot or other social media crawlers
@@ -37,9 +38,12 @@ export function middleware(request: NextRequest) {
     if (isBot) {
       // Redirect to the API route that serves the actual GIF file
       const url = request.nextUrl.clone();
-      url.pathname = `/api/gif${pathname}`;
+      url.pathname = `/api/gif/${gifName}`;
       return NextResponse.redirect(url);
     }
+    
+    // For non-bot requests to GIF names, serve the dynamic page
+    // The actual .gif files from public folder will bypass middleware
   }
   
   // For all other requests, continue to the normal Next.js routing
@@ -48,7 +52,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Exclude actual static files in public directory from middleware
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.gif$).*)',
+    // Exclude all static files and API routes
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(gif|jpg|jpeg|png|svg|ico|webp)).*)',
   ],
 };
