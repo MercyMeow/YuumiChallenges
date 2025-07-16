@@ -31,7 +31,7 @@ interface GifCardProps {
 function GifCard({ gif, onCopyLink, isCopied }: GifCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [imageSrc, setImageSrc] = useState(`/${gif.name}`);
+  const imageSrc = `/${gif.name}`;
 
   useEffect(() => {
     console.log(`Attempting to load GIF: ${gif.name} from path: ${imageSrc}`);
@@ -76,6 +76,7 @@ function GifCard({ gif, onCopyLink, isCopied }: GifCardProps) {
                         <div className="animate-pulse text-cyan-300">Loading...</div>
                       </div>
                     )}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={imageSrc}
                       alt={`Rule ${gif.rule} GIF`}
