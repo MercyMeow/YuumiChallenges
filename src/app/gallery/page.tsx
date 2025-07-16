@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 // Define rule GIFs with metadata
 const ruleGifs = [
@@ -63,6 +62,7 @@ function GifCard({ gif, onCopyLink, isCopied }: GifCardProps) {
                   <div className="text-red-400 text-center">
                     <p className="text-sm">Failed to load</p>
                     <p className="text-xs opacity-70">{gif.name}</p>
+                    <p className="text-xs opacity-50 mt-1">Path: /{gif.name}</p>
                   </div>
                 ) : (
                   <>
@@ -71,20 +71,26 @@ function GifCard({ gif, onCopyLink, isCopied }: GifCardProps) {
                         <div className="animate-pulse text-cyan-300">Loading...</div>
                       </div>
                     )}
-                    <Image
+                    <img
                       src={`/${gif.name}`}
                       alt={`Rule ${gif.rule} GIF`}
-                      width={300}
-                      height={200}
                       className={`max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300 ${
                         imageLoaded ? 'opacity-100' : 'opacity-0'
                       }`}
-                      onLoad={() => setImageLoaded(true)}
-                      onError={() => {
-                        setImageError(true);
-                        console.error(`Failed to load image: ${gif.name}`);
+                      onLoad={() => {
+                        setImageLoaded(true);
+                        console.log(`Successfully loaded: ${gif.name}`);
                       }}
-                      unoptimized // Important for GIFs
+                      onError={(e) => {
+                        setImageError(true);
+                        console.error(`Failed to load image: ${gif.name}`, e);
+                        // Try alternative path
+                        const img = e.target as HTMLImageElement;
+                        if (!img.src.includes('/public/')) {
+                          console.log(`Trying alternative path for ${gif.name}`);
+                          img.src = `/public/${gif.name}`;
+                        }
+                      }}
                     />
                   </>
                 )}

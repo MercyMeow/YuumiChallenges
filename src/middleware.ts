@@ -48,6 +48,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    // Exclude actual static files in public directory from middleware
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.gif$).*)',
   ],
 };
