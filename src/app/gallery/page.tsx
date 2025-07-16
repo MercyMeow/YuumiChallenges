@@ -124,7 +124,8 @@ export default function GalleryPage() {
   }, []);
 
   const handleCopyLink = async (gifName: string) => {
-    const shortUrl = `https://yuumi.quest/${gifName}`;
+    const ruleNumber = gifName.replace('rule', '').replace('.gif', '');
+    const shortUrl = `https://yuumi.quest/rule/${ruleNumber}`;
     
     try {
       await navigator.clipboard.writeText(shortUrl);

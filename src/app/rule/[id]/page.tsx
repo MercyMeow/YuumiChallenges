@@ -22,19 +22,20 @@ const validGifs = [
 ];
 
 interface PageProps {
-  params: Promise<{ gif: string }>;
+  params: Promise<{ id: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { gif: gifName } = await params;
+  const { id: ruleId } = await params;
+  const gifName = `rule${ruleId}.gif`;
 
   if (!validGifs.includes(gifName)) {
     return {
-      title: 'GIF Not Found',
+      title: 'Rule Not Found',
     };
   }
 
-  const ruleNumber = gifName.replace('rule', '').replace('.gif', '');
+  const ruleNumber = ruleId;
   const gifUrl = `https://yuumi.quest/${gifName}`;
 
   return {
@@ -69,13 +70,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function GifPage({ params }: PageProps) {
-  const { gif: gifName } = await params;
+  const { id: ruleId } = await params;
+  const gifName = `rule${ruleId}.gif`;
 
   if (!validGifs.includes(gifName)) {
     notFound();
   }
 
-  const ruleNumber = gifName.replace('rule', '').replace('.gif', '');
+  const ruleNumber = ruleId;
 
   return (
     <MagicalBackground>
