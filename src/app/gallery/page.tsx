@@ -31,6 +31,11 @@ interface GifCardProps {
 function GifCard({ gif, onCopyLink, isCopied }: GifCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [imageSrc, setImageSrc] = useState(`/${gif.name}`);
+
+  useEffect(() => {
+    console.log(`Attempting to load GIF: ${gif.name} from path: ${imageSrc}`);
+  }, [gif.name, imageSrc]);
 
   return (
     <div className="group relative">
@@ -72,23 +77,24 @@ function GifCard({ gif, onCopyLink, isCopied }: GifCardProps) {
                       </div>
                     )}
                     <img
-                      src={`/${gif.name}`}
+                      src={imageSrc}
                       alt={`Rule ${gif.rule} GIF`}
                       className={`max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-300 ${
                         imageLoaded ? 'opacity-100' : 'opacity-0'
                       }`}
                       onLoad={() => {
                         setImageLoaded(true);
-                        console.log(`Successfully loaded: ${gif.name}`);
+                        console.log(`Successfully loaded: ${gif.name} from ${imageSrc}`);
                       }}
                       onError={(e) => {
-                        setImageError(true);
-                        console.error(`Failed to load image: ${gif.name}`, e);
-                        // Try alternative path
+                        console.error(`Failed to load image: ${gif.name} from ${imageSrc}`, e);
                         const img = e.target as HTMLImageElement;
-                        if (!img.src.includes('/public/')) {
-                          console.log(`Trying alternative path for ${gif.name}`);
-                          img.src = `/public/${gif.name}`;
+                        console.log('Full image src:', img.src);
+                        console.log('Current window location:', window.location.href);
+                        
+                        // Don't set error immediately, try to understand the issue
+                        if (!imageError) {
+                          setImageError(true);
                         }
                       }}
                     />
