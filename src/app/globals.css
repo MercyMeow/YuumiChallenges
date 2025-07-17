@@ -98,7 +98,7 @@
   }
   
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
@@ -297,5 +297,5 @@
 
 /* Ensure all elements use the dark theme */
 html, body {
-  @apply bg-background text-foreground;
+  @apply text-foreground;
 }
