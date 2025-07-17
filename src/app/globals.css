@@ -1,4 +1,4 @@
-@import "tw-animate-css";
+@import "tw-animate-css/dist/tw-animate.css";
 
 @tailwind base;
 @tailwind components;
@@ -144,6 +144,9 @@
   }
   
   .magical-bg {
+    /* Fallback for browsers that don't support OKLCH */
+    background: linear-gradient(to bottom right, #0f0f23, #0a0a1e, #0f0f23);
+    /* Modern OKLCH colors for supporting browsers */
     background: linear-gradient(to bottom right, 
       oklch(var(--landing-bg-from)), 
       oklch(var(--landing-bg-via)), 

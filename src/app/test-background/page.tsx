@@ -24,7 +24,7 @@ export default function TestBackgroundPage() {
               </p>
               <div className="text-sm">
                 <span className={`px-2 py-1 rounded ${cssVarsLoaded ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                  CSS Variables: {cssVarsLoaded ? 'Loaded' : 'Not Loaded'}
+                  CSS System: {cssVarsLoaded ? 'Working with Fallbacks' : 'Not Loaded'}
                 </span>
               </div>
             </div>
