@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface MagicalBackgroundProps {
   children?: React.ReactNode;
   className?: string;

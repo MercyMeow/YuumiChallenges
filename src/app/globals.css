@@ -150,6 +150,53 @@
       oklch(var(--landing-bg-to))
     );
   }
+
+  /* Particle colors with opacity */
+  .bg-yuumi-purple-40 {
+    background-color: oklch(var(--yuumi-purple) / 0.4);
+  }
+  
+  .bg-yuumi-blue-40 {
+    background-color: oklch(var(--yuumi-blue) / 0.4);
+  }
+  
+  .bg-yuumi-teal-40 {
+    background-color: oklch(var(--yuumi-teal) / 0.4);
+  }
+  
+  .bg-yuumi-pink-40 {
+    background-color: oklch(var(--yuumi-pink) / 0.4);
+  }
+  
+  .bg-primary-40 {
+    background-color: oklch(var(--primary) / 0.4);
+  }
+
+  /* Particle shadows */
+  .shadow-yuumi-purple {
+    box-shadow: 0 10px 15px -3px oklch(var(--yuumi-purple) / 0.2), 
+                0 4px 6px -2px oklch(var(--yuumi-purple) / 0.1);
+  }
+  
+  .shadow-yuumi-blue {
+    box-shadow: 0 10px 15px -3px oklch(var(--yuumi-blue) / 0.2), 
+                0 4px 6px -2px oklch(var(--yuumi-blue) / 0.1);
+  }
+  
+  .shadow-yuumi-teal {
+    box-shadow: 0 10px 15px -3px oklch(var(--yuumi-teal) / 0.2), 
+                0 4px 6px -2px oklch(var(--yuumi-teal) / 0.1);
+  }
+  
+  .shadow-yuumi-pink {
+    box-shadow: 0 10px 15px -3px oklch(var(--yuumi-pink) / 0.2), 
+                0 4px 6px -2px oklch(var(--yuumi-pink) / 0.1);
+  }
+  
+  .shadow-primary {
+    box-shadow: 0 10px 15px -3px oklch(var(--primary) / 0.2), 
+                0 4px 6px -2px oklch(var(--primary) / 0.1);
+  }
   
   /* Gradient text */
   .gradient-text {
