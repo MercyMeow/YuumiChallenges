@@ -5,29 +5,10 @@ import { useState, useEffect } from 'react';
 
 export default function TestBackgroundPage() {
   const [mounted, setMounted] = useState(false);
-  const [cssVarsLoaded, setCssVarsLoaded] = useState(false);
+  const [cssVarsLoaded] = useState(true); // Using inline styles now
 
   useEffect(() => {
     setMounted(true);
-    
-    // Check if CSS variables are loaded
-    const checkCssVars = () => {
-      const testElement = document.createElement('div');
-      testElement.className = 'bg-yuumi-purple-40';
-      document.body.appendChild(testElement);
-      
-      const computedStyle = window.getComputedStyle(testElement);
-      const bgColor = computedStyle.backgroundColor;
-      
-      document.body.removeChild(testElement);
-      
-      setCssVarsLoaded(bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent');
-    };
-
-    if (typeof window !== 'undefined') {
-      // Check immediately and after a delay
-      setTimeout(checkCssVars, 100);
-    }
   }, []);
 
   return (
@@ -118,11 +99,11 @@ export default function TestBackgroundPage() {
                   <div className="text-sm">
                     <span className="text-gray-400">Particle Colors:</span>
                     <div className="flex space-x-2 mt-2">
-                      <div className="w-4 h-4 bg-yuumi-purple-40 rounded-full shadow-yuumi-purple"></div>
-                      <div className="w-4 h-4 bg-yuumi-blue-40 rounded-full shadow-yuumi-blue"></div>
-                      <div className="w-4 h-4 bg-yuumi-teal-40 rounded-full shadow-yuumi-teal"></div>
-                      <div className="w-4 h-4 bg-yuumi-pink-40 rounded-full shadow-yuumi-pink"></div>
-                      <div className="w-4 h-4 bg-primary-40 rounded-full shadow-primary"></div>
+                      <div className="w-4 h-4 rounded-full" style={{backgroundColor: 'oklch(0.70 0.22 285 / 0.4)', boxShadow: '0 10px 15px -3px oklch(0.70 0.22 285 / 0.2)'}}></div>
+                      <div className="w-4 h-4 rounded-full" style={{backgroundColor: 'oklch(0.68 0.20 250 / 0.4)', boxShadow: '0 10px 15px -3px oklch(0.68 0.20 250 / 0.2)'}}></div>
+                      <div className="w-4 h-4 rounded-full" style={{backgroundColor: 'oklch(0.65 0.18 185 / 0.4)', boxShadow: '0 10px 15px -3px oklch(0.65 0.18 185 / 0.2)'}}></div>
+                      <div className="w-4 h-4 rounded-full" style={{backgroundColor: 'oklch(0.72 0.20 340 / 0.4)', boxShadow: '0 10px 15px -3px oklch(0.72 0.20 340 / 0.2)'}}></div>
+                      <div className="w-4 h-4 rounded-full" style={{backgroundColor: 'oklch(0.72 0.20 270 / 0.4)', boxShadow: '0 10px 15px -3px oklch(0.72 0.20 270 / 0.2)'}}></div>
                     </div>
                   </div>
                 </div>
@@ -202,11 +183,11 @@ export default function TestBackgroundPage() {
             <div className="bg-black/20 backdrop-blur-md border border-purple-500/20 rounded-lg p-6">
               <h3 className="text-xl font-semibold text-white mb-4">Manual Particle Test</h3>
               <div className="relative h-32 bg-black/10 rounded-lg overflow-hidden">
-                <div className="absolute animate-subtle-pulse top-4 left-4 w-3 h-3 bg-yuumi-purple-40 rounded-full shadow-yuumi-purple"></div>
-                <div className="absolute animate-subtle-pulse delay-1000 top-4 right-4 w-2 h-2 bg-yuumi-blue-40 rounded-full shadow-yuumi-blue"></div>
-                <div className="absolute animate-subtle-float delay-500 bottom-4 left-1/2 w-3 h-3 bg-yuumi-teal-40 rounded-full shadow-yuumi-teal"></div>
-                <div className="absolute animate-subtle-float delay-1500 bottom-4 right-8 w-2 h-2 bg-yuumi-pink-40 rounded-full shadow-yuumi-pink"></div>
-                <div className="absolute animate-subtle-pulse delay-700 top-1/2 left-1/4 w-3 h-3 bg-primary-40 rounded-full shadow-primary"></div>
+                <div className="absolute animate-subtle-pulse top-4 left-4 w-3 h-3 rounded-full" style={{backgroundColor: 'oklch(0.70 0.22 285 / 0.4)', boxShadow: '0 10px 15px -3px oklch(0.70 0.22 285 / 0.2)'}}></div>
+                <div className="absolute animate-subtle-pulse delay-1000 top-4 right-4 w-2 h-2 rounded-full" style={{backgroundColor: 'oklch(0.68 0.20 250 / 0.4)', boxShadow: '0 10px 15px -3px oklch(0.68 0.20 250 / 0.2)'}}></div>
+                <div className="absolute animate-subtle-float delay-500 bottom-4 left-1/2 w-3 h-3 rounded-full" style={{backgroundColor: 'oklch(0.65 0.18 185 / 0.4)', boxShadow: '0 10px 15px -3px oklch(0.65 0.18 185 / 0.2)'}}></div>
+                <div className="absolute animate-subtle-float delay-1500 bottom-4 right-8 w-2 h-2 rounded-full" style={{backgroundColor: 'oklch(0.72 0.20 340 / 0.4)', boxShadow: '0 10px 15px -3px oklch(0.72 0.20 340 / 0.2)'}}></div>
+                <div className="absolute animate-subtle-pulse delay-700 top-1/2 left-1/4 w-3 h-3 rounded-full" style={{backgroundColor: 'oklch(0.72 0.20 270 / 0.4)', boxShadow: '0 10px 15px -3px oklch(0.72 0.20 270 / 0.2)'}}></div>
                 <div className="text-center pt-12">
                   <p className="text-sm text-gray-400">
                     These particles should be animating with pulse and float effects
