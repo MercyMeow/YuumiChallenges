@@ -98,7 +98,7 @@
   }
   
   body {
-    @apply text-foreground antialiased;
+    @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
@@ -144,12 +144,24 @@
   }
   
   .magical-bg {
-    @apply bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to;
+    background: linear-gradient(to bottom right, 
+      oklch(var(--landing-bg-from)), 
+      oklch(var(--landing-bg-via)), 
+      oklch(var(--landing-bg-to))
+    );
   }
   
   /* Gradient text */
   .gradient-text {
-    @apply bg-gradient-to-r from-primary via-yuumi-blue to-yuumi-teal bg-clip-text text-transparent;
+    background: linear-gradient(
+      to right,
+      oklch(var(--primary)),
+      oklch(var(--yuumi-blue)),
+      oklch(var(--yuumi-teal))
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
   
   /* Glow effects */
@@ -216,6 +228,78 @@
       linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
+  }
+  
+  /* Yuumi color utilities */
+  .bg-yuumi-purple-40 {
+    background-color: oklch(var(--yuumi-purple) / 0.4);
+  }
+  
+  .bg-yuumi-blue-40 {
+    background-color: oklch(var(--yuumi-blue) / 0.4);
+  }
+  
+  .bg-yuumi-teal-40 {
+    background-color: oklch(var(--yuumi-teal) / 0.4);
+  }
+  
+  .bg-yuumi-pink-40 {
+    background-color: oklch(var(--yuumi-pink) / 0.4);
+  }
+  
+  .bg-primary-40 {
+    background-color: oklch(var(--primary) / 0.4);
+  }
+  
+  .shadow-yuumi-purple {
+    box-shadow: 0 10px 15px -3px oklch(var(--yuumi-purple) / 0.2);
+  }
+  
+  .shadow-yuumi-blue {
+    box-shadow: 0 10px 15px -3px oklch(var(--yuumi-blue) / 0.2);
+  }
+  
+  .shadow-yuumi-teal {
+    box-shadow: 0 10px 15px -3px oklch(var(--yuumi-teal) / 0.2);
+  }
+  
+  .shadow-yuumi-pink {
+    box-shadow: 0 10px 15px -3px oklch(var(--yuumi-pink) / 0.2);
+  }
+  
+  .shadow-primary {
+    box-shadow: 0 10px 15px -3px oklch(var(--primary) / 0.2);
+  }
+  
+  /* Landing text colors */
+  .text-landing-text-primary {
+    color: oklch(var(--landing-text-primary));
+  }
+  
+  .text-landing-text-secondary {
+    color: oklch(var(--landing-text-secondary));
+  }
+  
+  /* Border utilities */
+  .border-yuumi-purple {
+    border-color: oklch(var(--yuumi-purple));
+  }
+  
+  .border-yuumi-purple\/30 {
+    border-color: oklch(var(--yuumi-purple) / 0.3);
+  }
+  
+  .border-yuumi-purple\/20 {
+    border-color: oklch(var(--yuumi-purple) / 0.2);
+  }
+  
+  /* Background utilities with opacity */
+  .bg-yuumi-purple\/20 {
+    background-color: oklch(var(--yuumi-purple) / 0.2);
+  }
+  
+  .bg-yuumi-purple\/30 {
+    background-color: oklch(var(--yuumi-purple) / 0.3);
   }
 }
 
@@ -297,5 +381,5 @@
 
 /* Ensure all elements use the dark theme */
 html, body {
-  @apply text-foreground;
+  @apply bg-background text-foreground;
 }
