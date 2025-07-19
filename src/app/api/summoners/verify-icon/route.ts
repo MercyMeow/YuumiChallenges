@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { RiotAPI } from '@/lib/apis/riot';
 import { selectRandomIcon, getSummonerIconUrl } from '@/lib/apis/datadragon';
@@ -14,7 +15,7 @@ interface VerifyIconRequest {
 // POST - Start icon verification process (get random icon)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
 // PUT - Complete icon verification and create summoner record
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

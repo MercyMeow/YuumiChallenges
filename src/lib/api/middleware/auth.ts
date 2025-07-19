@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { authOptions } from '@/lib/auth';
 
 import { Session } from 'next-auth';
 
@@ -15,7 +16,7 @@ export interface UserWithRole {
 }
 
 export async function requireAuth(): Promise<AuthResult> {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   
   if (!session?.user?.id) {
     return { error: 'Unauthorized', status: 401 };
