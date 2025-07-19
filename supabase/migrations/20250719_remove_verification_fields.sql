@@ -4,6 +4,7 @@
 
 -- First drop the dependent objects
 DROP POLICY IF EXISTS "Anyone can view verified summoners" ON summoners;
+DROP POLICY IF EXISTS "Anyone can view ranked info for verified summoners" ON ranked_info;
 DROP VIEW IF EXISTS user_summoner_overview;
 
 -- Remove the verification fields
@@ -14,6 +15,10 @@ DROP COLUMN IF EXISTS verification_expires_at;
 
 -- Create new policy for public visibility (all summoners are now considered verified)
 CREATE POLICY "Anyone can view summoners" ON summoners
+    FOR SELECT USING (true);
+
+-- Create new policy for ranked info visibility (all ranked info is now public)
+CREATE POLICY "Anyone can view ranked info" ON ranked_info
     FOR SELECT USING (true);
 
 -- Recreate the user_summoner_overview view without the verified column
