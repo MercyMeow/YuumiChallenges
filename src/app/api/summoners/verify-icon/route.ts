@@ -111,6 +111,30 @@ export async function PUT(request: NextRequest) {
       const accountData = await riotAPI.getAccountByRiotId(gameName, tagLine, region);
       const summonerData = await riotAPI.refreshSummonerData(accountData.puuid, region);
       
+      // Debug logging for Riot API responses
+      console.log('Account data:', {
+        puuid: accountData.puuid,
+        gameName: accountData.gameName,
+        tagLine: accountData.tagLine
+      });
+      console.log('Summoner data:', {
+        id: summonerData.id,
+        accountId: summonerData.accountId,
+        puuid: summonerData.puuid,
+        name: summonerData.name,
+        profileIconId: summonerData.profileIconId,
+        summonerLevel: summonerData.summonerLevel,
+        allFields: Object.keys(summonerData)
+      });
+      
+      // Validate required summoner data
+      if (!summonerData.id) {
+        console.error('Missing summoner ID in Riot API response:', summonerData);
+        return NextResponse.json({
+          error: 'Invalid summoner data received from Riot API'
+        }, { status: 500 });
+      }
+      
       // Check if icon was changed to the expected icon
       if (summonerData.profileIconId !== expectedIconId) {
         return NextResponse.json({
