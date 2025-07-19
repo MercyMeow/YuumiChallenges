@@ -141,6 +141,39 @@ export function IconVerificationDialog({
       }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Verification failed');
+      
+      // Refresh current icon data when verification fails to show user's actual current icon
+      try {
+        const refreshResponse = await fetch('/api/summoners/verify-icon', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            gameName: verificationData.accountData.gameName,
+            tagLine: verificationData.accountData.tagLine,
+            region,
+          }),
+        });
+
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json();
+          // Update current icon data with fresh information
+          setVerificationData(prev => prev ? {
+            ...prev,
+            accountData: {
+              ...prev.accountData,
+              currentIconId: refreshData.accountData.currentIconId,
+            }
+          } : null);
+          
+          // Update current icon URL
+          const newCurrentIconUrl = await getSummonerIconUrl(refreshData.accountData.currentIconId);
+          setCurrentIconUrl(newCurrentIconUrl);
+        }
+      } catch (refreshError) {
+        console.error('Failed to refresh current icon data:', refreshError);
+      }
     } finally {
       setChecking(false);
     }
@@ -230,13 +263,13 @@ export function IconVerificationDialog({
                   </div>
                   
                   {/* Icon IDs */}
-                  <div className="flex items-center justify-center gap-6 text-sm">
-                    <div className="text-center">
+                  <div className="flex items-center justify-center text-sm">
+                    <div className="w-20 text-center">
                       <span className="text-gray-400">ID: </span>
                       <span className="text-gray-300">{verificationData.accountData.currentIconId}</span>
                     </div>
-                    <div className="w-6"></div> {/* Spacer for arrow alignment */}
-                    <div className="text-center">
+                    <div className="w-20 flex justify-center">{/* Spacer for arrow alignment */}</div>
+                    <div className="w-20 text-center">
                       <span className="text-gray-400">ID: </span>
                       <span className="text-blue-400">{verificationData.verification.selectedIconId}</span>
                     </div>
