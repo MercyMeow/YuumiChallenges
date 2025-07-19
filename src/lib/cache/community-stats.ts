@@ -100,21 +100,20 @@ async function fetchCommunityStats(): Promise<CommunityStats> {
       .select('*', { count: 'exact', head: true })
       .eq('completed', true),
     
-    // Rank distribution - get verified summoners first
-    (async () => {
-      const { data: verifiedSummoners } = await supabase
-        .from('summoners')
-        .select('id')
-        .eq('verified', true);
-      
-      const summonerIds = verifiedSummoners?.map(s => s.id) || [];
-      
-      return supabase
-        .from('ranked_info')
-        .select('tier')
-        .eq('queue_type', 'RANKED_SOLO_5x5')
-        .in('summoner_id', summonerIds);
-    })(),
+    // Rank distribution - get all summoners since they're all verified by design
+    supabase
+      .from('ranked_info')
+      .select(`
+        tier,
+        summoners (
+          user_id,
+          users (
+            is_yuumi_member
+          )
+        )
+      `)
+      .eq('queue_type', 'RANKED_SOLO_5x5')
+      .eq('summoners.users.is_yuumi_member', true),
   ]);
   
   // Process rank distribution

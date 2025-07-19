@@ -13,7 +13,7 @@ export async function GET() {
     const supabase = createServerSupabaseClient();
     const userId = session.user.id;
 
-    // Get user's primary summoner with ranked info
+    // Get user's primary summoner with ranked info (all summoners are verified by design)
     const { data: primarySummoner, error } = await supabase
       .from('summoners')
       .select(`
@@ -28,7 +28,6 @@ export async function GET() {
         )
       `)
       .eq('user_id', userId)
-      .eq('verified', true)
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
@@ -41,7 +40,7 @@ export async function GET() {
     if (!primarySummoner) {
       return NextResponse.json({ 
         summoner: null,
-        message: 'No verified summoner found' 
+        message: 'No summoner found' 
       });
     }
 
@@ -88,7 +87,6 @@ export async function GET() {
         region: primarySummoner.region,
         level: primarySummoner.level,
         profileIconId: primarySummoner.profile_icon_id,
-        verified: primarySummoner.verified,
         rank: soloQueueRank ? {
           tier: soloQueueRank.tier,
           rank: soloQueueRank.rank_level,

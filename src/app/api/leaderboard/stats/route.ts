@@ -82,7 +82,7 @@ export async function GET() {
         .order('completed_at', { ascending: false })
         .limit(10),
       
-      // Rank distribution
+      // Rank distribution (all summoners are verified by design)
       supabase
         .from('ranked_info')
         .select(`
@@ -91,14 +91,12 @@ export async function GET() {
           league_points,
           summoners (
             user_id,
-            verified,
             users (
               is_yuumi_member
             )
           )
         `)
         .eq('queue_type', 'RANKED_SOLO_5x5')
-        .eq('summoners.verified', true)
         .eq('summoners.users.is_yuumi_member', true)
     ]);
 

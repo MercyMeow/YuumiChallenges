@@ -21,8 +21,6 @@ export interface Summoner {
   region: string;
   level: number;
   profile_icon_id: number;
-  verified: boolean;
-  verification_code: string | null;
   created_at: Date;
   updated_at: Date;
 }

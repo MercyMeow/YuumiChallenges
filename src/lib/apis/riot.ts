@@ -110,9 +110,4 @@ export class RiotAPI {
     return this.getSummonerByPuuid(puuid, region);
   }
 
-  async getItemSets() {
-    // Item sets are not available in the current Riot API
-    // Return empty array as a placeholder
-    return [];
-  }
 }

@@ -20,7 +20,7 @@ export async function DELETE(
     // Verify the summoner belongs to the user
     const { data: summoner, error: summonerError } = await supabase
       .from('summoners')
-      .select('id, user_id, verified')
+      .select('id, user_id')
       .eq('id', summonerId)
       .eq('user_id', session.user.id)
       .single();

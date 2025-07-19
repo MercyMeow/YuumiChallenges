@@ -41,11 +41,11 @@ export async function POST(request: NextRequest) {
       const supabase = createServerSupabaseClient();
       const { data: existingSummoner } = await supabase
         .from('summoners')
-        .select('user_id, verified')
+        .select('user_id')
         .eq('puuid', accountData.puuid)
         .single();
 
-      if (existingSummoner && existingSummoner.verified) {
+      if (existingSummoner) {
         return NextResponse.json({
           error: 'This account is already linked to a user'
         }, { status: 400 });
@@ -121,20 +121,20 @@ export async function PUT(request: NextRequest) {
 
       const supabase = createServerSupabaseClient();
 
-      // Check again for existing verified summoner (race condition protection)
+      // Check again for existing summoner (race condition protection)
       const { data: existingSummoner } = await supabase
         .from('summoners')
-        .select('user_id, verified')
+        .select('user_id')
         .eq('puuid', accountData.puuid)
         .single();
 
-      if (existingSummoner && existingSummoner.verified) {
+      if (existingSummoner) {
         return NextResponse.json({
           error: 'This account is already linked to a user'
         }, { status: 400 });
       }
 
-      // Create verified summoner record (no verification data stored)
+      // Create summoner record (all summoners are verified through icon verification process)
       const { data: newSummoner, error: createError } = await supabase
         .from('summoners')
         .insert({
@@ -147,7 +147,6 @@ export async function PUT(request: NextRequest) {
           region: region,
           level: summonerData.summonerLevel,
           profile_icon_id: summonerData.profileIconId,
-          verified: true, // Immediately verified, no verification process stored
           verification_code: null,
           verification_expires_at: null,
         })
@@ -193,7 +192,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({
         success: true,
         verified: true,
-        message: 'Account successfully linked and verified!',
+        message: 'Account successfully linked!',
         summoner: newSummoner
       });
 

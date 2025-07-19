@@ -40,21 +40,20 @@ export async function POST(
       return NextResponse.json({ error: 'You are already participating in this challenge' }, { status: 400 });
     }
 
-    // Check if user has verified summoners for challenges that require them
-    const { data: verifiedSummoners, error: summonersError } = await supabase
+    // Check if user has summoners for challenges (all summoners are verified by design)
+    const { data: userSummoners, error: summonersError } = await supabase
       .from('summoners')
       .select('id')
-      .eq('user_id', session.user.id)
-      .eq('verified', true);
+      .eq('user_id', session.user.id);
 
     if (summonersError) {
       console.error('Error checking summoners:', summonersError);
-      return NextResponse.json({ error: 'Failed to verify account requirements' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to check account requirements' }, { status: 500 });
     }
 
-    if (!verifiedSummoners || verifiedSummoners.length === 0) {
+    if (!userSummoners || userSummoners.length === 0) {
       return NextResponse.json({ 
-        error: 'You need to link and verify at least one League of Legends account to participate in challenges' 
+        error: 'You need to link at least one League of Legends account to participate in challenges' 
       }, { status: 400 });
     }
 

@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       console.error('Error fetching win rate leaderboard:', winRateError);
     }
 
-    // Get Champion Mastery leaderboard
+    // Get Champion Mastery leaderboard (all summoners are verified by design)
     const { data: masteryData, error: masteryError } = await supabase
       .from('summoners')
       .select(`
@@ -59,7 +59,6 @@ export async function GET(request: NextRequest) {
           is_yuumi_member
         )
       `)
-      .eq('verified', true)
       .eq('users.is_yuumi_member', true)
       .not('champion_mastery_points', 'is', null)
       .order('champion_mastery_points', { ascending: false })

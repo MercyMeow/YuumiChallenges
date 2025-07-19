@@ -13,12 +13,11 @@ export async function GET() {
     const supabase = createServerSupabaseClient();
     const userId = session.user.id;
 
-    // Get user's primary summoner
+    // Get user's primary summoner (all summoners are verified by design)
     const { data: primarySummoner } = await supabase
       .from('summoners')
       .select('*')
       .eq('user_id', userId)
-      .eq('verified', true)
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
