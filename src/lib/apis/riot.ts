@@ -105,6 +105,11 @@ export class RiotAPI {
     return this.getSummonerByRiotId(gameName, tagLine, region);
   }
 
+  async refreshSummonerData(puuid: string, region: string) {
+    // Refreshes summoner data to get latest profile icon and other info
+    return this.getSummonerByPuuid(puuid, region);
+  }
+
   async getItemSets() {
     // Item sets are not available in the current Riot API
     // Return empty array as a placeholder

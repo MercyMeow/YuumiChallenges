@@ -17,7 +17,6 @@ interface Summoner {
   tag_line: string;
   region: string;
   level: number;
-  verified: boolean;
   is_primary: boolean;
   ranked_info?: Array<{
     tier: string;
@@ -102,9 +101,8 @@ export default function ProfilePage() {
     try {
       setLoadingStats(true);
       
-      // Get stats from the primary summoner or first verified summoner
-      const primarySummoner = summoners.find(s => s.is_primary && s.verified) || 
-                            summoners.find(s => s.verified);
+      // Get stats from the primary summoner or first summoner
+      const primarySummoner = summoners.find(s => s.is_primary) || summoners[0];
       
       if (primarySummoner) {
         const response = await fetch(`/api/summoners/${primarySummoner.id}/stats`);
@@ -134,59 +132,11 @@ export default function ProfilePage() {
     }
   }, [summoners, fetchPerformanceStats]);
 
-  const handleAddSummoner = async (data: { gameName: string; tagLine: string; region: string }) => {
-    try {
-      const response = await fetch('/api/summoners', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to add summoner');
-      }
-
-      const result = await response.json();
-      
-      // Refresh summoners list
-      await fetchSummoners();
-      
-      // If verification is required, you might want to show a verification dialog
-      if (result.verificationCode) {
-        // Handle verification flow
-        console.log('Verification code:', result.verificationCode);
-      }
-      
-      return result;
-    } catch (err) {
-      console.error('Error adding summoner:', err);
-      throw err;
-    }
+  const handleAddSummoner = async () => {
+    // Simple callback to refresh summoners list after successful verification
+    await fetchSummoners();
   };
 
-  const handleVerifySummoner = async (id: string) => {
-    try {
-      const response = await fetch(`/api/summoners/${id}/verify`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to verify summoner');
-      }
-
-      // Refresh summoners list
-      await fetchSummoners();
-    } catch (err) {
-      console.error('Error verifying summoner:', err);
-      throw err;
-    }
-  };
 
   const handleRemoveSummoner = async (id: string) => {
     try {
@@ -250,7 +200,6 @@ export default function ProfilePage() {
         <SummonersSection
           summoners={summoners}
           onAdd={handleAddSummoner}
-          onVerify={handleVerifySummoner}
           onRemove={handleRemoveSummoner}
         />
 

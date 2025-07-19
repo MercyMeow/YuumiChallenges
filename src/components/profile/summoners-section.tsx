@@ -12,7 +12,6 @@ interface SummonersSectionProps {
     tag_line: string;
     region: string;
     level: number;
-    verified: boolean;
     ranked_info?: Array<{
       tier: string;
       rank_level: string;
@@ -22,12 +21,11 @@ interface SummonersSectionProps {
       queue_type: string;
     }>;
   }>;
-  onAdd: (data: { gameName: string; tagLine: string; region: string }) => Promise<void>;
-  onVerify: (id: string) => void;
+  onAdd: () => void;
   onRemove: (id: string) => void;
 }
 
-function EmptyState({ onAdd }: { onAdd: (data: { gameName: string; tagLine: string; region: string }) => Promise<void> }) {
+function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (
     <div className="text-center py-12">
       <div className="flex justify-center mb-4">
@@ -44,7 +42,7 @@ function EmptyState({ onAdd }: { onAdd: (data: { gameName: string; tagLine: stri
   );
 }
 
-export function SummonersSection({ summoners, onAdd, onVerify, onRemove }: SummonersSectionProps) {
+export function SummonersSection({ summoners, onAdd, onRemove }: SummonersSectionProps) {
   return (
     <Card className="bg-gradient-to-br from-blue-500/5 to-cyan-500/5 border-blue-500/20 backdrop-blur-md">
       <CardHeader>
@@ -70,7 +68,6 @@ export function SummonersSection({ summoners, onAdd, onVerify, onRemove }: Summo
               <SummonerCard
                 key={summoner.id}
                 summoner={summoner}
-                onVerify={onVerify}
                 onRemove={onRemove}
               />
             ))}

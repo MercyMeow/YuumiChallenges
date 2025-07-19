@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Shield, Clock, X, CheckCircle } from 'lucide-react';
+import { Shield, X, CheckCircle } from 'lucide-react';
 
 interface SummonerCardProps {
   summoner: {
@@ -11,7 +11,6 @@ interface SummonerCardProps {
     tag_line: string;
     region: string;
     level: number;
-    verified: boolean;
     ranked_info?: Array<{
       tier: string;
       rank_level: string;
@@ -21,7 +20,6 @@ interface SummonerCardProps {
       queue_type: string;
     }>;
   };
-  onVerify: (id: string) => void;
   onRemove: (id: string) => void;
 }
 
@@ -51,70 +49,34 @@ function RankBadge({ rank }: { rank?: { tier: string; rank_level: string; league
   );
 }
 
-export function SummonerCard({ summoner, onVerify, onRemove }: SummonerCardProps) {
+export function SummonerCard({ summoner, onRemove }: SummonerCardProps) {
   const primaryRank = summoner.ranked_info?.find(r => r.queue_type === 'RANKED_SOLO_5x5');
   const winRate = primaryRank ? 
     Math.round((primaryRank.wins / (primaryRank.wins + primaryRank.losses)) * 100) : 0;
 
-  if (summoner.verified) {
-    return (
-      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg backdrop-blur-sm">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-green-500/20 rounded-lg">
-            <Shield className="h-5 w-5 text-green-400" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-white">{summoner.name}#{summoner.tag_line}</h3>
-              <CheckCircle className="h-4 w-4 text-green-400" />
-            </div>
-            <p className="text-sm text-gray-400">
-              {summoner.region.toUpperCase()} • Level {summoner.level}
-              {primaryRank && (
-                <span className="ml-2">
-                  • {primaryRank.wins}W {primaryRank.losses}L ({winRate}%)
-                </span>
-              )}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <RankBadge rank={primaryRank} />
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => onRemove(summoner.id)}
-            className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-lg backdrop-blur-sm">
+    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg backdrop-blur-sm">
       <div className="flex items-center space-x-3">
-        <div className="p-2 bg-yellow-500/20 rounded-lg">
-          <Clock className="h-5 w-5 text-yellow-400 animate-pulse" />
+        <div className="p-2 bg-green-500/20 rounded-lg">
+          <Shield className="h-5 w-5 text-green-400" />
         </div>
         <div>
-          <h3 className="font-semibold text-white">{summoner.name}#{summoner.tag_line}</h3>
-          <p className="text-sm text-yellow-400">
-            {summoner.region.toUpperCase()} • Level {summoner.level} • Verification required
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-white">{summoner.name}#{summoner.tag_line}</h3>
+            <CheckCircle className="h-4 w-4 text-green-400" />
+          </div>
+          <p className="text-sm text-gray-400">
+            {summoner.region.toUpperCase()} • Level {summoner.level}
+            {primaryRank && (
+              <span className="ml-2">
+                • {primaryRank.wins}W {primaryRank.losses}L ({winRate}%)
+              </span>
+            )}
           </p>
         </div>
       </div>
       <div className="flex items-center space-x-2">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => onVerify(summoner.id)}
-          className="bg-yellow-500/20 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/30"
-        >
-          Verify Account
-        </Button>
+        <RankBadge rank={primaryRank} />
         <Button 
           variant="ghost" 
           size="sm" 

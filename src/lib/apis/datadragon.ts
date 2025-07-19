@@ -186,6 +186,19 @@ export const runeImages = {
 };
 
 /**
+ * Summoner Icon Image URLs
+ */
+export const summonerIconImages = {
+  /**
+   * Gets the summoner icon URL
+   */
+  icon: async (iconId: number): Promise<string> => {
+    const version = await getLatestVersion();
+    return `${DATADRAGON_BASE_URL}/cdn/${version}/img/profileicon/${iconId}.png`;
+  },
+};
+
+/**
  * Fetches champion data from DataDragon
  */
 export async function getChampionData(locale: string = "en_US"): Promise<Record<string, ChampionData>> {
@@ -349,6 +362,38 @@ export async function getSupportChampionAssets() {
   );
 
   return assets;
+}
+
+/**
+ * Basic summoner icons commonly available to all users
+ * These are the default icons that most players have access to
+ */
+export const BASIC_SUMMONER_ICONS = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+  21, 22, 23, 24, 25, 26, 27, 28, 29, 588, 589, 590, 591, 592, 593, 594,
+  595, 596, 597, 598, 599, 600, 601, 602, 603, 604, 605, 606, 607, 608,
+] as const;
+
+/**
+ * Selects a random basic summoner icon, excluding the current one
+ */
+export function selectRandomIcon(currentIconId: number): number {
+  const availableIcons = BASIC_SUMMONER_ICONS.filter(id => id !== currentIconId);
+  
+  if (availableIcons.length === 0) {
+    // Fallback if somehow current icon is not in basic icons or array is empty
+    return BASIC_SUMMONER_ICONS[0];
+  }
+  
+  const randomIndex = Math.floor(Math.random() * availableIcons.length);
+  return availableIcons[randomIndex];
+}
+
+/**
+ * Gets summoner icon URL with convenience function
+ */
+export async function getSummonerIconUrl(iconId: number): Promise<string> {
+  return summonerIconImages.icon(iconId);
 }
 
 /**

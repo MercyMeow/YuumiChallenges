@@ -14,7 +14,6 @@ interface PerformanceOverviewProps {
   };
   summoners: Array<{
     id: string;
-    verified: boolean;
     ranked_info?: Array<{
       tier: string;
       rank_level: string;
@@ -79,8 +78,7 @@ function StatCard({
 }
 
 export function PerformanceOverview({ stats, summoners }: PerformanceOverviewProps) {
-  const verifiedSummoners = summoners.filter(s => s.verified);
-  const rankedSummoners = verifiedSummoners.filter(s => s.ranked_info?.length);
+  const rankedSummoners = summoners.filter(s => s.ranked_info?.length);
   
   // Calculate overall win rate
   const totalWins = rankedSummoners.reduce((sum, summoner) => {
@@ -158,13 +156,13 @@ export function PerformanceOverview({ stats, summoners }: PerformanceOverviewPro
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-400">Verified Accounts</span>
+                <span className="text-sm text-gray-400">Linked Accounts</span>
                 <span className="text-sm font-medium text-white">
-                  {verifiedSummoners.length} / {summoners.length}
+                  {summoners.length}
                 </span>
               </div>
               <Progress 
-                value={(verifiedSummoners.length / Math.max(summoners.length, 1)) * 100} 
+                value={summoners.length > 0 ? 100 : 0} 
                 className="h-2"
               />
             </div>
@@ -173,11 +171,11 @@ export function PerformanceOverview({ stats, summoners }: PerformanceOverviewPro
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-gray-400">Ranked Accounts</span>
                 <span className="text-sm font-medium text-white">
-                  {rankedSummoners.length} / {verifiedSummoners.length}
+                  {rankedSummoners.length} / {summoners.length}
                 </span>
               </div>
               <Progress 
-                value={(rankedSummoners.length / Math.max(verifiedSummoners.length, 1)) * 100} 
+                value={(rankedSummoners.length / Math.max(summoners.length, 1)) * 100} 
                 className="h-2"
               />
             </div>

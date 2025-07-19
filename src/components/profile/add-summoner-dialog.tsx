@@ -21,9 +21,10 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Plus, Loader2 } from 'lucide-react';
+import { IconVerificationDialog } from './icon-verification-dialog';
 
 interface AddSummonerDialogProps {
-  onAdd: (data: { gameName: string; tagLine: string; region: string }) => Promise<void>;
+  onAdd: () => void; // Changed to simple callback since verification handles the API call
 }
 
 const regions = [
@@ -43,8 +44,9 @@ export function AddSummonerDialog({ onAdd }: AddSummonerDialogProps) {
   const [gameName, setGameName] = useState('');
   const [tagLine, setTagLine] = useState('');
   const [region, setRegion] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [error, setError] = useState('');
+  const [showIconVerification, setShowIconVerification] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,19 +57,24 @@ export function AddSummonerDialog({ onAdd }: AddSummonerDialogProps) {
       return;
     }
 
-    setLoading(true);
+    // Start icon verification process
+    setShowIconVerification(true);
+  };
+
+  const handleVerificationSuccess = () => {
+    // Reset form and close dialogs
+    setGameName('');
+    setTagLine('');
+    setRegion('');
+    setShowIconVerification(false);
+    setOpen(false);
     
-    try {
-      await onAdd({ gameName, tagLine, region });
-      setOpen(false);
-      setGameName('');
-      setTagLine('');
-      setRegion('');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
+    // Notify parent to refresh summoners list
+    onAdd();
+  };
+
+  const handleVerificationClose = () => {
+    setShowIconVerification(false);
   };
 
   return (
@@ -153,21 +160,31 @@ export function AddSummonerDialog({ onAdd }: AddSummonerDialogProps) {
             </Button>
             <Button 
               type="submit" 
-              disabled={loading}
+              disabled={loading || !gameName || !tagLine || !region}
               className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border-blue-500/30"
             >
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Adding...
+                  Starting Verification...
                 </>
               ) : (
-                'Add Account'
+                'Start Verification'
               )}
             </Button>
           </div>
         </form>
       </DialogContent>
+      
+      {/* Icon Verification Dialog */}
+      <IconVerificationDialog
+        open={showIconVerification}
+        onOpenChange={handleVerificationClose}
+        gameName={gameName}
+        tagLine={tagLine}
+        region={region}
+        onSuccess={handleVerificationSuccess}
+      />
     </Dialog>
   );
 }
