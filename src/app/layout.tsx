@@ -40,6 +40,20 @@ export default function RootLayout({
             __html: `
               try {
                 document.documentElement.classList.add('dark');
+                // Initialize magical background early
+                const createMagicalBackground = () => {
+                  if (!document.querySelector('.global-magical-bg')) {
+                    const bg = document.createElement('div');
+                    bg.className = 'global-magical-bg';
+                    bg.innerHTML = '<div class="magical-bg"></div><div class="magical-radial-1"></div><div class="magical-radial-2"></div><div class="magical-radial-3"></div>';
+                    document.body.appendChild(bg);
+                  }
+                };
+                if (document.body) {
+                  createMagicalBackground();
+                } else {
+                  document.addEventListener('DOMContentLoaded', createMagicalBackground);
+                }
               } catch (_) {}
             `,
           }}
