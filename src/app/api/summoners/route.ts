@@ -69,7 +69,7 @@ export async function GET() {
     const favoriteChampion = Object.entries(championCounts)
       .sort(([,a], [,b]) => b - a)[0]?.[0] || 'None';
 
-    const currentRank = summoners?.find(s => s.verified)?.ranked_info?.find((r: any) => r.queue_type === 'RANKED_SOLO_5x5')?.tier || 'Unranked'; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const currentRank = summoners?.[0]?.ranked_info?.find((r: any) => r.queue_type === 'RANKED_SOLO_5x5')?.tier || 'Unranked'; // eslint-disable-line @typescript-eslint/no-explicit-any
 
     return createSuccessResponse({
       summoners: summoners || [],
