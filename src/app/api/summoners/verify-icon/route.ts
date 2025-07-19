@@ -148,6 +148,7 @@ export async function PUT(request: NextRequest) {
           region: region,
           level: summonerData.summonerLevel,
           profile_icon_id: summonerData.profileIconId,
+          verified: true,
           verification_code: null,
           verification_expires_at: null,
         })
