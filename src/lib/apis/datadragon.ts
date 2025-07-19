@@ -366,11 +366,12 @@ export async function getSupportChampionAssets() {
 
 /**
  * Basic summoner icons available to all users
- * These are the base icons (0-29) that every League of Legends account has access to
+ * These are the base icons (0-28) that every League of Legends account has access to
+ * Note: Icon 29 is not selectable, so we exclude it
  */
 export const BASIC_SUMMONER_ICONS = [
   0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-  21, 22, 23, 24, 25, 26, 27, 28, 29,
+  21, 22, 23, 24, 25, 26, 27, 28,
 ] as const;
 
 /**
