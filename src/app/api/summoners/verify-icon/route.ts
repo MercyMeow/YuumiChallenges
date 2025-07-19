@@ -127,9 +127,9 @@ export async function PUT(request: NextRequest) {
         allFields: Object.keys(summonerData)
       });
       
-      // Validate required summoner data
-      if (!summonerData.id) {
-        console.error('Missing summoner ID in Riot API response:', summonerData);
+      // Validate required summoner data from modern Riot API
+      if (!summonerData.puuid || summonerData.profileIconId === undefined) {
+        console.error('Missing required fields in Riot API response:', summonerData);
         return NextResponse.json({
           error: 'Invalid summoner data received from Riot API'
         }, { status: 500 });
@@ -165,9 +165,6 @@ export async function PUT(request: NextRequest) {
         .insert({
           user_id: session.user.id,
           puuid: accountData.puuid,
-          summoner_id: summonerData.id,
-          account_id: summonerData.accountId,
-          name: accountData.gameName,
           tag_line: accountData.tagLine,
           region: region,
           level: summonerData.summonerLevel,
@@ -186,9 +183,6 @@ export async function PUT(request: NextRequest) {
           insertData: {
             user_id: session.user.id,
             puuid: accountData.puuid,
-            summoner_id: summonerData.id,
-            account_id: summonerData.accountId,
-            name: accountData.gameName,
             tag_line: accountData.tagLine,
             region: region,
             level: summonerData.summonerLevel,
@@ -206,34 +200,10 @@ export async function PUT(request: NextRequest) {
         }, { status: 500 });
       }
 
-      // Update ranked info
-      try {
-        const rankedData = await riotAPI.getRankedInfo(summonerData.id, region);
-        
-        for (const queue of rankedData) {
-          await supabase
-            .from('ranked_info')
-            .upsert({
-              summoner_id: newSummoner.id,
-              queue_type: queue.queueType,
-              tier: queue.tier,
-              rank_level: queue.rank,
-              league_points: queue.leaguePoints,
-              wins: queue.wins,
-              losses: queue.losses,
-              hot_streak: queue.hotStreak,
-              veteran: queue.veteran,
-              fresh_blood: queue.freshBlood,
-              inactive: queue.inactive,
-              season: new Date().getFullYear().toString(),
-            }, {
-              onConflict: 'summoner_id,queue_type,season'
-            });
-        }
-      } catch (rankedError) {
-        console.error('Error updating ranked info:', rankedError);
-        // Don't fail the verification if ranked update fails
-      }
+      // Note: Ranked info update temporarily disabled
+      // The modern Riot API no longer returns summoner_id needed for ranked endpoint
+      // We'll need to find an alternative way to get ranked data or use a different approach
+      console.log('Ranked info update skipped - modern API no longer provides summoner_id');
 
       return NextResponse.json({
         success: true,

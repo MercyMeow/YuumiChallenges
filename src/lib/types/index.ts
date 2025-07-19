@@ -14,9 +14,6 @@ export interface Summoner {
   id: string;
   user_id: string;
   puuid: string;
-  summoner_id: string;
-  account_id: string;
-  name: string;
   tag_line: string;
   region: string;
   level: number;
