@@ -365,13 +365,12 @@ export async function getSupportChampionAssets() {
 }
 
 /**
- * Basic summoner icons commonly available to all users
- * These are the default icons that most players have access to
+ * Basic summoner icons available to all users
+ * These are the base icons (0-29) that every League of Legends account has access to
  */
 export const BASIC_SUMMONER_ICONS = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-  21, 22, 23, 24, 25, 26, 27, 28, 29, 588, 589, 590, 591, 592, 593, 594,
-  595, 596, 597, 598, 599, 600, 601, 602, 603, 604, 605, 606, 607, 608,
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+  21, 22, 23, 24, 25, 26, 27, 28, 29,
 ] as const;
 
 /**
