@@ -11,8 +11,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
+import { CheckCircle, Clock, AlertCircle, RefreshCw, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
+import { getSummonerIconUrl } from '@/lib/apis/datadragon';
 
 interface IconVerificationData {
   accountData: {
@@ -49,6 +50,7 @@ export function IconVerificationDialog({
 }: IconVerificationDialogProps) {
   const [step, setStep] = useState<'loading' | 'display' | 'verifying' | 'success' | 'error'>('loading');
   const [verificationData, setVerificationData] = useState<IconVerificationData | null>(null);
+  const [currentIconUrl, setCurrentIconUrl] = useState<string>('');
   const [error, setError] = useState('');
   const [checking, setChecking] = useState(false);
 
@@ -64,6 +66,7 @@ export function IconVerificationDialog({
     if (!open) {
       setStep('loading');
       setVerificationData(null);
+      setCurrentIconUrl('');
       setError('');
       setChecking(false);
     }
@@ -93,6 +96,11 @@ export function IconVerificationDialog({
       }
 
       setVerificationData(data);
+      
+      // Get current icon URL
+      const currentIconUrl = await getSummonerIconUrl(data.accountData.currentIconId);
+      setCurrentIconUrl(currentIconUrl);
+      
       setStep('display');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start verification');
@@ -182,19 +190,60 @@ export function IconVerificationDialog({
             <>
               <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
                 <h3 className="font-semibold text-blue-400 mb-3">Step 1: Change Your Icon</h3>
-                <div className="text-center space-y-3">
-                  <div className="relative inline-block">
-                    <Image
-                      src={verificationData.verification.iconUrl}
-                      alt="Verification Icon"
-                      width={64}
-                      height={64}
-                      className="rounded-lg border-2 border-blue-400/50"
-                    />
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
+                <div className="text-center space-y-4">
+                  {/* Icons Display */}
+                  <div className="flex items-center justify-center gap-6">
+                    {/* Current Icon */}
+                    <div className="flex flex-col items-center space-y-2">
+                      <div className="relative">
+                        <Image
+                          src={currentIconUrl}
+                          alt="Current Icon"
+                          width={64}
+                          height={64}
+                          className="rounded-lg border-2 border-gray-500/50"
+                        />
+                      </div>
+                      <span className="text-xs text-gray-400">Current</span>
+                    </div>
+                    
+                    {/* Arrow */}
+                    <div className="flex flex-col items-center">
+                      <ArrowRight className="h-6 w-6 text-blue-400" />
+                      <span className="text-xs text-blue-400 mt-1">Change to</span>
+                    </div>
+                    
+                    {/* Target Icon */}
+                    <div className="flex flex-col items-center space-y-2">
+                      <div className="relative">
+                        <Image
+                          src={verificationData.verification.iconUrl}
+                          alt="Verification Icon"
+                          width={64}
+                          height={64}
+                          className="rounded-lg border-2 border-blue-400/50"
+                        />
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
+                      </div>
+                      <span className="text-xs text-blue-400">Required</span>
+                    </div>
                   </div>
+                  
+                  {/* Icon IDs */}
+                  <div className="flex items-center justify-center gap-6 text-sm">
+                    <div className="text-center">
+                      <span className="text-gray-400">ID: </span>
+                      <span className="text-gray-300">{verificationData.accountData.currentIconId}</span>
+                    </div>
+                    <div className="w-6"></div> {/* Spacer for arrow alignment */}
+                    <div className="text-center">
+                      <span className="text-gray-400">ID: </span>
+                      <span className="text-blue-400">{verificationData.verification.selectedIconId}</span>
+                    </div>
+                  </div>
+                  
                   <p className="text-sm text-gray-300">
-                    Set this icon as your summoner icon in League of Legends
+                    Set the required icon as your summoner icon in League of Legends
                   </p>
                 </div>
               </div>
@@ -212,16 +261,12 @@ export function IconVerificationDialog({
 
               <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-600/30">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Current Icon ID:</span>
-                  <span className="text-gray-300">{verificationData.accountData.currentIconId}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Required Icon ID:</span>
-                  <span className="text-blue-400">{verificationData.verification.selectedIconId}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-400">Summoner Level:</span>
                   <span className="text-gray-300">{verificationData.accountData.level}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-400">Summoner Name:</span>
+                  <span className="text-gray-300">{verificationData.accountData.gameName}#{verificationData.accountData.tagLine}</span>
                 </div>
               </div>
               
