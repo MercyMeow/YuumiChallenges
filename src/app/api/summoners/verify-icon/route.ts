@@ -153,9 +153,32 @@ export async function PUT(request: NextRequest) {
         .single();
 
       if (createError) {
-        console.error('Error creating summoner:', createError);
+        console.error('Error creating summoner:', {
+          error: createError,
+          message: createError.message,
+          code: createError.code,
+          details: createError.details,
+          hint: createError.hint,
+          insertData: {
+            user_id: session.user.id,
+            puuid: accountData.puuid,
+            summoner_id: summonerData.id,
+            account_id: summonerData.accountId,
+            name: accountData.gameName,
+            tag_line: accountData.tagLine,
+            region: region,
+            level: summonerData.summonerLevel,
+            profile_icon_id: summonerData.profileIconId,
+          }
+        });
+        
+        // Return more specific error for debugging
         return NextResponse.json({ 
-          error: 'Failed to link account' 
+          error: 'Failed to link account',
+          debug: process.env.NODE_ENV === 'development' ? {
+            supabaseError: createError.message,
+            code: createError.code
+          } : undefined
         }, { status: 500 });
       }
 
