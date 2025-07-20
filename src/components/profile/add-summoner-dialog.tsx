@@ -24,7 +24,10 @@ import { AlertCircle, Plus, Loader2 } from 'lucide-react';
 import { IconVerificationDialog } from './icon-verification-dialog';
 
 interface AddSummonerDialogProps {
-  onAdd: () => void; // Changed to simple callback since verification handles the API call
+  onAdd: () => void;
+  variant?: 'add' | 'change';
+  disabled?: boolean;
+  buttonText?: string;
 }
 
 const regions = [
@@ -39,7 +42,12 @@ const regions = [
   { value: 'oc1', label: 'Oceania' },
 ];
 
-export function AddSummonerDialog({ onAdd }: AddSummonerDialogProps) {
+export function AddSummonerDialog({ 
+  onAdd, 
+  variant = 'add', 
+  disabled = false, 
+  buttonText 
+}: AddSummonerDialogProps) {
   const [open, setOpen] = useState(false);
   const [gameName, setGameName] = useState('');
   const [tagLine, setTagLine] = useState('');
@@ -80,16 +88,27 @@ export function AddSummonerDialog({ onAdd }: AddSummonerDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border-blue-500/30">
+        <Button 
+          className={variant === 'change' 
+            ? "bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border-orange-500/30" 
+            : "bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border-blue-500/30"
+          }
+          disabled={disabled}
+        >
           <Plus className="h-4 w-4 mr-2" />
-          Add Account
+          {buttonText || (variant === 'change' ? 'Change Account' : 'Add Account')}
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-slate-900/90 backdrop-blur-md border-slate-700/50 text-white">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Add League Account</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            {variant === 'change' ? 'Change League Account' : 'Add League Account'}
+          </DialogTitle>
           <DialogDescription className="text-gray-400">
-            Link your League of Legends account to track your performance
+            {variant === 'change' 
+              ? 'Replace your current League account with a different one' 
+              : 'Link your League of Legends account to track your performance'
+            }
           </DialogDescription>
         </DialogHeader>
         

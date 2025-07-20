@@ -14,25 +14,23 @@ export async function GET() {
     const supabase = createServerSupabaseClient();
     const userId = session.user.id;
 
-    // Get user's primary summoner (all summoners are verified by design)
-    const { data: primarySummoner } = await supabase
+    // Get user's summoner (users can only have one summoner)
+    const { data: summoner } = await supabase
       .from('summoners')
       .select('*')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(1)
       .single();
 
     let winStreak = 0;
     let userRank = 'Unranked';
     let winRate = 0;
 
-    if (primarySummoner) {
+    if (summoner) {
       // Get recent matches to calculate win streak
       const { data: recentMatches } = await supabase
         .from('match_history')
         .select('win')
-        .eq('summoner_id', primarySummoner.id)
+        .eq('summoner_id', summoner.id)
         .order('game_creation', { ascending: false })
         .limit(20);
 
@@ -56,7 +54,7 @@ export async function GET() {
       const { data: rankInfo } = await supabase
         .from('ranked_info')
         .select('tier, rank_level')
-        .eq('summoner_id', primarySummoner.id)
+        .eq('summoner_id', summoner.id)
         .eq('queue_type', 'RANKED_SOLO_5x5')
         .single();
 

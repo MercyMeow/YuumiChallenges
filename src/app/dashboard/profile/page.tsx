@@ -13,11 +13,11 @@ import { useRouter } from 'next/navigation';
 
 interface Summoner {
   id: string;
-  name: string;
+  puuid: string;
   tag_line: string;
   region: string;
   level: number;
-  is_primary: boolean;
+  profile_icon_id: number;
   ranked_info?: Array<{
     tier: string;
     rank_level: string;
@@ -55,7 +55,7 @@ export default function ProfilePage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   
-  const [summoners, setSummoners] = useState<Summoner[]>([]);
+  const [summoner, setSummoner] = useState<Summoner | null>(null);
   const [, setPerformanceStats] = useState<PerformanceStats | null>(null);
   const [userStats, setUserStats] = useState<UserStats>({
     totalGames: 0,
@@ -67,20 +67,20 @@ export default function ProfilePage() {
   const [, setLoadingStats] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSummoners = async () => {
+  const fetchSummoner = async () => {
     try {
       setLoadingSummoners(true);
       setError(null);
       
       const response = await fetch('/api/summoners');
       if (!response.ok) {
-        throw new Error('Failed to fetch summoners');
+        throw new Error('Failed to fetch summoner');
       }
       
       const data = await response.json();
-      setSummoners(data.summoners || []);
+      setSummoner(data.summoner || null);
       
-      // Update user stats from summoners response
+      // Update user stats from summoner response
       if (data.stats) {
         setUserStats({
           totalGames: data.stats.totalGames || 0,
@@ -90,8 +90,8 @@ export default function ProfilePage() {
         });
       }
     } catch (err) {
-      console.error('Error fetching summoners:', err);
-      setError('Failed to load summoner accounts. Please try again.');
+      console.error('Error fetching summoner:', err);
+      setError('Failed to load summoner account. Please try again.');
     } finally {
       setLoadingSummoners(false);
     }
@@ -101,11 +101,8 @@ export default function ProfilePage() {
     try {
       setLoadingStats(true);
       
-      // Get stats from the primary summoner or first summoner
-      const primarySummoner = summoners.find(s => s.is_primary) || summoners[0];
-      
-      if (primarySummoner) {
-        const response = await fetch(`/api/summoners/${primarySummoner.id}/stats`);
+      if (summoner) {
+        const response = await fetch(`/api/summoners/${summoner.id}/stats`);
         if (response.ok) {
           const data = await response.json();
           setPerformanceStats(data);
@@ -116,25 +113,25 @@ export default function ProfilePage() {
     } finally {
       setLoadingStats(false);
     }
-  }, [summoners]);
+  }, [summoner]);
 
-  // Fetch summoners data
+  // Fetch summoner data
   useEffect(() => {
     if (isAuthenticated && user) {
-      fetchSummoners();
+      fetchSummoner();
     }
   }, [isAuthenticated, user]);
 
-  // Fetch performance stats when summoners change
+  // Fetch performance stats when summoner changes
   useEffect(() => {
-    if (summoners.length > 0) {
+    if (summoner) {
       fetchPerformanceStats();
     }
-  }, [summoners, fetchPerformanceStats]);
+  }, [summoner, fetchPerformanceStats]);
 
   const handleAddSummoner = async () => {
-    // Simple callback to refresh summoners list after successful verification
-    await fetchSummoners();
+    // Simple callback to refresh summoner after successful verification
+    await fetchSummoner();
   };
 
 
@@ -148,8 +145,8 @@ export default function ProfilePage() {
         throw new Error('Failed to remove summoner');
       }
 
-      // Refresh summoners list
-      await fetchSummoners();
+      // Refresh summoner
+      await fetchSummoner();
     } catch (err) {
       console.error('Error removing summoner:', err);
       throw err;
@@ -196,27 +193,27 @@ export default function ProfilePage() {
         {/* Page Header */}
         <ProfileHeader user={user} stats={userStats} />
 
-        {/* Summoner Accounts Section */}
+        {/* Summoner Account Section */}
         <SummonersSection
-          summoners={summoners}
+          summoner={summoner}
           onAdd={handleAddSummoner}
           onRemove={handleRemoveSummoner}
         />
 
         {/* Performance Overview */}
-        {summoners.length > 0 && (
-          <PerformanceOverview stats={userStats} summoners={summoners} />
+        {summoner && (
+          <PerformanceOverview stats={userStats} summoner={summoner} />
         )}
 
-        {/* No Summoners State */}
-        {summoners.length === 0 && !loadingSummoners && (
+        {/* No Summoner State */}
+        {!summoner && !loadingSummoners && (
           <div className="text-center py-12">
             <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 backdrop-blur-md border border-blue-500/20 rounded-lg p-8">
               <h3 className="text-xl font-semibold text-white mb-2">
                 Welcome to your League Profile!
               </h3>
               <p className="text-gray-400 mb-6">
-                Start by linking your League of Legends account to track your performance and participate in challenges.
+                Link your League of Legends account to track your performance and participate in challenges.
               </p>
               <Button 
                 onClick={() => router.push('/dashboard/challenges')}
@@ -233,7 +230,7 @@ export default function ProfilePage() {
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <Loader2 className="h-6 w-6 animate-spin text-purple-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-400">Loading summoner accounts...</p>
+              <p className="text-sm text-gray-400">Loading summoner account...</p>
             </div>
           </div>
         )}

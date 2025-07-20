@@ -7,10 +7,11 @@ import { Shield, X, CheckCircle } from 'lucide-react';
 interface SummonerCardProps {
   summoner: {
     id: string;
-    name: string;
+    puuid: string;
     tag_line: string;
     region: string;
     level: number;
+    profile_icon_id: number;
     ranked_info?: Array<{
       tier: string;
       rank_level: string;
@@ -62,7 +63,7 @@ export function SummonerCard({ summoner, onRemove }: SummonerCardProps) {
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-white">{summoner.name}#{summoner.tag_line}</h3>
+            <h3 className="font-semibold text-white">{summoner.tag_line}</h3>
             <CheckCircle className="h-4 w-4 text-green-400" />
           </div>
           <p className="text-sm text-gray-400">

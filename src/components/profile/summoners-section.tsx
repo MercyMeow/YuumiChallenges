@@ -6,12 +6,13 @@ import { SummonerCard } from './summoner-card';
 import { AddSummonerDialog } from './add-summoner-dialog';
 
 interface SummonersSectionProps {
-  summoners: Array<{
+  summoner: {
     id: string;
-    name: string;
+    puuid: string;
     tag_line: string;
     region: string;
     level: number;
+    profile_icon_id: number;
     ranked_info?: Array<{
       tier: string;
       rank_level: string;
@@ -20,7 +21,7 @@ interface SummonersSectionProps {
       losses: number;
       queue_type: string;
     }>;
-  }>;
+  } | null;
   onAdd: () => void;
   onRemove: (id: string) => void;
 }
@@ -33,16 +34,16 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
           <Gamepad2 className="h-8 w-8 text-blue-400" />
         </div>
       </div>
-      <h3 className="text-lg font-semibold text-white mb-2">No League accounts linked</h3>
+      <h3 className="text-lg font-semibold text-white mb-2">No League account linked</h3>
       <p className="text-gray-400 mb-6">
-        Add your League of Legends account to start tracking your performance
+        Link your League of Legends account to start tracking your performance
       </p>
       <AddSummonerDialog onAdd={onAdd} />
     </div>
   );
 }
 
-export function SummonersSection({ summoners, onAdd, onRemove }: SummonersSectionProps) {
+export function SummonersSection({ summoner, onAdd, onRemove }: SummonersSectionProps) {
   return (
     <Card className="bg-gradient-to-br from-blue-500/5 to-cyan-500/5 border-blue-500/20 backdrop-blur-md">
       <CardHeader>
@@ -50,27 +51,32 @@ export function SummonersSection({ summoners, onAdd, onRemove }: SummonersSectio
           <div>
             <CardTitle className="flex items-center gap-2">
               <Gamepad2 className="h-5 w-5 text-blue-400" />
-              League Accounts
+              League Account
             </CardTitle>
             <CardDescription className="text-gray-400">
-              Manage your League of Legends summoner accounts
+              Your linked League of Legends summoner account
             </CardDescription>
           </div>
-          {summoners.length > 0 && <AddSummonerDialog onAdd={onAdd} />}
+          {!summoner && <AddSummonerDialog onAdd={onAdd} />}
         </div>
       </CardHeader>
       <CardContent>
-        {summoners.length === 0 ? (
+        {!summoner ? (
           <EmptyState onAdd={onAdd} />
         ) : (
-          <div className="space-y-4">
-            {summoners.map((summoner) => (
-              <SummonerCard
-                key={summoner.id}
-                summoner={summoner}
-                onRemove={onRemove}
+          <div className="flex items-center justify-between">
+            <SummonerCard
+              summoner={summoner}
+              onRemove={onRemove}
+            />
+            <div className="ml-4">
+              <AddSummonerDialog 
+                onAdd={onAdd} 
+                variant="change"
+                disabled={!!summoner}
+                buttonText="Change Account"
               />
-            ))}
+            </div>
           </div>
         )}
       </CardContent>

@@ -13,8 +13,8 @@ export async function GET() {
 
     const supabase = createServerSupabaseClient();
     
-    // Get user's summoners with ranked info (all summoners are verified by design)
-    const { data: summoners, error: summonersError } = await supabase
+    // Get user's single summoner with ranked info (users can only have one summoner)
+    const { data: summoner, error: summonerError } = await supabase
       .from('summoners')
       .select(`
         *,
@@ -28,13 +28,21 @@ export async function GET() {
         )
       `)
       .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false });
+      .single();
 
-    if (summonersError) {
-      throw new ApiError(500, 'Failed to fetch summoners', 'DATABASE_ERROR', summonersError);
+    if (summonerError && summonerError.code !== 'PGRST116') {
+      throw new ApiError(500, 'Failed to fetch summoner', 'DATABASE_ERROR', summonerError);
     }
 
-    // Get aggregate stats
+    // If no summoner found, return null
+    if (!summoner) {
+      return createSuccessResponse({
+        summoner: null,
+        stats: null,
+      });
+    }
+
+    // Get match stats for the single summoner
     const { data: matchStats, error: matchStatsError } = await supabase
       .from('match_history')
       .select(`
@@ -44,7 +52,7 @@ export async function GET() {
         win,
         champion
       `)
-      .in('summoner_id', summoners?.map(s => s.id) || []);
+      .eq('summoner_id', summoner.id);
 
     if (matchStatsError) {
       console.error('Error fetching match stats:', matchStatsError);
@@ -64,10 +72,10 @@ export async function GET() {
     const favoriteChampion = Object.entries(championCounts)
       .sort(([,a], [,b]) => b - a)[0]?.[0] || 'None';
 
-    const currentRank = summoners?.[0]?.ranked_info?.find((r: any) => r.queue_type === 'RANKED_SOLO_5x5')?.tier || 'Unranked'; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const currentRank = summoner.ranked_info?.find((r: any) => r.queue_type === 'RANKED_SOLO_5x5')?.tier || 'Unranked'; // eslint-disable-line @typescript-eslint/no-explicit-any
 
     return createSuccessResponse({
-      summoners: summoners || [],
+      summoner,
       stats: {
         totalGames,
         overallKDA: Math.round(overallKDA * 100) / 100,

@@ -12,7 +12,7 @@ interface PerformanceOverviewProps {
     favoriteChampion: string;
     currentRank: string;
   };
-  summoners: Array<{
+  summoner: {
     id: string;
     ranked_info?: Array<{
       tier: string;
@@ -21,7 +21,7 @@ interface PerformanceOverviewProps {
       losses: number;
       queue_type: string;
     }>;
-  }>;
+  };
 }
 
 function StatCard({ 
@@ -77,38 +77,19 @@ function StatCard({
   );
 }
 
-export function PerformanceOverview({ stats, summoners }: PerformanceOverviewProps) {
-  const rankedSummoners = summoners.filter(s => s.ranked_info?.length);
+export function PerformanceOverview({ stats, summoner }: PerformanceOverviewProps) {
+  const hasRankedInfo = summoner.ranked_info && summoner.ranked_info.length > 0;
   
-  // Calculate overall win rate
-  const totalWins = rankedSummoners.reduce((sum, summoner) => {
-    return sum + (summoner.ranked_info?.reduce((wins, rank) => wins + rank.wins, 0) || 0);
-  }, 0);
-  
-  const totalLosses = rankedSummoners.reduce((sum, summoner) => {
-    return sum + (summoner.ranked_info?.reduce((losses, rank) => losses + rank.losses, 0) || 0);
-  }, 0);
+  // Calculate overall win rate from single summoner
+  const totalWins = summoner.ranked_info?.reduce((sum, rank) => sum + rank.wins, 0) || 0;
+  const totalLosses = summoner.ranked_info?.reduce((sum, rank) => sum + rank.losses, 0) || 0;
   
   const overallWinRate = totalWins + totalLosses > 0 ? 
     Math.round((totalWins / (totalWins + totalLosses)) * 100) : 0;
 
-  // Get highest rank
-  const allRanks = rankedSummoners.flatMap(s => s.ranked_info || []);
-  const soloQueueRanks = allRanks.filter(r => r.queue_type === 'RANKED_SOLO_5x5');
-  const highestRank = soloQueueRanks.sort((a, b) => {
-    const tierOrder = ['IRON', 'BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'MASTER', 'GRANDMASTER', 'CHALLENGER'];
-    const rankOrder = ['IV', 'III', 'II', 'I'];
-    
-    const tierA = tierOrder.indexOf(a.tier);
-    const tierB = tierOrder.indexOf(b.tier);
-    
-    if (tierA !== tierB) return tierB - tierA;
-    
-    const rankA = rankOrder.indexOf(a.rank_level);
-    const rankB = rankOrder.indexOf(b.rank_level);
-    
-    return rankB - rankA;
-  })[0];
+  // Get current rank (Solo Queue priority)
+  const soloQueueRank = summoner.ranked_info?.find(r => r.queue_type === 'RANKED_SOLO_5x5');
+  const currentRank = soloQueueRank || summoner.ranked_info?.[0];
 
   return (
     <div className="space-y-6">
@@ -140,9 +121,9 @@ export function PerformanceOverview({ stats, summoners }: PerformanceOverviewPro
         />
         
         <StatCard
-          title="Peak Rank"
-          value={highestRank ? `${highestRank.tier} ${highestRank.rank_level}` : 'Unranked'}
-          description="Highest achieved rank"
+          title="Current Rank"
+          value={currentRank ? `${currentRank.tier} ${currentRank.rank_level}` : 'Unranked'}
+          description="Solo/Duo queue rank"
           icon={TrendingUp}
           color="orange"
         />
@@ -156,26 +137,26 @@ export function PerformanceOverview({ stats, summoners }: PerformanceOverviewPro
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-400">Linked Accounts</span>
+                <span className="text-sm text-gray-400">Account Status</span>
                 <span className="text-sm font-medium text-white">
-                  {summoners.length}
+                  Linked
                 </span>
               </div>
               <Progress 
-                value={summoners.length > 0 ? 100 : 0} 
+                value={100} 
                 className="h-2"
               />
             </div>
             
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-400">Ranked Accounts</span>
+                <span className="text-sm text-gray-400">Ranked Status</span>
                 <span className="text-sm font-medium text-white">
-                  {rankedSummoners.length} / {summoners.length}
+                  {hasRankedInfo ? 'Active' : 'Not Ranked'}
                 </span>
               </div>
               <Progress 
-                value={(rankedSummoners.length / Math.max(summoners.length, 1)) * 100} 
+                value={hasRankedInfo ? 100 : 0} 
                 className="h-2"
               />
             </div>
@@ -185,9 +166,9 @@ export function PerformanceOverview({ stats, summoners }: PerformanceOverviewPro
             <Badge variant="outline" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
               {stats.favoriteChampion} Main
             </Badge>
-            {highestRank && (
+            {currentRank && (
               <Badge variant="outline" className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-                {highestRank.tier} Player
+                {currentRank.tier} Player
               </Badge>
             )}
             {overallWinRate > 60 && (

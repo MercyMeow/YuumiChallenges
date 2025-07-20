@@ -38,8 +38,9 @@ export async function POST(request: NextRequest) {
       // Get summoner data to check current icon
       const summonerData = await riotAPI.getSummonerByPuuid(accountData.puuid, region);
       
-      // Check if this account is already linked to any user
       const supabase = createServerSupabaseClient();
+      
+      // Check if this account is already linked to any user
       const { data: existingSummoner } = await supabase
         .from('summoners')
         .select('user_id')
@@ -49,6 +50,19 @@ export async function POST(request: NextRequest) {
       if (existingSummoner) {
         return NextResponse.json({
           error: 'This account is already linked to a user'
+        }, { status: 400 });
+      }
+
+      // Check if current user already has a summoner linked
+      const { data: userSummoner } = await supabase
+        .from('summoners')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (userSummoner) {
+        return NextResponse.json({
+          error: 'You can only link one League account. Please unlink your current account first.'
         }, { status: 400 });
       }
 
@@ -156,6 +170,19 @@ export async function PUT(request: NextRequest) {
       if (existingSummoner) {
         return NextResponse.json({
           error: 'This account is already linked to a user'
+        }, { status: 400 });
+      }
+
+      // Check again if current user already has a summoner linked (race condition protection)
+      const { data: userSummoner } = await supabase
+        .from('summoners')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (userSummoner) {
+        return NextResponse.json({
+          error: 'You can only link one League account. Please unlink your current account first.'
         }, { status: 400 });
       }
 
