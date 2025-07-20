@@ -35,20 +35,14 @@ export const authOptions: NextAuthOptions = {
           // Initialize Discord API
           const discordAPI = new DiscordAPI(process.env.DISCORD_BOT_TOKEN!);
           
-          // Check if user is a member of the Yuumi server and if they're the owner
-          const membershipInfo = await discordAPI.checkUserOwnershipAndMembership(discordProfile.id);
-          console.log('Discord server membership check result:', membershipInfo);
+          // Check if user is a member of the Yuumi server
+          const isYuumiMember = await discordAPI.isUserInYuumiServer(discordProfile.id);
+          console.log('Discord server membership check result:', isYuumiMember);
           
           // Initialize Supabase client
           const supabase = createServerSupabaseClient();
           
-          // Only automatically assign owner role, admin will be manually assigned
-          let userRole = 'member';
-          if (membershipInfo.isOwner) {
-            userRole = 'owner';
-          }
-          
-          // Upsert user data in database
+          // Upsert user data in database (using only existing columns)
           const { error } = await supabase
             .from('users')
             .upsert({
@@ -56,11 +50,7 @@ export const authOptions: NextAuthOptions = {
               username: discordProfile.username,
               discriminator: discordProfile.discriminator,
               avatar: discordProfile.avatar,
-              roles: membershipInfo.roleNames || [],
-              user_role: userRole,
-              is_yuumi_member: membershipInfo.isMember,
-              is_discord_owner: membershipInfo.isOwner,
-              discord_guild_permissions: 0, // Not used anymore since we only auto-assign owner
+              is_yuumi_member: isYuumiMember,
               updated_at: new Date().toISOString()
             }, {
               onConflict: 'discord_id',
@@ -100,12 +90,12 @@ export const authOptions: NextAuthOptions = {
           }
           
           if (userData) {
-            // Enrich session with database user data
+            // Enrich session with database user data (defensive access)
             session.user.id = userData.id;
             session.user.discord_id = userData.discord_id;
-            session.user.user_role = userData.user_role;
-            session.user.is_yuumi_member = userData.is_yuumi_member;
-            session.user.roles = userData.roles;
+            session.user.user_role = userData.user_role || 'member';
+            session.user.is_yuumi_member = userData.is_yuumi_member || false;
+            session.user.roles = userData.roles || [];
           }
         } catch (error) {
           console.error('Error enriching session:', error);
