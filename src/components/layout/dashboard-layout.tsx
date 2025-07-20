@@ -176,11 +176,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'owner':
-        return 'bg-cyan-500 text-cyan-900';
+        return 'border-cyan-500 text-cyan-400 bg-transparent';
       case 'admin':
-        return 'bg-red-500 text-red-900';
+        return 'border-red-500 text-red-400 bg-transparent';
       default:
-        return 'bg-yellow-500 text-yellow-900';
+        return 'border-yellow-500 text-yellow-400 bg-transparent';
     }
   };
 
@@ -282,7 +282,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     {isYuumiMember ? '✅' : '❌'}
                   </Badge>
                   <Badge
-                    className={`text-xs px-1 py-0 flex items-center space-x-1 ${getRoleColor(user.user_role)}`}
+                    variant="outline"
+                    className={`text-xs px-1 py-0 flex items-center space-x-1 border ${getRoleColor(user.user_role)}`}
                   >
                     {getRoleIcon(user.user_role)}
                     <span>{getRoleDisplayName(user.user_role)}</span>
