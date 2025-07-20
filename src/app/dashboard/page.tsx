@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { 
@@ -9,10 +9,11 @@ import {
   LeaderboardCard, 
   StatsOverviewCard 
 } from '@/components/dashboard/dashboard-cards';
+import { MatchHistoryCard } from '@/components/match-history';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Sparkles, TrendingUp, Zap, Activity, Users, Award, Loader2 } from 'lucide-react';
+import { Settings, Sparkles, Zap, Activity, Users, Award, Loader2, RefreshCw } from 'lucide-react';
 
 interface DashboardStats {
   winStreak: number;
@@ -29,19 +30,57 @@ interface CommunityStats {
   activeChallenges: number;
 }
 
+interface SummonerData {
+  summoner: {
+    id: string;
+    puuid: string;
+    game_name: string;
+    tag_line: string;
+    region: string;
+    level: number;
+    profile_icon_id: number;
+  } | null;
+  stats: {
+    totalGames: number;
+    overallKDA: number;
+    favoriteChampion: string;
+    currentRank: string;
+  } | null;
+}
+
+interface RefreshStatus {
+  can_refresh: boolean;
+  can_manual_refresh: boolean;
+  last_refreshed_at?: Date;
+  next_auto_refresh?: Date;
+}
+
 export default function Dashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [communityStats, setCommunityStats] = useState<CommunityStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
+  const [summonerData, setSummonerData] = useState<SummonerData | null>(null);
+  const [refreshStatus, setRefreshStatus] = useState<RefreshStatus | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [autoRefreshChecked, setAutoRefreshChecked] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && user) {
       fetchDashboardData();
+      fetchSummonerData();
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, fetchSummonerData, fetchDashboardData]);
 
-  const fetchDashboardData = async () => {
+  // Auto-refresh logic - check if we should auto-refresh on mount
+  useEffect(() => {
+    if (summonerData && !autoRefreshChecked) {
+      checkAutoRefresh();
+      setAutoRefreshChecked(true);
+    }
+  }, [summonerData, autoRefreshChecked, checkAutoRefresh]);
+
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoadingStats(true);
       
@@ -64,6 +103,89 @@ export default function Dashboard() {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoadingStats(false);
+    }
+  }, []);
+
+  const fetchSummonerData = useCallback(async () => {
+    try {
+      const response = await fetch('/api/summoners');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.summoner) {
+          setSummonerData(data);
+          // Also fetch refresh status
+          fetchRefreshStatus();
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching summoner data:', error);
+    }
+  }, [fetchRefreshStatus]);
+
+  const fetchRefreshStatus = useCallback(async () => {
+    try {
+      const response = await fetch('/api/summoners/refresh');
+      if (response.ok) {
+        const status = await response.json();
+        setRefreshStatus(status);
+      }
+    } catch (error) {
+      console.error('Error fetching refresh status:', error);
+    }
+  }, []);
+
+  const checkAutoRefresh = useCallback(async () => {
+    if (!refreshStatus?.can_refresh) return;
+    
+    // Perform auto-refresh if allowed
+    try {
+      setIsRefreshing(true);
+      const response = await fetch('/api/summoners/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manual: false }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          // Refresh summoner data after successful auto-refresh
+          await fetchSummonerData();
+          await fetchDashboardData(); // Refresh dashboard stats too
+        }
+      }
+    } catch (error) {
+      console.error('Error during auto-refresh:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refreshStatus?.can_refresh, fetchSummonerData, fetchDashboardData]);
+
+  const handleManualRefresh = async () => {
+    if (!refreshStatus?.can_manual_refresh || isRefreshing) return;
+    
+    try {
+      setIsRefreshing(true);
+      const response = await fetch('/api/summoners/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manual: true }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          // Refresh all data after successful manual refresh
+          await Promise.all([
+            fetchSummonerData(),
+            fetchDashboardData()
+          ]);
+        }
+      }
+    } catch (error) {
+      console.error('Error during manual refresh:', error);
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -196,6 +318,13 @@ export default function Dashboard() {
               <LeagueProfileCard />
             </div>
             
+            {/* Match History Card */}
+            <MatchHistoryCard 
+              summonerId={summonerData?.summoner?.id}
+              onRefresh={handleManualRefresh}
+              isRefreshing={isRefreshing}
+            />
+            
             {/* Quick Actions - Moved to left side for better accessibility */}
             <Card className="relative overflow-hidden bg-black/20 backdrop-blur-md border-indigo-500/30 group">
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10"></div>
@@ -216,14 +345,20 @@ export default function Dashboard() {
                   <Button 
                     variant="ghost" 
                     className="h-auto p-4 bg-black/20 hover:bg-blue-500/20 border border-blue-500/30 hover:border-blue-400/50 transition-all duration-300 group hover:scale-105 card-hover glow-hover"
+                    onClick={handleManualRefresh}
+                    disabled={!refreshStatus?.can_manual_refresh || isRefreshing}
                   >
                     <div className="flex flex-col items-center space-y-2">
                       <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-all duration-300">
-                        <TrendingUp className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
+                        <RefreshCw className={`h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-300 ${isRefreshing ? 'animate-spin' : ''}`} />
                       </div>
                       <div className="text-center">
-                        <p className="font-medium text-white text-sm group-hover:text-blue-200 transition-colors duration-300">Update League Account</p>
-                        <p className="text-xs text-white/70">Sync your latest matches</p>
+                        <p className="font-medium text-white text-sm group-hover:text-blue-200 transition-colors duration-300">
+                          {isRefreshing ? 'Refreshing...' : 'Update League Account'}
+                        </p>
+                        <p className="text-xs text-white/70">
+                          {refreshStatus?.can_manual_refresh ? 'Sync your latest matches' : 'Refresh on cooldown'}
+                        </p>
                       </div>
                     </div>
                   </Button>

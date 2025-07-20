@@ -17,7 +17,7 @@ import { Loader2 } from 'lucide-react';
 type AdminSection = 'dashboard' | 'users' | 'challenges' | 'reports' | 'audit' | 'settings';
 
 export default function AdminPage() {
-  const { user, isAuthenticated, isLoading, isModerator, isAdmin } = useAuth();
+  const { user, isAuthenticated, isLoading, isAdmin, isOwner } = useAuth();
   const router = useRouter();
   const [activeSection, setActiveSection] = useState<AdminSection>('dashboard');
   const [isInitializing, setIsInitializing] = useState(true);
@@ -29,7 +29,7 @@ export default function AdminPage() {
         return;
       }
       
-      if (!isModerator && !isAdmin) {
+      if (!isAdmin && !isOwner) {
         router.push('/dashboard');
         return;
       }
@@ -55,7 +55,7 @@ export default function AdminPage() {
     return null;
   }
 
-  if (!isModerator && !isAdmin) {
+  if (!isAdmin && !isOwner) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
@@ -73,18 +73,18 @@ export default function AdminPage() {
   }
 
   const permissions = {
-    viewUsers: isModerator,
-    viewChallenges: isModerator,
-    viewReports: isModerator,
-    moderateContent: isModerator,
-    createChallenges: isAdmin,
-    editChallenges: isAdmin,
-    deleteChallenges: isAdmin,
-    manageUsers: isAdmin,
-    viewSystemStats: isModerator,
-    manageRoles: isAdmin,
-    systemSettings: isAdmin,
-    viewAuditLog: isModerator,
+    viewUsers: isAdmin || isOwner,
+    viewChallenges: isAdmin || isOwner,
+    viewReports: isAdmin || isOwner,
+    moderateContent: isAdmin || isOwner,
+    createChallenges: isAdmin || isOwner,
+    editChallenges: isAdmin || isOwner,
+    deleteChallenges: isAdmin || isOwner,
+    manageUsers: isAdmin || isOwner,
+    viewSystemStats: isAdmin || isOwner,
+    manageRoles: isOwner, // Only owners can assign admin roles
+    systemSettings: isOwner, // Only owners can change system settings
+    viewAuditLog: isAdmin || isOwner,
   };
 
   const renderContent = () => {

@@ -6,6 +6,7 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { ProfileHeader } from '@/components/profile/profile-header';
 import { SummonersSection } from '@/components/profile/summoners-section';
 import { PerformanceOverview } from '@/components/profile/performance-overview';
+import { MatchHistoryDisplay } from '@/components/match-history';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { useRouter } from 'next/navigation';
 interface Summoner {
   id: string;
   puuid: string;
+  game_name: string;
   tag_line: string;
   region: string;
   level: number;
@@ -66,6 +68,7 @@ export default function ProfilePage() {
   const [loadingSummoners, setLoadingSummoners] = useState(true);
   const [, setLoadingStats] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchSummoner = async () => {
     try {
@@ -153,6 +156,32 @@ export default function ProfilePage() {
     }
   };
 
+  const handleRefresh = async () => {
+    if (isRefreshing || !summoner) return;
+    
+    try {
+      setIsRefreshing(true);
+      const response = await fetch('/api/summoners/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manual: true }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          // Refresh summoner data after successful refresh
+          await fetchSummoner();
+          await fetchPerformanceStats();
+        }
+      }
+    } catch (error) {
+      console.error('Error during refresh:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -203,6 +232,15 @@ export default function ProfilePage() {
         {/* Performance Overview */}
         {summoner && (
           <PerformanceOverview stats={userStats} summoner={summoner} />
+        )}
+
+        {/* Match History */}
+        {summoner && (
+          <MatchHistoryDisplay
+            summonerId={summoner.id}
+            onRefresh={handleRefresh}
+            isRefreshing={isRefreshing}
+          />
         )}
 
         {/* No Summoner State */}

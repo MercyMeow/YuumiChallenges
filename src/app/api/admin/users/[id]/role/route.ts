@@ -15,7 +15,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user has admin permissions (only admins can change roles)
+    // Check if user has admin or owner permissions
     const supabase = createServerSupabaseClient();
     const { data: admin } = await supabase
       .from('users')
@@ -23,25 +23,35 @@ export async function PUT(
       .eq('id', session.user.id)
       .single();
 
-    if (!admin || admin.user_role !== 'admin') {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    if (!admin || (admin.user_role !== 'admin' && admin.user_role !== 'owner')) {
+      return NextResponse.json({ error: 'Admin or Owner access required' }, { status: 403 });
     }
 
     const { newRole, reason } = await request.json();
 
-    if (!newRole || !['member', 'moderator', 'admin'].includes(newRole)) {
-      return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
+    if (!newRole || !['member', 'admin'].includes(newRole)) {
+      return NextResponse.json({ error: 'Invalid role. Valid roles: member, admin' }, { status: 400 });
+    }
+
+    // Only owners can assign admin roles
+    if (newRole === 'admin' && admin.user_role !== 'owner') {
+      return NextResponse.json({ error: 'Only owners can assign admin roles' }, { status: 403 });
     }
 
     // Get the target user
     const { data: targetUser } = await supabase
       .from('users')
-      .select('username, user_role')
+      .select('username, user_role, is_discord_owner')
       .eq('id', id)
       .single();
 
     if (!targetUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Cannot change role of Discord server owner
+    if (targetUser.is_discord_owner) {
+      return NextResponse.json({ error: 'Cannot change role of Discord server owner' }, { status: 400 });
     }
 
     // Update user role
@@ -57,18 +67,14 @@ export async function PUT(
 
     // Log the admin action
     await supabase
-      .from('admin_actions')
+      .from('admin_user_actions')
       .insert({
-        admin_id: session.user.id,
-        action_type: 'user_role_changed',
-        target_type: 'user',
-        target_id: id,
-        details: {
-          username: targetUser.username,
-          oldRole: targetUser.user_role,
-          newRole: newRole,
-          reason: reason || 'No reason provided'
-        }
+        admin_user_id: session.user.id,
+        target_user_id: id,
+        action_type: 'role_change',
+        previous_value: targetUser.user_role,
+        new_value: newRole,
+        reason: reason || 'No reason provided'
       });
 
     return NextResponse.json({ success: true });

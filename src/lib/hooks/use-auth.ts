@@ -23,14 +23,16 @@ export function useAuth() {
   const isLoading = status === 'loading';
   const isAuthenticated = status === 'authenticated' && !!session;
 
-  const isAdmin = user?.user_role === 'admin';
-  const isModerator = user?.user_role === 'moderator' || isAdmin;
+  const isOwner = user?.user_role === 'owner';
+  const isAdmin = user?.user_role === 'admin' || isOwner;
+  const isModerator = user?.user_role === 'admin' || isOwner; // Remove moderator role, only admin and owner have elevated permissions
   const isYuumiMember = user?.is_yuumi_member || false;
 
   return {
     user,
     isLoading,
     isAuthenticated,
+    isOwner,
     isAdmin,
     isModerator,
     isYuumiMember,

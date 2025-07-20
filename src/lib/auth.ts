@@ -35,12 +35,18 @@ export const authOptions: NextAuthOptions = {
           // Initialize Discord API
           const discordAPI = new DiscordAPI(process.env.DISCORD_BOT_TOKEN!);
           
-          // Check if user is a member of the Yuumi server
-          const isYuumiMember = await discordAPI.isUserInYuumiServer(discordProfile.id);
-          console.log('Discord server membership check result:', isYuumiMember);
+          // Check if user is a member of the Yuumi server and if they're the owner
+          const membershipInfo = await discordAPI.checkUserOwnershipAndMembership(discordProfile.id);
+          console.log('Discord server membership check result:', membershipInfo);
           
           // Initialize Supabase client
           const supabase = createServerSupabaseClient();
+          
+          // Only automatically assign owner role, admin will be manually assigned
+          let userRole = 'member';
+          if (membershipInfo.isOwner) {
+            userRole = 'owner';
+          }
           
           // Upsert user data in database
           const { error } = await supabase
@@ -50,7 +56,11 @@ export const authOptions: NextAuthOptions = {
               username: discordProfile.username,
               discriminator: discordProfile.discriminator,
               avatar: discordProfile.avatar,
-              is_yuumi_member: isYuumiMember,
+              roles: membershipInfo.roleNames || [],
+              user_role: userRole,
+              is_yuumi_member: membershipInfo.isMember,
+              is_discord_owner: membershipInfo.isOwner,
+              discord_guild_permissions: 0, // Not used anymore since we only auto-assign owner
               updated_at: new Date().toISOString()
             }, {
               onConflict: 'discord_id',

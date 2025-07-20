@@ -9,6 +9,7 @@ interface SummonersSectionProps {
   summoner: {
     id: string;
     puuid: string;
+    game_name: string;
     tag_line: string;
     region: string;
     level: number;

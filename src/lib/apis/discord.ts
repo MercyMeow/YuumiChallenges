@@ -78,6 +78,45 @@ export class DiscordAPI {
     }
   }
 
+  async getGuild(guildId = YUUMI_DISCORD_SERVER_ID) {
+    const response = await fetch(`${this.baseUrl}/guilds/${guildId}`, {
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch guild: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async checkUserOwnershipAndMembership(userId: string, guildId = YUUMI_DISCORD_SERVER_ID) {
+    try {
+      // Check if user is a member
+      const member = await this.getGuildMember(userId, guildId);
+      if (!member) return { isMember: false, isOwner: false, roleNames: [] };
+
+      // Get guild info to check ownership
+      const guild = await this.getGuild(guildId);
+      const isOwner = guild.owner_id === userId;
+      
+      // Get role names for display purposes only
+      const roles = await this.getGuildRoles(guildId);
+      const memberRoles = member.roles.map((roleId: string) => 
+        roles.find((role: any) => role.id === roleId)
+      ).filter(Boolean);
+
+      return {
+        isMember: true,
+        isOwner,
+        roleNames: memberRoles.map((role: any) => role.name)
+      };
+    } catch (error) {
+      console.error('Error checking user ownership and membership:', error);
+      return { isMember: false, isOwner: false, roleNames: [] };
+    }
+  }
+
   static getAvatarUrl(userId: string, avatarHash: string | null, discriminator?: string) {
     if (!avatarHash) {
       // Use default avatar

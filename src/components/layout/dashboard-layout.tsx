@@ -164,9 +164,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const getRoleIcon = (role: string) => {
     switch (role) {
-      case 'admin':
+      case 'owner':
         return <Crown className="h-3 w-3" />;
-      case 'mod':
+      case 'admin':
         return <Shield className="h-3 w-3" />;
       default:
         return <User className="h-3 w-3" />;
@@ -175,12 +175,23 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const getRoleColor = (role: string) => {
     switch (role) {
+      case 'owner':
+        return 'bg-cyan-500 text-cyan-900';
       case 'admin':
-        return 'bg-yellow-500 text-yellow-900';
-      case 'mod':
-        return 'bg-blue-500 text-blue-900';
+        return 'bg-red-500 text-red-900';
       default:
-        return 'bg-gray-500 text-gray-900';
+        return 'bg-yellow-500 text-yellow-900';
+    }
+  };
+
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case 'owner':
+        return 'Owner';
+      case 'admin':
+        return 'Admin';
+      default:
+        return 'Member';
     }
   };
 
@@ -274,7 +285,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     className={`text-xs px-1 py-0 flex items-center space-x-1 ${getRoleColor(user.user_role)}`}
                   >
                     {getRoleIcon(user.user_role)}
-                    <span>{user.user_role}</span>
+                    <span>{getRoleDisplayName(user.user_role)}</span>
                   </Badge>
                 </div>
               </div>

@@ -192,6 +192,7 @@ export async function PUT(request: NextRequest) {
         .insert({
           user_id: session.user.id,
           puuid: accountData.puuid,
+          game_name: accountData.gameName,
           tag_line: accountData.tagLine,
           region: region,
           level: summonerData.summonerLevel,
@@ -210,6 +211,7 @@ export async function PUT(request: NextRequest) {
           insertData: {
             user_id: session.user.id,
             puuid: accountData.puuid,
+            game_name: accountData.gameName,
             tag_line: accountData.tagLine,
             region: region,
             level: summonerData.summonerLevel,
@@ -227,10 +229,46 @@ export async function PUT(request: NextRequest) {
         }, { status: 500 });
       }
 
-      // Note: Ranked info update temporarily disabled
-      // The modern Riot API no longer returns summoner_id needed for ranked endpoint
-      // We'll need to find an alternative way to get ranked data or use a different approach
-      console.log('Ranked info update skipped - modern API no longer provides summoner_id');
+      // Fetch and store ranked information
+      try {
+        console.log('Fetching ranked info for summoner:', summonerData.id);
+        const rankedData = await riotAPI.getRankedInfo(summonerData.id, region);
+        
+        if (rankedData && rankedData.length > 0) {
+          console.log('Storing ranked data for', rankedData.length, 'queues');
+          
+          const rankedRecords = rankedData.map((rank: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+            summoner_id: newSummoner.id,
+            queue_type: rank.queueType,
+            tier: rank.tier,
+            rank_level: rank.rank,
+            league_points: rank.leaguePoints,
+            wins: rank.wins,
+            losses: rank.losses,
+            hot_streak: rank.hotStreak || false,
+            veteran: rank.veteran || false,
+            fresh_blood: rank.freshBlood || false,
+            inactive: rank.inactive || false,
+            season: new Date().getFullYear().toString(), // Current season
+          }));
+          
+          const { error: rankedError } = await supabase
+            .from('ranked_info')
+            .insert(rankedRecords);
+            
+          if (rankedError) {
+            console.error('Failed to store ranked info:', rankedError);
+            // Don't fail the verification if ranked data storage fails
+          } else {
+            console.log('Successfully stored ranked info for summoner');
+          }
+        } else {
+          console.log('No ranked data available (unranked player)');
+        }
+      } catch (rankedError) {
+        console.error('Failed to fetch ranked info:', rankedError);
+        // Don't fail the verification if ranked data fetch fails
+      }
 
       return NextResponse.json({
         success: true,

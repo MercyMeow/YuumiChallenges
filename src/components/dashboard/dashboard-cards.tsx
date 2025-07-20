@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { AddSummonerDialog } from '@/components/profile/add-summoner-dialog';
 import { 
   Target, 
   BarChart3, 
@@ -142,19 +143,44 @@ export function LeagueProfileCard() {
   const [summoner, setSummoner] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [loading, setLoading] = useState(true);
 
+  const handleAccountChange = async () => {
+    // Refresh summoner data after account is added/changed
+    await fetchSummoner();
+  };
+
   useEffect(() => {
-    fetchPrimarySummoner();
+    fetchSummoner();
   }, []);
 
-  const fetchPrimarySummoner = async () => {
+  const fetchSummoner = async () => {
     try {
-      const response = await fetch('/api/summoners/primary');
+      const response = await fetch('/api/summoners');
       if (response.ok) {
         const data = await response.json();
-        setSummoner(data.summoner);
+        if (data.summoner) {
+          // Adapt the data structure to match what the UI expects
+          const adaptedSummoner = {
+            ...data.summoner,
+            name: data.summoner.game_name, // Use game_name as the display name
+            tagLine: data.summoner.tag_line,
+            rank: data.summoner.ranked_info?.find((r: any) => r.queue_type === 'RANKED_SOLO_5x5') || null, // eslint-disable-line @typescript-eslint/no-explicit-any
+            recentStats: {
+              totalGames: data.stats?.totalGames || 0,
+              winRate: Math.round(((data.summoner.ranked_info?.[0]?.wins || 0) / Math.max((data.summoner.ranked_info?.[0]?.wins || 0) + (data.summoner.ranked_info?.[0]?.losses || 0), 1)) * 100),
+              kda: data.stats?.overallKDA || 0,
+              recentLPGain: Math.floor(Math.random() * 30) - 10 // Mock LP gain for now
+            }
+          };
+          setSummoner(adaptedSummoner);
+        } else {
+          setSummoner(null);
+        }
+      } else {
+        setSummoner(null);
       }
     } catch (error) {
-      console.error('Error fetching primary summoner:', error);
+      console.error('Error fetching summoner:', error);
+      setSummoner(null);
     } finally {
       setLoading(false);
     }
@@ -175,7 +201,7 @@ export function LeagueProfileCard() {
               </div>
               <div>
                 <CardTitle className="text-xl font-bold">League Profile</CardTitle>
-                <CardDescription className="text-white/70">Your linked League accounts</CardDescription>
+                <CardDescription className="text-white/70">Your linked League account</CardDescription>
               </div>
             </div>
             <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30 px-3 py-1">
@@ -191,10 +217,7 @@ export function LeagueProfileCard() {
           </div>
           
           <div className="pt-4 border-t border-blue-500/30">
-            <Button variant="outline" className="w-full bg-black/20 border-blue-500/30 hover:bg-blue-500/20 text-white hover:text-blue-200 transition-all">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Account
-            </Button>
+            <AddSummonerDialog onAdd={handleAccountChange} />
           </div>
         </CardContent>
       </Card>
@@ -275,10 +298,11 @@ export function LeagueProfileCard() {
         </div>
 
         <div className="pt-4 border-t border-blue-500/30">
-          <Button variant="outline" className="w-full bg-black/20 border-blue-500/30 hover:bg-blue-500/20 text-white hover:text-blue-200 transition-all">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Account
-          </Button>
+          <AddSummonerDialog 
+            onAdd={handleAccountChange} 
+            variant="change"
+            buttonText="Change Account"
+          />
         </div>
       </CardContent>
     </Card>

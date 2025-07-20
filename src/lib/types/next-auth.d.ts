@@ -1,4 +1,5 @@
 import 'next-auth';
+import { UserRole } from './index';
 
 declare module 'next-auth' {
   interface Session {
@@ -7,7 +8,7 @@ declare module 'next-auth' {
       discord_id: string;
       name?: string | null;
       image?: string | null;
-      user_role: 'member' | 'moderator' | 'admin';
+      user_role: UserRole;
       is_yuumi_member: boolean;
       roles: string[];
     };
@@ -16,7 +17,7 @@ declare module 'next-auth' {
   interface User {
     id: string;
     discord_id: string;
-    user_role: 'member' | 'moderator' | 'admin';
+    user_role: UserRole;
     is_yuumi_member: boolean;
     roles: string[];
   }
@@ -26,7 +27,7 @@ declare module 'next-auth/jwt' {
   interface JWT {
     discord_id?: string;
     access_token?: string;
-    user_role?: 'member' | 'moderator' | 'admin';
+    user_role?: UserRole;
     is_yuumi_member?: boolean;
   }
 }

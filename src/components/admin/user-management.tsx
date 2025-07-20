@@ -135,9 +135,9 @@ export function UserManagement({ permissions }: UserManagementProps) {
 
   const getRoleIcon = (role: string) => {
     switch (role) {
-      case 'admin':
+      case 'owner':
         return <Crown className="h-3 w-3" />;
-      case 'moderator':
+      case 'admin':
         return <Shield className="h-3 w-3" />;
       default:
         return <User className="h-3 w-3" />;
@@ -146,12 +146,23 @@ export function UserManagement({ permissions }: UserManagementProps) {
 
   const getRoleColor = (role: string) => {
     switch (role) {
+      case 'owner':
+        return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30';
       case 'admin':
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      case 'moderator':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+        return 'bg-red-500/20 text-red-400 border-red-500/30';
       default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+    }
+  };
+
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case 'owner':
+        return 'Owner';
+      case 'admin':
+        return 'Admin';
+      default:
+        return 'Member';
     }
   };
 
@@ -198,7 +209,7 @@ export function UserManagement({ permissions }: UserManagementProps) {
         <div className="flex items-center space-x-2">
           <Badge className={`flex items-center space-x-1 ${getRoleColor(user.user_role)}`}>
             {getRoleIcon(user.user_role)}
-            <span className="capitalize">{user.user_role}</span>
+            <span>{getRoleDisplayName(user.user_role)}</span>
           </Badge>
           <Badge variant={user.is_yuumi_member ? 'default' : 'destructive'} className="text-xs">
             {user.is_yuumi_member ? '✅' : '❌'}
@@ -291,8 +302,8 @@ export function UserManagement({ permissions }: UserManagementProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="owner">Owner</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="moderator">Moderator</SelectItem>
                 <SelectItem value="member">Member</SelectItem>
               </SelectContent>
             </Select>
@@ -363,8 +374,8 @@ export function UserManagement({ permissions }: UserManagementProps) {
                 Showing {filteredUsers.length} of {users.length} users
               </div>
               <div className="flex items-center space-x-4">
+                <span>Owners: {users.filter(u => u.user_role === 'owner').length}</span>
                 <span>Admins: {users.filter(u => u.user_role === 'admin').length}</span>
-                <span>Moderators: {users.filter(u => u.user_role === 'moderator').length}</span>
                 <span>Members: {users.filter(u => u.user_role === 'member').length}</span>
               </div>
             </div>
@@ -392,7 +403,7 @@ export function UserManagement({ permissions }: UserManagementProps) {
                 </Avatar>
                 <div>
                   <div className="font-medium text-white">{selectedUser.name}</div>
-                  <div className="text-sm text-gray-400">Current role: {selectedUser.user_role}</div>
+                  <div className="text-sm text-gray-400">Current role: {getRoleDisplayName(selectedUser.user_role)}</div>
                 </div>
               </div>
               
@@ -401,30 +412,26 @@ export function UserManagement({ permissions }: UserManagementProps) {
                   variant="outline"
                   onClick={() => handleRoleChange(selectedUser.id, 'member')}
                   disabled={isUpdatingRole || selectedUser.user_role === 'member'}
-                  className="flex-1"
+                  className="flex-1 hover:bg-yellow-500/20 hover:border-yellow-500/50"
                 >
                   <User className="h-4 w-4 mr-2" />
                   Member
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => handleRoleChange(selectedUser.id, 'moderator')}
-                  disabled={isUpdatingRole || selectedUser.user_role === 'moderator'}
-                  className="flex-1"
+                  onClick={() => handleRoleChange(selectedUser.id, 'admin')}
+                  disabled={isUpdatingRole || selectedUser.user_role === 'admin' || !permissions.manageRoles}
+                  className="flex-1 hover:bg-red-500/20 hover:border-red-500/50"
                 >
                   <Shield className="h-4 w-4 mr-2" />
-                  Moderator
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleRoleChange(selectedUser.id, 'admin')}
-                  disabled={isUpdatingRole || selectedUser.user_role === 'admin'}
-                  className="flex-1"
-                >
-                  <Crown className="h-4 w-4 mr-2" />
                   Admin
                 </Button>
               </div>
+              {!permissions.manageRoles && (
+                <p className="text-sm text-gray-400 text-center">
+                  Only owners can assign admin roles
+                </p>
+              )}
             </div>
           )}
         </DialogContent>
