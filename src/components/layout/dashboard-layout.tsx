@@ -176,11 +176,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'owner':
-        return 'border-cyan-500 text-cyan-400 bg-transparent';
+        return 'border-cyan-500 !text-cyan-400 bg-transparent [&>*]:!text-cyan-400';
       case 'admin':
-        return 'border-red-500 text-red-400 bg-transparent';
+        return 'border-red-500 !text-red-400 bg-transparent [&>*]:!text-red-400';
       default:
-        return 'border-yellow-500 text-yellow-400 bg-transparent';
+        return 'border-yellow-500 !text-yellow-400 bg-transparent [&>*]:!text-yellow-400';
     }
   };
 
