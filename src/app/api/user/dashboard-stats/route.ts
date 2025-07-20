@@ -30,7 +30,7 @@ export async function GET() {
       const { data: recentMatches } = await supabase
         .from('match_history')
         .select('win')
-        .eq('summoner_id', summoner.id)
+        .eq('summoner_id', summoner.puuid)
         .order('game_creation', { ascending: false })
         .limit(20);
 
@@ -54,7 +54,7 @@ export async function GET() {
       const { data: rankInfo } = await supabase
         .from('ranked_info')
         .select('tier, rank_level')
-        .eq('summoner_id', summoner.id)
+        .eq('summoner_id', summoner.puuid)
         .eq('queue_type', 'RANKED_SOLO_5x5')
         .single();
 

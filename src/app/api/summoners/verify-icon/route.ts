@@ -238,7 +238,7 @@ export async function PUT(request: NextRequest) {
           console.log('Storing ranked data for', rankedData.length, 'queues');
           
           const rankedRecords = rankedData.map((rank: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
-            summoner_id: newSummoner.id,
+            summoner_id: newSummoner.puuid,
             queue_type: rank.queueType,
             tier: rank.tier,
             rank_level: rank.rank,

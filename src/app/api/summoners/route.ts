@@ -52,7 +52,7 @@ export async function GET() {
         win,
         champion
       `)
-      .eq('summoner_id', summoner.id);
+      .eq('summoner_id', summoner.puuid);
 
     if (matchStatsError) {
       console.error('Error fetching match stats:', matchStatsError);

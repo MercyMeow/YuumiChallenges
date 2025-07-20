@@ -82,7 +82,7 @@ export function SummonerCard({ summoner, onRemove }: SummonerCardProps) {
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => onRemove(summoner.id)}
+          onClick={() => onRemove(summoner.puuid)}
           className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
         >
           <X className="h-4 w-4" />

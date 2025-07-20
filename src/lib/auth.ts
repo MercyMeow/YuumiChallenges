@@ -7,7 +7,6 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 interface DiscordProfile {
   id: string;
   username: string;
-  discriminator: string;
   avatar: string | null;
 }
 
@@ -48,7 +47,6 @@ export const authOptions: NextAuthOptions = {
             .upsert({
               discord_id: discordProfile.id,
               username: discordProfile.username,
-              discriminator: discordProfile.discriminator,
               avatar: discordProfile.avatar,
               is_yuumi_member: isYuumiMember,
               updated_at: new Date().toISOString()
@@ -91,11 +89,10 @@ export const authOptions: NextAuthOptions = {
           
           if (userData) {
             // Enrich session with database user data (defensive access)
-            session.user.id = userData.id;
+            session.user.id = userData.discord_id; // Use discord_id as the primary identifier
             session.user.discord_id = userData.discord_id;
             session.user.user_role = userData.user_role || 'member';
             session.user.is_yuumi_member = userData.is_yuumi_member || false;
-            session.user.roles = userData.roles || [];
           }
         } catch (error) {
           console.error('Error enriching session:', error);

@@ -105,7 +105,7 @@ export default function ProfilePage() {
       setLoadingStats(true);
       
       if (summoner) {
-        const response = await fetch(`/api/summoners/${summoner.id}/stats`);
+        const response = await fetch(`/api/summoners/${summoner.puuid}/stats`);
         if (response.ok) {
           const data = await response.json();
           setPerformanceStats(data);
@@ -237,7 +237,7 @@ export default function ProfilePage() {
         {/* Match History */}
         {summoner && (
           <MatchHistoryDisplay
-            summonerId={summoner.id}
+            summonerId={summoner.puuid}
             onRefresh={handleRefresh}
             isRefreshing={isRefreshing}
           />

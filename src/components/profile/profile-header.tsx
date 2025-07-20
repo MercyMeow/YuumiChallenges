@@ -2,8 +2,9 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { RoleBadge } from '@/components/ui/role-badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Crown, Shield, User } from 'lucide-react';
+import { Crown } from 'lucide-react';
 
 interface ProfileHeaderProps {
   user: {
@@ -36,27 +37,6 @@ function StatCard({ label, value }: StatCardProps) {
 }
 
 export function ProfileHeader({ user, stats }: ProfileHeaderProps) {
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return <Crown className="h-3 w-3" />;
-      case 'moderator':
-        return <Shield className="h-3 w-3" />;
-      default:
-        return <User className="h-3 w-3" />;
-    }
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      case 'moderator':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-    }
-  };
 
   return (
     <Card className="bg-gradient-to-br from-purple-500/5 to-indigo-500/5 border-purple-500/20 backdrop-blur-md">
@@ -80,10 +60,7 @@ export function ProfileHeader({ user, stats }: ProfileHeaderProps) {
                     Yuumi Main
                   </Badge>
                 )}
-                <Badge className={`border ${getRoleColor(user.user_role)}`}>
-                  {getRoleIcon(user.user_role)}
-                  <span className="ml-1 capitalize">{user.user_role}</span>
-                </Badge>
+                <RoleBadge role={user.user_role as any} />
               </div>
             </div>
           </div>

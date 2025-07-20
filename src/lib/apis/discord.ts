@@ -117,12 +117,10 @@ export class DiscordAPI {
     }
   }
 
-  static getAvatarUrl(userId: string, avatarHash: string | null, discriminator?: string) {
+  static getAvatarUrl(userId: string, avatarHash: string | null) {
     if (!avatarHash) {
-      // Use default avatar
-      const defaultAvatarNum = discriminator 
-        ? parseInt(discriminator) % 5 
-        : parseInt(userId.slice(-1)) % 5;
+      // Use default avatar based on user ID (since discriminator is no longer available)
+      const defaultAvatarNum = parseInt(userId.slice(-1)) % 5;
       return `https://cdn.discordapp.com/embed/avatars/${defaultAvatarNum}.png`;
     }
     

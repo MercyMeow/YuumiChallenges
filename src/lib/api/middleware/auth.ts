@@ -31,7 +31,7 @@ export async function requireRole(userId: string, roles: string[]): Promise<Auth
   const { data: user, error } = await supabase
     .from('users')
     .select('user_role')
-    .eq('id', userId)
+    .eq('discord_id', userId)
     .single();
   
   if (error || !user) {

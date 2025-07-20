@@ -1,14 +1,10 @@
 export type UserRole = 'owner' | 'admin' | 'member';
 
 export interface User {
-  id: string;
-  discord_id: string;
+  discord_id: string; // Primary key
   username: string;
-  discriminator: string;
   avatar: string | null;
-  roles: string[];
   user_role: UserRole;
-  joined_discord_at: Date;
   is_yuumi_member: boolean;
   is_discord_owner: boolean;
   discord_guild_permissions: number;
@@ -18,8 +14,8 @@ export interface User {
 
 export interface AdminUserAction {
   id: string;
-  admin_user_id: string | null;
-  target_user_id: string;
+  admin_user_id: string | null; // References users.discord_id
+  target_user_id: string; // References users.discord_id
   action_type: string;
   previous_value?: string;
   new_value?: string;
@@ -30,9 +26,8 @@ export interface AdminUserAction {
 }
 
 export interface Summoner {
-  id: string;
+  puuid: string; // Primary key
   user_id: string;
-  puuid: string;
   game_name: string;
   tag_line: string;
   region: string;
@@ -89,7 +84,7 @@ export interface ChallengeCriteria {
 export interface MatchData {
   id?: string;
   match_id: string;
-  summoner_id: string;
+  summoner_id: string; // References summoners.puuid
   champion: string;
   kills: number;
   deaths: number;
