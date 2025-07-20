@@ -103,13 +103,13 @@ export class DiscordAPI {
       // Get role names for display purposes only
       const roles = await this.getGuildRoles(guildId);
       const memberRoles = member.roles.map((roleId: string) => 
-        roles.find((role: any) => role.id === roleId)
+        roles.find((role: { id: string; name: string; permissions: string }) => role.id === roleId)
       ).filter(Boolean);
 
       return {
         isMember: true,
         isOwner,
-        roleNames: memberRoles.map((role: any) => role.name)
+        roleNames: memberRoles.map((role: { id: string; name: string; permissions: string }) => role.name)
       };
     } catch (error) {
       console.error('Error checking user ownership and membership:', error);

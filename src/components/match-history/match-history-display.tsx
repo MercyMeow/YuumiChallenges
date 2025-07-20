@@ -33,10 +33,6 @@ export function MatchHistoryDisplay({ summonerId, onRefresh, isRefreshing = fals
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<MatchFilter>('all');
 
-  useEffect(() => {
-    fetchMatches();
-  }, [summonerId, fetchMatches]);
-
   const fetchMatches = useCallback(async () => {
     try {
       setLoading(true);
@@ -56,6 +52,10 @@ export function MatchHistoryDisplay({ summonerId, onRefresh, isRefreshing = fals
       setLoading(false);
     }
   }, [summonerId]);
+
+  useEffect(() => {
+    fetchMatches();
+  }, [summonerId, fetchMatches]);
 
   const getFilteredMatches = () => {
     switch (filter) {

@@ -26,14 +26,6 @@ export function MatchHistoryCard({ summonerId, onRefresh, isRefreshing = false }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (summonerId) {
-      fetchMatches();
-    } else {
-      setLoading(false);
-    }
-  }, [summonerId, fetchMatches]);
-
   const fetchMatches = useCallback(async () => {
     if (!summonerId) return;
     
@@ -55,6 +47,14 @@ export function MatchHistoryCard({ summonerId, onRefresh, isRefreshing = false }
       setLoading(false);
     }
   }, [summonerId]);
+
+  useEffect(() => {
+    if (summonerId) {
+      fetchMatches();
+    } else {
+      setLoading(false);
+    }
+  }, [summonerId, fetchMatches]);
 
   const calculateWinRate = () => {
     if (matches.length === 0) return 0;

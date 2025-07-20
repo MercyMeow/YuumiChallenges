@@ -36,7 +36,7 @@ export default function AdminPage() {
       
       setIsInitializing(false);
     }
-  }, [isAuthenticated, isLoading, isModerator, isAdmin, router]);
+  }, [isAuthenticated, isLoading, isAdmin, isOwner, router]);
 
   if (isLoading || isInitializing) {
     return (

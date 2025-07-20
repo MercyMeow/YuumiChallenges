@@ -65,21 +65,6 @@ export default function Dashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [autoRefreshChecked, setAutoRefreshChecked] = useState(false);
 
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      fetchDashboardData();
-      fetchSummonerData();
-    }
-  }, [isAuthenticated, user, fetchSummonerData, fetchDashboardData]);
-
-  // Auto-refresh logic - check if we should auto-refresh on mount
-  useEffect(() => {
-    if (summonerData && !autoRefreshChecked) {
-      checkAutoRefresh();
-      setAutoRefreshChecked(true);
-    }
-  }, [summonerData, autoRefreshChecked, checkAutoRefresh]);
-
   const fetchDashboardData = useCallback(async () => {
     try {
       setLoadingStats(true);
@@ -120,7 +105,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error fetching summoner data:', error);
     }
-  }, [fetchRefreshStatus]);
+  }, []);
 
   const fetchRefreshStatus = useCallback(async () => {
     try {
@@ -188,6 +173,21 @@ export default function Dashboard() {
       setIsRefreshing(false);
     }
   };
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchDashboardData();
+      fetchSummonerData();
+    }
+  }, [isAuthenticated, user, fetchSummonerData, fetchDashboardData]);
+
+  // Auto-refresh logic - check if we should auto-refresh on mount
+  useEffect(() => {
+    if (summonerData && !autoRefreshChecked) {
+      checkAutoRefresh();
+      setAutoRefreshChecked(true);
+    }
+  }, [summonerData, autoRefreshChecked, checkAutoRefresh]);
 
   if (isLoading || loadingStats) {
     return (
