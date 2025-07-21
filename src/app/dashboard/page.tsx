@@ -66,7 +66,8 @@ export default function Dashboard() {
   const [autoRefreshChecked, setAutoRefreshChecked] = useState(false);
   const [loadingSummoner, setLoadingSummoner] = useState(true);
 
-  const fetchDashboardData = useCallback(async () => {
+  // Remove useCallback to prevent dependency issues - these functions are only called in effects
+  const fetchDashboardData = async () => {
     try {
       setLoadingStats(true);
       
@@ -90,9 +91,9 @@ export default function Dashboard() {
     } finally {
       setLoadingStats(false);
     }
-  }, []);
+  };
 
-  const fetchRefreshStatus = useCallback(async () => {
+  const fetchRefreshStatus = async () => {
     try {
       const response = await fetch('/api/summoners/refresh');
       if (response.ok) {
@@ -102,9 +103,9 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error fetching refresh status:', error);
     }
-  }, []);
+  };
 
-  const fetchSummonerData = useCallback(async (retries = 3, delay = 1000) => {
+  const fetchSummonerData = async (retries = 3, delay = 1000) => {
     try {
       setLoadingSummoner(true);
       console.log('🔍 DEBUG - Fetching summoner data, retries left:', retries);
@@ -117,7 +118,7 @@ export default function Dashboard() {
         if (data.data?.summoner) {
           setSummonerData(data.data);
           // Also fetch refresh status
-          fetchRefreshStatus();
+          await fetchRefreshStatus();
           console.log('✅ DEBUG - Summoner data set successfully');
         } else {
           // No summoner found - retry if we have attempts left
@@ -155,9 +156,9 @@ export default function Dashboard() {
         setLoadingSummoner(false);
       }
     }
-  }, [fetchRefreshStatus]);
+  };
 
-  const checkAutoRefresh = useCallback(async () => {
+  const checkAutoRefresh = async () => {
     if (!refreshStatus?.can_refresh) return;
     
     // Perform auto-refresh if allowed
@@ -182,7 +183,7 @@ export default function Dashboard() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [refreshStatus?.can_refresh, fetchSummonerData, fetchDashboardData]);
+  };
 
   const handleManualRefresh = async () => {
     if (!refreshStatus?.can_manual_refresh || isRefreshing) return;
@@ -199,10 +200,8 @@ export default function Dashboard() {
         const result = await response.json();
         if (result.success) {
           // Refresh all data after successful manual refresh
-          await Promise.all([
-            fetchSummonerData(),
-            fetchDashboardData()
-          ]);
+          await fetchSummonerData();
+          await fetchDashboardData();
         }
       }
     } catch (error) {
@@ -212,20 +211,23 @@ export default function Dashboard() {
     }
   };
 
+  // Initial data loading - removed function dependencies to prevent infinite loop
   useEffect(() => {
     if (isAuthenticated && user) {
       fetchDashboardData();
       fetchSummonerData();
     }
-  }, [isAuthenticated, user, fetchSummonerData, fetchDashboardData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user]); // Only depend on auth state
 
   // Auto-refresh logic - check if we should auto-refresh on mount
   useEffect(() => {
-    if (summonerData && !autoRefreshChecked) {
+    if (summonerData && !autoRefreshChecked && refreshStatus?.can_refresh) {
       checkAutoRefresh();
       setAutoRefreshChecked(true);
     }
-  }, [summonerData, autoRefreshChecked, checkAutoRefresh]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [summonerData, autoRefreshChecked, refreshStatus?.can_refresh]); // Removed checkAutoRefresh dependency
 
   // Handle all loading and authentication states properly
   if (isLoading || loadingStats) {
@@ -371,10 +373,8 @@ export default function Dashboard() {
                   // Refresh all dashboard data when account linking succeeds
                   console.log('🔄 DEBUG - Account linking completed, refreshing dashboard');
                   try {
-                    await Promise.all([
-                      fetchSummonerData(), // Uses retry logic
-                      fetchDashboardData()
-                    ]);
+                    await fetchSummonerData(); // Uses retry logic
+                    await fetchDashboardData();
                     console.log('✅ DEBUG - Dashboard refresh completed successfully');
                   } catch (error) {
                     console.error('❌ ERROR - Dashboard refresh failed:', error);
