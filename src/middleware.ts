@@ -3,7 +3,7 @@ import { withAuth } from "next-auth/middleware";
 // Protect these routes
 export default withAuth({
   pages: {
-    signIn: "/", // Redirect to home page for sign in
+    signIn: "/auth/signin", // Redirect to proper sign-in page
   },
 });
 
