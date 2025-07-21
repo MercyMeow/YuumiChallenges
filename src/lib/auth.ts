@@ -126,6 +126,11 @@ export const authOptions: NextAuthOptions = {
             session.user.user_role = userData.user_role || 'member';
             session.user.is_yuumi_member = userData.is_yuumi_member || false;
           }
+          
+          // Remove email from session for privacy
+          if ('email' in session.user && session.user.email) {
+            delete (session.user as any).email;
+          }
         } catch (error) {
           console.error('Error enriching session:', error);
         }
