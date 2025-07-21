@@ -262,7 +262,10 @@ export function LeagueProfileCard({ summonerData, isLoading = false, onAccountCh
                     onError={(e) => {
                       // Fallback to cat icon if image fails to load
                       e.currentTarget.style.display = 'none';
-                      e.currentTarget.nextElementSibling!.style.display = 'block';
+                      const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                      if (nextElement) {
+                        nextElement.style.display = 'block';
+                      }
                     }}
                   />
                 ) : null}
