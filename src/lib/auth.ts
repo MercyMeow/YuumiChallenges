@@ -108,7 +108,7 @@ export const authOptions: NextAuthOptions = {
           console.log('🔍 DEBUG - Session callback params:', {
             tokenSub: token.sub,
             sessionUserName: session.user.name,
-            sessionUserEmail: session.user.email
+            sessionUserImage: session.user.image
           });
           
           const supabase = createServerSupabaseClient();
