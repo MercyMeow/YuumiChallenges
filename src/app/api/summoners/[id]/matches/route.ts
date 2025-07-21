@@ -25,8 +25,8 @@ export async function GET(
     // Verify the summoner belongs to the user
     const { data: summoner, error: summonerError } = await supabase
       .from('summoners')
-      .select('id, user_id')
-      .eq('id', summonerId)
+      .select('puuid, user_id')
+      .eq('puuid', summonerId)
       .eq('user_id', session.user.id)
       .single();
 

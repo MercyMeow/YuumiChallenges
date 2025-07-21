@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     // Check if refresh is allowed based on cooldown
     const { data: canRefreshData, error: canRefreshError } = await supabase
       .rpc('can_refresh_summoner', {
-        summoner_uuid: summoner.id,
+        summoner_puuid: summoner.puuid,
         manual_refresh: manual,
         auto_refresh_minutes: 15,
         manual_refresh_minutes: 1
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
             last_refreshed_at: new Date().toISOString(),
             ...(manual && { last_manual_refresh_at: new Date().toISOString() })
           })
-          .eq('id', summoner.id);
+          .eq('puuid', summoner.puuid);
 
         if (updateError) {
           console.error('Failed to update summoner data:', updateError);
@@ -214,7 +214,7 @@ export async function POST(request: Request) {
           last_refreshed_at: new Date().toISOString(),
           ...(manual && { last_manual_refresh_at: new Date().toISOString() })
         })
-        .eq('id', summoner.id);
+        .eq('puuid', summoner.puuid);
     }
 
     return createSuccessResponse<RefreshResponse>({
@@ -245,7 +245,7 @@ export async function GET() {
     // Get user's summoner with refresh status
     const { data: summoner, error: summonerError } = await supabase
       .from('summoners')
-      .select('id, last_refreshed_at, last_manual_refresh_at')
+      .select('puuid, last_refreshed_at, last_manual_refresh_at')
       .eq('user_id', session.user.id)
       .single();
 
