@@ -114,8 +114,8 @@ export default function Dashboard() {
         const data = await response.json();
         console.log('🔍 DEBUG - Summoner API response:', data);
         
-        if (data.summoner) {
-          setSummonerData(data);
+        if (data.data?.summoner) {
+          setSummonerData(data.data);
           // Also fetch refresh status
           fetchRefreshStatus();
           console.log('✅ DEBUG - Summoner data set successfully');
