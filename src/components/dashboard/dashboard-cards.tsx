@@ -25,6 +25,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { getProfileIconUrl } from '@/lib/utils/data-dragon';
+import { formatRelativeTime } from '@/lib/utils/time';
 
 // ProfileIcon component for robust image loading with fallback
 interface ProfileIconProps {
@@ -417,6 +418,24 @@ export function LeagueProfileCard({
         </div>
 
         <div className="pt-4 border-t border-blue-500/30">
+          <div className="flex items-center justify-between mb-4">
+            {/* Last Manual Refresh - Bottom Left */}
+            <div className="text-xs text-white/50">
+              <div className="flex items-center space-x-1">
+                <Clock className="h-3 w-3" />
+                <span>Manual: {refreshStatus?.last_manual_refresh_at ? formatRelativeTime(refreshStatus.last_manual_refresh_at) : 'Never'}</span>
+              </div>
+            </div>
+            
+            {/* Last Auto Refresh - Bottom Right */}
+            <div className="text-xs text-white/50">
+              <div className="flex items-center space-x-1">
+                <RefreshCw className="h-3 w-3" />
+                <span>Auto: {refreshStatus?.last_refreshed_at ? formatRelativeTime(refreshStatus.last_refreshed_at) : 'Never'}</span>
+              </div>
+            </div>
+          </div>
+          
           <AddSummonerDialog 
             onAdd={handleAccountChange} 
             variant="change"

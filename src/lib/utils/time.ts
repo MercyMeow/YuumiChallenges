@@ -42,10 +42,17 @@ export function formatTimeRemaining(date: Date | string | null | undefined): str
   const diffSec = Math.floor(diffMs / 1000);
   const diffMin = Math.floor(diffSec / 60);
   const diffHour = Math.floor(diffMin / 60);
+  
+  const remainingSec = diffSec % 60;
+  const remainingMin = diffMin % 60;
 
-  if (diffSec < 60) return diffSec === 1 ? '1 second' : `${diffSec} seconds`;
-  if (diffMin < 60) return diffMin === 1 ? '1 minute' : `${diffMin} minutes`;
-  return diffHour === 1 ? '1 hour' : `${diffHour} hours`;
+  if (diffHour > 0) {
+    return diffHour === 1 ? '1 hour' : `${diffHour} hours`;
+  } else if (diffMin > 0) {
+    return remainingSec > 0 ? `${remainingMin}m ${remainingSec}s` : `${diffMin}m`;
+  } else {
+    return diffSec === 1 ? '1 second' : `${diffSec} seconds`;
+  }
 }
 
 /**
