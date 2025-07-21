@@ -22,9 +22,9 @@ export async function GET() {
         total_points,
         rank_position,
         users (
-          id,
-          name,
-          image,
+          discord_id,
+          username,
+          avatar,
           is_yuumi_member
         )
       `)
@@ -45,9 +45,9 @@ export async function GET() {
         total_points,
         rank_position,
         users (
-          id,
-          name,
-          image,
+          discord_id,
+          username,
+          avatar,
           is_yuumi_member
         )
       `)
@@ -60,9 +60,9 @@ export async function GET() {
       return {
         position: user.rank_position,
         user: {
-          id: userData?.id || user.user_id,
-          name: userData?.name || 'Unknown',
-          image: userData?.image || '',
+          id: userData?.discord_id || user.user_id,
+          name: userData?.username || 'Unknown',
+          image: userData?.avatar || '',
         },
         points: user.total_points,
       };
@@ -75,9 +75,9 @@ export async function GET() {
       currentUserData = {
         position: currentUser.rank_position,
         user: {
-          id: userData?.id || currentUser.user_id,
-          name: userData?.name || 'Unknown',
-          image: userData?.image || '',
+          id: userData?.discord_id || currentUser.user_id,
+          name: userData?.username || 'Unknown',
+          image: userData?.avatar || '',
         },
         points: currentUser.total_points,
       };

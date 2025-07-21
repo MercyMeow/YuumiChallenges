@@ -27,10 +27,9 @@ export async function GET() {
     const { data: users, error } = await supabase
       .from('users')
       .select(`
-        id,
+        discord_id,
         username,
         avatar,
-        discord_id,
         user_role,
         is_yuumi_member,
         updated_at,
@@ -49,7 +48,7 @@ export async function GET() {
 
     // Format user data for admin view
     const formattedUsers = users?.map(user => ({
-      id: user.id,
+      id: user.discord_id, // Use discord_id as the id
       name: user.username,
       image: user.avatar,
       discord_id: user.discord_id,

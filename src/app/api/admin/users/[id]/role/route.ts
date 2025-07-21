@@ -20,7 +20,7 @@ export async function PUT(
     const { data: admin } = await supabase
       .from('users')
       .select('user_role')
-      .eq('id', session.user.id)
+      .eq('discord_id', session.user.id)
       .single();
 
     if (!admin || (admin.user_role !== 'admin' && admin.user_role !== 'owner')) {

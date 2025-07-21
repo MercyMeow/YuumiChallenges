@@ -20,7 +20,7 @@ export async function PUT(
     const { data: admin } = await supabase
       .from('users')
       .select('user_role')
-      .eq('id', session.user.id)
+      .eq('discord_id', session.user.id)
       .single();
 
     if (!admin || admin.user_role !== 'admin') {
@@ -37,7 +37,7 @@ export async function PUT(
     const { data: targetUser } = await supabase
       .from('users')
       .select('username, user_role')
-      .eq('id', id)
+      .eq('discord_id', id)
       .single();
 
     if (!targetUser) {
@@ -48,7 +48,7 @@ export async function PUT(
     const { error: updateError } = await supabase
       .from('users')
       .update({ user_role: newRole })
-      .eq('id', id);
+      .eq('discord_id', id);
 
     if (updateError) {
       console.error('Error updating user role:', updateError);

@@ -16,7 +16,7 @@ export async function GET() {
     const { data: user } = await supabase
       .from('users')
       .select('user_role')
-      .eq('id', session.user.id)
+      .eq('discord_id', session.user.id)
       .single();
 
     if (!user || (user.user_role !== 'admin' && user.user_role !== 'owner')) {
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     const { data: user } = await supabase
       .from('users')
       .select('user_role')
-      .eq('id', session.user.id)
+      .eq('discord_id', session.user.id)
       .single();
 
     if (!user || (user.user_role !== 'admin' && user.user_role !== 'owner')) {
