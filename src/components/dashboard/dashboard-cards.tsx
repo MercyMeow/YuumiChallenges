@@ -24,6 +24,71 @@ import {
   Clock,
   RefreshCw
 } from 'lucide-react';
+import { getProfileIconUrl } from '@/lib/utils/data-dragon';
+
+// ProfileIcon component for robust image loading with fallback
+interface ProfileIconProps {
+  profileIconId?: number;
+}
+
+function ProfileIcon({ profileIconId }: ProfileIconProps) {
+  const [imageError, setImageError] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Fetch profile icon URL when profileIconId changes
+  useEffect(() => {
+    const loadImageUrl = async () => {
+      if (!profileIconId || profileIconId === 0) {
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        setIsLoading(true);
+        setImageError(false);
+        const url = await getProfileIconUrl(profileIconId);
+        setImageUrl(url);
+      } catch (error) {
+        console.error('Error loading profile icon URL:', error);
+        setImageError(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadImageUrl();
+  }, [profileIconId]);
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
+  // If no profile icon ID, loading, or image failed to load, show fallback
+  if (!profileIconId || profileIconId === 0 || isLoading || imageError || !imageUrl) {
+    return (
+      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xl">
+        {isLoading ? (
+          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+        ) : (
+          '🐱'
+        )}
+      </div>
+    );
+  }
+
+  // Try to load the profile icon with dynamic Data Dragon version
+  return (
+    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xl overflow-hidden">
+      <img 
+        src={imageUrl}
+        alt="Profile Icon"
+        className="w-full h-full object-cover rounded-full"
+        onError={handleImageError}
+      />
+    </div>
+  );
+}
 
 export function ChallengesCard() {
   const [challenges, setChallenges] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -303,29 +368,7 @@ export function LeagueProfileCard({
         <div className="p-4 bg-black/20 backdrop-blur-md rounded-xl border border-blue-500/30">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xl overflow-hidden">
-                {summoner.profile_icon_id ? (
-                  <img 
-                    src={`https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/${summoner.profile_icon_id}.png`}
-                    alt="Profile Icon"
-                    className="w-full h-full object-cover rounded-full"
-                    onError={(e) => {
-                      // Fallback to cat icon if image fails to load
-                      e.currentTarget.style.display = 'none';
-                      const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                      if (nextElement) {
-                        nextElement.style.display = 'block';
-                      }
-                    }}
-                  />
-                ) : null}
-                <span 
-                  className="text-xl"
-                  style={{ display: summoner.profile_icon_id ? 'none' : 'block' }}
-                >
-                  🐱
-                </span>
-              </div>
+              <ProfileIcon profileIconId={summoner.profile_icon_id} />
               <div>
                 <p className="font-bold text-white text-lg">
                   {summoner.name}#{summoner.tagLine}
