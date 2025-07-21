@@ -16,7 +16,6 @@ export function useAuth() {
       image: session.user.image || undefined,
       user_role: session.user.user_role,
       is_yuumi_member: session.user.is_yuumi_member,
-      roles: session.user.roles,
     };
   }, [session]);
 
@@ -25,7 +24,6 @@ export function useAuth() {
 
   const isOwner = user?.user_role === 'owner';
   const isAdmin = user?.user_role === 'admin' || isOwner;
-  const isModerator = user?.user_role === 'admin' || isOwner; // Remove moderator role, only admin and owner have elevated permissions
   const isYuumiMember = user?.is_yuumi_member || false;
 
   return {
@@ -34,7 +32,6 @@ export function useAuth() {
     isAuthenticated,
     isOwner,
     isAdmin,
-    isModerator,
     isYuumiMember,
     status,
   };

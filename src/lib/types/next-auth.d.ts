@@ -10,7 +10,6 @@ declare module 'next-auth' {
       image?: string | null;
       user_role: UserRole;
       is_yuumi_member: boolean;
-      roles: string[];
     };
   }
 
@@ -19,7 +18,6 @@ declare module 'next-auth' {
     discord_id: string;
     user_role: UserRole;
     is_yuumi_member: boolean;
-    roles: string[];
   }
 }
 
