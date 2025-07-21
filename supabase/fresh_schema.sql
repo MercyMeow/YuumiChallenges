@@ -20,8 +20,6 @@ CREATE TABLE users (
     user_role user_role DEFAULT 'member',
     joined_discord_at TIMESTAMPTZ,
     is_yuumi_member BOOLEAN DEFAULT false,
-    is_discord_owner BOOLEAN DEFAULT false,
-    discord_guild_permissions BIGINT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

@@ -41,17 +41,12 @@ export async function PUT(
     // Get the target user
     const { data: targetUser } = await supabase
       .from('users')
-      .select('username, user_role, is_discord_owner')
+      .select('username, user_role')
       .eq('id', id)
       .single();
 
     if (!targetUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Cannot change role of Discord server owner
-    if (targetUser.is_discord_owner) {
-      return NextResponse.json({ error: 'Cannot change role of Discord server owner' }, { status: 400 });
     }
 
     // Update user role

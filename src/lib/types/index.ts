@@ -6,8 +6,6 @@ export interface User {
   avatar: string | null;
   user_role: UserRole;
   is_yuumi_member: boolean;
-  is_discord_owner: boolean;
-  discord_guild_permissions: number;
   created_at: Date;
   updated_at: Date;
 }
