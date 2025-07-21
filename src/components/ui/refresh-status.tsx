@@ -57,41 +57,6 @@ export function RefreshStatusIndicator({
 
   return (
     <div className={`flex items-center space-x-3 ${className}`}>
-      {/* Refresh Status Badge */}
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Badge
-              variant={canRefresh ? 'default' : 'secondary'}
-              className={`flex items-center space-x-1 ${
-                canRefresh 
-                  ? 'bg-green-500/20 text-green-400 border-green-500/30' 
-                  : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-              }`}
-            >
-              {isRefreshing ? (
-                <RefreshCw className="h-3 w-3 animate-spin" />
-              ) : canRefresh ? (
-                <CheckCircle className="h-3 w-3" />
-              ) : (
-                <Clock className="h-3 w-3" />
-              )}
-              <span className="text-xs">
-                {isRefreshing ? 'Refreshing' : canRefresh ? 'Ready' : 'Cooldown'}
-              </span>
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className="text-sm">
-              {isRefreshing && <p>Refreshing account data...</p>}
-              {!isRefreshing && canRefresh && <p>Account can be refreshed</p>}
-              {!isRefreshing && !canRefresh && (
-                <p>Refresh on cooldown{timeUntilRefresh ? `. Available in ${timeUntilRefresh}` : ''}</p>
-              )}
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
 
       {/* Last Refresh Time */}
       {showLastRefresh && lastRefreshTime && (
@@ -114,16 +79,31 @@ export function RefreshStatusIndicator({
 
       {/* Manual Refresh Button */}
       {showManualRefresh && onRefresh && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onRefresh}
-          disabled={!canRefresh || isRefreshing}
-          className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          {isRefreshing ? 'Refreshing' : !canRefresh ? (timeUntilRefresh ? `Wait ${timeUntilRefresh}` : 'Cooldown') : 'Refresh'}
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onRefresh}
+                disabled={!canRefresh || isRefreshing}
+                className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Refreshing' : !canRefresh ? (timeUntilRefresh ? `Wait ${timeUntilRefresh}` : 'Cooldown') : 'Refresh'}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="text-sm">
+                {isRefreshing && <p>Refreshing account data...</p>}
+                {!isRefreshing && canRefresh && <p>Click to refresh account data</p>}
+                {!isRefreshing && !canRefresh && (
+                  <p>Refresh on cooldown{timeUntilRefresh ? `. Available in ${timeUntilRefresh}` : ''}</p>
+                )}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
     </div>
   );

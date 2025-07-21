@@ -342,7 +342,7 @@ export function LeagueProfileCard({
             </div>
             <div>
               <CardTitle className="text-xl font-bold">League Profile</CardTitle>
-              <CardDescription className="text-white/70">Your linked League accounts</CardDescription>
+              <CardDescription className="text-white/70">Account statistics and performance</CardDescription>
             </div>
           </div>
           <div className="flex items-center space-x-3">
