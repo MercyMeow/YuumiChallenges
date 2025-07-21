@@ -1,6 +1,6 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
+import { signIn, signOut } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/use-auth';
@@ -14,6 +14,7 @@ export default function SignIn() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isClearing, setIsClearing] = useState(false);
 
   useEffect(() => {
     // Redirect if already authenticated
@@ -35,6 +36,54 @@ export default function SignIn() {
       console.error('Sign in error:', error);
       setError('An unexpected error occurred. Please try again.');
       setIsSigningIn(false);
+    }
+  };
+
+  const clearSession = async () => {
+    setIsClearing(true);
+    setError(null);
+    
+    try {
+      // Sign out from NextAuth
+      await signOut({ redirect: false });
+      
+      // Call our clearing API
+      const response = await fetch('/api/auth/clear-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        // Clear browser storage
+        if (typeof window !== 'undefined') {
+          localStorage.clear();
+          sessionStorage.clear();
+          
+          // Clear auth-related cookies manually
+          document.cookie.split(";").forEach((c) => {
+            const eqPos = c.indexOf("=");
+            const name = eqPos > -1 ? c.substr(0, eqPos) : c;
+            if (name.includes('next-auth') || name.includes('__Secure-next-auth')) {
+              document.cookie = `${name.trim()}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+            }
+          });
+        }
+        
+        // Show success and reload
+        setError(null);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        setError('Failed to clear session. Try manually clearing browser data.');
+      }
+    } catch (error) {
+      console.error('Clear session error:', error);
+      setError('Failed to clear session. Try manually clearing browser data.');
+    } finally {
+      setIsClearing(false);
     }
   };
 
@@ -103,6 +152,29 @@ export default function SignIn() {
                     {error}
                   </div>
                 )}
+
+                {/* Session Issues Help */}
+                <div className="text-center">
+                  <p className="text-xs text-landing-text-secondary/70 mb-2">
+                    Having trouble signing in?
+                  </p>
+                  <Button
+                    onClick={clearSession}
+                    disabled={isClearing}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs px-3 py-1 h-7 bg-black/20 hover:bg-black/30 text-landing-text-secondary border-border/30 hover:border-border/50"
+                  >
+                    {isClearing ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin rounded-full h-3 w-3 border border-current border-t-transparent"></div>
+                        <span>Clearing...</span>
+                      </div>
+                    ) : (
+                      '🗑️ Clear Session & Reset'
+                    )}
+                  </Button>
+                </div>
 
                 {/* Discord Sign In Button */}
                 <div className="relative group/btn">
