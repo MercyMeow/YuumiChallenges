@@ -151,9 +151,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     );
   }
 
-  if (!isAuthenticated || !user) {
-    return null; // Will redirect to signin
-  }
+  // Never return null - always show something while authentication is being verified
+  // The middleware will handle redirects for truly unauthenticated users
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -229,7 +228,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {user.user_role !== 'member' && (
+            {user && user.user_role !== 'member' && (
               <>
                 <Separator className="mx-2 bg-sidebar-accent" />
                 <SidebarGroup>
@@ -260,13 +259,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <SidebarFooter className="p-4">
             <div className="flex items-center space-x-3 mb-3">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={user.image || undefined} alt={user.name || 'User'} />
+                <AvatarImage src={user?.image || undefined} alt={user?.name || 'User'} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                  {user.name?.charAt(0).toUpperCase() || 'U'}
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-sidebar-foreground">{user.name}</p>
+                <p className="text-sm font-medium truncate text-sidebar-foreground">{user?.name || 'User'}</p>
                 <div className="flex items-center space-x-1 mt-1">
                   <Badge
                     variant={isYuumiMember ? 'default' : 'destructive'}
@@ -276,10 +275,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   </Badge>
                   <Badge
                     variant="outline"
-                    className={`text-xs px-1 py-0 flex items-center space-x-1 border ${getRoleColor(user.user_role)}`}
+                    className={`text-xs px-1 py-0 flex items-center space-x-1 border ${getRoleColor(user?.user_role || 'member')}`}
                   >
-                    {getRoleIcon(user.user_role)}
-                    <span>{getRoleDisplayName(user.user_role)}</span>
+                    {getRoleIcon(user?.user_role || 'member')}
+                    <span>{getRoleDisplayName(user?.user_role || 'member')}</span>
                   </Badge>
                 </div>
               </div>

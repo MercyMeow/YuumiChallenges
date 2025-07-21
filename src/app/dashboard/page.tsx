@@ -91,6 +91,18 @@ export default function Dashboard() {
     }
   }, []);
 
+  const fetchRefreshStatus = useCallback(async () => {
+    try {
+      const response = await fetch('/api/summoners/refresh');
+      if (response.ok) {
+        const status = await response.json();
+        setRefreshStatus(status);
+      }
+    } catch (error) {
+      console.error('Error fetching refresh status:', error);
+    }
+  }, []);
+
   const fetchSummonerData = useCallback(async () => {
     try {
       const response = await fetch('/api/summoners');
@@ -105,19 +117,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error fetching summoner data:', error);
     }
-  }, []);
-
-  const fetchRefreshStatus = useCallback(async () => {
-    try {
-      const response = await fetch('/api/summoners/refresh');
-      if (response.ok) {
-        const status = await response.json();
-        setRefreshStatus(status);
-      }
-    } catch (error) {
-      console.error('Error fetching refresh status:', error);
-    }
-  }, []);
+  }, [fetchRefreshStatus]);
 
   const checkAutoRefresh = useCallback(async () => {
     if (!refreshStatus?.can_refresh) return;
@@ -189,6 +189,7 @@ export default function Dashboard() {
     }
   }, [summonerData, autoRefreshChecked, checkAutoRefresh]);
 
+  // Handle all loading and authentication states properly
   if (isLoading || loadingStats) {
     return (
       <DashboardLayout>
@@ -202,8 +203,18 @@ export default function Dashboard() {
     );
   }
 
+  // If not loading but not authenticated, let middleware handle redirect
   if (!isAuthenticated || !user) {
-    return null;
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-purple-400 mx-auto mb-4" />
+            <p className="text-gray-400">Verifying authentication...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
   }
   return (
     <DashboardLayout>
