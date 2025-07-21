@@ -101,30 +101,65 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async session({ session, token }) {
-      console.log('Session callback triggered');
+      console.log('🔍 Session callback triggered');
       
       if (session?.user && token?.sub) {
         try {
+          console.log('🔍 DEBUG - Session callback params:', {
+            tokenSub: token.sub,
+            sessionUserName: session.user.name,
+            sessionUserEmail: session.user.email
+          });
+          
           const supabase = createServerSupabaseClient();
           
-          // Get user data from database
+          // Get user data from database using discord_id from token
           const { data: userData, error } = await supabase
             .from('users')
             .select('*')
             .eq('discord_id', token.sub)
             .single();
           
+          console.log('🔍 DEBUG - User lookup result:', {
+            userData: userData ? {
+              discord_id: userData.discord_id,
+              username: userData.username,
+              user_role: userData.user_role
+            } : null,
+            error: error,
+            queryDiscordId: token.sub
+          });
+          
           if (error) {
-            console.error('Error fetching user data:', error);
+            console.error('Error fetching user data in session callback:', error);
+            // Fallback: still set discord_id from token if database fails
+            session.user.id = token.sub;
+            session.user.discord_id = token.sub;
+            session.user.user_role = 'member';
+            session.user.is_yuumi_member = false;
             return session;
           }
           
           if (userData) {
-            // Enrich session with database user data (defensive access)
+            // Enrich session with database user data
             session.user.id = userData.discord_id; // Use discord_id as the primary identifier
             session.user.discord_id = userData.discord_id;
             session.user.user_role = userData.user_role || 'member';
             session.user.is_yuumi_member = userData.is_yuumi_member || false;
+            
+            console.log('🔍 DEBUG - Session enriched successfully:', {
+              sessionUserId: session.user.id,
+              sessionDiscordId: session.user.discord_id,
+              sessionUserRole: session.user.user_role,
+              sessionIsYuumiMember: session.user.is_yuumi_member
+            });
+          } else {
+            // User not found in database - set fallback values
+            console.warn('User not found in database for discord_id:', token.sub);
+            session.user.id = token.sub;
+            session.user.discord_id = token.sub;
+            session.user.user_role = 'member';
+            session.user.is_yuumi_member = false;
           }
           
           // Remove email from session for privacy
@@ -132,7 +167,12 @@ export const authOptions: NextAuthOptions = {
             delete (session.user as any).email;
           }
         } catch (error) {
-          console.error('Error enriching session:', error);
+          console.error('Critical error enriching session:', error);
+          // Fallback: ensure session has required fields
+          session.user.id = token.sub;
+          session.user.discord_id = token.sub;
+          session.user.user_role = 'member';
+          session.user.is_yuumi_member = false;
         }
       }
       

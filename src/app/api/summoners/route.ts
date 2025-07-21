@@ -13,6 +13,14 @@ export async function GET() {
 
     const supabase = createServerSupabaseClient();
     
+    // Debug logging to trace the authentication issue
+    console.log('🔍 DEBUG - Session user data:', {
+      sessionUserId: session.user.id,
+      sessionUserDiscordId: session.user.discord_id,
+      sessionUserName: session.user.name,
+      sessionUserRole: session.user.user_role
+    });
+    
     // Get user's single summoner with ranked info (users can only have one summoner)
     const { data: summoner, error: summonerError } = await supabase
       .from('summoners')
@@ -30,7 +38,15 @@ export async function GET() {
       .eq('user_id', session.user.id)
       .single();
 
+    // Debug logging for database query results
+    console.log('🔍 DEBUG - Database query results:', {
+      summoner: summoner,
+      summonerError: summonerError,
+      queryUserId: session.user.id
+    });
+
     if (summonerError && summonerError.code !== 'PGRST116') {
+      console.log('🚨 DEBUG - Database error thrown:', summonerError);
       throw new ApiError(500, 'Failed to fetch summoner', 'DATABASE_ERROR', summonerError);
     }
 
