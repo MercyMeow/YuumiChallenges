@@ -60,7 +60,7 @@ export function ProfileHeader({ user, stats }: ProfileHeaderProps) {
                     Yuumi Main
                   </Badge>
                 )}
-                <RoleBadge role={user.user_role as any} />
+                <RoleBadge role={user.user_role as 'owner' | 'admin' | 'member'} size="default" />
               </div>
             </div>
           </div>

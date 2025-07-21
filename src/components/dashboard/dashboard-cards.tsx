@@ -139,54 +139,60 @@ export function ChallengesCard() {
   );
 }
 
-export function LeagueProfileCard() {
-  const [summoner, setSummoner] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
-  const [loading, setLoading] = useState(true);
+interface SummonerData {
+  summoner: {
+    id: string;
+    puuid: string;
+    game_name: string;
+    tag_line: string;
+    region: string;
+    level: number;
+    profile_icon_id: number;
+    ranked_info?: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+  } | null;
+  stats: {
+    totalGames: number;
+    overallKDA: number;
+    favoriteChampion: string;
+    currentRank: string;
+  } | null;
+}
+
+interface LeagueProfileCardProps {
+  summonerData?: SummonerData | null;
+  isLoading?: boolean;
+  onAccountChange?: () => Promise<void>;
+}
+
+export function LeagueProfileCard({ summonerData, isLoading = false, onAccountChange }: LeagueProfileCardProps) {
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleAccountChange = async () => {
-    // Refresh summoner data after account is added/changed
-    await fetchSummoner();
-  };
-
-  useEffect(() => {
-    fetchSummoner();
-  }, []);
-
-  const fetchSummoner = async () => {
-    try {
-      const response = await fetch('/api/summoners');
-      if (response.ok) {
-        const data = await response.json();
-        if (data.summoner) {
-          // Adapt the data structure to match what the UI expects
-          const adaptedSummoner = {
-            ...data.summoner,
-            name: data.summoner.game_name, // Use game_name as the display name
-            tagLine: data.summoner.tag_line,
-            rank: data.summoner.ranked_info?.find((r: any) => r.queue_type === 'RANKED_SOLO_5x5') || null, // eslint-disable-line @typescript-eslint/no-explicit-any
-            recentStats: {
-              totalGames: data.stats?.totalGames || 0,
-              winRate: Math.round(((data.summoner.ranked_info?.[0]?.wins || 0) / Math.max((data.summoner.ranked_info?.[0]?.wins || 0) + (data.summoner.ranked_info?.[0]?.losses || 0), 1)) * 100),
-              kda: data.stats?.overallKDA || 0,
-              recentLPGain: Math.floor(Math.random() * 30) - 10 // Mock LP gain for now
-            }
-          };
-          setSummoner(adaptedSummoner);
-        } else {
-          setSummoner(null);
-        }
-      } else {
-        setSummoner(null);
+    if (onAccountChange) {
+      setIsUpdating(true);
+      try {
+        await onAccountChange();
+      } finally {
+        setIsUpdating(false);
       }
-    } catch (error) {
-      console.error('Error fetching summoner:', error);
-      setSummoner(null);
-    } finally {
-      setLoading(false);
     }
   };
 
-  if (loading) {
+  // Adapt the data structure to match what the UI expects
+  const summoner = summonerData?.summoner ? {
+    ...summonerData.summoner,
+    name: summonerData.summoner.game_name,
+    tagLine: summonerData.summoner.tag_line,
+    rank: summonerData.summoner.ranked_info?.find((r: any) => r.queue_type === 'RANKED_SOLO_5x5') || null, // eslint-disable-line @typescript-eslint/no-explicit-any
+    recentStats: {
+      totalGames: summonerData.stats?.totalGames || 0,
+      winRate: Math.round(((summonerData.summoner.ranked_info?.[0]?.wins || 0) / Math.max((summonerData.summoner.ranked_info?.[0]?.wins || 0) + (summonerData.summoner.ranked_info?.[0]?.losses || 0), 1)) * 100),
+      kda: summonerData.stats?.overallKDA || 0,
+      recentLPGain: Math.floor(Math.random() * 30) - 10 // Mock LP gain for now
+    }
+  } : null;
+
+  if (isLoading || isUpdating) {
     return <DashboardCardSkeleton />;
   }
 

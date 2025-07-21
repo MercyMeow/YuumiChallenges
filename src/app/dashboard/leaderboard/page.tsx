@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { RoleBadge } from '@/components/ui/role-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -22,8 +23,6 @@ import {
   ArrowDown,
   Minus,
   Award,
-  Shield,
-  User,
 } from 'lucide-react';
 
 // Types for leaderboard data
@@ -99,7 +98,7 @@ const mockPointsRankings: UserRanking[] = [
       id: "2",
       name: "CatSupport",
       image: "/api/placeholder/40/40",
-      role: "moderator"
+      role: "member"
     },
     points: 2341,
     completedChallenges: 12,
@@ -355,27 +354,6 @@ const LeaderboardHeader = ({ stats, userPosition }: { stats: CommunityStats; use
 );
 
 const PointsLeaderboard = ({ rankings }: { rankings: UserRanking[]; userPosition: number | null }) => {
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return <Crown className="h-3 w-3" />;
-      case 'moderator':
-        return <Shield className="h-3 w-3" />;
-      default:
-        return <User className="h-3 w-3" />;
-    }
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      case 'moderator':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-    }
-  };
 
   const getChangeIcon = (change: number) => {
     if (change > 0) return <ArrowUp className="h-3 w-3 text-green-400" />;
@@ -484,10 +462,7 @@ const PointsLeaderboard = ({ rankings }: { rankings: UserRanking[]; userPosition
                 <div>
                   <div className="flex items-center space-x-2">
                     <span className="font-semibold text-white">{ranking.user.name}</span>
-                    <Badge className={`text-xs ${getRoleColor(ranking.user.role)}`}>
-                      {getRoleIcon(ranking.user.role)}
-                      <span className="ml-1">{ranking.user.role}</span>
-                    </Badge>
+                    <RoleBadge role={ranking.user.role as 'owner' | 'admin' | 'member'} size="sm" />
                   </div>
                   <div className="flex items-center space-x-4 text-sm text-gray-400">
                     <span>{ranking.completedChallenges} challenges</span>

@@ -29,7 +29,7 @@ Yuumi Challenges is a comprehensive web application designed specifically for th
 - **🏆 Leaderboards** - Compete with other Yuumi players and climb community rankings  
 - **📊 Game Analytics** - Detailed match history and gameplay statistics
 - **⚡ Real-time Updates** - Live tracking of your League of Legends matches
-- **🛡️ Role-Based Access** - Member, moderator, and admin role management
+- **🛡️ Role-Based Access** - Member, admin, and owner role management
 - **📱 Responsive Design** - Beautiful UI that works on all devices
 
 ### 🎪 Challenge Types

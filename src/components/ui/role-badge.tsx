@@ -21,12 +21,6 @@ const roleBadgeVariants = cva(
           "hover:from-red-500/20 hover:to-rose-500/20 hover:border-red-400/50",
           "shadow-red-500/10 hover:shadow-red-500/20"
         ],
-        moderator: [
-          "bg-gradient-to-r from-blue-500/10 to-indigo-500/10",
-          "border-blue-500/30 text-blue-300", 
-          "hover:from-blue-500/20 hover:to-indigo-500/20 hover:border-blue-400/50",
-          "shadow-blue-500/10 hover:shadow-blue-500/20"
-        ],
         member: [
           "bg-gradient-to-r from-slate-500/10 to-gray-500/10",
           "border-slate-500/30 text-slate-300",
@@ -50,14 +44,13 @@ const roleBadgeVariants = cva(
 const roleIcons = {
   owner: Crown,
   admin: Shield, 
-  moderator: Shield,
   member: User
 } as const
 
 const roleDisplayNames = {
   owner: "Owner",
   admin: "Admin",
-  moderator: "Moderator", 
+ 
   member: "Member"
 } as const
 

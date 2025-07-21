@@ -59,7 +59,7 @@ interface Report {
     username: string;
     avatar?: string;
   };
-  assigned_moderator?: {
+  assigned_admin?: {
     username: string;
     avatar?: string;
   };

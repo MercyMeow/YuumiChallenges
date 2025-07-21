@@ -59,7 +59,7 @@ interface Session {
     name: string;         // Discord username
     email?: string;       // Discord email (optional)
     image?: string;       // Discord avatar URL
-    user_role: 'member' | 'moderator' | 'admin';
+    user_role: 'member' | 'admin' | 'owner';
     is_yuumi_member: boolean;
     roles: string[];      // Discord server roles
   }
@@ -70,8 +70,8 @@ interface Session {
 
 1. **Public**: Unauthenticated users (limited read access)
 2. **Member**: Authenticated Discord server members
-3. **Moderator**: Can manage challenges and content
-4. **Admin**: Full system access
+3. **Admin**: Can manage challenges and content
+4. **Owner**: Full system access with user management
 
 ## API Routes
 
@@ -145,10 +145,10 @@ The following endpoints are planned but not yet implemented:
 
 #### Challenges API
 - **GET** `/api/challenges` - List all active challenges
-- **POST** `/api/challenges` - Create new challenge (admin/moderator only)
+- **POST** `/api/challenges` - Create new challenge (admin/owner only)
 - **GET** `/api/challenges/[id]` - Get specific challenge details
-- **PUT** `/api/challenges/[id]` - Update challenge (admin/moderator only)
-- **DELETE** `/api/challenges/[id]` - Delete challenge (admin only)
+- **PUT** `/api/challenges/[id]` - Update challenge (admin/owner only)
+- **DELETE** `/api/challenges/[id]` - Delete challenge (admin/owner only)
 
 #### Summoners API
 - **GET** `/api/summoners` - List user's summoners
@@ -430,7 +430,7 @@ interface User {
   discriminator: string;
   avatar: string | null;
   roles: string[];
-  user_role: 'member' | 'moderator' | 'admin';
+  user_role: 'member' | 'admin' | 'owner';
   is_yuumi_member: boolean;
   joined_discord_at: Date;
   created_at: Date;

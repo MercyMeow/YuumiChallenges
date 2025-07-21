@@ -64,6 +64,7 @@ export default function Dashboard() {
   const [refreshStatus, setRefreshStatus] = useState<RefreshStatus | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [autoRefreshChecked, setAutoRefreshChecked] = useState(false);
+  const [loadingSummoner, setLoadingSummoner] = useState(true);
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -105,6 +106,7 @@ export default function Dashboard() {
 
   const fetchSummonerData = useCallback(async () => {
     try {
+      setLoadingSummoner(true);
       const response = await fetch('/api/summoners');
       if (response.ok) {
         const data = await response.json();
@@ -112,10 +114,17 @@ export default function Dashboard() {
           setSummonerData(data);
           // Also fetch refresh status
           fetchRefreshStatus();
+        } else {
+          // No summoner found - set to null to indicate no account linked
+          setSummonerData({ summoner: null, stats: null });
         }
       }
     } catch (error) {
       console.error('Error fetching summoner data:', error);
+      // On error, also set to null state
+      setSummonerData({ summoner: null, stats: null });
+    } finally {
+      setLoadingSummoner(false);
     }
   }, [fetchRefreshStatus]);
 
@@ -326,12 +335,22 @@ export default function Dashboard() {
             {/* Top Row - Most Important Cards */}
             <div className="grid gap-6 md:grid-cols-2">
               <ChallengesCard />
-              <LeagueProfileCard />
+              <LeagueProfileCard 
+                summonerData={summonerData}
+                isLoading={loadingSummoner}
+                onAccountChange={async () => {
+                  // Refresh all dashboard data when account linking succeeds
+                  await Promise.all([
+                    fetchSummonerData(),
+                    fetchDashboardData()
+                  ]);
+                }}
+              />
             </div>
             
             {/* Match History Card */}
             <MatchHistoryCard 
-              summonerId={summonerData?.summoner?.id}
+              summonerId={summonerData?.summoner?.puuid}
               onRefresh={handleManualRefresh}
               isRefreshing={isRefreshing}
             />

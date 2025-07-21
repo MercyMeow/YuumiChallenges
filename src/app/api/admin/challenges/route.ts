@@ -11,7 +11,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user has admin or moderator permissions
+    // Check if user has admin or owner permissions
     const supabase = createServerSupabaseClient();
     const { data: user } = await supabase
       .from('users')
@@ -19,7 +19,7 @@ export async function GET() {
       .eq('id', session.user.id)
       .single();
 
-    if (!user || (user.user_role !== 'admin' && user.user_role !== 'moderator')) {
+    if (!user || (user.user_role !== 'admin' && user.user_role !== 'owner')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user has admin permissions (only admins can create challenges)
+    // Check if user has admin or owner permissions
     const supabase = createServerSupabaseClient();
     const { data: user } = await supabase
       .from('users')
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       .eq('id', session.user.id)
       .single();
 
-    if (!user || user.user_role !== 'admin') {
+    if (!user || (user.user_role !== 'admin' && user.user_role !== 'owner')) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 

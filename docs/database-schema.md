@@ -26,11 +26,11 @@ The database schema is maintained through the following migrations:
 ### `user_role`
 Defines application-level user permissions.
 ```sql
-CREATE TYPE user_role AS ENUM ('member', 'moderator', 'admin');
+CREATE TYPE user_role AS ENUM ('member', 'admin', 'owner');
 ```
 - **member**: Regular Discord server member
-- **moderator**: Can manage challenges and moderate content
-- **admin**: Full system access including user management
+- **admin**: Can manage challenges and moderate content
+- **owner**: Full system access including user management and role assignment
 
 ### `challenge_type`
 Specifies the category and evaluation method for challenges.
@@ -327,7 +327,7 @@ Policies use `auth.jwt() ->> 'discord_id'` to identify the current user from Nex
 
 #### `challenges` Table
 - **SELECT**: Public can view active challenges
-- **ALL**: Staff (admins/moderators) can manage challenges
+- **ALL**: Staff (admins/owners) can manage challenges
 
 #### `user_challenges` Table
 - **SELECT**: Users view own progress + public can see completions

@@ -114,7 +114,7 @@ export function AuditLog() {
       if (response.ok) {
         const data = await response.json();
         const admins = data.users.filter((user: any) => // eslint-disable-line @typescript-eslint/no-explicit-any
-          user.user_role === 'admin' || user.user_role === 'moderator'
+          user.user_role === 'admin' || user.user_role === 'owner'
         );
         setAvailableAdmins(admins.map((admin: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
           id: admin.id,

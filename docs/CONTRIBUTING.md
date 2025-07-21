@@ -26,7 +26,7 @@ Yuumi Challenges is a Next.js 15 application that tracks League of Legends chall
 - **Challenge System**: Flexible challenges including KDA, winstreaks, champion mastery, and ranked climbs
 - **Real-time Tracking**: Automatic match data collection and progress updates
 - **Leaderboards**: Points-based ranking system with community recognition
-- **Admin Panel**: Comprehensive management tools for moderators and admins
+- **Admin Panel**: Comprehensive management tools for admins and owners
 
 ### Technology Stack
 - **Frontend**: Next.js 15 with App Router, React 19, TypeScript
@@ -164,7 +164,7 @@ docs/                      # Project documentation
 **Authentication Flow:**
 - Discord OAuth through NextAuth.js
 - User validation against Yuumi Discord server membership
-- Role-based access control with admin/moderator permissions
+- Role-based access control with admin/owner permissions
 
 **Database Architecture:**
 - PostgreSQL with Row Level Security (RLS)

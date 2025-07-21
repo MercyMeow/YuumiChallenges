@@ -5,13 +5,14 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { RoleBadge } from '@/components/ui/role-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Search, 
-  Crown, 
+ 
   Shield, 
   User, 
   Edit,
@@ -133,38 +134,6 @@ export function UserManagement({ permissions }: UserManagementProps) {
     }
   };
 
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'owner':
-        return <Crown className="h-3 w-3" />;
-      case 'admin':
-        return <Shield className="h-3 w-3" />;
-      default:
-        return <User className="h-3 w-3" />;
-    }
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'owner':
-        return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30';
-      case 'admin':
-        return 'bg-red-500/20 text-red-400 border-red-500/30';
-      default:
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-    }
-  };
-
-  const getRoleDisplayName = (role: string) => {
-    switch (role) {
-      case 'owner':
-        return 'Owner';
-      case 'admin':
-        return 'Admin';
-      default:
-        return 'Member';
-    }
-  };
 
   const formatDate = (dateString: string) => { // eslint-disable-line @typescript-eslint/no-unused-vars
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -207,10 +176,7 @@ export function UserManagement({ permissions }: UserManagementProps) {
       </td>
       <td className="p-4">
         <div className="flex items-center space-x-2">
-          <Badge className={`flex items-center space-x-1 ${getRoleColor(user.user_role)}`}>
-            {getRoleIcon(user.user_role)}
-            <span>{getRoleDisplayName(user.user_role)}</span>
-          </Badge>
+          <RoleBadge role={user.user_role as 'owner' | 'admin' | 'member'} size="sm" />
           <Badge variant={user.is_yuumi_member ? 'default' : 'destructive'} className="text-xs">
             {user.is_yuumi_member ? '✅' : '❌'}
           </Badge>
@@ -403,7 +369,9 @@ export function UserManagement({ permissions }: UserManagementProps) {
                 </Avatar>
                 <div>
                   <div className="font-medium text-white">{selectedUser.name}</div>
-                  <div className="text-sm text-gray-400">Current role: {getRoleDisplayName(selectedUser.user_role)}</div>
+                  <div className="text-sm text-gray-400 flex items-center gap-2">
+                    Current role: <RoleBadge role={selectedUser.user_role as 'owner' | 'admin' | 'member'} size="sm" />
+                  </div>
                 </div>
               </div>
               

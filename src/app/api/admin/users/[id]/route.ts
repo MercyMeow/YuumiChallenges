@@ -29,7 +29,7 @@ export async function PUT(
 
     const { newRole, reason } = await request.json();
 
-    if (!newRole || !['member', 'moderator', 'admin'].includes(newRole)) {
+    if (!newRole || !['member', 'admin', 'owner'].includes(newRole)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
     }
 
