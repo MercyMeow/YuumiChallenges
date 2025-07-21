@@ -9,7 +9,7 @@ let versionCacheTime = 0;
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
 /**
- * Fetches the latest Data Dragon version from Riot's CDN
+ * Fetches the latest Data Dragon version via our internal API (avoids CORS issues)
  * Caches the result to avoid repeated API calls
  */
 export async function getLatestDataDragonVersion(): Promise<string> {
@@ -21,29 +21,30 @@ export async function getLatestDataDragonVersion(): Promise<string> {
   }
   
   try {
-    const response = await fetch('https://ddragon.leagueoflegends.com/api/versions.json', {
-      // Add cache headers to leverage CDN caching
+    // Use our internal API route to avoid CORS issues with Data Dragon API
+    const response = await fetch('/api/data-dragon/version', {
       headers: {
-        'Cache-Control': 'public, max-age=300' // 5 minutes browser cache
+        'Content-Type': 'application/json'
       }
     });
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch Data Dragon versions: ${response.status}`);
+      throw new Error(`Failed to fetch Data Dragon version: ${response.status}`);
     }
     
-    const versions: string[] = await response.json();
+    const data = await response.json();
     
-    if (!versions || versions.length === 0) {
-      throw new Error('No Data Dragon versions available');
+    if (!data.version) {
+      throw new Error('Invalid response format from version API');
     }
     
-    // The first version in the array is always the latest
-    const latestVersion = versions[0];
+    const latestVersion = data.version;
     
-    // Update cache
-    cachedVersion = latestVersion;
-    versionCacheTime = now;
+    // Update cache only if we got a fresh version (not from server cache)
+    if (!data.cached || !cachedVersion) {
+      cachedVersion = latestVersion;
+      versionCacheTime = now;
+    }
     
     return latestVersion;
   } catch (error) {
