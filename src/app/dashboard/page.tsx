@@ -104,27 +104,56 @@ export default function Dashboard() {
     }
   }, []);
 
-  const fetchSummonerData = useCallback(async () => {
+  const fetchSummonerData = useCallback(async (retries = 3, delay = 1000) => {
     try {
       setLoadingSummoner(true);
+      console.log('🔍 DEBUG - Fetching summoner data, retries left:', retries);
+      
       const response = await fetch('/api/summoners');
       if (response.ok) {
         const data = await response.json();
+        console.log('🔍 DEBUG - Summoner API response:', data);
+        
         if (data.summoner) {
           setSummonerData(data);
           // Also fetch refresh status
           fetchRefreshStatus();
+          console.log('✅ DEBUG - Summoner data set successfully');
         } else {
-          // No summoner found - set to null to indicate no account linked
-          setSummonerData({ summoner: null, stats: null });
+          // No summoner found - retry if we have attempts left
+          if (retries > 0) {
+            console.log('⏳ DEBUG - No summoner found, retrying in', delay, 'ms');
+            setTimeout(() => {
+              fetchSummonerData(retries - 1, delay);
+            }, delay);
+            return; // Don't set loading to false yet
+          } else {
+            console.log('❌ DEBUG - No summoner found after all retries');
+            setSummonerData({ summoner: null, stats: null });
+          }
         }
+      } else {
+        throw new Error(`API response not ok: ${response.status}`);
       }
     } catch (error) {
-      console.error('Error fetching summoner data:', error);
-      // On error, also set to null state
-      setSummonerData({ summoner: null, stats: null });
+      console.error('❌ Error fetching summoner data:', error);
+      
+      // Retry on error if we have attempts left  
+      if (retries > 0) {
+        console.log('🔄 DEBUG - Retrying due to error in', delay, 'ms');
+        setTimeout(() => {
+          fetchSummonerData(retries - 1, delay);  
+        }, delay);
+        return; // Don't set loading to false yet
+      } else {
+        // On final error, set to null state
+        setSummonerData({ summoner: null, stats: null });
+      }
     } finally {
-      setLoadingSummoner(false);
+      // Always set loading to false when we're done (success, final retry, or error)
+      if (retries === 0) {
+        setLoadingSummoner(false);
+      }
     }
   }, [fetchRefreshStatus]);
 
@@ -340,10 +369,16 @@ export default function Dashboard() {
                 isLoading={loadingSummoner}
                 onAccountChange={async () => {
                   // Refresh all dashboard data when account linking succeeds
-                  await Promise.all([
-                    fetchSummonerData(),
-                    fetchDashboardData()
-                  ]);
+                  console.log('🔄 DEBUG - Account linking completed, refreshing dashboard');
+                  try {
+                    await Promise.all([
+                      fetchSummonerData(), // Uses retry logic
+                      fetchDashboardData()
+                    ]);
+                    console.log('✅ DEBUG - Dashboard refresh completed successfully');
+                  } catch (error) {
+                    console.error('❌ ERROR - Dashboard refresh failed:', error);
+                  }
                 }}
               />
             </div>
