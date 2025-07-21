@@ -8,6 +8,8 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AddSummonerDialog } from '@/components/profile/add-summoner-dialog';
+import { RefreshStatusIndicator } from '@/components/ui/refresh-status';
+import { RefreshStatus } from '@/lib/types';
 import { 
   Target, 
   BarChart3, 
@@ -19,19 +21,24 @@ import {
   ArrowRight,
   Zap,
   Crown,
-  Clock
+  Clock,
+  RefreshCw
 } from 'lucide-react';
 
 export function ChallengesCard() {
   const [challenges, setChallenges] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchActiveChallenges();
   }, []);
 
-  const fetchActiveChallenges = async () => {
+  const fetchActiveChallenges = async (isRefresh = false) => {
     try {
+      if (isRefresh) {
+        setIsRefreshing(true);
+      }
       const response = await fetch('/api/challenges/active');
       if (response.ok) {
         const data = await response.json();
@@ -41,6 +48,15 @@ export function ChallengesCard() {
       console.error('Error fetching active challenges:', error);
     } finally {
       setLoading(false);
+      if (isRefresh) {
+        setIsRefreshing(false);
+      }
+    }
+  };
+
+  const handleRefresh = async () => {
+    if (!isRefreshing) {
+      await fetchActiveChallenges(true);
     }
   };
 
@@ -87,9 +103,20 @@ export function ChallengesCard() {
               <CardDescription className="text-white/70">Active challenges and progress</CardDescription>
             </div>
           </div>
-          <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 px-3 py-1">
-            {challenges.length} Active
-          </Badge>
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 p-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
+            <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 px-3 py-1">
+              {challenges.length} Active
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -162,9 +189,19 @@ interface LeagueProfileCardProps {
   summonerData?: SummonerData | null;
   isLoading?: boolean;
   onAccountChange?: () => Promise<void>;
+  refreshStatus?: RefreshStatus | null;
+  isRefreshing?: boolean;
+  onRefresh?: () => Promise<void>;
 }
 
-export function LeagueProfileCard({ summonerData, isLoading = false, onAccountChange }: LeagueProfileCardProps) {
+export function LeagueProfileCard({ 
+  summonerData, 
+  isLoading = false, 
+  onAccountChange,
+  refreshStatus,
+  isRefreshing = false,
+  onRefresh
+}: LeagueProfileCardProps) {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleAccountChange = async () => {
@@ -243,10 +280,23 @@ export function LeagueProfileCard({ summonerData, isLoading = false, onAccountCh
               <CardDescription className="text-white/70">Your linked League accounts</CardDescription>
             </div>
           </div>
-          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 px-3 py-1">
-            <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
-            Verified
-          </Badge>
+          <div className="flex items-center space-x-3">
+            {/* Refresh Status and Controls */}
+            {refreshStatus && (
+              <RefreshStatusIndicator 
+                refreshStatus={refreshStatus}
+                isRefreshing={isRefreshing}
+                onRefresh={onRefresh}
+                showLastRefresh={true}
+                showManualRefresh={true}
+                className=""
+              />
+            )}
+            <Badge className="bg-green-500/20 text-green-400 border-green-500/30 px-3 py-1">
+              <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+              Verified
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -338,13 +388,17 @@ export function LeagueProfileCard({ summonerData, isLoading = false, onAccountCh
 export function LeaderboardCard() {
   const [leaderboard, setLeaderboard] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchLeaderboardPreview();
   }, []);
 
-  const fetchLeaderboardPreview = async () => {
+  const fetchLeaderboardPreview = async (isRefresh = false) => {
     try {
+      if (isRefresh) {
+        setIsRefreshing(true);
+      }
       const response = await fetch('/api/leaderboard/preview');
       if (response.ok) {
         const data = await response.json();
@@ -354,6 +408,15 @@ export function LeaderboardCard() {
       console.error('Error fetching leaderboard preview:', error);
     } finally {
       setLoading(false);
+      if (isRefresh) {
+        setIsRefreshing(false);
+      }
+    }
+  };
+
+  const handleRefresh = async () => {
+    if (!isRefreshing) {
+      await fetchLeaderboardPreview(true);
     }
   };
 
@@ -409,9 +472,20 @@ export function LeaderboardCard() {
               <CardDescription className="text-white/70">Your ranking this month</CardDescription>
             </div>
           </div>
-          <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 px-3 py-1 text-lg font-bold">
-            #{leaderboard?.currentUser?.position || 'N/A'}
-          </Badge>
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 p-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
+            <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 px-3 py-1 text-lg font-bold">
+              #{leaderboard?.currentUser?.position || 'N/A'}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">

@@ -1,0 +1,73 @@
+/**
+ * Format a date as relative time (e.g., "5 minutes ago", "2 hours ago")
+ */
+export function formatRelativeTime(date: Date | string | null | undefined): string {
+  if (!date) return 'Never';
+  
+  const now = new Date();
+  const past = new Date(date);
+  const diffMs = now.getTime() - past.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffSec < 30) return 'Just now';
+  if (diffSec < 60) return `${diffSec} seconds ago`;
+  if (diffMin < 60) return diffMin === 1 ? '1 minute ago' : `${diffMin} minutes ago`;
+  if (diffHour < 24) return diffHour === 1 ? '1 hour ago' : `${diffHour} hours ago`;
+  if (diffDay < 7) return diffDay === 1 ? '1 day ago' : `${diffDay} days ago`;
+  
+  // For older dates, show absolute date
+  return past.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+/**
+ * Format time remaining until a future date
+ */
+export function formatTimeRemaining(date: Date | string | null | undefined): string {
+  if (!date) return '0 seconds';
+  
+  const now = new Date();
+  const future = new Date(date);
+  const diffMs = future.getTime() - now.getTime();
+  
+  if (diffMs <= 0) return '0 seconds';
+  
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+
+  if (diffSec < 60) return diffSec === 1 ? '1 second' : `${diffSec} seconds`;
+  if (diffMin < 60) return diffMin === 1 ? '1 minute' : `${diffMin} minutes`;
+  return diffHour === 1 ? '1 hour' : `${diffHour} hours`;
+}
+
+/**
+ * Check if a cooldown period has expired
+ */
+export function isCooldownExpired(lastAction: Date | string | null | undefined, cooldownMinutes: number): boolean {
+  if (!lastAction) return true;
+  
+  const now = new Date();
+  const last = new Date(lastAction);
+  const diffMs = now.getTime() - last.getTime();
+  const cooldownMs = cooldownMinutes * 60 * 1000;
+  
+  return diffMs >= cooldownMs;
+}
+
+/**
+ * Get the next available time for an action
+ */
+export function getNextAvailableTime(lastAction: Date | string | null | undefined, cooldownMinutes: number): Date {
+  if (!lastAction) return new Date();
+  
+  const last = new Date(lastAction);
+  return new Date(last.getTime() + (cooldownMinutes * 60 * 1000));
+}

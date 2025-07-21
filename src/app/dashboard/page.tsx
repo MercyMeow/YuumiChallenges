@@ -1,19 +1,18 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { 
   ChallengesCard, 
   LeagueProfileCard, 
-  LeaderboardCard, 
-  StatsOverviewCard 
+  LeaderboardCard
 } from '@/components/dashboard/dashboard-cards';
 import { MatchHistoryCard } from '@/components/match-history';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Sparkles, Zap, Activity, Users, Award, Loader2, RefreshCw } from 'lucide-react';
+import { Sparkles, Activity, Users, Award, Loader2, RefreshCw, Zap } from 'lucide-react';
 
 interface DashboardStats {
   winStreak: number;
@@ -23,12 +22,6 @@ interface DashboardStats {
   currentRank: number | null;
 }
 
-interface CommunityStats {
-  totalMembers: number;
-  activeMembers: number;
-  onlineMembers: number;
-  activeChallenges: number;
-}
 
 interface SummonerData {
   summoner: {
@@ -58,33 +51,25 @@ interface RefreshStatus {
 export default function Dashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
-  const [communityStats, setCommunityStats] = useState<CommunityStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
   const [summonerData, setSummonerData] = useState<SummonerData | null>(null);
   const [refreshStatus, setRefreshStatus] = useState<RefreshStatus | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [autoRefreshChecked, setAutoRefreshChecked] = useState(false);
   const [loadingSummoner, setLoadingSummoner] = useState(true);
+  const [isRefreshingAll, setIsRefreshingAll] = useState(false);
 
   // Remove useCallback to prevent dependency issues - these functions are only called in effects
   const fetchDashboardData = async () => {
     try {
       setLoadingStats(true);
       
-      // Fetch dashboard stats and community stats in parallel
-      const [dashboardRes, communityRes] = await Promise.all([
-        fetch('/api/user/dashboard-stats'),
-        fetch('/api/community/stats')
-      ]);
+      // Fetch dashboard stats
+      const dashboardRes = await fetch('/api/user/dashboard-stats');
 
       if (dashboardRes.ok) {
         const dashboardData = await dashboardRes.json();
         setDashboardStats(dashboardData);
-      }
-
-      if (communityRes.ok) {
-        const communityData = await communityRes.json();
-        setCommunityStats(communityData);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -194,6 +179,41 @@ export default function Dashboard() {
     }
   };
 
+  const handleRefreshAll = async () => {
+    if (isRefreshingAll) return;
+    
+    try {
+      setIsRefreshingAll(true);
+      
+      // Refresh all dashboard data in parallel
+      const refreshPromises = [
+        fetchDashboardData(),
+        fetchSummonerData(false)
+      ];
+      
+      // Also trigger summoner refresh if available
+      if (refreshStatus?.can_manual_refresh && !isRefreshing) {
+        refreshPromises.push(
+          fetch('/api/summoners/refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ manual: true }),
+          }).then(() => {})
+        );
+      }
+      
+      await Promise.allSettled(refreshPromises);
+      
+      // Add small delay for user feedback
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+    } catch (error) {
+      console.error('Error during refresh all:', error);
+    } finally {
+      setIsRefreshingAll(false);
+    }
+  };
+
   // Initial data loading - removed function dependencies to prevent infinite loop
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -261,18 +281,40 @@ export default function Dashboard() {
                 <p className="text-lg text-white/70">
                   Ready to climb the ranks with your enchanter skills?
                 </p>
-                <div className="flex items-center space-x-4 text-sm">
-                  <div className="flex items-center space-x-1 text-green-300">
-                    <Activity className="h-4 w-4" />
-                    <span>All systems operational</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4 text-sm">
+                    <div className="flex items-center space-x-1 text-green-300">
+                      <Activity className="h-4 w-4" />
+                      <span>All systems operational</span>
+                    </div>
+                    <div className="flex items-center space-x-1 text-blue-300">
+                      <Users className="h-4 w-4" />
+                      <span>Active Yuumi Mains community</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-1 text-blue-300">
-                    <Users className="h-4 w-4" />
-                    <span>{communityStats?.totalMembers || 0} active members</span>
+                  {/* Mobile Refresh All Button */}
+                  <div className="md:hidden">
+                    <Button 
+                      onClick={handleRefreshAll}
+                      disabled={isRefreshingAll}
+                      size="sm"
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-none"
+                    >
+                      <RefreshCw className={`h-3 w-3 mr-1 ${isRefreshingAll ? 'animate-spin' : ''}`} />
+                      {isRefreshingAll ? 'Refreshing...' : 'Refresh All'}
+                    </Button>
                   </div>
                 </div>
               </div>
-              <div className="hidden md:block">
+              <div className="hidden md:flex items-center space-x-4">
+                <Button 
+                  onClick={handleRefreshAll}
+                  disabled={isRefreshingAll}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-none px-6 py-2"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshingAll ? 'animate-spin' : ''}`} />
+                  {isRefreshingAll ? 'Refreshing All...' : 'Refresh All'}
+                </Button>
                 <div className="relative">
                   <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center text-2xl animate-pulse">
                     🌟
@@ -348,10 +390,12 @@ export default function Dashboard() {
           <div className="lg:col-span-2 space-y-6">
             {/* Top Row - Most Important Cards */}
             <div className="grid gap-6 md:grid-cols-2">
-              <ChallengesCard />
               <LeagueProfileCard 
                 summonerData={summonerData}
                 isLoading={loadingSummoner}
+                refreshStatus={refreshStatus}
+                isRefreshing={isRefreshing}
+                onRefresh={handleManualRefresh}
                 onAccountChange={async () => {
                   // Refresh all dashboard data when account linking succeeds
                   console.log('🔄 DEBUG - Account linking completed, refreshing dashboard');
@@ -364,6 +408,7 @@ export default function Dashboard() {
                   }
                 }}
               />
+              <ChallengesCard />
             </div>
             
             {/* Match History Card */}
@@ -372,83 +417,11 @@ export default function Dashboard() {
               onRefresh={handleManualRefresh}
               isRefreshing={isRefreshing}
             />
-            
-            {/* Quick Actions - Moved to left side for better accessibility */}
-            <Card className="relative overflow-hidden bg-black/20 backdrop-blur-md border-indigo-500/30 group">
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10"></div>
-              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-xl blur opacity-30 group-hover:opacity-50 transition duration-500"></div>
-              <CardHeader className="relative pb-3">
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-indigo-500/20 rounded-lg">
-                    <Settings className="h-5 w-5 text-indigo-400" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg text-white">Quick Actions</CardTitle>
-                    <CardDescription className="text-white/70">Common tasks and shortcuts</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="relative">
-                <div className="grid gap-3 md:grid-cols-3">
-                  <Button 
-                    variant="ghost" 
-                    className="h-auto p-4 bg-black/20 hover:bg-blue-500/20 border border-blue-500/30 hover:border-blue-400/50 transition-all duration-300 group hover:scale-105 card-hover glow-hover"
-                    onClick={handleManualRefresh}
-                    disabled={!refreshStatus?.can_manual_refresh || isRefreshing}
-                  >
-                    <div className="flex flex-col items-center space-y-2">
-                      <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-all duration-300">
-                        <RefreshCw className={`h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-300 ${isRefreshing ? 'animate-spin' : ''}`} />
-                      </div>
-                      <div className="text-center">
-                        <p className="font-medium text-white text-sm group-hover:text-blue-200 transition-colors duration-300">
-                          {isRefreshing ? 'Refreshing...' : 'Update League Account'}
-                        </p>
-                        <p className="text-xs text-white/70">
-                          {refreshStatus?.can_manual_refresh ? 'Sync your latest matches' : 'Refresh on cooldown'}
-                        </p>
-                      </div>
-                    </div>
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    className="h-auto p-4 bg-black/20 hover:bg-purple-500/20 border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 group hover:scale-105 card-hover glow-hover"
-                  >
-                    <div className="flex flex-col items-center space-y-2">
-                      <div className="p-2 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-all duration-300">
-                        <Zap className="h-4 w-4 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
-                      </div>
-                      <div className="text-center">
-                        <p className="font-medium text-white text-sm group-hover:text-purple-200 transition-colors duration-300">Join Weekly Challenge</p>
-                        <p className="text-xs text-white/70">Earn points and rewards</p>
-                      </div>
-                    </div>
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    className="h-auto p-4 bg-black/20 hover:bg-green-500/20 border border-green-500/30 hover:border-green-400/50 transition-all duration-300 group hover:scale-105 card-hover glow-hover"
-                  >
-                    <div className="flex flex-col items-center space-y-2">
-                      <div className="p-2 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-all duration-300">
-                        <Activity className="h-4 w-4 text-green-400 group-hover:scale-110 transition-transform duration-300" />
-                      </div>
-                      <div className="text-center">
-                        <p className="font-medium text-white text-sm group-hover:text-green-200 transition-colors duration-300">View Match History</p>
-                        <p className="text-xs text-white/70">Analyze your performance</p>
-                      </div>
-                    </div>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
           </div>
           
-          {/* Right Column - Community & Secondary Info */}
+          {/* Right Column - Secondary Info */}
           <div className="space-y-6">
             <LeaderboardCard />
-            <StatsOverviewCard />
           </div>
         </div>
       </div>
