@@ -169,7 +169,7 @@ export async function POST(request: Request) {
         const { data: existingMatches } = await supabase
           .from('match_history')
           .select('match_id')
-          .eq('summoner_id', summoner.id);
+          .eq('summoner_id', summoner.puuid);
 
         const existingMatchIds = new Set(existingMatches?.map(m => m.match_id) || []);
         const newMatchIds = matchIds.filter((id: string) => !existingMatchIds.has(id));
@@ -187,7 +187,7 @@ export async function POST(request: Request) {
               if (participant) {
                 const matchData: Omit<MatchData, 'id' | 'created_at'> = {
                   match_id: matchId,
-                  summoner_id: summoner.id,
+                  summoner_id: summoner.puuid,
                   champion: participant.championName,
                   kills: participant.kills,
                   deaths: participant.deaths,
