@@ -1,8 +1,9 @@
 'use client';
 
-import { signIn, getSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
@@ -11,28 +12,49 @@ import { MagicalBackground } from '@/components/ui/magical-background';
 
 export default function SignIn() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if user is already signed in
-    const checkSession = async () => {
-      const session = await getSession();
-      if (session) {
-        router.push('/dashboard');
-      }
-    };
-    checkSession();
-  }, [router]);
+    // Redirect if already authenticated
+    if (!authLoading && isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const handleDiscordSignIn = async () => {
-    setIsLoading(true);
+    setIsSigningIn(true);
+    setError(null);
     try {
-      await signIn('discord', { callbackUrl: '/dashboard' });
+      const result = await signIn('discord', { callbackUrl: '/dashboard' });
+      if (result?.error) {
+        setError('Authentication failed. Please try again.');
+        setIsSigningIn(false);
+      }
     } catch (error) {
       console.error('Sign in error:', error);
-      setIsLoading(false);
+      setError('An unexpected error occurred. Please try again.');
+      setIsSigningIn(false);
     }
   };
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <MagicalBackground className="flex items-center justify-center">
+        <div className="relative z-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <div className="absolute inset-0 animate-ping rounded-full h-12 w-12 border border-primary/30"></div>
+        </div>
+      </MagicalBackground>
+    );
+  }
+
+  // Don't render if authenticated (will redirect)
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <MagicalBackground>
@@ -76,16 +98,23 @@ export default function SignIn() {
               </CardHeader>
               
               <CardContent className="space-y-6 px-8 pb-8">
+                {/* Error Display */}
+                {error && (
+                  <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl text-sm">
+                    {error}
+                  </div>
+                )}
+
                 {/* Discord Sign In Button */}
                 <div className="relative group/btn">
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-[#5865F2] to-[#4752C4] rounded-xl blur opacity-50 group-hover/btn:opacity-75 transition duration-300"></div>
                   <Button
                     onClick={handleDiscordSignIn}
-                    disabled={isLoading}
-                    className="relative w-full bg-[#5865F2] hover:bg-[#4752C4] text-white font-semibold py-4 text-lg rounded-xl transform hover:scale-[1.01] transition-all duration-300 shadow-xl"
+                    disabled={isSigningIn}
+                    className="relative w-full bg-[#5865F2] hover:bg-[#4752C4] text-white font-semibold py-4 text-lg rounded-xl transform hover:scale-[1.01] transition-all duration-300 shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     size="lg"
                   >
-                    {isLoading ? (
+                    {isSigningIn ? (
                       <div className="flex items-center space-x-3">
                         <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
                         <span>Connecting to Discord...</span>

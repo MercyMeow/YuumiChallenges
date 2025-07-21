@@ -2,8 +2,7 @@
 
 import { ReactNode } from 'react';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { useRouter, usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { YuumiIcon } from '@/components/ui/datadragon-image';
 import { MagicalBackground } from '@/components/ui/magical-background';
@@ -80,14 +79,9 @@ const adminNavigation = [
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, isAuthenticated, isLoading, isYuumiMember } = useAuth();
-  const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/auth/signin');
-    }
-  }, [isAuthenticated, isLoading, router]);
+  // Removed duplicate authentication check - middleware handles redirects
 
   if (isLoading) {
     return (

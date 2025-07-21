@@ -22,6 +22,10 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/error',
+  },
   callbacks: {
     async signIn({ account, profile }) {
       console.log('SignIn callback triggered for provider:', account?.provider);
@@ -31,38 +35,66 @@ export const authOptions: NextAuthOptions = {
         console.log('Processing Discord login for user:', discordProfile.username);
         
         try {
-          // Initialize Discord API
-          const discordAPI = new DiscordAPI(process.env.DISCORD_BOT_TOKEN!);
-          
-          // Check if user is a member of the Yuumi server
-          const isYuumiMember = await discordAPI.isUserInYuumiServer(discordProfile.id);
-          console.log('Discord server membership check result:', isYuumiMember);
-          
-          // Initialize Supabase client
+          // Initialize Supabase client first
           const supabase = createServerSupabaseClient();
           
-          // Upsert user data in database (using only existing columns)
-          const { error } = await supabase
-            .from('users')
-            .upsert({
-              discord_id: discordProfile.id,
-              username: discordProfile.username,
-              avatar: discordProfile.avatar,
-              is_yuumi_member: isYuumiMember,
-              updated_at: new Date().toISOString()
-            }, {
-              onConflict: 'discord_id',
-              ignoreDuplicates: false
-            });
-          
-          if (error) {
-            console.error('Error upserting user:', error);
-            return false;
+          // Initialize Discord API with fallback handling
+          let isYuumiMember = false;
+          try {
+            const discordAPI = new DiscordAPI(process.env.DISCORD_BOT_TOKEN!);
+            
+            // Check if user is a member of the Yuumi server with timeout
+            const membershipPromise = discordAPI.isUserInYuumiServer(discordProfile.id);
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Discord API timeout')), 5000)
+            );
+            
+            isYuumiMember = await Promise.race([membershipPromise, timeoutPromise]) as boolean;
+            console.log('Discord server membership check result:', isYuumiMember);
+          } catch (discordError) {
+            console.warn('Discord API check failed, allowing sign-in with limited access:', discordError);
+            // Don't block sign-in if Discord API fails - user can still authenticate
+            // but will have limited access until Discord connectivity is restored
+            isYuumiMember = false;
           }
           
+          // Upsert user data in database with retry logic
+          let retries = 3;
+          while (retries > 0) {
+            const { error } = await supabase
+              .from('users')
+              .upsert({
+                discord_id: discordProfile.id,
+                username: discordProfile.username,
+                avatar: discordProfile.avatar,
+                is_yuumi_member: isYuumiMember,
+                updated_at: new Date().toISOString()
+              }, {
+                onConflict: 'discord_id',
+                ignoreDuplicates: false
+              });
+            
+            if (!error) {
+              console.log('User data successfully upserted for:', discordProfile.username);
+              return true;
+            }
+            
+            console.error(`Database upsert attempt ${4 - retries} failed:`, error);
+            retries--;
+            
+            if (retries > 0) {
+              // Wait before retry
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
+          
+          // If all database retries failed, still allow sign-in but log the issue
+          console.error('All database upsert attempts failed, but allowing sign-in');
           return true;
+          
         } catch (error) {
-          console.error('Error during Discord sign-in:', error);
+          console.error('Critical error during Discord sign-in:', error);
+          // Only block sign-in for critical errors (like malformed profile data)
           return false;
         }
       }
