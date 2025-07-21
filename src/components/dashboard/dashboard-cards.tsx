@@ -253,8 +253,25 @@ export function LeagueProfileCard({ summonerData, isLoading = false, onAccountCh
         <div className="p-4 bg-black/20 backdrop-blur-md rounded-xl border border-blue-500/30">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xl">
-                🐱
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xl overflow-hidden">
+                {summoner.profile_icon_id ? (
+                  <img 
+                    src={`https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/${summoner.profile_icon_id}.png`}
+                    alt="Profile Icon"
+                    className="w-full h-full object-cover rounded-full"
+                    onError={(e) => {
+                      // Fallback to cat icon if image fails to load
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling!.style.display = 'block';
+                    }}
+                  />
+                ) : null}
+                <span 
+                  className="text-xl"
+                  style={{ display: summoner.profile_icon_id ? 'none' : 'block' }}
+                >
+                  🐱
+                </span>
               </div>
               <div>
                 <p className="font-bold text-white text-lg">
