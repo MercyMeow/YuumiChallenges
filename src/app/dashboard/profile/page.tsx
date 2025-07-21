@@ -81,15 +81,15 @@ export default function ProfilePage() {
       }
       
       const data = await response.json();
-      setSummoner(data.summoner || null);
+      setSummoner(data.data?.summoner || null);
       
       // Update user stats from summoner response
-      if (data.stats) {
+      if (data.data?.stats) {
         setUserStats({
-          totalGames: data.stats.totalGames || 0,
-          overallKDA: data.stats.overallKDA || 0,
-          favoriteChampion: data.stats.favoriteChampion || 'N/A',
-          currentRank: data.stats.currentRank || 'Unranked',
+          totalGames: data.data.stats.totalGames || 0,
+          overallKDA: data.data.stats.overallKDA || 0,
+          favoriteChampion: data.data.stats.favoriteChampion || 'N/A',
+          currentRank: data.data.stats.currentRank || 'Unranked',
         });
       }
     } catch (err) {
