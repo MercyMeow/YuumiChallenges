@@ -85,7 +85,14 @@ export async function POST(request: Request) {
 
     try {
       // Refresh summoner data (level, profile icon, etc.)
-      const riotSummoner = await riotAPI.getSummonerByPuuid(summoner.puuid, summoner.region);
+      let riotSummoner = null;
+      try {
+        riotSummoner = await riotAPI.getSummonerByPuuid(summoner.puuid, summoner.region);
+      } catch (summonerError) {
+        console.error('Failed to fetch summoner data from Riot API:', summonerError);
+        // If we can't get basic summoner data, the rest will likely fail too
+        // but we'll still update the timestamp to prevent constant retries
+      }
       
       if (riotSummoner) {
         const { error: updateError } = await supabase
@@ -106,7 +113,13 @@ export async function POST(request: Request) {
       }
 
       // Refresh ranked information
-      const rankedData = await riotAPI.getRankedInfo(riotSummoner?.id || '', summoner.region);
+      let rankedData = null;
+      try {
+        rankedData = await riotAPI.getRankedInfo(riotSummoner?.id || '', summoner.region);
+      } catch (rankedError) {
+        console.error('Failed to fetch ranked info:', rankedError);
+        // Continue without updating ranked info - don't fail the entire refresh
+      }
       
       if (rankedData && rankedData.length > 0) {
         // Clear existing ranked info for this summoner
@@ -143,14 +156,20 @@ export async function POST(request: Request) {
       }
 
       // Refresh match history
-      const matchIds = await riotAPI.getMatchHistory(summoner.puuid, summoner.region, 20);
+      let matchIds = null;
+      try {
+        matchIds = await riotAPI.getMatchHistory(summoner.puuid, summoner.region, 20);
+      } catch (matchError) {
+        console.error('Failed to fetch match history:', matchError);
+        // Continue without updating match history
+      }
       
       if (matchIds && matchIds.length > 0) {
         // Get existing match IDs to avoid duplicates
         const { data: existingMatches } = await supabase
           .from('match_history')
           .select('match_id')
-          .eq('summoner_id', summoner.puuid);
+          .eq('summoner_id', summoner.id);
 
         const existingMatchIds = new Set(existingMatches?.map(m => m.match_id) || []);
         const newMatchIds = matchIds.filter((id: string) => !existingMatchIds.has(id));
@@ -168,7 +187,7 @@ export async function POST(request: Request) {
               if (participant) {
                 const matchData: Omit<MatchData, 'id' | 'created_at'> = {
                   match_id: matchId,
-                  summoner_id: summoner.puuid,
+                  summoner_id: summoner.id,
                   champion: participant.championName,
                   kills: participant.kills,
                   deaths: participant.deaths,
@@ -207,15 +226,46 @@ export async function POST(request: Request) {
 
     } catch (riotError) {
       console.error('Riot API error during refresh:', riotError);
-      // Still update refresh timestamp even if some operations failed
-      await supabase
-        .from('summoners')
-        .update({
-          last_refreshed_at: new Date().toISOString(),
-          ...(manual && { last_manual_refresh_at: new Date().toISOString() })
-        })
-        .eq('puuid', summoner.puuid);
+      
+      // Only update timestamp if at least some operations succeeded
+      const anySuccess = summonerUpdated || rankedUpdated || matchesAdded > 0;
+      
+      if (anySuccess) {
+        // Update refresh timestamp only on partial success
+        await supabase
+          .from('summoners')
+          .update({
+            last_refreshed_at: new Date().toISOString(),
+            ...(manual && { last_manual_refresh_at: new Date().toISOString() })
+          })
+          .eq('puuid', summoner.puuid);
+          
+        return createSuccessResponse<RefreshResponse>({
+          success: true,
+          message: 'Account partially refreshed (some operations failed)',
+          data: {
+            summoner_updated: summonerUpdated,
+            ranked_updated: rankedUpdated,
+            matches_added: matchesAdded,
+            matches_removed: matchesRemoved
+          }
+        });
+      } else {
+        // Complete failure - don't update timestamps, return error
+        throw new ApiError(503, 'Refresh failed - Riot API unavailable. Please try again later.', 'REFRESH_FAILED', {
+          error: riotError instanceof Error ? riotError.message : String(riotError)
+        });
+      }
     }
+
+    // Success path - update timestamps
+    await supabase
+      .from('summoners')
+      .update({
+        last_refreshed_at: new Date().toISOString(),
+        ...(manual && { last_manual_refresh_at: new Date().toISOString() })
+      })
+      .eq('puuid', summoner.puuid);
 
     return createSuccessResponse<RefreshResponse>({
       success: true,
@@ -268,8 +318,8 @@ export async function GET() {
       can_manual_refresh: canManualRefresh,
       last_refreshed_at: lastRefresh,
       last_manual_refresh_at: lastManualRefresh,
-      next_auto_refresh: canAutoRefresh ? now : nextAutoRefresh,
-      next_manual_refresh: canManualRefresh ? now : nextManualRefresh
+      next_auto_refresh: canAutoRefresh ? null : nextAutoRefresh,
+      next_manual_refresh: canManualRefresh ? null : nextManualRefresh
     });
 
   } catch (error) {

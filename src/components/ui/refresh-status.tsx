@@ -86,7 +86,7 @@ export function RefreshStatusIndicator({
               {isRefreshing && <p>Refreshing account data...</p>}
               {!isRefreshing && canRefresh && <p>Account can be refreshed</p>}
               {!isRefreshing && !canRefresh && (
-                <p>Refresh on cooldown. Available in {timeUntilRefresh}</p>
+                <p>Refresh on cooldown{timeUntilRefresh ? `. Available in ${timeUntilRefresh}` : ''}</p>
               )}
             </div>
           </TooltipContent>
@@ -122,7 +122,7 @@ export function RefreshStatusIndicator({
           className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
         >
           <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          {isRefreshing ? 'Refreshing' : !canRefresh ? `Wait ${timeUntilRefresh}` : 'Refresh'}
+          {isRefreshing ? 'Refreshing' : !canRefresh ? (timeUntilRefresh ? `Wait ${timeUntilRefresh}` : 'Cooldown') : 'Refresh'}
         </Button>
       )}
     </div>

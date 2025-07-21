@@ -19,9 +19,15 @@ interface MatchHistoryCardProps {
   summonerId?: string;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  refreshTrigger?: number; // Add refresh trigger for external refresh coordination
 }
 
-export function MatchHistoryCard({ summonerId, onRefresh, isRefreshing = false }: MatchHistoryCardProps) {
+export function MatchHistoryCard({ 
+  summonerId, 
+  onRefresh, 
+  isRefreshing = false, 
+  refreshTrigger 
+}: MatchHistoryCardProps) {
   const [matches, setMatches] = useState<MatchData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +60,7 @@ export function MatchHistoryCard({ summonerId, onRefresh, isRefreshing = false }
     } else {
       setLoading(false);
     }
-  }, [summonerId, fetchMatches]);
+  }, [summonerId, fetchMatches, refreshTrigger]); // Add refreshTrigger to dependencies
 
   const calculateWinRate = () => {
     if (matches.length === 0) return 0;

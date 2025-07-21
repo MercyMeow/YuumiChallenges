@@ -55,9 +55,9 @@ export default function Dashboard() {
   const [summonerData, setSummonerData] = useState<SummonerData | null>(null);
   const [refreshStatus, setRefreshStatus] = useState<RefreshStatus | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [autoRefreshChecked, setAutoRefreshChecked] = useState(false);
   const [loadingSummoner, setLoadingSummoner] = useState(true);
   const [isRefreshingAll, setIsRefreshingAll] = useState(false);
+  const [matchHistoryRefreshTrigger, setMatchHistoryRefreshTrigger] = useState(0);
 
   // Remove useCallback to prevent dependency issues - these functions are only called in effects
   const fetchDashboardData = async () => {
@@ -144,6 +144,8 @@ export default function Dashboard() {
           // Refresh summoner data after successful auto-refresh
           await fetchSummonerData(false);
           await fetchDashboardData(); // Refresh dashboard stats too
+          // Trigger match history refresh
+          setMatchHistoryRefreshTrigger(Date.now());
         }
       }
     } catch (error) {
@@ -170,6 +172,8 @@ export default function Dashboard() {
           // Refresh all data after successful manual refresh
           await fetchSummonerData(false);
           await fetchDashboardData();
+          // Trigger match history refresh
+          setMatchHistoryRefreshTrigger(Date.now());
         }
       }
     } catch (error) {
@@ -207,6 +211,9 @@ export default function Dashboard() {
       // Add small delay for user feedback
       await new Promise(resolve => setTimeout(resolve, 500));
       
+      // Trigger match history refresh after successful refresh all
+      setMatchHistoryRefreshTrigger(Date.now());
+      
     } catch (error) {
       console.error('Error during refresh all:', error);
     } finally {
@@ -222,15 +229,48 @@ export default function Dashboard() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user]); // Only depend on auth state
-
-  // Auto-refresh logic - check if we should auto-refresh on mount
+  
+  // Periodic refresh status updates for accurate cooldown display
   useEffect(() => {
-    if (summonerData && !autoRefreshChecked && refreshStatus?.can_refresh) {
-      checkAutoRefresh();
-      setAutoRefreshChecked(true);
-    }
+    if (!isAuthenticated || !user || !summonerData?.summoner) return;
+    
+    // Update refresh status every 30 seconds for accurate cooldown display
+    const statusInterval = setInterval(async () => {
+      if (!isRefreshing && !isRefreshingAll) {
+        await fetchRefreshStatus();
+      }
+    }, 30 * 1000); // Update every 30 seconds
+    
+    return () => clearInterval(statusInterval);
+  }, [isAuthenticated, user, summonerData?.summoner, isRefreshing, isRefreshingAll]);
+
+  // Auto-refresh logic - periodic checking for auto-refresh eligibility
+  useEffect(() => {
+    if (!isAuthenticated || !user || !summonerData?.summoner) return;
+    
+    // Initial auto-refresh check on mount
+    const initialCheck = async () => {
+      await fetchRefreshStatus();
+      if (refreshStatus?.can_refresh && !isRefreshing) {
+        await checkAutoRefresh();
+      }
+    };
+    
+    initialCheck();
+    
+    // Set up periodic auto-refresh checking every 5 minutes
+    const autoRefreshInterval = setInterval(async () => {
+      if (!isRefreshing) {
+        await fetchRefreshStatus();
+        if (refreshStatus?.can_refresh) {
+          await checkAutoRefresh();
+        }
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+    
+    return () => clearInterval(autoRefreshInterval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [summonerData, autoRefreshChecked, refreshStatus?.can_refresh]); // Removed checkAutoRefresh dependency
+  }, [isAuthenticated, user, summonerData?.summoner]); // Simplified dependencies
 
   // Handle all loading and authentication states properly
   if (isLoading || loadingStats) {
@@ -416,6 +456,7 @@ export default function Dashboard() {
               summonerId={summonerData?.summoner?.puuid}
               onRefresh={handleManualRefresh}
               isRefreshing={isRefreshing}
+              refreshTrigger={matchHistoryRefreshTrigger}
             />
           </div>
           
