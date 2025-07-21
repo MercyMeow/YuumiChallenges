@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { YuumiIcon } from '@/components/ui/datadragon-image';
-import { MagicalBackground } from '@/components/ui/magical-background';
 
 export default function SignIn() {
   const router = useRouter();
@@ -42,12 +41,12 @@ export default function SignIn() {
   // Show loading state while checking authentication
   if (authLoading) {
     return (
-      <MagicalBackground className="flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="relative z-10">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           <div className="absolute inset-0 animate-ping rounded-full h-12 w-12 border border-primary/30"></div>
         </div>
-      </MagicalBackground>
+      </div>
     );
   }
 
@@ -57,7 +56,7 @@ export default function SignIn() {
   }
 
   return (
-    <MagicalBackground>
+    <div className="min-h-screen w-full relative">
       {/* Back to Home Link */}
       <div className="fixed top-6 left-6 z-50">
         <Button 
@@ -190,6 +189,6 @@ export default function SignIn() {
           </div>
         </div>
       </div>
-    </MagicalBackground>
+    </div>
   );
 }

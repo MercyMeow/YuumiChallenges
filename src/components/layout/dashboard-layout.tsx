@@ -5,7 +5,6 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { YuumiIcon } from '@/components/ui/datadragon-image';
-import { MagicalBackground } from '@/components/ui/magical-background';
 import {
   Sidebar,
   SidebarContent,
@@ -85,7 +84,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   if (isLoading) {
     return (
-      <MagicalBackground>
+      <div className="min-h-screen w-full">
         <SidebarProvider>
           <div className="min-h-screen flex w-full">
             <Sidebar variant="inset" className="backdrop-blur-md bg-black/20 border-purple-500/20 [&_*]:!text-inherit">
@@ -148,7 +147,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </SidebarInset>
           </div>
         </SidebarProvider>
-      </MagicalBackground>
+      </div>
     );
   }
 
@@ -190,7 +189,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <MagicalBackground>
+    <div className="min-h-screen w-full">
       <SidebarProvider>
         <div className="min-h-screen flex w-full">
         <Sidebar variant="inset" className="backdrop-blur-md bg-black/20 border-purple-500/20 [&_*]:!text-inherit">
@@ -332,6 +331,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </SidebarInset>
         </div>
       </SidebarProvider>
-    </MagicalBackground>
+    </div>
   );
 }

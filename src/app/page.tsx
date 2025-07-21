@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { YuumiIcon } from '@/components/ui/datadragon-image';
-import { MagicalBackground } from '@/components/ui/magical-background';
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -21,12 +20,12 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <MagicalBackground className="flex items-center justify-center">
+      <div className="min-h-screen w-full flex items-center justify-center">
         <div className="relative z-10">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           <div className="absolute inset-0 animate-ping rounded-full h-12 w-12 border border-primary/30"></div>
         </div>
-      </MagicalBackground>
+      </div>
     );
   }
 
@@ -35,7 +34,7 @@ export default function Home() {
   }
 
   return (
-    <MagicalBackground>
+    <div className="min-h-screen w-full relative">
       <div className="container mx-auto px-6 py-20">
         <div className="max-w-6xl mx-auto">
           {/* Hero Section */}
@@ -216,6 +215,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </MagicalBackground>
+    </div>
   );
 }

@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { YuumiIcon } from '@/components/ui/datadragon-image';
-import { MagicalBackground } from '@/components/ui/magical-background';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 
 const errorMessages = {
@@ -23,7 +22,7 @@ function AuthErrorContent() {
   const errorMessage = errorMessages[error] || errorMessages.Default;
 
   return (
-    <MagicalBackground className="flex items-center justify-center">
+    <div className="min-h-screen w-full flex items-center justify-center">
       <div className="px-6">
         <div className="w-full max-w-md">
           <div className="relative group">
@@ -99,19 +98,19 @@ function AuthErrorContent() {
           </div>
         </div>
       </div>
-    </MagicalBackground>
+    </div>
   );
 }
 
 export default function AuthError() {
   return (
     <Suspense fallback={
-      <MagicalBackground className="flex items-center justify-center">
+      <div className="min-h-screen w-full flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yuumi-purple mx-auto"></div>
           <p className="mt-4 text-landing-text-secondary">Loading...</p>
         </div>
-      </MagicalBackground>
+      </div>
     }>
       <AuthErrorContent />
     </Suspense>
