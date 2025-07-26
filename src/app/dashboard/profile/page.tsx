@@ -133,6 +133,8 @@ export default function ProfilePage() {
         if (response.ok) {
           const data = await response.json();
           setPerformanceStats(data);
+        } else {
+          console.warn('Stats API returned error:', response.status, response.statusText);
         }
       }
     } catch (err) {

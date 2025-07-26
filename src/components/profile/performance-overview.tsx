@@ -78,18 +78,18 @@ function StatCard({
 }
 
 export function PerformanceOverview({ stats, summoner }: PerformanceOverviewProps) {
-  const hasRankedInfo = summoner.ranked_info && summoner.ranked_info.length > 0;
+  const hasRankedInfo = summoner.ranked_info && Array.isArray(summoner.ranked_info) && summoner.ranked_info.length > 0;
   
-  // Calculate overall win rate from single summoner
-  const totalWins = summoner.ranked_info?.reduce((sum, rank) => sum + rank.wins, 0) || 0;
-  const totalLosses = summoner.ranked_info?.reduce((sum, rank) => sum + rank.losses, 0) || 0;
+  // Calculate overall win rate from single summoner - ensure ranked_info is an array
+  const totalWins = hasRankedInfo ? summoner.ranked_info!.reduce((sum, rank) => sum + rank.wins, 0) : 0;
+  const totalLosses = hasRankedInfo ? summoner.ranked_info!.reduce((sum, rank) => sum + rank.losses, 0) : 0;
   
   const overallWinRate = totalWins + totalLosses > 0 ? 
     Math.round((totalWins / (totalWins + totalLosses)) * 100) : 0;
 
   // Get current rank (Solo Queue priority)
-  const soloQueueRank = summoner.ranked_info?.find(r => r.queue_type === 'RANKED_SOLO_5x5');
-  const currentRank = soloQueueRank || summoner.ranked_info?.[0];
+  const soloQueueRank = hasRankedInfo ? summoner.ranked_info!.find(r => r.queue_type === 'RANKED_SOLO_5x5') : undefined;
+  const currentRank = soloQueueRank || (hasRankedInfo ? summoner.ranked_info![0] : undefined);
 
   return (
     <div className="space-y-6">
