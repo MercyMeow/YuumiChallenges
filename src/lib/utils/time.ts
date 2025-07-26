@@ -2,10 +2,18 @@
  * Format a date as relative time (e.g., "5 minutes ago", "2 hours ago")
  */
 export function formatRelativeTime(date: Date | string | null | undefined): string {
-  if (!date) return 'Never';
+  if (!date) {
+    return 'Never';
+  }
   
   const now = new Date();
   const past = new Date(date);
+  
+  // Check if the date is valid
+  if (isNaN(past.getTime())) {
+    return 'Never';
+  }
+  
   const diffMs = now.getTime() - past.getTime();
   const diffSec = Math.floor(diffMs / 1000);
   const diffMin = Math.floor(diffSec / 60);
@@ -35,6 +43,12 @@ export function formatTimeRemaining(date: Date | string | null | undefined): str
   
   const now = new Date();
   const future = new Date(date);
+  
+  // Check if the date is valid
+  if (isNaN(future.getTime())) {
+    return '0 seconds';
+  }
+  
   const diffMs = future.getTime() - now.getTime();
   
   if (diffMs <= 0) return '0 seconds';

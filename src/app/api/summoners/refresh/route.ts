@@ -380,13 +380,14 @@ export async function GET() {
       last_match_date: string | null;
     };
 
-    // Convert timestamp strings to proper Date objects/ISO strings for frontend
-    const convertTimestamp = (timestamp: string | null): Date | undefined => {
-      return timestamp ? new Date(timestamp) : undefined;
+    // Convert timestamp strings to ISO strings for JSON serialization
+    const convertTimestamp = (timestamp: string | null): string | null => {
+      return timestamp ? new Date(timestamp).toISOString() : null;
     };
 
     return createSuccessResponse({
       can_refresh: status.can_auto_refresh,
+      can_auto_refresh: status.can_auto_refresh,
       can_manual_refresh: status.can_manual_refresh,
       last_refreshed_at: convertTimestamp(status.last_refreshed_at),
       last_manual_refresh_at: convertTimestamp(status.last_manual_refresh_at),

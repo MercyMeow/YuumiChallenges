@@ -271,6 +271,7 @@ export function LeagueProfileCard({
 }: LeagueProfileCardProps) {
   const [isUpdating, setIsUpdating] = useState(false);
 
+
   const handleAccountChange = async () => {
     if (onAccountChange) {
       setIsUpdating(true);

@@ -157,14 +157,14 @@ export default function ProfilePage() {
       if (response.ok) {
         const data = await response.json();
         
-        // Convert timestamp strings back to Date objects
+        // Convert timestamp strings to Date objects (API returns ISO strings)
         const refreshStatus = {
           ...data,
-          last_refreshed_at: data.last_refreshed_at ? new Date(data.last_refreshed_at) : undefined,
-          last_manual_refresh_at: data.last_manual_refresh_at ? new Date(data.last_manual_refresh_at) : undefined,
-          next_auto_refresh: data.next_auto_refresh ? new Date(data.next_auto_refresh) : undefined,
-          next_manual_refresh: data.next_manual_refresh ? new Date(data.next_manual_refresh) : undefined,
-          last_match_date: data.last_match_date ? new Date(data.last_match_date) : undefined,
+          last_refreshed_at: data.last_refreshed_at ? new Date(data.last_refreshed_at) : null,
+          last_manual_refresh_at: data.last_manual_refresh_at ? new Date(data.last_manual_refresh_at) : null,
+          next_auto_refresh: data.next_auto_refresh ? new Date(data.next_auto_refresh) : null,
+          next_manual_refresh: data.next_manual_refresh ? new Date(data.next_manual_refresh) : null,
+          last_match_date: data.last_match_date ? new Date(data.last_match_date) : null,
         };
         
         setRefreshStatus(refreshStatus);

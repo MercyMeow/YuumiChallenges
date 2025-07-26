@@ -123,10 +123,10 @@ export interface RefreshResponse {
 export interface RefreshStatus {
   can_refresh: boolean;
   can_manual_refresh: boolean;
-  last_refreshed_at?: Date;
-  last_manual_refresh_at?: Date;
-  next_auto_refresh?: Date;
-  next_manual_refresh?: Date;
+  last_refreshed_at?: Date | null;
+  last_manual_refresh_at?: Date | null;
+  next_auto_refresh?: Date | null;
+  next_manual_refresh?: Date | null;
   total_matches?: number;
-  last_match_date?: Date;
+  last_match_date?: Date | null;
 }

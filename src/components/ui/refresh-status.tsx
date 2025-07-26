@@ -27,6 +27,7 @@ export function RefreshStatusIndicator({
 }: RefreshStatusIndicatorProps) {
   const [timeUntilRefresh, setTimeUntilRefresh] = useState<string>('');
 
+
   // Update countdown timer
   useEffect(() => {
     if (!refreshStatus) return;
