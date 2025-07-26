@@ -96,6 +96,92 @@ export interface MatchData {
   created_at: Date;
 }
 
+// Enhanced types for detailed match data
+export interface DetailedMatchParticipant {
+  puuid: string;
+  summonerName: string;
+  championName: string;
+  championId: number;
+  kills: number;
+  deaths: number;
+  assists: number;
+  level: number;
+  goldEarned: number;
+  totalMinionsKilled: number;
+  visionScore: number;
+  teamId: number;
+  win: boolean;
+  items: number[]; // Array of 7 item IDs (6 items + trinket)
+  summoner1Id: number;
+  summoner2Id: number;
+  perks: {
+    statPerks: {
+      defense: number;
+      flex: number;
+      offense: number;
+    };
+    styles: {
+      description: string;
+      selections: {
+        perk: number;
+        var1: number;
+        var2: number;
+        var3: number;
+      }[];
+      style: number;
+    }[];
+  };
+}
+
+export interface DetailedMatchTeam {
+  teamId: number;
+  win: boolean;
+  bans: {
+    championId: number;
+    pickTurn: number;
+  }[];
+  objectives: {
+    baron: { first: boolean; kills: number };
+    champion: { first: boolean; kills: number };
+    dragon: { first: boolean; kills: number };
+    inhibitor: { first: boolean; kills: number };
+    riftHerald: { first: boolean; kills: number };
+    tower: { first: boolean; kills: number };
+  };
+}
+
+export interface DetailedMatchData {
+  metadata: {
+    dataVersion: string;
+    matchId: string;
+    participants: string[]; // Array of PUUIDs
+  };
+  info: {
+    gameCreation: number;
+    gameDuration: number;
+    gameEndTimestamp: number;
+    gameId: number;
+    gameMode: string;
+    gameName: string;
+    gameStartTimestamp: number;
+    gameType: string;
+    gameVersion: string;
+    mapId: number;
+    participants: DetailedMatchParticipant[];
+    platformId: string;
+    queueId: number;
+    teams: DetailedMatchTeam[];
+    tournamentCode?: string;
+  };
+}
+
+export interface ProcessedMatchData extends MatchData {
+  detailedData?: DetailedMatchData;
+  userParticipant?: DetailedMatchParticipant;
+  userTeam?: DetailedMatchTeam;
+  enemyTeam?: DetailedMatchTeam;
+}
+
 export interface RankedInfo {
   tier: string;
   rank: string;
