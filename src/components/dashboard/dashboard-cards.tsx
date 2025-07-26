@@ -258,6 +258,7 @@ interface LeagueProfileCardProps {
   refreshStatus?: RefreshStatus | null;
   isRefreshing?: boolean;
   onRefresh?: () => Promise<void>;
+  onRefreshSpecific?: (operations: string[]) => Promise<void>;
 }
 
 export function LeagueProfileCard({ 

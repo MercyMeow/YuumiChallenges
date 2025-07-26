@@ -113,6 +113,9 @@ export interface RefreshResponse {
     ranked_updated: boolean;
     matches_added: number;
     matches_removed: number;
+    errors: string[];
+    warnings: string[];
+    partial_success?: boolean;
   };
   next_refresh_available?: Date;
 }
@@ -124,4 +127,6 @@ export interface RefreshStatus {
   last_manual_refresh_at?: Date;
   next_auto_refresh?: Date;
   next_manual_refresh?: Date;
+  total_matches?: number;
+  last_match_date?: Date;
 }

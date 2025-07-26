@@ -8,6 +8,7 @@ import { SummonersSection } from '@/components/profile/summoners-section';
 import { PerformanceOverview } from '@/components/profile/performance-overview';
 import { MatchHistoryDisplay } from '@/components/match-history';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { RefreshProgress, RefreshResult } from '@/components/ui/refresh-status';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
@@ -69,6 +70,29 @@ export default function ProfilePage() {
   const [, setLoadingStats] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshResult, setRefreshResult] = useState<{
+    success: boolean;
+    message: string;
+    data?: {
+      summoner_updated: boolean;
+      ranked_updated: boolean;
+      matches_added: number;
+      matches_removed: number;
+      errors: string[];
+      warnings: string[];
+      partial_success?: boolean;
+    };
+  } | null>(null);
+  const [refreshStatus, setRefreshStatus] = useState<{
+    can_refresh: boolean;
+    can_manual_refresh: boolean;
+    last_refreshed_at?: Date;
+    last_manual_refresh_at?: Date;
+    next_auto_refresh?: Date;
+    next_manual_refresh?: Date;
+    total_matches?: number;
+    last_match_date?: Date;
+  } | null>(null);
 
   const fetchSummoner = async () => {
     try {
@@ -125,18 +149,32 @@ export default function ProfilePage() {
     }
   }, [isAuthenticated, user]);
 
+  const fetchRefreshStatus = useCallback(async () => {
+    if (!summoner) return;
+    
+    try {
+      const response = await fetch('/api/summoners/refresh');
+      if (response.ok) {
+        const data = await response.json();
+        setRefreshStatus(data);
+      }
+    } catch (error) {
+      console.error('Error fetching refresh status:', error);
+    }
+  }, [summoner]);
+
   // Fetch performance stats when summoner changes
   useEffect(() => {
     if (summoner) {
       fetchPerformanceStats();
+      fetchRefreshStatus();
     }
-  }, [summoner, fetchPerformanceStats]);
+  }, [summoner, fetchPerformanceStats, fetchRefreshStatus]);
 
   const handleAddSummoner = async () => {
     // Simple callback to refresh summoner after successful verification
     await fetchSummoner();
   };
-
 
   const handleRemoveSummoner = async (id: string) => {
     try {
@@ -156,27 +194,47 @@ export default function ProfilePage() {
     }
   };
 
-  const handleRefresh = async () => {
+  const handleRefresh = async (operations = ['summoner', 'ranked', 'matches']) => {
     if (isRefreshing || !summoner) return;
     
     try {
       setIsRefreshing(true);
+      setRefreshResult(null);
+      
       const response = await fetch('/api/summoners/refresh', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ manual: true }),
+        body: JSON.stringify({ 
+          manual: true,
+          operations 
+        }),
       });
       
       if (response.ok) {
         const result = await response.json();
-        if (result.success) {
-          // Refresh summoner data after successful refresh
+        setRefreshResult(result);
+        
+        if (result.success || result.data?.partial_success) {
+          // Refresh summoner data after successful/partial refresh
           await fetchSummoner();
           await fetchPerformanceStats();
+          await fetchRefreshStatus();
         }
+      } else {
+        const errorResult = await response.json();
+        setRefreshResult({
+          success: false,
+          message: errorResult.message || 'Refresh failed',
+          data: errorResult.details || {}
+        });
       }
     } catch (error) {
       console.error('Error during refresh:', error);
+      setRefreshResult({
+        success: false,
+        message: 'Network error during refresh',
+        data: { errors: ['Network error occurred'] }
+      });
     } finally {
       setIsRefreshing(false);
     }
@@ -222,6 +280,30 @@ export default function ProfilePage() {
         {/* Page Header */}
         <ProfileHeader user={user} stats={userStats} />
 
+        {/* Refresh Progress/Result */}
+        {isRefreshing && (
+          <RefreshProgress 
+            isRefreshing={isRefreshing}
+            message="Refreshing account and match data..."
+          />
+        )}
+        
+        {refreshResult && !isRefreshing && (
+          <RefreshResult 
+            result={refreshResult}
+            onDismiss={() => setRefreshResult(null)}
+          />
+        )}
+
+        {/* Refresh Status Display */}
+        {refreshStatus && summoner && (
+          <div className="text-xs text-white/50 p-2 bg-black/20 rounded border border-white/10">
+            <p>Last refresh: {refreshStatus.last_refreshed_at ? new Date(refreshStatus.last_refreshed_at).toLocaleString() : 'Never'}</p>
+            <p>Total matches: {refreshStatus.total_matches || 0}</p>
+            <p>Can refresh: {refreshStatus.can_manual_refresh ? 'Yes' : 'No'}</p>
+          </div>
+        )}
+
         {/* Summoner Account Section */}
         <SummonersSection
           summoner={summoner}
@@ -238,7 +320,7 @@ export default function ProfilePage() {
         {summoner && (
           <MatchHistoryDisplay
             summonerId={summoner.puuid}
-            onRefresh={handleRefresh}
+            onRefresh={() => handleRefresh(['matches'])}
             isRefreshing={isRefreshing}
           />
         )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge'; // Unused for now
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { RefreshCw, Clock, CheckCircle } from 'lucide-react';
@@ -113,17 +113,35 @@ interface RefreshProgressProps {
   isRefreshing: boolean;
   progress?: number;
   message?: string;
+  stage?: 'summoner' | 'ranked' | 'matches' | 'cleanup';
 }
 
-export function RefreshProgress({ isRefreshing, progress, message }: RefreshProgressProps) {
+export function RefreshProgress({ isRefreshing, progress, message, stage }: RefreshProgressProps) {
   if (!isRefreshing) return null;
+
+  const getStageMessage = () => {
+    if (message) return message;
+    
+    switch (stage) {
+      case 'summoner':
+        return 'Updating summoner information...';
+      case 'ranked':
+        return 'Fetching ranked data...';
+      case 'matches':
+        return 'Processing match history...';
+      case 'cleanup':
+        return 'Cleaning up old data...';
+      default:
+        return 'Refreshing account data...';
+    }
+  };
 
   return (
     <div className="flex items-center space-x-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
       <RefreshCw className="h-4 w-4 animate-spin text-blue-400" />
       <div className="flex-1">
         <p className="text-sm text-blue-400 font-medium">
-          {message || 'Refreshing account data...'}
+          {getStageMessage()}
         </p>
         {progress !== undefined && (
           <div className="mt-1">
@@ -135,6 +153,101 @@ export function RefreshProgress({ isRefreshing, progress, message }: RefreshProg
             </div>
             <p className="text-xs text-blue-300 mt-1">{Math.round(progress)}% complete</p>
           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface RefreshResultProps {
+  result: {
+    success: boolean;
+    message: string;
+    data?: {
+      summoner_updated: boolean;
+      ranked_updated: boolean;
+      matches_added: number;
+      matches_removed: number;
+      errors: string[];
+      warnings: string[];
+      partial_success?: boolean;
+    };
+  } | null;
+  onDismiss?: () => void;
+}
+
+export function RefreshResult({ result, onDismiss }: RefreshResultProps) {
+  if (!result) return null;
+
+  const { success, message, data } = result;
+  const hasErrors = (data?.errors?.length ?? 0) > 0;
+  const hasWarnings = (data?.warnings?.length ?? 0) > 0;
+  const partialSuccess = data?.partial_success;
+
+  const getStatusColor = () => {
+    if (hasErrors || !success) return 'red';
+    if (hasWarnings || partialSuccess) return 'yellow';
+    return 'green';
+  };
+
+  const statusColor = getStatusColor();
+
+  return (
+    <div className={`p-4 bg-${statusColor}-500/10 border border-${statusColor}-500/20 rounded-lg`}>
+      <div className="flex items-start justify-between">
+        <div className="flex items-center space-x-2">
+          {success ? (
+            <CheckCircle className={`h-5 w-5 text-${statusColor}-400`} />
+          ) : (
+            <RefreshCw className={`h-5 w-5 text-${statusColor}-400`} />
+          )}
+          <div className="flex-1">
+            <p className={`font-medium text-${statusColor}-400`}>{message}</p>
+            
+            {data && (
+              <div className="mt-2 space-y-1">
+                {data.summoner_updated && (
+                  <p className="text-xs text-white/70">✓ Summoner data updated</p>
+                )}
+                {data.ranked_updated && (
+                  <p className="text-xs text-white/70">✓ Ranked information updated</p>
+                )}
+                {data.matches_added > 0 && (
+                  <p className="text-xs text-white/70">✓ {data.matches_added} new matches added</p>
+                )}
+                {data.matches_removed > 0 && (
+                  <p className="text-xs text-white/70">✓ {data.matches_removed} old matches cleaned up</p>
+                )}
+                
+                {hasWarnings && (
+                  <div className="mt-2">
+                    <p className="text-xs text-yellow-400 font-medium">Warnings:</p>
+                    {data.warnings.map((warning, i) => (
+                      <p key={i} className="text-xs text-yellow-300">• {warning}</p>
+                    ))}
+                  </div>
+                )}
+                
+                {hasErrors && (
+                  <div className="mt-2">
+                    <p className="text-xs text-red-400 font-medium">Errors:</p>
+                    {data.errors.map((error, i) => (
+                      <p key={i} className="text-xs text-red-300">• {error}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {onDismiss && (
+          <button 
+            onClick={onDismiss}
+            className={`text-${statusColor}-400 hover:text-${statusColor}-300 text-sm`}
+          >
+            ×
+          </button>
         )}
       </div>
     </div>
