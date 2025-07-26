@@ -62,7 +62,7 @@ export function EnhancedMatchHistoryDisplay({
       if (resetMatches) {
         setMatches(newMatches);
       } else {
-        setMatches(prev => [...prev, ...newMatches]);
+        setMatches(prev => [...(Array.isArray(prev) ? prev : []), ...(Array.isArray(newMatches) ? newMatches : [])]);
       }
       
       setHasMore(data.pagination?.hasMore || false);
@@ -79,6 +79,11 @@ export function EnhancedMatchHistoryDisplay({
   }, [summonerId]);
 
   const getFilteredMatches = () => {
+    // Ensure matches is an array before filtering
+    if (!Array.isArray(matches)) {
+      return [];
+    }
+    
     switch (filter) {
       case 'wins':
         return matches.filter(match => match.win);
@@ -96,7 +101,8 @@ export function EnhancedMatchHistoryDisplay({
   };
 
   const calculateStats = () => {
-    if (matches.length === 0) {
+    // Ensure matches is an array before calculating stats
+    if (!Array.isArray(matches) || matches.length === 0) {
       return {
         totalGames: 0,
         wins: 0,
@@ -155,7 +161,7 @@ export function EnhancedMatchHistoryDisplay({
   };
 
   const getStreakInfo = () => {
-    if (matches.length === 0) return { type: 'none', count: 0, isActive: false };
+    if (!Array.isArray(matches) || matches.length === 0) return { type: 'none', count: 0, isActive: false };
     
     const sortedMatches = [...matches].sort((a, b) => 
       new Date(b.game_creation).getTime() - new Date(a.game_creation).getTime()

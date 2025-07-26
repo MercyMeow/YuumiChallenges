@@ -58,22 +58,28 @@ export function MatchHistoryDisplay({ summonerId, onRefresh, isRefreshing = fals
   }, [summonerId, fetchMatches]);
 
   const getFilteredMatches = () => {
+    // Ensure matches is an array before filtering
+    const safeMatches = Array.isArray(matches) ? matches : [];
+    
     switch (filter) {
       case 'wins':
-        return matches.filter(match => match.win);
+        return safeMatches.filter(match => match.win);
       case 'losses':
-        return matches.filter(match => !match.win);
+        return safeMatches.filter(match => !match.win);
       case 'ranked':
-        return matches.filter(match => match.queue_id === 420 || match.queue_id === 440);
+        return safeMatches.filter(match => match.queue_id === 420 || match.queue_id === 440);
       case 'normal':
-        return matches.filter(match => match.queue_id === 400 || match.queue_id === 430);
+        return safeMatches.filter(match => match.queue_id === 400 || match.queue_id === 430);
       default:
-        return matches;
+        return safeMatches;
     }
   };
 
   const calculateStats = () => {
-    if (matches.length === 0) {
+    // Ensure matches is an array before calculating stats
+    const safeMatches = Array.isArray(matches) ? matches : [];
+    
+    if (safeMatches.length === 0) {
       return {
         totalGames: 0,
         wins: 0,
@@ -87,24 +93,24 @@ export function MatchHistoryDisplay({ summonerId, onRefresh, isRefreshing = fals
       };
     }
 
-    const wins = matches.filter(match => match.win).length;
-    const losses = matches.length - wins;
-    const winRate = Math.round((wins / matches.length) * 100);
+    const wins = safeMatches.filter(match => match.win).length;
+    const losses = safeMatches.length - wins;
+    const winRate = Math.round((wins / safeMatches.length) * 100);
 
-    const totalKills = matches.reduce((sum, match) => sum + match.kills, 0);
-    const totalDeaths = matches.reduce((sum, match) => sum + match.deaths, 0);
-    const totalAssists = matches.reduce((sum, match) => sum + match.assists, 0);
+    const totalKills = safeMatches.reduce((sum, match) => sum + match.kills, 0);
+    const totalDeaths = safeMatches.reduce((sum, match) => sum + match.deaths, 0);
+    const totalAssists = safeMatches.reduce((sum, match) => sum + match.assists, 0);
 
-    const avgKills = Math.round((totalKills / matches.length) * 10) / 10;
-    const avgDeaths = Math.round((totalDeaths / matches.length) * 10) / 10;
-    const avgAssists = Math.round((totalAssists / matches.length) * 10) / 10;
+    const avgKills = Math.round((totalKills / safeMatches.length) * 10) / 10;
+    const avgDeaths = Math.round((totalDeaths / safeMatches.length) * 10) / 10;
+    const avgAssists = Math.round((totalAssists / safeMatches.length) * 10) / 10;
 
     const avgKDA = totalDeaths > 0 ? 
       Math.round(((totalKills + totalAssists) / totalDeaths) * 100) / 100 : 
       99;
 
     // Find most played champion
-    const championCounts = matches.reduce((acc, match) => {
+    const championCounts = safeMatches.reduce((acc, match) => {
       acc[match.champion] = (acc[match.champion] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -113,7 +119,7 @@ export function MatchHistoryDisplay({ summonerId, onRefresh, isRefreshing = fals
       .sort(([,a], [,b]) => b - a)[0]?.[0] || 'None';
 
     return {
-      totalGames: matches.length,
+      totalGames: safeMatches.length,
       wins,
       losses,
       winRate,
@@ -126,7 +132,7 @@ export function MatchHistoryDisplay({ summonerId, onRefresh, isRefreshing = fals
   };
 
   const getStreakInfo = () => {
-    if (matches.length === 0) return { type: 'none', count: 0, isActive: false };
+    if (!Array.isArray(matches) || matches.length === 0) return { type: 'none', count: 0, isActive: false };
     
     const sortedMatches = [...matches].sort((a, b) => 
       new Date(b.game_creation).getTime() - new Date(a.game_creation).getTime()
@@ -232,7 +238,7 @@ export function MatchHistoryDisplay({ summonerId, onRefresh, isRefreshing = fals
       </CardHeader>
       
       <CardContent className="space-y-6">
-        {matches.length === 0 ? (
+        {!Array.isArray(matches) || matches.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <GamepadIcon className="h-16 w-16 text-white/30 mb-4" />
             <h3 className="text-xl font-semibold text-white mb-2">No Match History</h3>
@@ -297,7 +303,7 @@ export function MatchHistoryDisplay({ summonerId, onRefresh, isRefreshing = fals
             <Tabs value={filter} onValueChange={(value) => setFilter(value as MatchFilter)}>
               <div className="flex items-center justify-between">
                 <TabsList className="bg-black/20 border border-white/10">
-                  <TabsTrigger value="all">All ({matches.length})</TabsTrigger>
+                  <TabsTrigger value="all">All ({Array.isArray(matches) ? matches.length : 0})</TabsTrigger>
                   <TabsTrigger value="wins">Wins ({stats.wins})</TabsTrigger>
                   <TabsTrigger value="losses">Losses ({stats.losses})</TabsTrigger>
                   <TabsTrigger value="ranked">Ranked</TabsTrigger>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MatchEntry } from './match-entry';
+import { MatchCard } from './match-card';
 import { MatchData } from '@/lib/types';
 import { 
   GamepadIcon, 
@@ -63,13 +63,15 @@ export function MatchHistoryCard({
   }, [summonerId, fetchMatches, refreshTrigger]); // Add refreshTrigger to dependencies
 
   const calculateWinRate = () => {
-    if (matches.length === 0) return 0;
-    const wins = matches.filter(match => match.win).length;
-    return Math.round((wins / matches.length) * 100);
+    // Ensure matches is an array before calculating stats
+    const safeMatches = Array.isArray(matches) ? matches : [];
+    if (safeMatches.length === 0) return 0;
+    const wins = safeMatches.filter(match => match.win).length;
+    return Math.round((wins / safeMatches.length) * 100);
   };
 
   const getRecentStreak = () => {
-    if (matches.length === 0) return { type: 'none', count: 0 };
+    if (!Array.isArray(matches) || matches.length === 0) return { type: 'none', count: 0 };
     
     const sortedMatches = [...matches].sort((a, b) => 
       new Date(b.game_creation).getTime() - new Date(a.game_creation).getTime()
@@ -171,7 +173,7 @@ export function MatchHistoryCard({
     );
   }
 
-  if (matches.length === 0) {
+  if (!Array.isArray(matches) || matches.length === 0) {
     return (
       <Card className="h-full bg-black/20 backdrop-blur-md border-purple-500/30">
         <CardHeader className="pb-3">
@@ -261,7 +263,7 @@ export function MatchHistoryCard({
               <TrendingUp className="h-4 w-4 text-green-400 mr-1" />
               <span className="text-lg font-bold text-green-400">{winRate}%</span>
             </div>
-            <p className="text-xs text-white/60">Win Rate ({matches.length} games)</p>
+            <p className="text-xs text-white/60">Win Rate ({Array.isArray(matches) ? matches.length : 0} games)</p>
           </div>
           
           <div className="text-center p-3 bg-white/5 rounded-lg border border-white/10">
@@ -280,13 +282,13 @@ export function MatchHistoryCard({
         {/* Recent Matches */}
         <div className="space-y-3">
           <h4 className="text-sm font-medium text-white/80">Recent Games</h4>
-          {matches.slice(0, 3).map((match) => (
-            <MatchEntry key={match.match_id} match={match} compact />
+          {(Array.isArray(matches) ? matches : []).slice(0, 3).map((match) => (
+            <MatchCard key={match.match_id} match={match} compact />
           ))}
         </div>
 
         {/* View All Button */}
-        {matches.length > 3 && (
+        {Array.isArray(matches) && matches.length > 3 && (
           <div className="pt-2">
             <Button 
               variant="outline" 

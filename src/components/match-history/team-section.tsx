@@ -23,7 +23,9 @@ export function TeamSection({
   compact = false,
   className = ''
 }: TeamSectionProps) {
-  const teamParticipants = participants.filter(p => p.teamId === team.teamId);
+  // Ensure participants is an array before filtering
+  const safeParticipants = Array.isArray(participants) ? participants : [];
+  const teamParticipants = safeParticipants.filter(p => p.teamId === team.teamId);
   const isWinning = team.win;
   
   const getTeamColor = (side: 'blue' | 'red', isWin: boolean) => {
@@ -159,7 +161,7 @@ export function TeamSection({
         {/* Objectives (if available) */}
         {team.objectives && (
           <div className="mt-3 flex flex-wrap gap-2">
-            {team.objectives.baron.kills > 0 && (
+            {team.objectives.baron?.kills > 0 && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Badge variant="outline" className="text-purple-400 border-purple-500/30">
@@ -173,7 +175,7 @@ export function TeamSection({
               </Tooltip>
             )}
             
-            {team.objectives.dragon.kills > 0 && (
+            {team.objectives.dragon?.kills > 0 && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Badge variant="outline" className="text-orange-400 border-orange-500/30">
@@ -187,7 +189,7 @@ export function TeamSection({
               </Tooltip>
             )}
             
-            {team.objectives.tower.kills > 0 && (
+            {team.objectives.tower?.kills > 0 && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Badge variant="outline" className="text-gray-400 border-gray-500/30">
@@ -201,7 +203,7 @@ export function TeamSection({
               </Tooltip>
             )}
             
-            {team.objectives.inhibitor.kills > 0 && (
+            {team.objectives.inhibitor?.kills > 0 && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Badge variant="outline" className="text-red-400 border-red-500/30">

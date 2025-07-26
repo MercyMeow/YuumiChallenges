@@ -172,9 +172,12 @@ export function PlayersList({
   compact = false,
   className = ''
 }: PlayersListProps) {
+  // Ensure participants is an array before mapping
+  const safeParticipants = Array.isArray(participants) ? participants : [];
+  
   return (
     <div className={`space-y-1 ${className}`}>
-      {participants.map((participant) => (
+      {safeParticipants.map((participant) => (
         <PlayerRow
           key={participant.puuid}
           participant={participant}
@@ -193,7 +196,9 @@ export function sortParticipantsByRole(participants: DetailedMatchParticipant[])
   // This is a simplified role detection - in a real app you'd want more sophisticated role detection
   const roleOrder = ['TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY'];
   
-  return [...participants].sort((a, b) => {
+  // Ensure participants is an array before spreading
+  const safeParticipants = Array.isArray(participants) ? participants : [];
+  return [...safeParticipants].sort((a, b) => {
     // For now, just sort by participant index as roles aren't in the data
     // In the future, you could implement role detection based on champion, summoner spells, etc.
     return 0;

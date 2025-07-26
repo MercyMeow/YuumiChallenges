@@ -31,13 +31,15 @@ interface MatchCardProps {
   currentUserPuuid?: string;
   defaultExpanded?: boolean;
   className?: string;
+  compact?: boolean;
 }
 
 export function MatchCard({ 
   match, 
   currentUserPuuid,
   defaultExpanded = false,
-  className = ''
+  className = '',
+  compact = false
 }: MatchCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   
@@ -77,6 +79,37 @@ export function MatchCard({
   // Get user participant data if detailed data is available
   const userParticipant = match.userParticipant;
   const detailedData = match.detailedData;
+
+  // Compact version for dashboard summary
+  if (compact) {
+    return (
+      <div className={`flex items-center justify-between p-3 rounded-lg border-l-4 ${getWinColor(match.win)} backdrop-blur-md transition-all duration-200 hover:bg-white/5 cursor-pointer ${className}`}>
+        <div className="flex items-center space-x-3">
+          <ChampionIcon championId={match.champion} size="sm" />
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-white">{match.champion}</span>
+            <span className="text-xs text-white/60">{gameMode}</span>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          <div className="text-right">
+            <div className={`text-sm font-bold ${getKDAColor(kdaRatio)}`}>
+              {match.kills}/{match.deaths}/{match.assists}
+            </div>
+            <div className="text-xs text-white/60">KDA: {kda}</div>
+          </div>
+          
+          <Badge 
+            variant={match.win ? 'default' : 'destructive'} 
+            className={`text-xs ${match.win ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'}`}
+          >
+            {match.win ? 'Win' : 'Loss'}
+          </Badge>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Card className={`border-l-4 ${getWinColor(match.win)} bg-black/20 backdrop-blur-md border border-white/10 transition-all duration-200 hover:bg-white/5 ${className}`}>
@@ -213,9 +246,9 @@ export function MatchCard({
               </div>
 
               <TeamsComparison
-                blueTeam={match.userTeam || detailedData.info.teams.find(t => t.teamId === 100)!}
-                redTeam={match.enemyTeam || detailedData.info.teams.find(t => t.teamId === 200)!}
-                participants={detailedData.info.participants}
+                blueTeam={match.userTeam || detailedData.info.teams?.find(t => t.teamId === 100) || { teamId: 100, win: false, bans: [], objectives: {} } as any}
+                redTeam={match.enemyTeam || detailedData.info.teams?.find(t => t.teamId === 200) || { teamId: 200, win: false, bans: [], objectives: {} } as any}
+                participants={detailedData.info.participants || []}
                 currentUserPuuid={currentUserPuuid}
                 compact={false}
                 layout="stacked"
@@ -233,13 +266,15 @@ interface MatchCardListProps {
   currentUserPuuid?: string;
   loading?: boolean;
   className?: string;
+  compact?: boolean;
 }
 
 export function MatchCardList({ 
   matches, 
   currentUserPuuid,
   loading = false,
-  className = ''
+  className = '',
+  compact = false
 }: MatchCardListProps) {
   if (loading) {
     return (
@@ -254,7 +289,10 @@ export function MatchCardList({
     );
   }
 
-  if (matches.length === 0) {
+  // Ensure matches is an array before checking length
+  const safeMatches = Array.isArray(matches) ? matches : [];
+  
+  if (safeMatches.length === 0) {
     return (
       <div className={`text-center py-12 ${className}`}>
         <Gamepad2 className="h-16 w-16 mx-auto mb-4 text-white/30" />
@@ -266,11 +304,12 @@ export function MatchCardList({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {matches.map((match) => (
+      {safeMatches.map((match) => (
         <MatchCard
           key={match.match_id}
           match={match}
           currentUserPuuid={currentUserPuuid}
+          compact={compact}
         />
       ))}
     </div>

@@ -114,7 +114,9 @@ export function ItemSlots({
   showTrinketSeparately = false 
 }: ItemSlotsProps) {
   // Ensure we have exactly 7 slots (6 items + trinket)
-  const paddedItems = [...items];
+  // Safe spread operation - handle undefined/null items array
+  const safeItems = Array.isArray(items) ? items : [];
+  const paddedItems = [...safeItems];
   while (paddedItems.length < 7) {
     paddedItems.push(0);
   }
