@@ -156,7 +156,18 @@ export default function ProfilePage() {
       const response = await fetch('/api/summoners/refresh');
       if (response.ok) {
         const data = await response.json();
-        setRefreshStatus(data);
+        
+        // Convert timestamp strings back to Date objects
+        const refreshStatus = {
+          ...data,
+          last_refreshed_at: data.last_refreshed_at ? new Date(data.last_refreshed_at) : undefined,
+          last_manual_refresh_at: data.last_manual_refresh_at ? new Date(data.last_manual_refresh_at) : undefined,
+          next_auto_refresh: data.next_auto_refresh ? new Date(data.next_auto_refresh) : undefined,
+          next_manual_refresh: data.next_manual_refresh ? new Date(data.next_manual_refresh) : undefined,
+          last_match_date: data.last_match_date ? new Date(data.last_match_date) : undefined,
+        };
+        
+        setRefreshStatus(refreshStatus);
       }
     } catch (error) {
       console.error('Error fetching refresh status:', error);
@@ -313,7 +324,7 @@ export default function ProfilePage() {
         {/* Refresh Status Display */}
         {refreshStatus && summoner && (
           <div className="text-xs text-white/50 p-2 bg-black/20 rounded border border-white/10">
-            <p>Last refresh: {refreshStatus.last_refreshed_at ? new Date(refreshStatus.last_refreshed_at).toLocaleString() : 'Never'}</p>
+            <p>Last refresh: {refreshStatus.last_refreshed_at ? refreshStatus.last_refreshed_at.toLocaleString() : 'Never'}</p>
             <p>Total matches: {refreshStatus.total_matches || 0}</p>
             <p>Can refresh: {refreshStatus.can_manual_refresh ? 'Yes' : 'No'}</p>
           </div>

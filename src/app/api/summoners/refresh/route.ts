@@ -380,15 +380,20 @@ export async function GET() {
       last_match_date: string | null;
     };
 
+    // Convert timestamp strings to proper Date objects/ISO strings for frontend
+    const convertTimestamp = (timestamp: string | null): Date | undefined => {
+      return timestamp ? new Date(timestamp) : undefined;
+    };
+
     return createSuccessResponse({
       can_refresh: status.can_auto_refresh,
       can_manual_refresh: status.can_manual_refresh,
-      last_refreshed_at: status.last_refreshed_at,
-      last_manual_refresh_at: status.last_manual_refresh_at,
-      next_auto_refresh: status.next_auto_refresh,
-      next_manual_refresh: status.next_manual_refresh,
+      last_refreshed_at: convertTimestamp(status.last_refreshed_at),
+      last_manual_refresh_at: convertTimestamp(status.last_manual_refresh_at),
+      next_auto_refresh: convertTimestamp(status.next_auto_refresh),
+      next_manual_refresh: convertTimestamp(status.next_manual_refresh),
       total_matches: status.total_matches,
-      last_match_date: status.last_match_date
+      last_match_date: convertTimestamp(status.last_match_date)
     });
 
   } catch (error) {

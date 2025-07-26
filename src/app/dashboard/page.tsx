@@ -82,8 +82,19 @@ export default function Dashboard() {
     try {
       const response = await fetch('/api/summoners/refresh');
       if (response.ok) {
-        const status = await response.json();
-        setRefreshStatus(status);
+        const data = await response.json();
+        
+        // Convert timestamp strings back to Date objects
+        const refreshStatus = {
+          ...data,
+          last_refreshed_at: data.last_refreshed_at ? new Date(data.last_refreshed_at) : undefined,
+          last_manual_refresh_at: data.last_manual_refresh_at ? new Date(data.last_manual_refresh_at) : undefined,
+          next_auto_refresh: data.next_auto_refresh ? new Date(data.next_auto_refresh) : undefined,
+          next_manual_refresh: data.next_manual_refresh ? new Date(data.next_manual_refresh) : undefined,
+          last_match_date: data.last_match_date ? new Date(data.last_match_date) : undefined,
+        };
+        
+        setRefreshStatus(refreshStatus);
       }
     } catch (error) {
       console.error('Error fetching refresh status:', error);
