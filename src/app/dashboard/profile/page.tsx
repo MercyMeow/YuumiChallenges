@@ -225,7 +225,15 @@ export default function ProfilePage() {
         setRefreshResult({
           success: false,
           message: errorResult.message || 'Refresh failed',
-          data: errorResult.details || {}
+          data: {
+            summoner_updated: false,
+            ranked_updated: false,
+            matches_added: 0,
+            matches_removed: 0,
+            errors: [errorResult.message || 'Refresh failed'],
+            warnings: [],
+            ...errorResult.details
+          }
         });
       }
     } catch (error) {
@@ -233,7 +241,14 @@ export default function ProfilePage() {
       setRefreshResult({
         success: false,
         message: 'Network error during refresh',
-        data: { errors: ['Network error occurred'] }
+        data: { 
+          summoner_updated: false,
+          ranked_updated: false,
+          matches_added: 0,
+          matches_removed: 0,
+          errors: ['Network error occurred'],
+          warnings: []
+        }
       });
     } finally {
       setIsRefreshing(false);
