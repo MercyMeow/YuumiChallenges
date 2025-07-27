@@ -216,3 +216,246 @@ export interface RefreshStatus {
   total_matches?: number;
   last_match_date?: Date | null;
 }
+
+// Enhanced typed interfaces for dashboard components
+
+export interface RankedQueueInfo {
+  queue_type: 'RANKED_SOLO_5x5' | 'RANKED_FLEX_SR' | 'RANKED_FLEX_TT';
+  tier: string;
+  rank_level: string;
+  league_points: number;
+  wins: number;
+  losses: number;
+  veteran: boolean;
+  inactive: boolean;
+  fresh_blood: boolean;
+  hot_streak: boolean;
+}
+
+export interface EnhancedSummoner extends Summoner {
+  ranked_info: RankedQueueInfo[];
+}
+
+export interface ChallengeProgress {
+  id: string;
+  title: string;
+  type: ChallengeType;
+  progress: number;
+  maxProgress: number;
+  progressPercentage: number;
+  completed: boolean;
+}
+
+export interface LeaderboardUser {
+  user: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
+  position: number;
+  points: number;
+}
+
+export interface LeaderboardData {
+  topUsers: LeaderboardUser[];
+  currentUser?: {
+    position: number;
+    points: number;
+  };
+  totalUsers: number;
+}
+
+export interface CommunityStats {
+  totalMembers: number;
+  activeMembers: number;
+  onlineMembers: number;
+  activeChallenges: number;
+  challengesCompleted: number;
+  totalGamesTracked: number;
+  gamesToday: number;
+}
+
+export interface TeamObjective {
+  first: boolean;
+  kills: number;
+}
+
+export interface TeamObjectives {
+  baron?: TeamObjective;
+  champion?: TeamObjective;
+  dragon?: TeamObjective;
+  inhibitor?: TeamObjective;
+  riftHerald?: TeamObjective;
+  tower?: TeamObjective;
+}
+
+export interface SafeDetailedMatchTeam {
+  teamId: 100 | 200;
+  win: boolean;
+  bans: Array<{
+    championId: number;
+    pickTurn: number;
+  }>;
+  objectives: TeamObjectives;
+}
+
+// Type guard utilities
+export const isRankedQueueInfo = (obj: unknown): obj is RankedQueueInfo => {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'queue_type' in obj &&
+    'tier' in obj &&
+    'rank_level' in obj &&
+    'league_points' in obj &&
+    'wins' in obj &&
+    'losses' in obj
+  );
+};
+
+export const isChallengeProgress = (obj: unknown): obj is ChallengeProgress => {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'id' in obj &&
+    'title' in obj &&
+    'type' in obj &&
+    'progress' in obj &&
+    'maxProgress' in obj
+  );
+};
+
+export const isLeaderboardUser = (obj: unknown): obj is LeaderboardUser => {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'user' in obj &&
+    'position' in obj &&
+    'points' in obj &&
+    typeof (obj as LeaderboardUser).user === 'object' &&
+    (obj as LeaderboardUser).user !== null
+  );
+};
+
+// Utility types for better type safety
+export type ApiResponse<T> = {
+  success: true;
+  data: T;
+} | {
+  success: false;
+  error: string;
+  message?: string;
+};
+
+export type Nullable<T> = T | null;
+export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+// Brand types for better domain modeling
+export type SummonerId = string & { readonly brand: unique symbol };
+export type MatchId = string & { readonly brand: unique symbol };
+export type ChampionId = string & { readonly brand: unique symbol };
+
+// Additional type guards for better runtime safety
+export const isCommunityStats = (obj: unknown): obj is CommunityStats => {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'totalMembers' in obj &&
+    'activeMembers' in obj &&
+    'onlineMembers' in obj &&
+    'activeChallenges' in obj &&
+    'challengesCompleted' in obj &&
+    'totalGamesTracked' in obj &&
+    'gamesToday' in obj &&
+    typeof (obj as CommunityStats).totalMembers === 'number' &&
+    typeof (obj as CommunityStats).activeMembers === 'number' &&
+    typeof (obj as CommunityStats).onlineMembers === 'number'
+  );
+};
+
+export const isDetailedMatchTeam = (obj: unknown): obj is SafeDetailedMatchTeam => {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'teamId' in obj &&
+    'win' in obj &&
+    'bans' in obj &&
+    'objectives' in obj &&
+    ((obj as SafeDetailedMatchTeam).teamId === 100 || (obj as SafeDetailedMatchTeam).teamId === 200) &&
+    typeof (obj as SafeDetailedMatchTeam).win === 'boolean' &&
+    Array.isArray((obj as SafeDetailedMatchTeam).bans) &&
+    typeof (obj as SafeDetailedMatchTeam).objectives === 'object'
+  );
+};
+
+export const isDetailedMatchParticipant = (obj: unknown): obj is DetailedMatchParticipant => {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'puuid' in obj &&
+    'summonerName' in obj &&
+    'championName' in obj &&
+    'kills' in obj &&
+    'deaths' in obj &&
+    'assists' in obj &&
+    'teamId' in obj &&
+    typeof (obj as DetailedMatchParticipant).puuid === 'string' &&
+    typeof (obj as DetailedMatchParticipant).kills === 'number' &&
+    typeof (obj as DetailedMatchParticipant).deaths === 'number' &&
+    typeof (obj as DetailedMatchParticipant).assists === 'number'
+  );
+};
+
+// Utility functions for safe data access
+export const safeArrayAccess = <T>(arr: T[] | undefined | null, index: number): T | null => {
+  return arr && Array.isArray(arr) && index >= 0 && index < arr.length ? arr[index] : null;
+};
+
+export const safeObjectAccess = <T, K extends keyof T>(
+  obj: T | undefined | null, 
+  key: K
+): T[K] | null => {
+  return obj && typeof obj === 'object' && key in obj ? obj[key] : null;
+};
+
+// Type narrowing helpers
+export const assertIsNumber = (value: unknown): asserts value is number => {
+  if (typeof value !== 'number' || isNaN(value)) {
+    throw new Error('Expected number but received: ' + typeof value);
+  }
+};
+
+export const assertIsString = (value: unknown): asserts value is string => {
+  if (typeof value !== 'string') {
+    throw new Error('Expected string but received: ' + typeof value);
+  }
+};
+
+export const assertIsArray = <T>(value: unknown): asserts value is T[] => {
+  if (!Array.isArray(value)) {
+    throw new Error('Expected array but received: ' + typeof value);
+  }
+};
+
+// Safe numeric operations
+export const safeCalculateWinRate = (wins: number, losses: number): number => {
+  const totalGames = wins + losses;
+  return totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
+};
+
+export const safeCalculateKDA = (kills: number, deaths: number, assists: number): number => {
+  return deaths > 0 ? Number(((kills + assists) / deaths).toFixed(2)) : 99;
+};
+
+// Type-safe array filtering
+export const filterValidChallenges = (challenges: unknown[]): ChallengeProgress[] => {
+  return challenges.filter(isChallengeProgress);
+};
+
+export const filterValidLeaderboardUsers = (users: unknown[]): LeaderboardUser[] => {
+  return users.filter(isLeaderboardUser);
+};
+
+export const filterValidRankedInfo = (rankedInfo: unknown[]): RankedQueueInfo[] => {
+  return rankedInfo.filter(isRankedQueueInfo);
+};

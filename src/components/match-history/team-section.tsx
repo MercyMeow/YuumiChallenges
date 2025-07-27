@@ -31,26 +31,33 @@ export function TeamSection({
   const getTeamColor = (side: 'blue' | 'red', isWin: boolean) => {
     if (isWin) {
       return side === 'blue' 
-        ? 'border-l-blue-400 bg-blue-500/5' 
-        : 'border-l-red-400 bg-red-500/5';
+        ? 'border-l-accessible-blue bg-accessible-blue/10' 
+        : 'border-l-accessible-red bg-accessible-red/10';
     }
     return side === 'blue'
-      ? 'border-l-blue-600/50 bg-blue-500/5'
-      : 'border-l-red-600/50 bg-red-500/5';
+      ? 'border-l-accessible-blue/50 bg-accessible-blue/5'
+      : 'border-l-accessible-red/50 bg-accessible-red/5';
   };
 
   const getHeaderColor = (side: 'blue' | 'red') => {
-    return side === 'blue' ? 'text-blue-400' : 'text-red-400';
+    return side === 'blue' ? 'text-accessible-blue' : 'text-accessible-red';
   };
 
   const getResultBadge = (isWin: boolean) => {
     return isWin ? (
-      <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-        <Trophy className="h-3 w-3 mr-1" />
+      <Badge 
+        className="bg-accessible-green/20 text-accessible-green border-accessible-green/30"
+        aria-label="Team result: Victory"
+      >
+        <Trophy className="h-3 w-3 mr-1" aria-hidden="true" />
         Victory
       </Badge>
     ) : (
-      <Badge variant="destructive" className="bg-red-500/20 text-red-400 border-red-500/30">
+      <Badge 
+        variant="destructive" 
+        className="bg-accessible-red/20 text-accessible-red border-accessible-red/30"
+        aria-label="Team result: Defeat"
+      >
         Defeat
       </Badge>
     );
@@ -109,49 +116,49 @@ export function TeamSection({
         </div>
 
         {/* Team Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 text-center">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 text-center" role="group" aria-label="Team statistics">
           <div className="p-2 bg-black/20 rounded">
-            <div className="flex items-center justify-center gap-1 text-green-400 text-sm font-semibold">
-              <Sword className="h-3 w-3" />
+            <div className="flex items-center justify-center gap-1 text-accessible-green text-sm font-semibold">
+              <Sword className="h-3 w-3" aria-hidden="true" />
               {teamStats.kills}
             </div>
             <div className="text-xs text-white/60">Kills</div>
           </div>
           
           <div className="p-2 bg-black/20 rounded">
-            <div className="flex items-center justify-center gap-1 text-red-400 text-sm font-semibold">
-              <Target className="h-3 w-3" />
+            <div className="flex items-center justify-center gap-1 text-accessible-red text-sm font-semibold">
+              <Target className="h-3 w-3" aria-hidden="true" />
               {teamStats.deaths}
             </div>
             <div className="text-xs text-white/60">Deaths</div>
           </div>
           
           <div className="p-2 bg-black/20 rounded">
-            <div className="flex items-center justify-center gap-1 text-blue-400 text-sm font-semibold">
-              <Shield className="h-3 w-3" />
+            <div className="flex items-center justify-center gap-1 text-accessible-blue text-sm font-semibold">
+              <Shield className="h-3 w-3" aria-hidden="true" />
               {teamStats.assists}
             </div>
             <div className="text-xs text-white/60">Assists</div>
           </div>
           
           <div className="p-2 bg-black/20 rounded">
-            <div className="flex items-center justify-center gap-1 text-yellow-400 text-sm font-semibold">
-              <Crown className="h-3 w-3" />
+            <div className="flex items-center justify-center gap-1 text-accessible-yellow text-sm font-semibold">
+              <Crown className="h-3 w-3" aria-hidden="true" />
               {Math.round(teamStats.gold / 1000)}k
             </div>
             <div className="text-xs text-white/60">Gold</div>
           </div>
           
           <div className="p-2 bg-black/20 rounded">
-            <div className="text-purple-400 text-sm font-semibold">
+            <div className="text-accessible-purple text-sm font-semibold">
               {teamStats.cs}
             </div>
             <div className="text-xs text-white/60">CS</div>
           </div>
           
           <div className="p-2 bg-black/20 rounded">
-            <div className="flex items-center justify-center gap-1 text-pink-400 text-sm font-semibold">
-              <Eye className="h-3 w-3" />
+            <div className="flex items-center justify-center gap-1 text-accessible-pink text-sm font-semibold">
+              <Eye className="h-3 w-3" aria-hidden="true" />
               {teamStats.vision}
             </div>
             <div className="text-xs text-white/60">Vision</div>

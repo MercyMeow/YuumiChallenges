@@ -4,13 +4,12 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 // Using simple state-based collapsible instead of separate component
 import { TeamsComparison } from './team-section';
 import { ChampionIcon } from '@/components/ui/datadragon-image';
 import { ItemSlots } from './item-slots';
 import { SummonerSpells } from './summoner-spells';
-import { ProcessedMatchData } from '@/lib/types';
+import { ProcessedMatchData, SafeDetailedMatchTeam } from '@/lib/types';
 import { getGameModeDisplayName, getGameModeCategoryColor } from '@/lib/utils/game-modes';
 import { formatDistanceToNow } from 'date-fns';
 import { 
@@ -20,10 +19,7 @@ import {
   ChevronDown, 
   ChevronUp,
   Gamepad2,
-  Users,
-  TrendingUp,
-  Eye,
-  Crown
+  Users
 } from 'lucide-react';
 
 interface MatchCardProps {
@@ -52,16 +48,16 @@ export function MatchCard({
     : 99;
 
   const getKDAColor = (ratio: number) => {
-    if (ratio >= 3) return 'text-green-400';
-    if (ratio >= 2) return 'text-yellow-400';
-    if (ratio >= 1) return 'text-orange-400';
-    return 'text-red-400';
+    if (ratio >= 3) return 'text-accessible-green';
+    if (ratio >= 2) return 'text-accessible-yellow';
+    if (ratio >= 1) return 'text-accessible-orange';
+    return 'text-accessible-red';
   };
 
   const getWinColor = (win: boolean) => {
     return win 
-      ? 'border-l-green-500 bg-green-500/5 border-green-500/20' 
-      : 'border-l-red-500 bg-red-500/5 border-red-500/20';
+      ? 'border-l-accessible-green bg-accessible-green/10 border-accessible-green/30' 
+      : 'border-l-accessible-red bg-accessible-red/10 border-accessible-red/30';
   };
 
   const formatDuration = (seconds: number) => {
@@ -112,7 +108,12 @@ export function MatchCard({
   }
 
   return (
-    <Card className={`border-l-4 ${getWinColor(match.win)} bg-black/20 backdrop-blur-md border border-white/10 transition-all duration-200 hover:bg-white/5 ${className}`}>
+    <Card 
+      className={`border-l-4 ${getWinColor(match.win)} bg-black/20 backdrop-blur-md border border-white/10 transition-all duration-200 hover:bg-white/5 focus-card ${className}`}
+      role="article"
+      aria-labelledby={`match-title-${match.match_id}`}
+      tabIndex={0}
+    >
       <div>
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
@@ -121,14 +122,26 @@ export function MatchCard({
               <ChampionIcon championId={match.champion} size="lg" />
               
               <div>
-                <h3 className="text-lg font-bold text-white">{match.champion}</h3>
+                <h3 
+                  id={`match-title-${match.match_id}`}
+                  className="text-lg font-bold text-white"
+                >
+                  {match.champion} - {match.win ? 'Victory' : 'Defeat'}
+                </h3>
                 <div className="flex items-center gap-2 text-sm text-white/60">
-                  <Badge variant="outline" className={`${gameModeColor} border-current`}>
-                    <Gamepad2 className="h-3 w-3 mr-1" />
+                  <Badge 
+                    variant="outline" 
+                    className={`${gameModeColor} border-current`}
+                    aria-label={`Game mode: ${gameMode}`}
+                  >
+                    <Gamepad2 className="h-3 w-3 mr-1" aria-hidden="true" />
                     {gameMode}
                   </Badge>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
+                  <div 
+                    className="flex items-center gap-1"
+                    aria-label={`Match duration: ${formatDuration(match.duration)}`}
+                  >
+                    <Clock className="h-3 w-3" aria-hidden="true" />
                     {formatDuration(match.duration)}
                   </div>
                 </div>
@@ -137,7 +150,11 @@ export function MatchCard({
 
             {/* Center - KDA and basic stats */}
             <div className="flex items-center gap-6">
-              <div className="text-center">
+              <div 
+                className="text-center"
+                role="group"
+                aria-label={`KDA: ${match.kills} kills, ${match.deaths} deaths, ${match.assists} assists. Ratio: ${kda}`}
+              >
                 <div className={`text-xl font-bold ${getKDAColor(kdaRatio)}`}>
                   {match.kills} / {match.deaths} / {match.assists}
                 </div>
@@ -198,12 +215,16 @@ export function MatchCard({
               <div className="text-center">
                 <Badge 
                   variant={match.win ? 'default' : 'destructive'} 
-                  className={`px-4 py-2 ${match.win ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'}`}
+                  className={`px-4 py-2 ${match.win ? 'bg-accessible-green/20 text-accessible-green border-accessible-green/30' : 'bg-accessible-red/20 text-accessible-red border-accessible-red/30'}`}
+                  aria-label={`Match result: ${match.win ? 'Victory' : 'Defeat'}`}
                 >
-                  <Trophy className="h-4 w-4 mr-2" />
+                  <Trophy className="h-4 w-4 mr-2" aria-hidden="true" />
                   {match.win ? 'Victory' : 'Defeat'}
                 </Badge>
-                <div className="text-xs text-white/60 mt-1">
+                <div 
+                  className="text-xs text-white/60 mt-1"
+                  aria-label={`Played ${formatDistanceToNow(new Date(match.game_creation), { addSuffix: true })}`}
+                >
                   {formatDistanceToNow(new Date(match.game_creation), { addSuffix: true })}
                 </div>
               </div>
@@ -213,13 +234,19 @@ export function MatchCard({
                   variant="ghost" 
                   size="sm"
                   onClick={() => setIsExpanded(!isExpanded)}
-                  className="text-white/60 hover:text-white hover:bg-white/10"
+                  className="text-white/60 hover:text-white hover:bg-white/10 focus-button"
+                  aria-label={isExpanded ? "Hide match details" : "Show match details"}
+                  aria-expanded={isExpanded}
+                  aria-controls={`match-details-${match.match_id}`}
                 >
                   {isExpanded ? (
-                    <ChevronUp className="h-4 w-4" />
+                    <ChevronUp className="h-4 w-4" aria-hidden="true" />
                   ) : (
-                    <ChevronDown className="h-4 w-4" />
+                    <ChevronDown className="h-4 w-4" aria-hidden="true" />
                   )}
+                  <span className="sr-only">
+                    {isExpanded ? 'Hide' : 'Show'} detailed match information
+                  </span>
                 </Button>
               )}
             </div>
@@ -236,18 +263,79 @@ export function MatchCard({
           )}
         </CardHeader>
 
+        {/* Team Preview - Always visible */}
+        {detailedData && detailedData.info.participants && (
+          <CardContent className="pt-0 pb-2">
+            <div className="border-t border-white/10 pt-3">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Blue Team */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span className="text-xs font-medium text-blue-400">Blue Team</span>
+                  </div>
+                  <div className="space-y-1">
+                    {detailedData.info.participants
+                      .filter(p => p.teamId === 100)
+                      .slice(0, 5)
+                      .map((participant, index) => (
+                        <div key={participant.puuid || index} className="flex items-center gap-2 text-xs">
+                          <ChampionIcon championId={participant.championName} size="xs" />
+                          <span className={`truncate ${participant.puuid === currentUserPuuid ? 'text-purple-300 font-medium' : 'text-white/80'}`}>
+                            {participant.summonerName}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Red Team */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span className="text-xs font-medium text-red-400">Red Team</span>
+                  </div>
+                  <div className="space-y-1">
+                    {detailedData.info.participants
+                      .filter(p => p.teamId === 200)
+                      .slice(0, 5)
+                      .map((participant, index) => (
+                        <div key={participant.puuid || index} className="flex items-center gap-2 text-xs">
+                          <ChampionIcon championId={participant.championName} size="xs" />
+                          <span className={`truncate ${participant.puuid === currentUserPuuid ? 'text-purple-300 font-medium' : 'text-white/80'}`}>
+                            {participant.summonerName}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        )}
+
         {/* Expanded content - detailed team view */}
         {detailedData && isExpanded && (
-          <CardContent className="pt-0">
+          <CardContent className="pt-0" id={`match-details-${match.match_id}`}>
             <div className="border-t border-white/10 pt-4">
               <div className="flex items-center gap-2 mb-4">
-                <Users className="h-5 w-5 text-white/60" />
+                <Users className="h-5 w-5 text-white/60" aria-hidden="true" />
                 <h4 className="text-lg font-semibold text-white">Match Details</h4>
               </div>
 
               <TeamsComparison
-                blueTeam={match.userTeam || detailedData.info.teams?.find(t => t.teamId === 100) || { teamId: 100, win: false, bans: [], objectives: {} } as any}
-                redTeam={match.enemyTeam || detailedData.info.teams?.find(t => t.teamId === 200) || { teamId: 200, win: false, bans: [], objectives: {} } as any}
+                blueTeam={match.userTeam || detailedData.info.teams?.find(t => t.teamId === 100) || {
+                  teamId: 100,
+                  win: false,
+                  bans: [],
+                  objectives: {}
+                } satisfies SafeDetailedMatchTeam}
+                redTeam={match.enemyTeam || detailedData.info.teams?.find(t => t.teamId === 200) || {
+                  teamId: 200,
+                  win: false,
+                  bans: [],
+                  objectives: {}
+                } satisfies SafeDetailedMatchTeam}
                 participants={detailedData.info.participants || []}
                 currentUserPuuid={currentUserPuuid}
                 compact={false}

@@ -88,6 +88,23 @@
     --success: 0.65 0.20 155;
     --warning: 0.75 0.18 85;
     --info: 0.68 0.20 250;
+    
+    /* WCAG AA Compliant Colors for Dark Theme */
+    /* These colors have minimum 4.5:1 contrast ratio on dark backgrounds */
+    --accessible-blue: 0.70 0.25 240;      /* #5DADE2 - Light blue for ranks */
+    --accessible-green: 0.72 0.30 150;     /* #58D68D - Light green for wins */
+    --accessible-red: 0.68 0.35 15;        /* #EC7063 - Light red for losses */
+    --accessible-yellow: 0.80 0.25 85;     /* #F7DC6F - Light yellow for warnings */
+    --accessible-orange: 0.75 0.30 45;     /* #F8C471 - Light orange for stats */
+    --accessible-purple: 0.75 0.20 280;    /* #BB8FCE - Light purple for special */
+    --accessible-pink: 0.75 0.25 320;      /* #F1948A - Light pink for vision */
+    --accessible-cyan: 0.75 0.20 185;      /* #7DCEA0 - Light cyan/teal */
+    
+    /* High contrast variants for AAA compliance (7:1 ratio) */
+    --high-contrast-blue: 0.75 0.30 240;
+    --high-contrast-green: 0.78 0.35 150;
+    --high-contrast-red: 0.75 0.40 15;
+    --high-contrast-yellow: 0.85 0.30 85;
   }
   
   /* Force dark mode */
@@ -407,6 +424,132 @@
   
   .bg-destructive {
     background-color: oklch(var(--destructive)) !important;
+  }
+  
+  /* WCAG Compliant Color Utilities */
+  .text-accessible-blue {
+    color: oklch(var(--accessible-blue));
+  }
+  
+  .text-accessible-green {
+    color: oklch(var(--accessible-green));
+  }
+  
+  .text-accessible-red {
+    color: oklch(var(--accessible-red));
+  }
+  
+  .text-accessible-yellow {
+    color: oklch(var(--accessible-yellow));
+  }
+  
+  .text-accessible-orange {
+    color: oklch(var(--accessible-orange));
+  }
+  
+  .text-accessible-purple {
+    color: oklch(var(--accessible-purple));
+  }
+  
+  .text-accessible-pink {
+    color: oklch(var(--accessible-pink));
+  }
+  
+  .text-accessible-cyan {
+    color: oklch(var(--accessible-cyan));
+  }
+  
+  /* Background variants */
+  .bg-accessible-blue\/20 {
+    background-color: oklch(var(--accessible-blue) / 0.2);
+  }
+  
+  .bg-accessible-green\/20 {
+    background-color: oklch(var(--accessible-green) / 0.2);
+  }
+  
+  .bg-accessible-red\/20 {
+    background-color: oklch(var(--accessible-red) / 0.2);
+  }
+  
+  .bg-accessible-yellow\/20 {
+    background-color: oklch(var(--accessible-yellow) / 0.2);
+  }
+  
+  /* Border variants */
+  .border-accessible-blue\/30 {
+    border-color: oklch(var(--accessible-blue) / 0.3);
+  }
+  
+  .border-accessible-green\/30 {
+    border-color: oklch(var(--accessible-green) / 0.3);
+  }
+  
+  .border-accessible-red\/30 {
+    border-color: oklch(var(--accessible-red) / 0.3);
+  }
+  
+  /* High contrast variants for AAA compliance */
+  .text-high-contrast-blue {
+    color: oklch(var(--high-contrast-blue));
+  }
+  
+  .text-high-contrast-green {
+    color: oklch(var(--high-contrast-green));
+  }
+  
+  .text-high-contrast-red {
+    color: oklch(var(--high-contrast-red));
+  }
+  
+  .text-high-contrast-yellow {
+    color: oklch(var(--high-contrast-yellow));
+  }
+  
+  /* Enhanced Focus Indicators for Accessibility */
+  .focus-visible-enhanced {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accessible-blue focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+  }
+  
+  .focus-card {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accessible-purple focus-visible:ring-offset-2 focus-visible:ring-offset-black transition-all duration-200;
+  }
+  
+  .focus-button {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accessible-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+  }
+  
+  /* Skip Navigation Link */
+  .skip-nav {
+    @apply absolute left-4 top-4 z-50 bg-accessible-blue text-black px-4 py-2 rounded-md font-medium;
+    transform: translateY(-100px);
+    transition: transform 0.3s;
+  }
+  
+  .skip-nav:focus {
+    transform: translateY(0);
+  }
+  
+  /* Reduced Motion Support */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-float,
+    .animate-pulse-glow,
+    .animate-shimmer,
+    .animate-gradient,
+    .animate-subtle-pulse,
+    .animate-subtle-float,
+    .animate-twinkle,
+    .animate-sparkle,
+    .animate-aurora,
+    .animate-magical-orb {
+      animation: none;
+    }
+    
+    .transition-all,
+    .transition-colors,
+    .transition-transform {
+      transition: none;
+    }
   }
 }
 

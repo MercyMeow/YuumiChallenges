@@ -8,7 +8,7 @@ import {
   LeagueProfileCard, 
   LeaderboardCard
 } from '@/components/dashboard/dashboard-cards';
-import { MatchHistoryCard } from '@/components/match-history';
+import { EnhancedMatchHistoryDisplay } from '@/components/match-history';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -57,7 +57,6 @@ export default function Dashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadingSummoner, setLoadingSummoner] = useState(true);
   const [isRefreshingAll, setIsRefreshingAll] = useState(false);
-  const [matchHistoryRefreshTrigger, setMatchHistoryRefreshTrigger] = useState(0);
 
   // Remove useCallback to prevent dependency issues - these functions are only called in effects
   const fetchDashboardData = async () => {
@@ -153,8 +152,6 @@ export default function Dashboard() {
           // Refresh summoner data after successful auto-refresh
           await fetchSummonerData(false);
           await fetchDashboardData(); // Refresh dashboard stats too
-          // Trigger match history refresh
-          setMatchHistoryRefreshTrigger(Date.now());
         }
       }
     } catch (error) {
@@ -181,8 +178,6 @@ export default function Dashboard() {
           // Refresh all data after successful manual refresh
           await fetchSummonerData(false);
           await fetchDashboardData();
-          // Trigger match history refresh
-          setMatchHistoryRefreshTrigger(Date.now());
         }
       }
     } catch (error) {
@@ -220,8 +215,6 @@ export default function Dashboard() {
       // Add small delay for user feedback
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Trigger match history refresh after successful refresh all
-      setMatchHistoryRefreshTrigger(Date.now());
       
     } catch (error) {
       console.error('Error during refresh all:', error);
@@ -310,20 +303,32 @@ export default function Dashboard() {
   }
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      {/* Skip Navigation */}
+      <a href="#main-content" className="skip-nav">
+        Skip to main content
+      </a>
+      
+      <main id="main-content" className="space-y-8">
         {/* Hero Welcome Section */}
-        <div className="relative overflow-hidden group">
+        <section className="relative overflow-hidden group" aria-labelledby="welcome-heading">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-indigo-500/20 rounded-2xl animate-pulse-glow"></div>
           <div className="absolute -inset-1 bg-gradient-to-r from-yuumi-purple/30 via-yuumi-blue/30 to-yuumi-teal/30 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-500"></div>
           <div className="relative p-6 rounded-2xl border border-purple-500/30 bg-black/20 backdrop-blur-md">
             <div className="flex items-center justify-between">
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
-                    Welcome back! 🐱
+                  <h1 
+                    id="welcome-heading"
+                    className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent"
+                  >
+                    Welcome back! <span aria-hidden="true">🐱</span>
                   </h1>
-                  <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-1 animate-pulse"></div>
+                  <Badge 
+                    variant="secondary" 
+                    className="bg-accessible-green/20 text-accessible-green border-accessible-green/30"
+                    aria-label="Currently online"
+                  >
+                    <div className="w-2 h-2 bg-accessible-green rounded-full mr-1 animate-pulse" aria-hidden="true"></div>
                     Online
                   </Badge>
                 </div>
@@ -378,63 +383,85 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Stats Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="p-4 bg-black/20 backdrop-blur-md border-purple-500/30 hover:border-purple-400/50 hover:bg-purple-500/10 transition-all duration-300 cursor-pointer group card-hover">
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-4" aria-labelledby="quick-stats-heading">
+          <h2 id="quick-stats-heading" className="sr-only">Quick Statistics Overview</h2>
+          <Card 
+            className="p-4 bg-black/20 backdrop-blur-md border-purple-500/30 hover:border-purple-400/50 hover:bg-purple-500/10 transition-all duration-300 cursor-pointer group card-hover focus-card"
+            role="img"
+            aria-label={`Current win streak: ${dashboardStats?.winStreak || 0} games`}
+            tabIndex={0}
+          >
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-all duration-300">
-                <Zap className="h-4 w-4 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
+              <div className="p-2 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-all duration-300" aria-hidden="true">
+                <Zap className="h-4 w-4 text-accessible-purple group-hover:scale-110 transition-transform duration-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-purple-400 group-hover:text-purple-300 transition-colors duration-300">
+                <p className="text-2xl font-bold text-accessible-purple group-hover:text-purple-300 transition-colors duration-300">
                   {dashboardStats?.winStreak || 0}
                 </p>
                 <p className="text-xs text-white/70">Win Streak</p>
               </div>
             </div>
           </Card>
-          <Card className="p-4 bg-black/20 backdrop-blur-md border-blue-500/30 hover:border-blue-400/50 hover:bg-blue-500/10 transition-all duration-300 cursor-pointer group card-hover">
+          <Card 
+            className="p-4 bg-black/20 backdrop-blur-md border-blue-500/30 hover:border-blue-400/50 hover:bg-blue-500/10 transition-all duration-300 cursor-pointer group card-hover focus-card"
+            role="img"
+            aria-label={`Current rank: ${dashboardStats?.currentRank || 'Not available'}`}
+            tabIndex={0}
+          >
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-all duration-300">
-                <Award className="h-4 w-4 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
+              <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-all duration-300" aria-hidden="true">
+                <Award className="h-4 w-4 text-accessible-blue group-hover:scale-110 transition-transform duration-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-blue-400 group-hover:text-blue-300 transition-colors duration-300">
+                <p className="text-2xl font-bold text-accessible-blue group-hover:text-blue-300 transition-colors duration-300">
                   {dashboardStats?.currentRank || 'N/A'}
                 </p>
                 <p className="text-xs text-white/70">Rank</p>
               </div>
             </div>
           </Card>
-          <Card className="p-4 bg-black/20 backdrop-blur-md border-green-500/30 hover:border-green-400/50 hover:bg-green-500/10 transition-all duration-300 cursor-pointer group card-hover">
+          <Card 
+            className="p-4 bg-black/20 backdrop-blur-md border-green-500/30 hover:border-green-400/50 hover:bg-green-500/10 transition-all duration-300 cursor-pointer group card-hover focus-card"
+            role="img"
+            aria-label={`Win rate: ${dashboardStats?.winRate || 0} percent`}
+            tabIndex={0}
+          >
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-all duration-300">
-                <Activity className="h-4 w-4 text-green-400 group-hover:scale-110 transition-transform duration-300" />
+              <div className="p-2 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-all duration-300" aria-hidden="true">
+                <Activity className="h-4 w-4 text-accessible-green group-hover:scale-110 transition-transform duration-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-green-400 group-hover:text-green-300 transition-colors duration-300">
+                <p className="text-2xl font-bold text-accessible-green group-hover:text-green-300 transition-colors duration-300">
                   {dashboardStats?.winRate || 0}%
                 </p>
                 <p className="text-xs text-white/70">Win Rate</p>
               </div>
             </div>
           </Card>
-          <Card className="p-4 bg-black/20 backdrop-blur-md border-yellow-500/30 hover:border-yellow-400/50 hover:bg-yellow-500/10 transition-all duration-300 cursor-pointer group card-hover">
+          <Card 
+            className="p-4 bg-black/20 backdrop-blur-md border-yellow-500/30 hover:border-yellow-400/50 hover:bg-yellow-500/10 transition-all duration-300 cursor-pointer group card-hover focus-card"
+            role="img"
+            aria-label={`Active challenges: ${dashboardStats?.activeChallenges || 0}`}
+            tabIndex={0}
+          >
             <div className="flex items-center space-x-2">
-              <div className="p-2 bg-yellow-500/20 rounded-lg group-hover:bg-yellow-500/30 transition-all duration-300">
-                <Users className="h-4 w-4 text-yellow-400 group-hover:scale-110 transition-transform duration-300" />
+              <div className="p-2 bg-yellow-500/20 rounded-lg group-hover:bg-yellow-500/30 transition-all duration-300" aria-hidden="true">
+                <Users className="h-4 w-4 text-accessible-yellow group-hover:scale-110 transition-transform duration-300" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-yellow-400 group-hover:text-yellow-300 transition-colors duration-300">
+                <p className="text-2xl font-bold text-accessible-yellow group-hover:text-yellow-300 transition-colors duration-300">
                   {dashboardStats?.activeChallenges || 0}
                 </p>
                 <p className="text-xs text-white/70">Active Challenges</p>
               </div>
             </div>
           </Card>
-        </div>
+        </section>
 
         {/* Main Dashboard Grid - Reordered by Priority */}
-        <div className="grid gap-6 lg:grid-cols-3">
+        <section className="grid gap-6 lg:grid-cols-3" aria-labelledby="dashboard-content-heading">
+          <h2 id="dashboard-content-heading" className="sr-only">Dashboard Content</h2>
           {/* Left Column - Primary User Actions */}
           <div className="lg:col-span-2 space-y-6">
             {/* Top Row - Most Important Cards */}
@@ -460,21 +487,23 @@ export default function Dashboard() {
               <ChallengesCard />
             </div>
             
-            {/* Match History Card */}
-            <MatchHistoryCard 
-              summonerId={summonerData?.summoner?.puuid}
-              onRefresh={handleManualRefresh}
-              isRefreshing={isRefreshing}
-              refreshTrigger={matchHistoryRefreshTrigger}
-            />
+            {/* Enhanced Match History Display */}
+            {summonerData?.summoner && (
+              <EnhancedMatchHistoryDisplay
+                summonerId={summonerData.summoner.puuid}
+                currentUserPuuid={summonerData.summoner.puuid}
+                onRefresh={handleManualRefresh}
+                isRefreshing={isRefreshing}
+              />
+            )}
           </div>
           
           {/* Right Column - Secondary Info */}
           <div className="space-y-6">
             <LeaderboardCard />
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </DashboardLayout>
   );
 }

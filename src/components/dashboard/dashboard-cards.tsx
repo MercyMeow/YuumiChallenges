@@ -9,7 +9,22 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AddSummonerDialog } from '@/components/profile/add-summoner-dialog';
 import { RefreshStatusIndicator } from '@/components/ui/refresh-status';
-import { RefreshStatus } from '@/lib/types';
+import { 
+  RefreshStatus,
+  ChallengeProgress,
+  LeaderboardData,
+  LeaderboardUser,
+  CommunityStats,
+  RankedQueueInfo,
+  EnhancedSummoner,
+  isRankedQueueInfo,
+  isChallengeProgress,
+  isLeaderboardUser,
+  isCommunityStats,
+  filterValidChallenges,
+  safeCalculateWinRate,
+  safeArrayAccess
+} from '@/lib/types';
 import { 
   Target, 
   BarChart3, 
@@ -68,11 +83,18 @@ function ProfileIcon({ profileIconId }: ProfileIconProps) {
   // If no profile icon ID, loading, or image failed to load, show fallback
   if (!profileIconId || profileIconId === 0 || isLoading || imageError || !imageUrl) {
     return (
-      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xl">
+      <div 
+        className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xl"
+        role="img"
+        aria-label={isLoading ? "Loading profile icon" : "Default profile icon"}
+      >
         {isLoading ? (
-          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          <div 
+            className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+            aria-hidden="true"
+          />
         ) : (
-          '🐱'
+          <span aria-hidden="true">🐱</span>
         )}
       </div>
     );
@@ -80,10 +102,14 @@ function ProfileIcon({ profileIconId }: ProfileIconProps) {
 
   // Try to load the profile icon with dynamic Data Dragon version
   return (
-    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xl overflow-hidden">
+    <div 
+      className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xl overflow-hidden"
+      role="img"
+      aria-label="League of Legends profile icon"
+    >
       <img 
         src={imageUrl}
-        alt="Profile Icon"
+        alt={`League of Legends profile icon ${profileIconId}`}
         className="w-full h-full object-cover rounded-full"
         onError={handleImageError}
       />
@@ -92,7 +118,7 @@ function ProfileIcon({ profileIconId }: ProfileIconProps) {
 }
 
 export function ChallengesCard() {
-  const [challenges, setChallenges] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [challenges, setChallenges] = useState<ChallengeProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -108,7 +134,9 @@ export function ChallengesCard() {
       const response = await fetch('/api/challenges/active');
       if (response.ok) {
         const data = await response.json();
-        setChallenges(data.challenges || []);
+        const challengesData = Array.isArray(data.challenges) ? data.challenges : [];
+        const validChallenges = filterValidChallenges(challengesData);
+        setChallenges(validChallenges);
       }
     } catch (error) {
       console.error('Error fetching active challenges:', error);
@@ -129,26 +157,39 @@ export function ChallengesCard() {
   const getChallengeIcon = (type: string) => {
     switch (type) {
       case 'kda':
-        return <Zap className="h-4 w-4 text-yellow-400" />;
+        return <Zap className="h-4 w-4 text-accessible-yellow" aria-hidden="true" />;
       case 'ranked':
-        return <Crown className="h-4 w-4 text-amber-400" />;
+        return <Crown className="h-4 w-4 text-accessible-orange" aria-hidden="true" />;
       case 'mastery':
-        return <Star className="h-4 w-4 text-blue-400" />;
+        return <Star className="h-4 w-4 text-accessible-blue" aria-hidden="true" />;
       default:
-        return <Target className="h-4 w-4 text-purple-400" />;
+        return <Target className="h-4 w-4 text-accessible-purple" aria-hidden="true" />;
     }
   };
 
   const getChallengeColor = (type: string) => {
     switch (type) {
       case 'kda':
-        return 'yellow';
+        return 'accessible-yellow';
       case 'ranked':
-        return 'amber';
+        return 'accessible-orange';
       case 'mastery':
-        return 'blue';
+        return 'accessible-blue';
       default:
-        return 'purple';
+        return 'accessible-purple';
+    }
+  };
+
+  const getChallengeTypeLabel = (type: string) => {
+    switch (type) {
+      case 'kda':
+        return 'KDA Challenge';
+      case 'ranked':
+        return 'Ranked Challenge';
+      case 'mastery':
+        return 'Mastery Challenge';
+      default:
+        return 'Challenge';
     }
   };
 
@@ -157,15 +198,20 @@ export function ChallengesCard() {
   }
 
   return (
-    <Card className="h-full hover:shadow-lg transition-all duration-300 card-hover bg-black/20 backdrop-blur-md border-purple-500/30 card-hover">
+    <Card 
+      className="h-full hover:shadow-lg transition-all duration-300 card-hover bg-black/20 backdrop-blur-md border-purple-500/30 focus-card" 
+      role="region"
+      aria-labelledby="challenges-card-title"
+      tabIndex={0}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-purple-500/20 rounded-xl">
-              <Target className="h-6 w-6 text-purple-400" />
+            <div className="p-3 bg-purple-500/20 rounded-xl" aria-hidden="true">
+              <Target className="h-6 w-6 text-accessible-purple" />
             </div>
             <div>
-              <CardTitle className="text-xl font-bold">My Challenges</CardTitle>
+              <CardTitle id="challenges-card-title" className="text-xl font-bold">My Challenges</CardTitle>
               <CardDescription className="text-white/70">Active challenges and progress</CardDescription>
             </div>
           </div>
@@ -175,11 +221,16 @@ export function ChallengesCard() {
               size="sm"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 p-2"
+              className="border-purple-500/30 text-accessible-purple hover:bg-purple-500/10 p-2 focus-button"
+              aria-label={isRefreshing ? "Refreshing challenges" : "Refresh challenges"}
             >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} aria-hidden="true" />
+              <span className="sr-only">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
             </Button>
-            <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 px-3 py-1">
+            <Badge 
+              className="bg-purple-500/20 text-accessible-purple border-purple-500/30 px-3 py-1"
+              aria-label={`${challenges.length} active challenges`}
+            >
               {challenges.length} Active
             </Badge>
           </div>
@@ -187,24 +238,50 @@ export function ChallengesCard() {
       </CardHeader>
       <CardContent className="space-y-6">
         {challenges.length > 0 ? (
-          <div className="space-y-4">
-            {challenges.slice(0, 3).map((challenge) => {
+          <div className="space-y-4" role="list" aria-label="Active challenges">
+            {challenges.slice(0, 3).map((challenge, index) => {
               const color = getChallengeColor(challenge.type);
+              const typeLabel = getChallengeTypeLabel(challenge.type);
               return (
-                <div key={challenge.id} className={`p-4 bg-black/20 backdrop-blur-md rounded-xl border border-${color}-500/20`}>
+                <div 
+                  key={challenge.id} 
+                  className={`p-4 bg-black/20 backdrop-blur-md rounded-xl border border-${color}/30 focus-card`}
+                  role="listitem"
+                  tabIndex={0}
+                  aria-labelledby={`challenge-title-${index}`}
+                  aria-describedby={`challenge-progress-${index} challenge-status-${index}`}
+                >
                   <div className="flex items-center justify-between text-sm mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className={`p-1.5 bg-${color}-500/20 rounded-lg`}>
+                      <div className={`p-1.5 bg-${color}/20 rounded-lg`} aria-hidden="true">
                         {getChallengeIcon(challenge.type)}
                       </div>
-                      <span className="font-medium text-white">{challenge.title}</span>
+                      <span 
+                        id={`challenge-title-${index}`}
+                        className="font-medium text-white"
+                        aria-label={`${typeLabel}: ${challenge.title}`}
+                      >
+                        {challenge.title}
+                      </span>
                     </div>
-                    <span className={`text-${color}-400 font-bold`}>
+                    <span 
+                      className={`text-${color} font-bold`}
+                      id={`challenge-progress-${index}`}
+                      aria-label={`Progress: ${challenge.progress} out of ${challenge.maxProgress}`}
+                    >
                       {challenge.progress}/{challenge.maxProgress}
                     </span>
                   </div>
-                  <Progress value={challenge.progressPercentage} className="h-3 bg-black/50" />
-                  <p className="text-xs text-white/70 mt-2">
+                  <Progress 
+                    value={challenge.progressPercentage} 
+                    className="h-3 bg-black/50"
+                    aria-label={`${Math.round(challenge.progressPercentage)}% complete`}
+                  />
+                  <p 
+                    className="text-xs text-white/70 mt-2"
+                    id={`challenge-status-${index}`}
+                    aria-live="polite"
+                  >
                     {challenge.progressPercentage >= 100 
                       ? 'Completed! 🎉' 
                       : `${challenge.maxProgress - challenge.progress} more to complete`}
@@ -241,7 +318,7 @@ interface SummonerData {
     region: string;
     level: number;
     profile_icon_id: number;
-    ranked_info?: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+    ranked_info?: RankedQueueInfo[];
   } | null;
   stats: {
     totalGames: number;
@@ -288,10 +365,19 @@ export function LeagueProfileCard({
     ...summonerData.summoner,
     name: summonerData.summoner.game_name,
     tagLine: summonerData.summoner.tag_line,
-    rank: summonerData.summoner.ranked_info?.find((r: any) => r.queue_type === 'RANKED_SOLO_5x5') || null, // eslint-disable-line @typescript-eslint/no-explicit-any
+    soloqRank: summonerData.summoner.ranked_info?.find((r) => 
+      isRankedQueueInfo(r) && r.queue_type === 'RANKED_SOLO_5x5'
+    ) || null,
+    flexRank: summonerData.summoner.ranked_info?.find((r) => 
+      isRankedQueueInfo(r) && r.queue_type === 'RANKED_FLEX_SR'
+    ) || null,
     recentStats: {
       totalGames: summonerData.stats?.totalGames || 0,
-      winRate: Math.round(((summonerData.summoner.ranked_info?.[0]?.wins || 0) / Math.max((summonerData.summoner.ranked_info?.[0]?.wins || 0) + (summonerData.summoner.ranked_info?.[0]?.losses || 0), 1)) * 100),
+      winRate: (() => {
+        const firstRank = safeArrayAccess(summonerData.summoner.ranked_info, 0);
+        if (!firstRank || !isRankedQueueInfo(firstRank)) return 0;
+        return safeCalculateWinRate(firstRank.wins, firstRank.losses);
+      })(),
       kda: summonerData.stats?.overallKDA || 0,
       recentLPGain: Math.floor(Math.random() * 30) - 10 // Mock LP gain for now
     }
@@ -377,14 +463,28 @@ export function LeagueProfileCard({
                   {summoner.name}#{summoner.tagLine}
                 </p>
                 <p className="text-blue-400 font-medium">
-                  {summoner.region.toUpperCase()} • {summoner.rank ? `${summoner.rank.tier} ${summoner.rank.rank}` : 'Unranked'}
+                  {summoner.region.toUpperCase()}
                 </p>
+                <div className="flex items-center space-x-3 mt-1">
+                  <div className="text-xs">
+                    <span className="text-white/60">Solo/Duo:</span>
+                    <span className="ml-1 font-medium text-accessible-blue">
+                      {summoner.soloqRank ? `${summoner.soloqRank.tier} ${summoner.soloqRank.rank_level}` : 'Unranked'}
+                    </span>
+                  </div>
+                  <div className="text-xs">
+                    <span className="text-white/60">Flex:</span>
+                    <span className="ml-1 font-medium text-accessible-green">
+                      {summoner.flexRank ? `${summoner.flexRank.tier} ${summoner.flexRank.rank_level}` : 'Unranked'}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="text-right">
-              {summoner.rank && (
+              {summoner.soloqRank && (
                 <>
-                  <p className="text-lg font-bold text-yellow-400">{summoner.rank.leaguePoints} LP</p>
+                  <p className="text-lg font-bold text-yellow-400">{summoner.soloqRank.league_points} LP</p>
                   <Tooltip>
                     <TooltipTrigger>
                       <div className="flex items-center space-x-1 text-green-400">
@@ -395,7 +495,7 @@ export function LeagueProfileCard({
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Recent LP change</p>
+                      <p>Recent LP change (Solo/Duo)</p>
                     </TooltipContent>
                   </Tooltip>
                 </>
@@ -403,24 +503,39 @@ export function LeagueProfileCard({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center p-3 bg-black/40 backdrop-blur-md rounded-lg border border-blue-500/30">
-              <p className="text-2xl font-bold text-blue-400">{summoner.recentStats.totalGames}</p>
+          <div className="grid grid-cols-3 gap-4" role="group" aria-label="Player statistics">
+            <div 
+              className="text-center p-3 bg-black/40 backdrop-blur-md rounded-lg border border-accessible-blue/30 focus-card"
+              tabIndex={0}
+              role="img"
+              aria-label={`${summoner.recentStats.totalGames} total games played`}
+            >
+              <p className="text-2xl font-bold text-accessible-blue">{summoner.recentStats.totalGames}</p>
               <p className="text-xs text-white/70">Games</p>
             </div>
-            <div className="text-center p-3 bg-black/40 backdrop-blur-md rounded-lg border border-green-500/20">
-              <p className="text-2xl font-bold text-green-400">{summoner.recentStats.winRate}%</p>
+            <div 
+              className="text-center p-3 bg-black/40 backdrop-blur-md rounded-lg border border-accessible-green/30 focus-card"
+              tabIndex={0}
+              role="img"
+              aria-label={`${summoner.recentStats.winRate}% win rate`}
+            >
+              <p className="text-2xl font-bold text-accessible-green">{summoner.recentStats.winRate}%</p>
               <p className="text-xs text-white/70">Win Rate</p>
             </div>
-            <div className="text-center p-3 bg-black/40 backdrop-blur-md rounded-lg border border-purple-500/30">
-              <p className="text-lg font-bold text-purple-400">{summoner.recentStats.kda} KDA</p>
+            <div 
+              className="text-center p-3 bg-black/40 backdrop-blur-md rounded-lg border border-accessible-purple/30 focus-card"
+              tabIndex={0}
+              role="img"
+              aria-label={`${summoner.recentStats.kda} average KDA ratio`}
+            >
+              <p className="text-lg font-bold text-accessible-purple">{summoner.recentStats.kda} KDA</p>
               <p className="text-xs text-white/70">Average</p>
             </div>
           </div>
         </div>
 
         <div className="pt-4 border-t border-blue-500/30">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between">
             {/* Last Manual Refresh - Bottom Left */}
             <div className="text-xs text-white/50">
               <div className="flex items-center space-x-1">
@@ -437,12 +552,6 @@ export function LeagueProfileCard({
               </div>
             </div>
           </div>
-          
-          <AddSummonerDialog 
-            onAdd={handleAccountChange} 
-            variant="change"
-            buttonText="Change Account"
-          />
         </div>
       </CardContent>
     </Card>
@@ -450,7 +559,7 @@ export function LeagueProfileCard({
 }
 
 export function LeaderboardCard() {
-  const [leaderboard, setLeaderboard] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [leaderboard, setLeaderboard] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -466,7 +575,15 @@ export function LeaderboardCard() {
       const response = await fetch('/api/leaderboard/preview');
       if (response.ok) {
         const data = await response.json();
-        setLeaderboard(data);
+        // Type guard for leaderboard data structure
+        if (data && 
+            Array.isArray(data.topUsers) && 
+            data.topUsers.every(isLeaderboardUser)) {
+          setLeaderboard(data as LeaderboardData);
+        } else {
+          console.warn('Invalid leaderboard data structure:', data);
+          setLeaderboard(null);
+        }
       }
     } catch (error) {
       console.error('Error fetching leaderboard preview:', error);
@@ -555,7 +672,7 @@ export function LeaderboardCard() {
       <CardContent className="space-y-6">
         {leaderboard?.topUsers && leaderboard.topUsers.length > 0 ? (
           <div className="space-y-3">
-            {leaderboard.topUsers.map((user: any) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
+            {leaderboard.topUsers.map((user: LeaderboardUser) => (
               <div key={user.user.id} className={`flex items-center justify-between p-4 rounded-xl ${getRankStyle(user.position)}`}>
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getRankCircleStyle(user.position)}`}>
@@ -603,7 +720,7 @@ export function LeaderboardCard() {
 }
 
 export function StatsOverviewCard() {
-  const [stats, setStats] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [stats, setStats] = useState<CommunityStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -615,7 +732,13 @@ export function StatsOverviewCard() {
       const response = await fetch('/api/community/stats');
       if (response.ok) {
         const data = await response.json();
-        setStats(data);
+        // Type guard for community stats structure
+        if (isCommunityStats(data)) {
+          setStats(data);
+        } else {
+          console.warn('Invalid community stats data structure:', data);
+          setStats(null);
+        }
       }
     } catch (error) {
       console.error('Error fetching community stats:', error);
