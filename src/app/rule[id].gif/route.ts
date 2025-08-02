@@ -6,7 +6,7 @@ import path from 'path';
 const validRules = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '15'];
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
