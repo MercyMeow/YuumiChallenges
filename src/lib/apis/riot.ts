@@ -100,6 +100,21 @@ export class RiotAPI {
     return response.json();
   }
 
+  async getRankedInfoByPuuid(puuid: string, region: string) {
+    const endpoint = `/lol/league/v4/entries/by-puuid/${puuid}`;
+    const url = this.buildUrl(region, endpoint);
+    
+    const response = await fetch(url, {
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ranked info by PUUID: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
   async getAccountByRiotId(gameName: string, tagLine: string, region: string) {
     // This is an alias for getSummonerByRiotId for consistency
     return this.getSummonerByRiotId(gameName, tagLine, region);

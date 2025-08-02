@@ -6,6 +6,8 @@ import { RiotAPI } from '@/lib/apis/riot';
 import { RefreshResponse, MatchData } from '@/lib/types';
 
 interface RiotRankedData {
+  leagueId: string;
+  puuid: string;
   queueType: string;
   tier: string;
   rank: string;
@@ -134,12 +136,15 @@ export async function POST(request: Request) {
 
       // Refresh ranked information
       let rankedData = null;
-      if (shouldRefreshRanked && riotSummoner) {
+      if (shouldRefreshRanked) {
         try {
-          rankedData = await riotAPI.getRankedInfo(riotSummoner.id, summoner.region);
-          console.log('Fetched ranked data:', {
+          // Use PUUID-based endpoint for ranked data
+          console.log('Fetching ranked data for PUUID:', summoner.puuid, 'Region:', summoner.region);
+          rankedData = await riotAPI.getRankedInfoByPuuid(summoner.puuid, summoner.region);
+          console.log('Fetched ranked data response:', {
             entries: rankedData?.length || 0,
-            queues: rankedData?.map((r: RiotRankedData) => r.queueType) || []
+            queues: rankedData?.map((r: RiotRankedData) => r.queueType) || [],
+            fullData: rankedData
           });
         } catch (rankedError) {
           console.error('Failed to fetch ranked info:', rankedError);
