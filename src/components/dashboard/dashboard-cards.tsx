@@ -44,8 +44,8 @@ import {
   ArrowRight,
   Zap,
   Crown,
-  Clock,
   RefreshCw,
+  Clock,
 } from 'lucide-react';
 import { getProfileIconUrl } from '@/lib/utils/data-dragon';
 import { formatRelativeTime } from '@/lib/utils/time';
@@ -476,15 +476,11 @@ export function LeagueProfileCard({
                 refreshStatus={refreshStatus}
                 isRefreshing={isRefreshing}
                 onRefresh={onRefresh}
-                showLastRefresh={true}
+                showLastRefresh={false}
                 showManualRefresh={true}
                 className=""
               />
             )}
-            <Badge className="border-green-500/30 bg-green-500/20 px-3 py-1 text-green-400">
-              <div className="mr-2 h-2 w-2 animate-pulse rounded-full bg-green-400"></div>
-              Verified
-            </Badge>
           </div>
         </div>
       </CardHeader>
@@ -586,35 +582,36 @@ export function LeagueProfileCard({
           </div>
         </div>
 
-        <div className="border-t border-blue-500/30 pt-4">
-          <div className="flex items-center justify-between">
-            {/* Last Manual Refresh - Bottom Left */}
-            <div className="text-xs text-white/50">
-              <div className="flex items-center space-x-1">
-                <Clock className="h-3 w-3" />
-                <span>
-                  Manual:{' '}
-                  {refreshStatus?.last_manual_refresh_at
-                    ? formatRelativeTime(refreshStatus.last_manual_refresh_at)
-                    : 'Never'}
-                </span>
+        {/* Bottom Refresh Timers */}
+        {refreshStatus && (
+          <div className="border-t border-blue-500/30 pt-4">
+            <div className="grid grid-cols-2 gap-4 text-sm text-gray-400">
+              <div className="flex items-center space-x-2">
+                <Clock className="h-4 w-4" />
+                <div>
+                  <p className="text-xs text-white/60">Manual Refresh</p>
+                  <p className="font-medium">
+                    {refreshStatus.last_manual_refresh_at
+                      ? formatRelativeTime(refreshStatus.last_manual_refresh_at)
+                      : 'Never'}
+                  </p>
+                </div>
               </div>
-            </div>
-
-            {/* Last Auto Refresh - Bottom Right */}
-            <div className="text-xs text-white/50">
-              <div className="flex items-center space-x-1">
-                <RefreshCw className="h-3 w-3" />
-                <span>
-                  Auto:{' '}
-                  {refreshStatus?.last_refreshed_at
-                    ? formatRelativeTime(refreshStatus.last_refreshed_at)
-                    : 'Never'}
-                </span>
+              <div className="flex items-center space-x-2">
+                <RefreshCw className="h-4 w-4" />
+                <div>
+                  <p className="text-xs text-white/60">Auto Refresh</p>
+                  <p className="font-medium">
+                    {refreshStatus.last_refreshed_at
+                      ? formatRelativeTime(refreshStatus.last_refreshed_at)
+                      : 'Never'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
+
       </CardContent>
     </Card>
   );
