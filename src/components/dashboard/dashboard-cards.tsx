@@ -564,15 +564,17 @@ export function LeagueProfileCard({
             <div className="flex items-center space-x-3">
               <ProfileIcon profileIconId={summoner.profile_icon_id} />
               <div>
-                <p className="text-lg font-bold text-white">
-                  {summoner.name}#{summoner.tagLine}
-                </p>
-                <Badge 
-                  variant="outline" 
-                  className="border-blue-500/30 bg-blue-500/10 text-blue-300 px-2 py-1 text-xs font-medium"
-                >
-                  {summoner.region.toUpperCase()}
-                </Badge>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-lg font-bold text-white">
+                    {summoner.name}#{summoner.tagLine}
+                  </p>
+                  <Badge 
+                    variant="outline" 
+                    className="border-blue-500/30 bg-blue-500/10 text-blue-300 px-2 py-1 text-xs font-medium"
+                  >
+                    {summoner.region.toUpperCase()}
+                  </Badge>
+                </div>
                 <div className="mt-3 flex flex-col space-y-2">
                   {/* Solo/Duo Rank Badge */}
                   <div className="flex items-center space-x-2">
