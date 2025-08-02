@@ -50,6 +50,47 @@ import {
 import { getProfileIconUrl } from '@/lib/utils/data-dragon';
 import { formatRelativeTime } from '@/lib/utils/time';
 
+// Utility function to get rank emblem URLs from Community Dragon CDN
+const getRankEmblemUrl = (tier: string, division: string) => {
+  const normalizedTier = tier.toUpperCase();
+  const baseUrl = 'https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblems';
+  
+  // Map tier names to emblem file names
+  const tierMap: Record<string, string> = {
+    'IRON': 'iron',
+    'BRONZE': 'bronze',
+    'SILVER': 'silver', 
+    'GOLD': 'gold',
+    'PLATINUM': 'platinum',
+    'EMERALD': 'emerald',
+    'DIAMOND': 'diamond',
+    'MASTER': 'master',
+    'GRANDMASTER': 'grandmaster',
+    'CHALLENGER': 'challenger'
+  };
+  
+  const tierName = tierMap[normalizedTier];
+  if (!tierName) {
+    return null; // Return null for unranked/unknown tiers
+  }
+  
+  // For Master+ tiers, no division is needed
+  if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(normalizedTier)) {
+    return `${baseUrl}/${tierName}.png`;
+  }
+  
+  // For other tiers, include division (I, II, III, IV)
+  const divisionMap: Record<string, string> = {
+    'I': '1',
+    'II': '2', 
+    'III': '3',
+    'IV': '4'
+  };
+  
+  const divisionNumber = divisionMap[division] || '1';
+  return `${baseUrl}/${tierName}_${divisionNumber}.png`;
+};
+
 // Tier-specific color schemes for rank badges
 const getTierColorScheme = (tier: string) => {
   const normalizedTier = tier.toUpperCase();
@@ -632,43 +673,112 @@ export function LeagueProfileCard({
             </div>
           </div>
 
-          <div
-            className="grid grid-cols-3 gap-4"
-            role="group"
-            aria-label="Player statistics"
-          >
-            <div
-              className="border-accessible-blue/30 focus-card rounded-lg border bg-black/40 p-3 text-center backdrop-blur-md"
-              tabIndex={0}
-              role="img"
-              aria-label={`${summoner.recentStats.totalGames} total games played`}
-            >
-              <p className="text-accessible-blue text-2xl font-bold">
-                {summoner.recentStats.totalGames}
-              </p>
-              <p className="text-xs text-white/70">Games</p>
+          {/* Ranked Stats Display */}
+          <div className="grid grid-cols-2 gap-4" role="group" aria-label="Ranked statistics">
+            {/* SoloQ Rank */}
+            <div className="rounded-lg border border-blue-500/30 bg-black/40 p-4 backdrop-blur-md">
+              <div className="mb-2 text-center">
+                <h4 className="text-sm font-medium text-white/80 mb-3">Solo/Duo Queue</h4>
+                {summoner.soloqRank ? (
+                  <>
+                    <div className="flex justify-center mb-3">
+                      <img
+                        src={getRankEmblemUrl(summoner.soloqRank.tier, summoner.soloqRank.rank_level) || ''}
+                        alt={`${summoner.soloqRank.tier} ${summoner.soloqRank.rank_level} emblem`}
+                        className="h-16 w-16 object-contain"
+                        onError={(e) => {
+                          // Fallback to a crown icon if emblem fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.innerHTML = `<div class="flex h-16 w-16 items-center justify-center rounded-full ${getTierColorScheme(summoner.soloqRank?.tier || '').bg} ${getTierColorScheme(summoner.soloqRank?.tier || '').border} border-2"><svg class="h-8 w-8 ${getTierColorScheme(summoner.soloqRank?.tier || '').text}" fill="currentColor" viewBox="0 0 24 24"><path d="M12 6L9 9L12 12L15 9L12 6Z"/><path d="M12 2L8 6H16L12 2Z"/><path d="M8 18L12 22L16 18H8Z"/></svg></div>`;
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="text-center space-y-1">
+                      <p className={`text-lg font-bold ${getTierColorScheme(summoner.soloqRank.tier).text}`}>
+                        {summoner.soloqRank.tier} {summoner.soloqRank.rank_level}
+                      </p>
+                      <p className="text-xl font-bold text-yellow-400">
+                        {summoner.soloqRank.league_points} LP
+                      </p>
+                      <p className="text-sm text-white/70">
+                        {summoner.soloqRank.wins}W / {summoner.soloqRank.losses}L
+                      </p>
+                      <p className="text-sm font-medium text-green-400">
+                        {safeCalculateWinRate(summoner.soloqRank.wins, summoner.soloqRank.losses)}% WR
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex justify-center mb-3">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-500/20 border-2 border-gray-500/30">
+                        <Crown className="h-8 w-8 text-gray-400" />
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-gray-400">Unranked</p>
+                      <p className="text-sm text-white/50 mt-2">Play ranked games to get a rank</p>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-            <div
-              className="border-accessible-green/30 focus-card rounded-lg border bg-black/40 p-3 text-center backdrop-blur-md"
-              tabIndex={0}
-              role="img"
-              aria-label={`${summoner.recentStats.winRate}% win rate`}
-            >
-              <p className="text-accessible-green text-2xl font-bold">
-                {summoner.recentStats.winRate}%
-              </p>
-              <p className="text-xs text-white/70">Win Rate</p>
-            </div>
-            <div
-              className="border-accessible-purple/30 focus-card rounded-lg border bg-black/40 p-3 text-center backdrop-blur-md"
-              tabIndex={0}
-              role="img"
-              aria-label={`${summoner.recentStats.kda} average KDA ratio`}
-            >
-              <p className="text-accessible-purple text-lg font-bold">
-                {summoner.recentStats.kda} KDA
-              </p>
-              <p className="text-xs text-white/70">Average</p>
+
+            {/* Flex Rank */}
+            <div className="rounded-lg border border-purple-500/30 bg-black/40 p-4 backdrop-blur-md">
+              <div className="mb-2 text-center">
+                <h4 className="text-sm font-medium text-white/80 mb-3">Flex Queue</h4>
+                {summoner.flexRank ? (
+                  <>
+                    <div className="flex justify-center mb-3">
+                      <img
+                        src={getRankEmblemUrl(summoner.flexRank.tier, summoner.flexRank.rank_level) || ''}
+                        alt={`${summoner.flexRank.tier} ${summoner.flexRank.rank_level} emblem`}
+                        className="h-16 w-16 object-contain"
+                        onError={(e) => {
+                          // Fallback to a crown icon if emblem fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.innerHTML = `<div class="flex h-16 w-16 items-center justify-center rounded-full ${getTierColorScheme(summoner.flexRank?.tier || '').bg} ${getTierColorScheme(summoner.flexRank?.tier || '').border} border-2"><svg class="h-8 w-8 ${getTierColorScheme(summoner.flexRank?.tier || '').text}" fill="currentColor" viewBox="0 0 24 24"><path d="M12 6L9 9L12 12L15 9L12 6Z"/><path d="M12 2L8 6H16L12 2Z"/><path d="M8 18L12 22L16 18H8Z"/></svg></div>`;
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="text-center space-y-1">
+                      <p className={`text-lg font-bold ${getTierColorScheme(summoner.flexRank.tier).text}`}>
+                        {summoner.flexRank.tier} {summoner.flexRank.rank_level}
+                      </p>
+                      <p className="text-xl font-bold text-yellow-400">
+                        {summoner.flexRank.league_points} LP
+                      </p>
+                      <p className="text-sm text-white/70">
+                        {summoner.flexRank.wins}W / {summoner.flexRank.losses}L
+                      </p>
+                      <p className="text-sm font-medium text-green-400">
+                        {safeCalculateWinRate(summoner.flexRank.wins, summoner.flexRank.losses)}% WR
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex justify-center mb-3">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-500/20 border-2 border-gray-500/30">
+                        <Crown className="h-8 w-8 text-gray-400" />
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-gray-400">Unranked</p>
+                      <p className="text-sm text-white/50 mt-2">Play ranked games to get a rank</p>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
