@@ -5,11 +5,11 @@ import { ItemSlots } from './item-slots';
 import { SummonerSpells } from './summoner-spells';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
-import { DetailedMatchParticipant } from '@/lib/types';
+import { DetailedMatchParticipant, EnhancedMatchParticipant } from '@/lib/types';
 import { formatNumber } from '@/lib/utils';
 
 interface PlayerRowProps {
-  participant: DetailedMatchParticipant;
+  participant: DetailedMatchParticipant | EnhancedMatchParticipant;
   isCurrentUser?: boolean;
   compact?: boolean;
   className?: string;
@@ -21,6 +21,38 @@ export function PlayerRow({
   compact = false,
   className = '' 
 }: PlayerRowProps) {
+  // Helper function to get display name with proper format
+  const getDisplayName = (participant: DetailedMatchParticipant | EnhancedMatchParticipant): string => {
+    const enhanced = participant as EnhancedMatchParticipant;
+    if (enhanced.riotIdName && enhanced.riotIdTagline) {
+      return `${enhanced.riotIdName}#${enhanced.riotIdTagline}`;
+    }
+    return participant.summonerName;
+  };
+
+  // Helper functions to handle property differences between types
+  const getLevel = (participant: DetailedMatchParticipant | EnhancedMatchParticipant): number => {
+    const enhanced = participant as EnhancedMatchParticipant;
+    const detailed = participant as DetailedMatchParticipant;
+    return enhanced.champLevel || detailed.level || 1;
+  };
+
+  const getSpell1Id = (participant: DetailedMatchParticipant | EnhancedMatchParticipant): number => {
+    const enhanced = participant as EnhancedMatchParticipant;
+    const detailed = participant as DetailedMatchParticipant;
+    return enhanced.spell1Id || detailed.summoner1Id || 0;
+  };
+
+  const getSpell2Id = (participant: DetailedMatchParticipant | EnhancedMatchParticipant): number => {
+    const enhanced = participant as EnhancedMatchParticipant;
+    const detailed = participant as DetailedMatchParticipant;
+    return enhanced.spell2Id || detailed.summoner2Id || 0;
+  };
+
+  const displayName = getDisplayName(participant);
+  const level = getLevel(participant);
+  const spell1Id = getSpell1Id(participant);
+  const spell2Id = getSpell2Id(participant);
   const kda = participant.deaths > 0 
     ? ((participant.kills + participant.assists) / participant.deaths).toFixed(2)
     : 'Perfect';
@@ -49,7 +81,7 @@ export function PlayerRow({
         {/* Player name */}
         <div className="flex-1 min-w-0">
           <span className={`text-sm truncate ${isCurrentUser ? 'text-purple-300 font-medium' : 'text-white/80'}`}>
-            {participant.summonerName}
+            {displayName}
           </span>
         </div>
 
@@ -76,7 +108,7 @@ export function PlayerRow({
           </TooltipTrigger>
           <TooltipContent>
             <p>{participant.championName}</p>
-            <p className="text-xs text-white/60">Level {participant.level}</p>
+            <p className="text-xs text-white/60">Level {level}</p>
           </TooltipContent>
         </Tooltip>
       </div>
@@ -84,8 +116,8 @@ export function PlayerRow({
       {/* Summoner Spells */}
       <div className="flex-shrink-0">
         <SummonerSpells 
-          spell1Id={participant.summoner1Id}
-          spell2Id={participant.summoner2Id}
+          spell1Id={spell1Id}
+          spell2Id={spell2Id}
           size="sm"
           orientation="vertical"
         />
@@ -95,7 +127,7 @@ export function PlayerRow({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className={`text-sm font-medium truncate ${isCurrentUser ? 'text-purple-300' : 'text-white'}`}>
-            {participant.summonerName}
+            {displayName}
           </span>
           {isCurrentUser && (
             <Badge variant="outline" className="text-xs border-purple-500/30 text-purple-400">
@@ -104,7 +136,7 @@ export function PlayerRow({
           )}
         </div>
         <div className="text-xs text-white/60">
-          Level {participant.level}
+          Level {level}
         </div>
       </div>
 
@@ -160,7 +192,7 @@ export function PlayerRow({
 }
 
 interface PlayersListProps {
-  participants: DetailedMatchParticipant[];
+  participants: (DetailedMatchParticipant | EnhancedMatchParticipant)[];
   currentUserPuuid?: string;
   compact?: boolean;
   className?: string;
@@ -192,7 +224,7 @@ export function PlayersList({
 /**
  * Helper function to sort participants by role order
  */
-export function sortParticipantsByRole(participants: DetailedMatchParticipant[]): DetailedMatchParticipant[] {
+export function sortParticipantsByRole(participants: (DetailedMatchParticipant | EnhancedMatchParticipant)[]): (DetailedMatchParticipant | EnhancedMatchParticipant)[] {
   // This is a simplified role detection - in a real app you'd want more sophisticated role detection
   // const roleOrder = ['TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY'];
   
@@ -208,9 +240,14 @@ export function sortParticipantsByRole(participants: DetailedMatchParticipant[])
 /**
  * Helper function to get role icon based on summoner spells and champion
  */
-export function getPlayerRole(participant: DetailedMatchParticipant): string {
+export function getPlayerRole(participant: DetailedMatchParticipant | EnhancedMatchParticipant): string {
   // Simplified role detection
-  if (participant.summoner1Id === 11 || participant.summoner2Id === 11) {
+  const enhanced = participant as EnhancedMatchParticipant;
+  const detailed = participant as DetailedMatchParticipant;
+  const spell1 = enhanced.spell1Id || detailed.summoner1Id || 0;
+  const spell2 = enhanced.spell2Id || detailed.summoner2Id || 0;
+  
+  if (spell1 === 11 || spell2 === 11) {
     return 'JUNGLE'; // Has Smite
   }
   

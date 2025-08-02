@@ -234,6 +234,31 @@ export async function POST(request: Request) {
 
                     if (!matchError) {
                       refreshResults.matches_added++;
+                      
+                      // Cache participant names for this match
+                      try {
+                        const participantNameData = matchDetails.info.participants.map((p: any) => ({
+                          match_id: matchId,
+                          puuid: p.puuid,
+                          game_name: p.riotIdGameName || p.riotIdName || p.summonerName || 'Unknown',
+                          tag_line: p.riotIdTagline || 'NA1'
+                        }));
+
+                        const { error: nameError } = await supabase
+                          .from('match_participants_names')
+                          .upsert(participantNameData, {
+                            onConflict: 'match_id,puuid',
+                            ignoreDuplicates: true
+                          });
+
+                        if (nameError) {
+                          console.warn(`Failed to cache participant names for match ${matchId}:`, nameError);
+                          // Don't add to warnings as this is not critical for the refresh process
+                        }
+                      } catch (nameError) {
+                        console.warn(`Error caching participant names for match ${matchId}:`, nameError);
+                        // Continue without failing the entire refresh
+                      }
                     } else {
                       console.error(`Failed to save match ${matchId}:`, matchError);
                       refreshResults.warnings.push(`Failed to save match ${matchId}`);

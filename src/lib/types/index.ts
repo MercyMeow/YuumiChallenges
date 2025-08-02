@@ -459,3 +459,222 @@ export const filterValidLeaderboardUsers = (users: unknown[]): LeaderboardUser[]
 export const filterValidRankedInfo = (rankedInfo: unknown[]): RankedQueueInfo[] => {
   return rankedInfo.filter(isRankedQueueInfo);
 };
+
+// Types for match details API and participant names caching
+export interface MatchParticipantName {
+  id?: string;
+  match_id: string;
+  puuid: string;
+  game_name: string;
+  tag_line: string;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
+export interface EnhancedMatchParticipant {
+  // Player identity
+  puuid: string;
+  summonerId: string;
+  summonerName: string;
+  summonerLevel: number;
+  riotIdName: string;
+  riotIdTagline: string;
+  
+  // Champion info
+  championId: number;
+  championName: string;
+  champLevel: number;
+  championTransform: number;
+  
+  // Team info
+  teamId: number;
+  teamPosition: string;
+  individualPosition: string;
+  
+  // Summoner spells & runes
+  spell1Id: number;
+  spell2Id: number;
+  perks: Record<string, any>;
+  
+  // Items (0-6: items, 6 is trinket)
+  items: number[];
+  
+  // Core stats
+  kills: number;
+  deaths: number;
+  assists: number;
+  win: boolean;
+  
+  // Combat stats
+  totalDamageDealtToChampions: number;
+  totalDamageDealt: number;
+  totalDamageTaken: number;
+  magicDamageDealtToChampions: number;
+  physicalDamageDealtToChampions: number;
+  trueDamageDealtToChampions: number;
+  totalHeal: number;
+  totalUnitsHealed: number;
+  damageSelfMitigated: number;
+  
+  // Economy stats
+  goldEarned: number;
+  goldSpent: number;
+  totalMinionsKilled: number;
+  neutralMinionsKilled: number;
+  
+  // Vision stats
+  visionScore: number;
+  visionWardsBoughtInGame: number;
+  wardsPlaced: number;
+  wardsKilled: number;
+  detectorWardsPlaced: number;
+  
+  // Objectives
+  turretKills: number;
+  turretTakedowns: number;
+  inhibitorKills: number;
+  inhibitorTakedowns: number;
+  baronKills: number;
+  dragonKills: number;
+  
+  // CC & utility
+  totalTimeCCDealt: number;
+  timeCCingOthers: number;
+  totalTimeSpentDead: number;
+  timePlayed: number;
+  
+  // Multi-kills
+  doubleKills: number;
+  tripleKills: number;
+  quadraKills: number;
+  pentaKills: number;
+  unrealKills: number;
+  
+  // First events
+  firstBloodKill: boolean;
+  firstBloodAssist: boolean;
+  firstTowerKill: boolean;
+  firstTowerAssist: boolean;
+  
+  // Other stats
+  bountyLevel: number;
+  totalAllyJungleMinionsKilled: number;
+  totalEnemyJungleMinionsKilled: number;
+  consumablesPurchased: number;
+  itemsPurchased: number;
+  
+  // Challenges and meta
+  challenges: Record<string, any>;
+  profileIcon: number;
+  gameEndedInEarlySurrender: boolean;
+  gameEndedInSurrender: boolean;
+  eligibleForProgression: boolean;
+  
+  // Calculated stats
+  kda: number;
+  killParticipation: number;
+  damagePerMinute: number;
+  visionScorePerMinute: number;
+  csPerMinute: number;
+}
+
+export interface EnhancedMatchTeam {
+  teamId: number;
+  win: boolean;
+  bans: Array<{
+    championId: number;
+    pickTurn: number;
+  }>;
+  objectives: {
+    baron: { first: boolean; kills: number };
+    champion: { first: boolean; kills: number };
+    dragon: { first: boolean; kills: number };
+    inhibitor: { first: boolean; kills: number };
+    riftHerald: { first: boolean; kills: number };
+    tower: { first: boolean; kills: number };
+  };
+}
+
+export interface MatchGameStats {
+  totalKills: number;
+  averageLevel: number;
+  totalGold: number;
+  firstBloodTime: number | null;
+  winningTeam: number | null;
+  gameLength: {
+    minutes: number;
+    seconds: number;
+    formatted: string;
+  };
+}
+
+export interface EnhancedMatchDetailsResponse {
+  // Basic match info
+  matchId: string;
+  gameCreation: number;
+  gameDuration: number;
+  gameStartTimestamp: number;
+  gameEndTimestamp: number;
+  gameMode: string;
+  gameType: string;
+  gameVersion: string;
+  mapId: number;
+  platformId: string;
+  queueId: number;
+  tournamentCode?: string;
+  
+  // Enhanced participants data
+  participants: EnhancedMatchParticipant[];
+  
+  // Team information
+  teams: EnhancedMatchTeam[];
+  
+  // Match metadata
+  metadata: {
+    dataVersion: string;
+    participants: string[];
+  };
+  
+  // Game statistics
+  gameStats: MatchGameStats;
+}
+
+export interface MatchDetailsApiResponse {
+  success: boolean;
+  data?: EnhancedMatchDetailsResponse;
+  error?: string;
+}
+
+// Type guards for new types
+export const isMatchParticipantName = (obj: unknown): obj is MatchParticipantName => {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'match_id' in obj &&
+    'puuid' in obj &&
+    'game_name' in obj &&
+    'tag_line' in obj &&
+    typeof (obj as MatchParticipantName).match_id === 'string' &&
+    typeof (obj as MatchParticipantName).puuid === 'string' &&
+    typeof (obj as MatchParticipantName).game_name === 'string' &&
+    typeof (obj as MatchParticipantName).tag_line === 'string'
+  );
+};
+
+export const isEnhancedMatchParticipant = (obj: unknown): obj is EnhancedMatchParticipant => {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'puuid' in obj &&
+    'championName' in obj &&
+    'kills' in obj &&
+    'deaths' in obj &&
+    'assists' in obj &&
+    'items' in obj &&
+    Array.isArray((obj as EnhancedMatchParticipant).items) &&
+    typeof (obj as EnhancedMatchParticipant).puuid === 'string' &&
+    typeof (obj as EnhancedMatchParticipant).kills === 'number' &&
+    typeof (obj as EnhancedMatchParticipant).deaths === 'number' &&
+    typeof (obj as EnhancedMatchParticipant).assists === 'number'
+  );
+};

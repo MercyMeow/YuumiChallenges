@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { TeamsComparison } from './team-section';
 import { ChampionIcon } from '@/components/ui/datadragon-image';
 import { ItemSlots } from './item-slots';
 import { SummonerSpells } from './summoner-spells';
-import { ProcessedMatchData, SafeDetailedMatchTeam } from '@/lib/types';
+import { ProcessedMatchData, SafeDetailedMatchTeam, EnhancedMatchDetailsResponse, MatchDetailsApiResponse, EnhancedMatchParticipant } from '@/lib/types';
 import { getGameModeDisplayName, getGameModeCategoryColor } from '@/lib/utils/game-modes';
 import { formatDistanceToNow } from 'date-fns';
 import { 
@@ -19,7 +19,9 @@ import {
   ChevronDown, 
   ChevronUp,
   Gamepad2,
-  Users
+  Users,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 
 interface MatchCardProps {
@@ -38,6 +40,9 @@ export function MatchCard({
   compact = false
 }: MatchCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const [detailedData, setDetailedData] = useState<EnhancedMatchDetailsResponse | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [detailsError, setDetailsError] = useState<string | null>(null);
   
   const kda = match.deaths > 0 
     ? ((match.kills + match.assists) / match.deaths).toFixed(2)
@@ -74,7 +79,48 @@ export function MatchCard({
 
   // Get user participant data if detailed data is available
   const userParticipant = match.userParticipant;
-  const detailedData = match.detailedData;
+  const originalDetailedData = match.detailedData;
+
+  // Function to fetch detailed match data
+  const fetchDetailedData = useCallback(async (matchId: string) => {
+    if (detailedData || isLoadingDetails) return; // Already loaded or loading
+    
+    setIsLoadingDetails(true);
+    setDetailsError(null);
+    
+    try {
+      const response = await fetch(`/api/match/${matchId}/details`);
+      const result: MatchDetailsApiResponse = await response.json();
+      
+      if (result.success && result.data) {
+        setDetailedData(result.data);
+      } else {
+        setDetailsError(result.error || 'Failed to load match details');
+      }
+    } catch (error) {
+      console.error('Error fetching match details:', error);
+      setDetailsError('Network error loading match details');
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  }, [detailedData, isLoadingDetails]);
+
+  // Handle expand/collapse
+  const handleToggleExpand = useCallback(async () => {
+    const newExpanded = !isExpanded;
+    setIsExpanded(newExpanded);
+    
+    // Fetch detailed data when expanding if we don't have it
+    if (newExpanded && !detailedData && !originalDetailedData) {
+      await fetchDetailedData(match.match_id);
+    }
+  }, [isExpanded, detailedData, originalDetailedData, fetchDetailedData, match.match_id]);
+
+  // Use either the fetched detailed data or the original detailed data
+  const activeDetailedData = detailedData || (originalDetailedData ? {
+    participants: originalDetailedData.info.participants || [],
+    teams: originalDetailedData.info.teams || []
+  } : null);
 
   // Compact version for dashboard summary
   if (compact) {
@@ -229,26 +275,27 @@ export function MatchCard({
                 </div>
               </div>
 
-              {detailedData && (
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="text-white/60 hover:text-white hover:bg-white/10 focus-button"
-                  aria-label={isExpanded ? "Hide match details" : "Show match details"}
-                  aria-expanded={isExpanded}
-                  aria-controls={`match-details-${match.match_id}`}
-                >
-                  {isExpanded ? (
-                    <ChevronUp className="h-4 w-4" aria-hidden="true" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" aria-hidden="true" />
-                  )}
-                  <span className="sr-only">
-                    {isExpanded ? 'Hide' : 'Show'} detailed match information
-                  </span>
-                </Button>
-              )}
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={handleToggleExpand}
+                disabled={isLoadingDetails}
+                className="text-white/60 hover:text-white hover:bg-white/10 focus-button"
+                aria-label={isExpanded ? "Hide match details" : "Show match details"}
+                aria-expanded={isExpanded}
+                aria-controls={`match-details-${match.match_id}`}
+              >
+                {isLoadingDetails ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                ) : isExpanded ? (
+                  <ChevronUp className="h-4 w-4" aria-hidden="true" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                )}
+                <span className="sr-only">
+                  {isExpanded ? 'Hide' : 'Show'} detailed match information
+                </span>
+              </Button>
             </div>
           </div>
 
@@ -264,7 +311,7 @@ export function MatchCard({
         </CardHeader>
 
         {/* Team Preview - Always visible */}
-        {detailedData && detailedData.info.participants && (
+        {(activeDetailedData?.participants || originalDetailedData?.info.participants) && (
           <CardContent className="pt-0 pb-2">
             <div className="border-t border-white/10 pt-3">
               <div className="grid grid-cols-2 gap-4">
@@ -275,17 +322,23 @@ export function MatchCard({
                     <span className="text-xs font-medium text-blue-400">Blue Team</span>
                   </div>
                   <div className="space-y-1">
-                    {detailedData.info.participants
-                      .filter(p => p.teamId === 100)
+                    {(activeDetailedData?.participants || originalDetailedData?.info.participants || [])
+                      .filter((p: any) => p.teamId === 100)
                       .slice(0, 5)
-                      .map((participant, index) => (
-                        <div key={participant.puuid || index} className="flex items-center gap-2 text-xs">
-                          <ChampionIcon championId={participant.championName} size="xs" />
-                          <span className={`truncate ${participant.puuid === currentUserPuuid ? 'text-purple-300 font-medium' : 'text-white/80'}`}>
-                            {participant.summonerName}
-                          </span>
-                        </div>
-                      ))}
+                      .map((participant: any, index: number) => {
+                        const displayName = (participant as EnhancedMatchParticipant).riotIdName && (participant as EnhancedMatchParticipant).riotIdTagline
+                          ? `${(participant as EnhancedMatchParticipant).riotIdName}#${(participant as EnhancedMatchParticipant).riotIdTagline}`
+                          : participant.summonerName;
+                        
+                        return (
+                          <div key={participant.puuid || index} className="flex items-center gap-2 text-xs">
+                            <ChampionIcon championId={participant.championName} size="xs" />
+                            <span className={`truncate ${participant.puuid === currentUserPuuid ? 'text-purple-300 font-medium' : 'text-white/80'}`}>
+                              {displayName}
+                            </span>
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
 
@@ -296,17 +349,23 @@ export function MatchCard({
                     <span className="text-xs font-medium text-red-400">Red Team</span>
                   </div>
                   <div className="space-y-1">
-                    {detailedData.info.participants
-                      .filter(p => p.teamId === 200)
+                    {(activeDetailedData?.participants || originalDetailedData?.info.participants || [])
+                      .filter((p: any) => p.teamId === 200)
                       .slice(0, 5)
-                      .map((participant, index) => (
-                        <div key={participant.puuid || index} className="flex items-center gap-2 text-xs">
-                          <ChampionIcon championId={participant.championName} size="xs" />
-                          <span className={`truncate ${participant.puuid === currentUserPuuid ? 'text-purple-300 font-medium' : 'text-white/80'}`}>
-                            {participant.summonerName}
-                          </span>
-                        </div>
-                      ))}
+                      .map((participant: any, index: number) => {
+                        const displayName = (participant as EnhancedMatchParticipant).riotIdName && (participant as EnhancedMatchParticipant).riotIdTagline
+                          ? `${(participant as EnhancedMatchParticipant).riotIdName}#${(participant as EnhancedMatchParticipant).riotIdTagline}`
+                          : participant.summonerName;
+                        
+                        return (
+                          <div key={participant.puuid || index} className="flex items-center gap-2 text-xs">
+                            <ChampionIcon championId={participant.championName} size="xs" />
+                            <span className={`truncate ${participant.puuid === currentUserPuuid ? 'text-purple-300 font-medium' : 'text-white/80'}`}>
+                              {displayName}
+                            </span>
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               </div>
@@ -315,7 +374,7 @@ export function MatchCard({
         )}
 
         {/* Expanded content - detailed team view */}
-        {detailedData && isExpanded && (
+        {isExpanded && (
           <CardContent className="pt-0" id={`match-details-${match.match_id}`}>
             <div className="border-t border-white/10 pt-4">
               <div className="flex items-center gap-2 mb-4">
@@ -323,38 +382,57 @@ export function MatchCard({
                 <h4 className="text-lg font-semibold text-white">Match Details</h4>
               </div>
 
-              <TeamsComparison
-                blueTeam={match.userTeam || detailedData.info.teams?.find(t => t.teamId === 100) || {
-                  teamId: 100,
-                  win: false,
-                  bans: [],
-                  objectives: {
-                    baron: { first: false, kills: 0 },
-                    champion: { first: false, kills: 0 },
-                    dragon: { first: false, kills: 0 },
-                    inhibitor: { first: false, kills: 0 },
-                    riftHerald: { first: false, kills: 0 },
-                    tower: { first: false, kills: 0 }
-                  }
-                } satisfies SafeDetailedMatchTeam}
-                redTeam={match.enemyTeam || detailedData.info.teams?.find(t => t.teamId === 200) || {
-                  teamId: 200,
-                  win: false,
-                  bans: [],
-                  objectives: {
-                    baron: { first: false, kills: 0 },
-                    champion: { first: false, kills: 0 },
-                    dragon: { first: false, kills: 0 },
-                    inhibitor: { first: false, kills: 0 },
-                    riftHerald: { first: false, kills: 0 },
-                    tower: { first: false, kills: 0 }
-                  }
-                } satisfies SafeDetailedMatchTeam}
-                participants={detailedData.info.participants || []}
-                {...(currentUserPuuid ? { currentUserPuuid } : {})}
-                compact={false}
-                layout="side-by-side"
-              />
+              {/* Loading state */}
+              {isLoadingDetails && (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-white/60" />
+                  <span className="ml-2 text-white/60">Loading match details...</span>
+                </div>
+              )}
+
+              {/* Error state */}
+              {detailsError && (
+                <div className="flex items-center justify-center py-8 text-red-400">
+                  <AlertCircle className="h-6 w-6 mr-2" />
+                  <span>{detailsError}</span>
+                </div>
+              )}
+
+              {/* Detailed match data */}
+              {activeDetailedData && !isLoadingDetails && !detailsError && (
+                <TeamsComparison
+                  blueTeam={activeDetailedData.teams?.find(t => t.teamId === 100) || match.userTeam || {
+                    teamId: 100,
+                    win: false,
+                    bans: [],
+                    objectives: {
+                      baron: { first: false, kills: 0 },
+                      champion: { first: false, kills: 0 },
+                      dragon: { first: false, kills: 0 },
+                      inhibitor: { first: false, kills: 0 },
+                      riftHerald: { first: false, kills: 0 },
+                      tower: { first: false, kills: 0 }
+                    }
+                  } satisfies SafeDetailedMatchTeam}
+                  redTeam={activeDetailedData.teams?.find(t => t.teamId === 200) || match.enemyTeam || {
+                    teamId: 200,
+                    win: false,
+                    bans: [],
+                    objectives: {
+                      baron: { first: false, kills: 0 },
+                      champion: { first: false, kills: 0 },
+                      dragon: { first: false, kills: 0 },
+                      inhibitor: { first: false, kills: 0 },
+                      riftHerald: { first: false, kills: 0 },
+                      tower: { first: false, kills: 0 }
+                    }
+                  } satisfies SafeDetailedMatchTeam}
+                  participants={activeDetailedData.participants || []}
+                  {...(currentUserPuuid ? { currentUserPuuid } : {})}
+                  compact={false}
+                  layout="side-by-side"
+                />
+              )}
             </div>
           </CardContent>
         )}

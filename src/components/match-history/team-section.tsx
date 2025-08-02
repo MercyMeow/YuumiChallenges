@@ -3,12 +3,12 @@
 import { PlayersList } from './player-row';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { DetailedMatchParticipant, DetailedMatchTeam } from '@/lib/types';
+import { DetailedMatchParticipant, DetailedMatchTeam, EnhancedMatchParticipant } from '@/lib/types';
 import { Trophy, Target, Eye, Crown, Shield, Sword } from 'lucide-react';
 
 interface TeamSectionProps {
   team: DetailedMatchTeam;
-  participants: DetailedMatchParticipant[];
+  participants: (DetailedMatchParticipant | EnhancedMatchParticipant)[];
   currentUserPuuid?: string;
   side: 'blue' | 'red';
   compact?: boolean;
@@ -63,14 +63,14 @@ export function TeamSection({
     );
   };
 
-  // Calculate team stats
+  // Calculate team stats with proper type handling
   const teamStats = teamParticipants.reduce((acc, p) => ({
-    kills: acc.kills + p.kills,
-    deaths: acc.deaths + p.deaths,
-    assists: acc.assists + p.assists,
-    gold: acc.gold + p.goldEarned,
-    cs: acc.cs + p.totalMinionsKilled,
-    vision: acc.vision + p.visionScore,
+    kills: acc.kills + (p.kills || 0),
+    deaths: acc.deaths + (p.deaths || 0),
+    assists: acc.assists + (p.assists || 0),
+    gold: acc.gold + (p.goldEarned || 0),
+    cs: acc.cs + (p.totalMinionsKilled || 0),
+    vision: acc.vision + (p.visionScore || 0),
   }), { kills: 0, deaths: 0, assists: 0, gold: 0, cs: 0, vision: 0 });
 
   if (compact) {
@@ -242,7 +242,7 @@ export function TeamSection({
 interface TeamsComparisonProps {
   blueTeam: DetailedMatchTeam;
   redTeam: DetailedMatchTeam;
-  participants: DetailedMatchParticipant[];
+  participants: (DetailedMatchParticipant | EnhancedMatchParticipant)[];
   currentUserPuuid?: string;
   compact?: boolean;
   layout?: 'side-by-side' | 'stacked';
