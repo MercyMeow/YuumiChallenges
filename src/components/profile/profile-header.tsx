@@ -10,7 +10,7 @@ interface ProfileHeaderProps {
   user: {
     id: string;
     name: string;
-    image?: string;
+    image?: string | undefined;
     user_role: string;
     is_yuumi_member: boolean;
   };

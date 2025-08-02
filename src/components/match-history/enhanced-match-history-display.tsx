@@ -18,7 +18,6 @@ import {
   AlertCircle,
   Filter,
   Users,
-  Clock,
   Zap
 } from 'lucide-react';
 
@@ -41,7 +40,7 @@ export function EnhancedMatchHistoryDisplay({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<MatchFilter>('all');
-  const [limit, setLimit] = useState(50); // Show more matches by default
+  const [limit] = useState(50); // Show more matches by default
   const [hasMore, setHasMore] = useState(false);
 
   const fetchMatches = useCallback(async (resetMatches = true) => {
@@ -171,7 +170,7 @@ export function EnhancedMatchHistoryDisplay({
     const firstMatchResult = sortedMatches[0]?.win;
     
     for (let i = 1; i < sortedMatches.length; i++) {
-      if (sortedMatches[i].win === firstMatchResult) {
+      if (sortedMatches[i]?.win === firstMatchResult) {
         currentStreak++;
       } else {
         break;

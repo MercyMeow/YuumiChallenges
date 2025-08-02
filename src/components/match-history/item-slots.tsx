@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { itemImages, getLatestVersion } from '@/lib/apis/datadragon';
+import { itemImages } from '@/lib/apis/datadragon';
 import { useItem } from '@/hooks/use-item-data';
 
 interface ItemSlotProps {

@@ -9,7 +9,7 @@ interface AdminHeaderProps {
   user: {
     id: string;
     name: string;
-    image?: string;
+    image?: string | undefined;
     user_role: string;
     discord_id: string;
     is_yuumi_member: boolean;
