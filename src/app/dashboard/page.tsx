@@ -5,8 +5,7 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { 
   ChallengesCard, 
-  LeagueProfileCard, 
-  LeaderboardCard
+  LeagueProfileCard
 } from '@/components/dashboard/dashboard-cards';
 import { EnhancedMatchHistoryDisplay } from '@/components/match-history';
 import { Card } from '@/components/ui/card';
@@ -405,49 +404,42 @@ export default function Dashboard() {
           </Card>
         </section>
 
-        {/* Main Dashboard Grid - Reordered by Priority */}
-        <section className="grid gap-6 lg:grid-cols-3" aria-labelledby="dashboard-content-heading">
+        {/* Main Dashboard Grid - Simplified Layout */}
+        <section className="space-y-6" aria-labelledby="dashboard-content-heading">
           <h2 id="dashboard-content-heading" className="sr-only">Dashboard Content</h2>
-          {/* Left Column - Primary User Actions */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Top Row - Most Important Cards */}
-            <div className="grid gap-6 md:grid-cols-2">
-              <LeagueProfileCard 
-                summonerData={summonerData}
-                isLoading={loadingSummoner}
-                refreshStatus={refreshStatus}
-                isRefreshing={isRefreshing}
-                onRefresh={handleManualRefresh}
-                onAccountChange={async () => {
-                  // Refresh all dashboard data when account linking succeeds
-                  console.log('🔄 DEBUG - Account linking completed, refreshing dashboard');
-                  try {
-                    await fetchSummonerData(false); // Don't show loading spinner for refresh
-                    await fetchDashboardData();
-                    console.log('✅ DEBUG - Dashboard refresh completed successfully');
-                  } catch (error) {
-                    console.error('❌ ERROR - Dashboard refresh failed:', error);
-                  }
-                }}
-              />
-              <ChallengesCard />
-            </div>
-            
-            {/* Enhanced Match History Display */}
-            {summonerData?.summoner && (
-              <EnhancedMatchHistoryDisplay
-                summonerId={summonerData.summoner.puuid}
-                currentUserPuuid={summonerData.summoner.puuid}
-                onRefresh={handleManualRefresh}
-                isRefreshing={isRefreshing}
-              />
-            )}
+          
+          {/* Top Row - Most Important Cards */}
+          <div className="grid gap-6 md:grid-cols-2">
+            <LeagueProfileCard 
+              summonerData={summonerData}
+              isLoading={loadingSummoner}
+              refreshStatus={refreshStatus}
+              isRefreshing={isRefreshing}
+              onRefresh={handleManualRefresh}
+              onAccountChange={async () => {
+                // Refresh all dashboard data when account linking succeeds
+                console.log('🔄 DEBUG - Account linking completed, refreshing dashboard');
+                try {
+                  await fetchSummonerData(false); // Don't show loading spinner for refresh
+                  await fetchDashboardData();
+                  console.log('✅ DEBUG - Dashboard refresh completed successfully');
+                } catch (error) {
+                  console.error('❌ ERROR - Dashboard refresh failed:', error);
+                }
+              }}
+            />
+            <ChallengesCard />
           </div>
           
-          {/* Right Column - Secondary Info */}
-          <div className="space-y-6">
-            <LeaderboardCard />
-          </div>
+          {/* Enhanced Match History Display */}
+          {summonerData?.summoner && (
+            <EnhancedMatchHistoryDisplay
+              summonerId={summonerData.summoner.puuid}
+              currentUserPuuid={summonerData.summoner.puuid}
+              onRefresh={handleManualRefresh}
+              isRefreshing={isRefreshing}
+            />
+          )}
         </section>
       </main>
     </DashboardLayout>
