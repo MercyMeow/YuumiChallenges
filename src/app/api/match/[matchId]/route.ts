@@ -31,11 +31,11 @@ function getRegionFromMatchId(matchId: string): string {
     'VN2': 'vn2'
   };
   
-  return regionMap[regionCode] || 'na1'; // Default to NA1 if unknown
+  return regionCode ? (regionMap[regionCode] || 'na1') : 'na1'; // Default to NA1 if unknown
 }
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ matchId: string }> }
 ) {
   const { matchId } = await params;
