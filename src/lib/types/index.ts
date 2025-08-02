@@ -31,10 +31,10 @@ export interface Summoner {
   region: string;
   level: number;
   profile_icon_id: number;
-  last_refreshed_at?: Date;
-  last_manual_refresh_at?: Date;
-  created_at: Date;
-  updated_at: Date;
+  last_refreshed_at?: string;
+  last_manual_refresh_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Challenge {
@@ -209,12 +209,12 @@ export interface RefreshResponse {
 export interface RefreshStatus {
   can_refresh: boolean;
   can_manual_refresh: boolean;
-  last_refreshed_at?: Date | null;
-  last_manual_refresh_at?: Date | null;
-  next_auto_refresh?: Date | null;
-  next_manual_refresh?: Date | null;
+  last_refreshed_at?: string | null;
+  last_manual_refresh_at?: string | null;
+  next_auto_refresh?: string | null;
+  next_manual_refresh?: string | null;
   total_matches?: number;
-  last_match_date?: Date | null;
+  last_match_date?: string | null;
 }
 
 // Enhanced typed interfaces for dashboard components

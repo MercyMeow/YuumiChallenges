@@ -11,6 +11,7 @@ import {
 import { EnhancedMatchHistoryDisplay } from '@/components/match-history';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { RefreshStatus } from '@/lib/types';
 import { Sparkles, Activity, Users, Award, Loader2, Zap } from 'lucide-react';
 
 interface DashboardStats {
@@ -40,12 +41,7 @@ interface SummonerData {
   } | null;
 }
 
-interface RefreshStatus {
-  can_refresh: boolean;
-  can_manual_refresh: boolean;
-  last_refreshed_at?: Date;
-  next_auto_refresh?: Date;
-}
+// Remove local RefreshStatus interface - use the one from @/lib/types
 
 export default function Dashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -79,17 +75,12 @@ export default function Dashboard() {
     try {
       const response = await fetch('/api/summoners/refresh');
       if (response.ok) {
-        const data = await response.json();
-        // Convert timestamp strings to Date objects (API returns ISO strings)
-        const refreshStatus = {
-          ...data,
-          last_refreshed_at: data.last_refreshed_at ? new Date(data.last_refreshed_at) : null,
-          last_manual_refresh_at: data.last_manual_refresh_at ? new Date(data.last_manual_refresh_at) : null,
-          next_auto_refresh: data.next_auto_refresh ? new Date(data.next_auto_refresh) : null,
-          next_manual_refresh: data.next_manual_refresh ? new Date(data.next_manual_refresh) : null,
-          last_match_date: data.last_match_date ? new Date(data.last_match_date) : null,
-        };
-        setRefreshStatus(refreshStatus);
+        const apiResponse = await response.json();
+        // Extract the actual refresh status data from the API response wrapper
+        const refreshStatusData = apiResponse.data || apiResponse;
+        setRefreshStatus(refreshStatusData as RefreshStatus);
+      } else {
+        console.error('Refresh status API error:', response.status);
       }
     } catch (error) {
       console.error('Error fetching refresh status:', error);
@@ -101,27 +92,23 @@ export default function Dashboard() {
       if (isInitialLoad) {
         setLoadingSummoner(true);
       }
-      console.log('🔍 DEBUG - Fetching summoner data');
       
       const response = await fetch('/api/summoners');
       if (response.ok) {
         const data = await response.json();
-        console.log('🔍 DEBUG - Summoner API response:', data);
         
         if (data.data?.summoner) {
           setSummonerData(data.data);
           // Also fetch refresh status
           await fetchRefreshStatus();
-          console.log('✅ DEBUG - Summoner data set successfully');
         } else {
-          console.log('❌ DEBUG - No summoner found');
           setSummonerData({ summoner: null, stats: null });
         }
       } else {
         throw new Error(`API response not ok: ${response.status}`);
       }
     } catch (error) {
-      console.error('❌ Error fetching summoner data:', error);
+      console.error('Error fetching summoner data:', error);
       // On error, set to null state
       setSummonerData({ summoner: null, stats: null });
     } finally {
@@ -161,16 +148,11 @@ export default function Dashboard() {
 
   const handleManualRefresh = async () => {
     if (!refreshStatus?.can_manual_refresh || isRefreshing) {
-      console.log('Cannot refresh:', { 
-        can_manual_refresh: refreshStatus?.can_manual_refresh, 
-        isRefreshing 
-      });
       return;
     }
     
     try {
       setIsRefreshing(true);
-      console.log('Starting manual refresh...');
       
       const response = await fetch('/api/summoners/refresh', {
         method: 'POST',
@@ -179,12 +161,10 @@ export default function Dashboard() {
       });
       
       const result = await response.json();
-      console.log('Refresh response:', { status: response.status, result });
       
       if (response.ok) {
         if (result.success || result.data?.partial_success) {
           // Refresh all data after successful manual refresh
-          console.log('Refresh successful, updating data...');
           await fetchSummonerData(false);
           await fetchDashboardData();
           await fetchRefreshStatus(); // Update refresh status
