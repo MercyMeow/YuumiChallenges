@@ -52,7 +52,7 @@ export async function requireAdmin(): Promise<AuthResult> {
   const roleResult = await requireRole(authResult.session!.user.id, ['admin', 'owner']);
   if (roleResult.error) return roleResult;
   
-  return { session: authResult.session };
+  return { session: authResult.session! };
 }
 
 export async function requireOwner(): Promise<AuthResult> {
@@ -62,7 +62,7 @@ export async function requireOwner(): Promise<AuthResult> {
   const roleResult = await requireRole(authResult.session!.user.id, ['owner']);
   if (roleResult.error) return roleResult;
   
-  return { session: authResult.session };
+  return { session: authResult.session! };
 }
 
 export function createAuthResponse(result: AuthResult) {

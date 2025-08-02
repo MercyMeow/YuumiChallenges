@@ -142,7 +142,7 @@ export function MatchHistoryDisplay({ summonerId, onRefresh, isRefreshing = fals
     const firstMatchResult = sortedMatches[0]?.win;
     
     for (let i = 1; i < sortedMatches.length; i++) {
-      if (sortedMatches[i].win === firstMatchResult) {
+      if (sortedMatches[i]?.win === firstMatchResult) {
         currentStreak++;
       } else {
         break;

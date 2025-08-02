@@ -125,8 +125,8 @@ export function ChampionIcon({
       type="icon"
       width={width}
       height={height}
-      className={className}
-      alt={alt}
+      {...(className ? { className } : {})}
+      alt={alt || `Champion ${championId}`}
     />
   );
 }
@@ -155,8 +155,8 @@ export function ChampionSplash({
       skinNum={skinNum}
       width={width}
       height={height}
-      className={className}
-      alt={alt}
+      {...(className ? { className } : {})}
+      alt={alt || `Champion ${championId} splash art`}
     />
   );
 }
@@ -177,7 +177,7 @@ export function YuumiIcon({
     <ChampionIcon
       championId="Yuumi"
       size={size}
-      className={className}
+      {...(className ? { className } : {})}
       alt={alt}
     />
   );
@@ -194,7 +194,7 @@ export function YuumiSplash({
     <ChampionSplash
       championId="Yuumi"
       skinNum={skinNum}
-      className={className}
+      {...(className ? { className } : {})}
       alt={alt}
       width={width}
       height={height}

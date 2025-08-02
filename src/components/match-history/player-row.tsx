@@ -194,11 +194,11 @@ export function PlayersList({
  */
 export function sortParticipantsByRole(participants: DetailedMatchParticipant[]): DetailedMatchParticipant[] {
   // This is a simplified role detection - in a real app you'd want more sophisticated role detection
-  const roleOrder = ['TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY'];
+  // const roleOrder = ['TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY'];
   
   // Ensure participants is an array before spreading
   const safeParticipants = Array.isArray(participants) ? participants : [];
-  return [...safeParticipants].sort((a, b) => {
+  return [...safeParticipants].sort(() => {
     // For now, just sort by participant index as roles aren't in the data
     // In the future, you could implement role detection based on champion, summoner spells, etc.
     return 0;

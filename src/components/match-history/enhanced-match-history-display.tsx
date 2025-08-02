@@ -400,7 +400,7 @@ export function EnhancedMatchHistoryDisplay({
                 ) : (
                   <MatchCardList 
                     matches={filteredMatches} 
-                    currentUserPuuid={currentUserPuuid}
+                    {...(currentUserPuuid ? { currentUserPuuid } : {})}
                     loading={loading && matches.length === 0}
                   />
                 )}

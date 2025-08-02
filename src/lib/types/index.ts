@@ -408,7 +408,7 @@ export const isDetailedMatchParticipant = (obj: unknown): obj is DetailedMatchPa
 
 // Utility functions for safe data access
 export const safeArrayAccess = <T>(arr: T[] | undefined | null, index: number): T | null => {
-  return arr && Array.isArray(arr) && index >= 0 && index < arr.length ? arr[index] : null;
+  return arr && Array.isArray(arr) && index >= 0 && index < arr.length ? (arr[index] ?? null) : null;
 };
 
 export const safeObjectAccess = <T, K extends keyof T>(

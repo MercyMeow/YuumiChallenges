@@ -1,6 +1,6 @@
 'use client';
 
-import { PlayerRow, PlayersList } from './player-row';
+import { PlayersList } from './player-row';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { DetailedMatchParticipant, DetailedMatchTeam } from '@/lib/types';
@@ -94,7 +94,7 @@ export function TeamSection({
         <div className="p-3">
           <PlayersList 
             participants={teamParticipants} 
-            currentUserPuuid={currentUserPuuid}
+            {...(currentUserPuuid ? { currentUserPuuid } : {})}
             compact={true}
           />
         </div>
@@ -231,7 +231,7 @@ export function TeamSection({
       <div className="p-4">
         <PlayersList 
           participants={teamParticipants} 
-          currentUserPuuid={currentUserPuuid}
+          {...(currentUserPuuid ? { currentUserPuuid } : {})}
           compact={false}
         />
       </div>
@@ -259,22 +259,22 @@ export function TeamsComparison({
   className = ''
 }: TeamsComparisonProps) {
   const isStacked = layout === 'stacked';
-  const gridCols = isStacked ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2';
-  const gap = isStacked ? 'gap-4' : 'gap-6';
+  const gridCols = isStacked ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-2';
+  const gap = isStacked ? 'gap-4' : 'gap-4 xl:gap-6';
 
   return (
     <div className={`grid ${gridCols} ${gap} ${className}`}>
       <TeamSection
         team={blueTeam}
         participants={participants}
-        currentUserPuuid={currentUserPuuid}
+        {...(currentUserPuuid ? { currentUserPuuid } : {})}
         side="blue"
         compact={compact}
       />
       <TeamSection
         team={redTeam}
         participants={participants}
-        currentUserPuuid={currentUserPuuid}
+        {...(currentUserPuuid ? { currentUserPuuid } : {})}
         side="red"
         compact={compact}
       />

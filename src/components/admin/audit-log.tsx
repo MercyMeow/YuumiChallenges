@@ -22,24 +22,6 @@ import {
   AlertTriangle
 } from 'lucide-react';
 
-interface AdminPermissions {
-  viewUsers: boolean;
-  viewChallenges: boolean;
-  viewReports: boolean;
-  moderateContent: boolean;
-  createChallenges: boolean;
-  editChallenges: boolean;
-  deleteChallenges: boolean;
-  manageUsers: boolean;
-  viewSystemStats: boolean;
-  manageRoles: boolean;
-  systemSettings: boolean;
-}
-
-interface AuditLogProps { // eslint-disable-line @typescript-eslint/no-unused-vars
-  permissions: AdminPermissions;
-}
-
 interface AuditLogEntry {
   id: string;
   action_type: string;

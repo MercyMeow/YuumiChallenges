@@ -26,7 +26,6 @@ import { Separator } from '@/components/ui/separator';
 import {
   Home,
   Target,
-  BarChart3,
   Trophy,
   Settings,
   LogOut,
@@ -52,11 +51,6 @@ const navigation = [
     icon: Target,
   },
   {
-    title: 'League Profile',
-    url: '/dashboard/profile',
-    icon: BarChart3,
-  },
-  {
     title: 'Leaderboard',
     url: '/dashboard/leaderboard',
     icon: Trophy,
@@ -77,7 +71,7 @@ const adminNavigation = [
 ];
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, isAuthenticated, isLoading, isYuumiMember } = useAuth();
+  const { user, isLoading, isYuumiMember } = useAuth();
   const pathname = usePathname();
 
   // Removed duplicate authentication check - middleware handles redirects

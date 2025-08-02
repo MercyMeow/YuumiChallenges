@@ -15,24 +15,6 @@ import {
   BarChart3
 } from 'lucide-react';
 
-interface AdminPermissions {
-  viewUsers: boolean;
-  viewChallenges: boolean;
-  viewReports: boolean;
-  moderateContent: boolean;
-  createChallenges: boolean;
-  editChallenges: boolean;
-  deleteChallenges: boolean;
-  manageUsers: boolean;
-  viewSystemStats: boolean;
-  manageRoles: boolean;
-  systemSettings: boolean;
-}
-
-interface AdminDashboardProps { // eslint-disable-line @typescript-eslint/no-unused-vars
-  permissions: AdminPermissions;
-}
-
 interface DashboardStats {
   totalUsers: number;
   activeUsers: number;

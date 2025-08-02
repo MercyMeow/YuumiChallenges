@@ -187,7 +187,7 @@ export function ItemSlots({
           ))}
         </div>
         <div className="w-px h-4 bg-gray-500/30 mx-1" />
-        <ItemSlot itemId={trinket} size={size} />
+        <ItemSlot itemId={trinket || 0} size={size} />
       </div>
     );
   }

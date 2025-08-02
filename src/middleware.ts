@@ -3,7 +3,7 @@ import { withAuth } from "next-auth/middleware";
 // Protect these routes
 export default withAuth(
   // Only run middleware if user has valid token
-  function middleware(req) {
+  function middleware() {
     // Let the request continue - page will handle authentication
     return;
   },
@@ -12,7 +12,7 @@ export default withAuth(
       signIn: "/auth/signin", // Redirect to proper sign-in page
     },
     callbacks: {
-      authorized: ({ token }) => {
+      authorized: () => {
         // Allow all requests through - let components handle authentication
         // This prevents server-side redirect issues while maintaining client-side security
         return true;

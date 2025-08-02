@@ -328,18 +328,32 @@ export function MatchCard({
                   teamId: 100,
                   win: false,
                   bans: [],
-                  objectives: {}
+                  objectives: {
+                    baron: { first: false, kills: 0 },
+                    champion: { first: false, kills: 0 },
+                    dragon: { first: false, kills: 0 },
+                    inhibitor: { first: false, kills: 0 },
+                    riftHerald: { first: false, kills: 0 },
+                    tower: { first: false, kills: 0 }
+                  }
                 } satisfies SafeDetailedMatchTeam}
                 redTeam={match.enemyTeam || detailedData.info.teams?.find(t => t.teamId === 200) || {
                   teamId: 200,
                   win: false,
                   bans: [],
-                  objectives: {}
+                  objectives: {
+                    baron: { first: false, kills: 0 },
+                    champion: { first: false, kills: 0 },
+                    dragon: { first: false, kills: 0 },
+                    inhibitor: { first: false, kills: 0 },
+                    riftHerald: { first: false, kills: 0 },
+                    tower: { first: false, kills: 0 }
+                  }
                 } satisfies SafeDetailedMatchTeam}
                 participants={detailedData.info.participants || []}
-                currentUserPuuid={currentUserPuuid}
+                {...(currentUserPuuid ? { currentUserPuuid } : {})}
                 compact={false}
-                layout="stacked"
+                layout="side-by-side"
               />
             </div>
           </CardContent>
@@ -396,7 +410,7 @@ export function MatchCardList({
         <MatchCard
           key={match.match_id}
           match={match}
-          currentUserPuuid={currentUserPuuid}
+          {...(currentUserPuuid ? { currentUserPuuid } : {})}
           compact={compact}
         />
       ))}

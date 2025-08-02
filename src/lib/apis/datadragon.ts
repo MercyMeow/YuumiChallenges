@@ -68,7 +68,7 @@ export async function getDDragonVersions(): Promise<DDragonVersions> {
     }
     
     const versions: string[] = await response.json();
-    const latest = versions[0]; // First version is always the latest
+    const latest = versions[0] || "14.23.1"; // First version is always the latest
     
     // Cache the results
     cachedVersions = versions;
@@ -386,7 +386,7 @@ export function selectRandomIcon(currentIconId: number): number {
   }
   
   const randomIndex = Math.floor(Math.random() * availableIcons.length);
-  return availableIcons[randomIndex];
+  return availableIcons[randomIndex] || BASIC_SUMMONER_ICONS[0];
 }
 
 /**

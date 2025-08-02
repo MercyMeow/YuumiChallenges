@@ -134,15 +134,6 @@ export function UserManagement({ permissions }: UserManagementProps) {
     }
   };
 
-
-  const formatDate = (dateString: string) => { // eslint-disable-line @typescript-eslint/no-unused-vars
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
   const formatLastActivity = (dateString?: string) => {
     if (!dateString) return 'Never';
     

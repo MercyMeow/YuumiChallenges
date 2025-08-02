@@ -78,7 +78,7 @@ export function SummonerCard({ summoner, onRemove }: SummonerCardProps) {
         </div>
       </div>
       <div className="flex items-center space-x-2">
-        <RankBadge rank={primaryRank} />
+        {primaryRank && <RankBadge rank={primaryRank} />}
         <Button 
           variant="ghost" 
           size="sm" 

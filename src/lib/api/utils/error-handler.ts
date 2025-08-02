@@ -10,7 +10,7 @@ interface ErrorResponse {
 export class ApiError extends Error {
   constructor(
     public statusCode: number,
-    public message: string,
+    public override message: string,
     public code?: string,
     public details?: unknown
   ) {
@@ -20,12 +20,13 @@ export class ApiError extends Error {
 }
 
 export function handleApiError(error: unknown, context: string): NextResponse {
-  logger.apiError(context.split(' ')[0], context.split(' ')[1], error);
+  const parts = context.split(' ');
+  logger.apiError(parts[0] || '', parts[1] || '', error);
   
   if (error instanceof ApiError) {
     const response: ErrorResponse = {
       error: error.message,
-      code: error.code,
+      ...(error.code ? { code: error.code } : {}),
     };
     
     if (process.env.NODE_ENV === 'development') {

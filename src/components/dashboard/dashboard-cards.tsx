@@ -16,9 +16,7 @@ import {
   LeaderboardUser,
   CommunityStats,
   RankedQueueInfo,
-  EnhancedSummoner,
   isRankedQueueInfo,
-  isChallengeProgress,
   isLeaderboardUser,
   isCommunityStats,
   filterValidChallenges,
@@ -436,7 +434,7 @@ export function LeagueProfileCard({
           </div>
           <div className="flex items-center space-x-3">
             {/* Refresh Status and Controls */}
-            {refreshStatus && (
+            {refreshStatus && onRefresh && (
               <RefreshStatusIndicator 
                 refreshStatus={refreshStatus}
                 isRefreshing={isRefreshing}
@@ -822,7 +820,7 @@ export function StatsOverviewCard() {
               <span className="text-sm font-medium text-white">Server Activity</span>
             </div>
             <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-              {stats?.activeMembers > 100 ? 'High' : stats?.activeMembers > 50 ? 'Medium' : 'Low'}
+              {(stats?.activeMembers ?? 0) > 100 ? 'High' : (stats?.activeMembers ?? 0) > 50 ? 'Medium' : 'Low'}
             </Badge>
           </div>
         </div>

@@ -81,7 +81,7 @@ export function MatchHistoryCard({
     const firstMatchResult = sortedMatches[0]?.win;
     
     for (let i = 1; i < sortedMatches.length; i++) {
-      if (sortedMatches[i].win === firstMatchResult) {
+      if (sortedMatches[i]?.win === firstMatchResult) {
         streakCount++;
       } else {
         break;
