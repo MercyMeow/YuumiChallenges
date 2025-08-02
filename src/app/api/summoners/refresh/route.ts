@@ -95,18 +95,24 @@ export async function POST(request: Request) {
     const shouldRefreshMatches = operations.includes('matches');
 
     try {
-      // Refresh summoner data (level, profile icon, etc.)
+      // Always fetch summoner data first as it's needed for other operations
       let riotSummoner = null;
-      if (shouldRefreshSummoner) {
-        try {
-          riotSummoner = await riotAPI.getSummonerByPuuid(summoner.puuid, summoner.region);
-        } catch (summonerError) {
-          console.error('Failed to fetch summoner data from Riot API:', summonerError);
-          refreshResults.errors.push('Failed to fetch summoner data from Riot API');
-          refreshResults.warnings.push('Summoner data may be outdated');
-        }
+      try {
+        riotSummoner = await riotAPI.getSummonerByPuuid(summoner.puuid, summoner.region);
+        console.log('Fetched summoner data:', { 
+          id: riotSummoner?.id, 
+          puuid: riotSummoner?.puuid,
+          level: riotSummoner?.summonerLevel 
+        });
+      } catch (summonerError) {
+        console.error('Failed to fetch summoner data from Riot API:', summonerError);
+        refreshResults.errors.push('Failed to fetch summoner data from Riot API');
+        refreshResults.warnings.push('Unable to refresh - summoner data is required');
+        // Can't continue without summoner data as we need the ID for ranked info
+        throw new Error('Failed to fetch summoner data - cannot continue refresh');
       }
       
+      // Update summoner data if requested and successfully fetched
       if (riotSummoner && shouldRefreshSummoner) {
         const { error: updateError } = await supabase
           .from('summoners')
@@ -131,6 +137,10 @@ export async function POST(request: Request) {
       if (shouldRefreshRanked && riotSummoner) {
         try {
           rankedData = await riotAPI.getRankedInfo(riotSummoner.id, summoner.region);
+          console.log('Fetched ranked data:', {
+            entries: rankedData?.length || 0,
+            queues: rankedData?.map((r: RiotRankedData) => r.queueType) || []
+          });
         } catch (rankedError) {
           console.error('Failed to fetch ranked info:', rankedError);
           refreshResults.errors.push('Failed to fetch ranked data from Riot API');
@@ -185,6 +195,10 @@ export async function POST(request: Request) {
         let matchIds = null;
         try {
           matchIds = await riotAPI.getMatchHistory(summoner.puuid, summoner.region, 20);
+          console.log('Fetched match IDs:', {
+            count: matchIds?.length || 0,
+            firstMatch: matchIds?.[0] || 'none'
+          });
         } catch (matchError) {
           console.error('Failed to fetch match history:', matchError);
           refreshResults.errors.push('Failed to fetch match history from Riot API');
@@ -202,9 +216,16 @@ export async function POST(request: Request) {
             const existingMatchIds = new Set(existingMatches?.map(m => m.match_id) || []);
             const newMatchIds = matchIds.filter((id: string) => !existingMatchIds.has(id));
 
-            // Fetch details for new matches
-            for (const matchId of newMatchIds.slice(0, 10)) { // Process up to 10 new matches to avoid rate limits
+            console.log(`Processing ${newMatchIds.length} new matches (max 10)`);
+            
+            // Fetch details for new matches with delay to avoid rate limits
+            for (const [index, matchId] of newMatchIds.slice(0, 10).entries()) { // Process up to 10 new matches to avoid rate limits
               try {
+                // Add small delay between requests to avoid rate limiting
+                if (index > 0) {
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
                 const matchDetails = await riotAPI.getMatchDetails(matchId, summoner.region);
                 
                 if (matchDetails && matchDetails.info) {

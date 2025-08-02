@@ -9,10 +9,9 @@ import {
   LeaderboardCard
 } from '@/components/dashboard/dashboard-cards';
 import { EnhancedMatchHistoryDisplay } from '@/components/match-history';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Activity, Users, Award, Loader2, RefreshCw, Zap } from 'lucide-react';
+import { Sparkles, Activity, Users, Award, Loader2, Zap } from 'lucide-react';
 
 interface DashboardStats {
   winStreak: number;
@@ -56,7 +55,6 @@ export default function Dashboard() {
   const [refreshStatus, setRefreshStatus] = useState<RefreshStatus | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadingSummoner, setLoadingSummoner] = useState(true);
-  const [isRefreshingAll, setIsRefreshingAll] = useState(false);
 
   // Remove useCallback to prevent dependency issues - these functions are only called in effects
   const fetchDashboardData = async () => {
@@ -162,23 +160,39 @@ export default function Dashboard() {
   };
 
   const handleManualRefresh = async () => {
-    if (!refreshStatus?.can_manual_refresh || isRefreshing) return;
+    if (!refreshStatus?.can_manual_refresh || isRefreshing) {
+      console.log('Cannot refresh:', { 
+        can_manual_refresh: refreshStatus?.can_manual_refresh, 
+        isRefreshing 
+      });
+      return;
+    }
     
     try {
       setIsRefreshing(true);
+      console.log('Starting manual refresh...');
+      
       const response = await fetch('/api/summoners/refresh', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ manual: true }),
       });
       
+      const result = await response.json();
+      console.log('Refresh response:', { status: response.status, result });
+      
       if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
+        if (result.success || result.data?.partial_success) {
           // Refresh all data after successful manual refresh
+          console.log('Refresh successful, updating data...');
           await fetchSummonerData(false);
           await fetchDashboardData();
+          await fetchRefreshStatus(); // Update refresh status
+        } else {
+          console.error('Refresh failed:', result.message);
         }
+      } else {
+        console.error('Refresh API error:', response.status, result);
       }
     } catch (error) {
       console.error('Error during manual refresh:', error);
@@ -187,41 +201,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleRefreshAll = async () => {
-    if (isRefreshingAll) return;
-    
-    try {
-      setIsRefreshingAll(true);
-      
-      // Refresh all dashboard data in parallel
-      const refreshPromises = [
-        fetchDashboardData(),
-        fetchSummonerData(false)
-      ];
-      
-      // Also trigger summoner refresh if available
-      if (refreshStatus?.can_manual_refresh && !isRefreshing) {
-        refreshPromises.push(
-          fetch('/api/summoners/refresh', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ manual: true }),
-          }).then(() => {})
-        );
-      }
-      
-      await Promise.allSettled(refreshPromises);
-      
-      // Add small delay for user feedback
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      
-    } catch (error) {
-      console.error('Error during refresh all:', error);
-    } finally {
-      setIsRefreshingAll(false);
-    }
-  };
 
   // Initial data loading - removed function dependencies to prevent infinite loop
   useEffect(() => {
@@ -238,13 +217,13 @@ export default function Dashboard() {
     
     // Update refresh status every 30 seconds for accurate cooldown display
     const statusInterval = setInterval(async () => {
-      if (!isRefreshing && !isRefreshingAll) {
+      if (!isRefreshing) {
         await fetchRefreshStatus();
       }
     }, 30 * 1000); // Update every 30 seconds
     
     return () => clearInterval(statusInterval);
-  }, [isAuthenticated, user, summonerData?.summoner, isRefreshing, isRefreshingAll]);
+  }, [isAuthenticated, user, summonerData?.summoner, isRefreshing]);
 
   // Auto-refresh logic - periodic checking for auto-refresh eligibility
   useEffect(() => {
@@ -346,29 +325,16 @@ export default function Dashboard() {
                       <span>Active Yuumi Mains community</span>
                     </div>
                   </div>
-                  {/* Mobile Refresh All Button */}
+                  {/* Mobile status indicator */}
                   <div className="md:hidden">
-                    <Button 
-                      onClick={handleRefreshAll}
-                      disabled={isRefreshingAll}
-                      size="sm"
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-none"
-                    >
-                      <RefreshCw className={`h-3 w-3 mr-1 ${isRefreshingAll ? 'animate-spin' : ''}`} />
-                      {isRefreshingAll ? 'Refreshing...' : 'Refresh All'}
-                    </Button>
+                    <div className="flex items-center space-x-1 text-blue-300">
+                      <Activity className="h-4 w-4" />
+                      <span>Ready</span>
+                    </div>
                   </div>
                 </div>
               </div>
               <div className="hidden md:flex items-center space-x-4">
-                <Button 
-                  onClick={handleRefreshAll}
-                  disabled={isRefreshingAll}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-none px-6 py-2"
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshingAll ? 'animate-spin' : ''}`} />
-                  {isRefreshingAll ? 'Refreshing All...' : 'Refresh All'}
-                </Button>
                 <div className="relative">
                   <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center text-2xl animate-pulse">
                     🌟
