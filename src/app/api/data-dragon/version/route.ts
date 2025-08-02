@@ -39,6 +39,10 @@ export async function GET() {
     
     const latestVersion = versions[0];
     
+    if (!latestVersion) {
+      throw new Error('No versions available from Data Dragon API');
+    }
+    
     // Update cache
     cachedVersion = latestVersion;
     versionCacheTime = now;

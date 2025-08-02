@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { itemImages, getLatestVersion } from '@/lib/apis/datadragon';
+import { useItem } from '@/hooks/use-item-data';
 
 interface ItemSlotProps {
   itemId: number;
@@ -15,6 +16,9 @@ function ItemSlot({ itemId, size = 'md', className = '' }: ItemSlotProps) {
   const [imageUrl, setImageUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  
+  // Get item data for tooltips
+  const { item, isLoading: itemDataLoading, stripHtml } = useItem(itemId);
 
   const sizes = {
     sm: { width: 20, height: 20 },
@@ -79,13 +83,18 @@ function ItemSlot({ itemId, size = 'md', className = '' }: ItemSlotProps) {
     );
   }
 
+  // Format gold value with commas
+  const formatGold = (gold: number): string => {
+    return gold.toLocaleString();
+  };
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <div className={`border border-gray-500/30 rounded overflow-hidden hover:border-gray-400/50 transition-colors ${className}`}>
           <Image
             src={imageUrl}
-            alt={`Item ${itemId}`}
+            alt={item?.name || `Item ${itemId}`}
             width={width}
             height={height}
             className="object-cover"
@@ -93,8 +102,48 @@ function ItemSlot({ itemId, size = 'md', className = '' }: ItemSlotProps) {
           />
         </div>
       </TooltipTrigger>
-      <TooltipContent>
-        <p>Item ID: {itemId}</p>
+      <TooltipContent className="max-w-80 p-3">
+        {itemDataLoading ? (
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 border border-purple-400/50 border-t-purple-400 rounded-full animate-spin" />
+            <span className="text-sm text-gray-300">Loading item data...</span>
+          </div>
+        ) : item ? (
+          <div className="space-y-2">
+            {/* Item Name */}
+            <div className="font-semibold text-white text-base">{item.name}</div>
+            
+            {/* Cost */}
+            {item.gold && item.gold.total > 0 && (
+              <div className="flex items-center gap-1 text-sm">
+                <span className="text-yellow-400">⬟</span>
+                <span className="text-yellow-300">{formatGold(item.gold.total)} gold</span>
+                {!item.gold.purchasable && (
+                  <span className="text-gray-400 text-xs">(Not purchasable)</span>
+                )}
+              </div>
+            )}
+            
+            {/* Description */}
+            {item.description && (
+              <div className="text-sm text-gray-300 leading-relaxed border-t border-gray-600/30 pt-2">
+                {stripHtml(item.description)}
+              </div>
+            )}
+            
+            {/* Sell Value */}
+            {item.gold && item.gold.sell > 0 && (
+              <div className="text-xs text-gray-400 border-t border-gray-600/30 pt-1">
+                Sells for {formatGold(item.gold.sell)} gold
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-sm text-gray-400">
+            Item ID: {itemId}
+            <div className="text-xs text-gray-500 mt-1">Item data not available</div>
+          </div>
+        )}
       </TooltipContent>
     </Tooltip>
   );

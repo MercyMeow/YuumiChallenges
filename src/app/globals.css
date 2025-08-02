@@ -451,6 +451,30 @@
     color: oklch(var(--accessible-purple));
   }
   
+  .ring-accessible-purple {
+    --tw-ring-color: oklch(var(--accessible-purple));
+  }
+  
+  .ring-accessible-blue {
+    --tw-ring-color: oklch(var(--accessible-blue));
+  }
+  
+  .ring-accessible-yellow {
+    --tw-ring-color: oklch(var(--accessible-yellow));
+  }
+  
+  .bg-accessible-blue {
+    background-color: oklch(var(--accessible-blue));
+  }
+  
+  .bg-accessible-purple {
+    background-color: oklch(var(--accessible-purple));
+  }
+  
+  .bg-accessible-yellow {
+    background-color: oklch(var(--accessible-yellow));
+  }
+  
   .text-accessible-pink {
     color: oklch(var(--accessible-pink));
   }
