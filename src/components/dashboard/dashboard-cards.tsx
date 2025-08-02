@@ -50,6 +50,80 @@ import {
 import { getProfileIconUrl } from '@/lib/utils/data-dragon';
 import { formatRelativeTime } from '@/lib/utils/time';
 
+// Tier-specific color schemes for rank badges
+const getTierColorScheme = (tier: string) => {
+  const normalizedTier = tier.toUpperCase();
+  
+  switch (normalizedTier) {
+    case 'IRON':
+      return {
+        bg: 'bg-gradient-to-r from-gray-600/20 to-gray-700/20',
+        border: 'border-gray-600/40',
+        text: 'text-gray-300'
+      };
+    case 'BRONZE':
+      return {
+        bg: 'bg-gradient-to-r from-amber-700/20 to-amber-800/20',
+        border: 'border-amber-600/40',
+        text: 'text-amber-300'
+      };
+    case 'SILVER':
+      return {
+        bg: 'bg-gradient-to-r from-slate-400/20 to-slate-500/20',
+        border: 'border-slate-400/40',
+        text: 'text-slate-200'
+      };
+    case 'GOLD':
+      return {
+        bg: 'bg-gradient-to-r from-yellow-500/20 to-yellow-600/20',
+        border: 'border-yellow-500/40',
+        text: 'text-yellow-300'
+      };
+    case 'PLATINUM':
+      return {
+        bg: 'bg-gradient-to-r from-cyan-500/20 to-cyan-600/20',
+        border: 'border-cyan-500/40',
+        text: 'text-cyan-300'
+      };
+    case 'EMERALD':
+      return {
+        bg: 'bg-gradient-to-r from-emerald-500/20 to-emerald-600/20',
+        border: 'border-emerald-500/40',
+        text: 'text-emerald-300'
+      };
+    case 'DIAMOND':
+      return {
+        bg: 'bg-gradient-to-r from-blue-400/20 to-blue-500/20',
+        border: 'border-blue-400/40',
+        text: 'text-blue-300'
+      };
+    case 'MASTER':
+      return {
+        bg: 'bg-gradient-to-r from-purple-500/20 to-purple-600/20',
+        border: 'border-purple-500/40',
+        text: 'text-purple-300'
+      };
+    case 'GRANDMASTER':
+      return {
+        bg: 'bg-gradient-to-r from-red-500/20 to-red-600/20',
+        border: 'border-red-500/40',
+        text: 'text-red-300'
+      };
+    case 'CHALLENGER':
+      return {
+        bg: 'bg-gradient-to-r from-orange-400/20 to-orange-500/20',
+        border: 'border-orange-400/40',
+        text: 'text-orange-300'
+      };
+    default:
+      return {
+        bg: 'bg-gray-500/10',
+        border: 'border-gray-500/30',
+        text: 'text-gray-400'
+      };
+  }
+};
+
 // ProfileIcon component for robust image loading with fallback
 interface ProfileIconProps {
   profileIconId?: number;
@@ -493,25 +567,40 @@ export function LeagueProfileCard({
                 <p className="text-lg font-bold text-white">
                   {summoner.name}#{summoner.tagLine}
                 </p>
-                <p className="font-medium text-blue-400">
+                <Badge 
+                  variant="outline" 
+                  className="border-blue-500/30 bg-blue-500/10 text-blue-300 px-2 py-1 text-xs font-medium"
+                >
                   {summoner.region.toUpperCase()}
-                </p>
-                <div className="mt-1 flex items-center space-x-3">
-                  <div className="text-xs">
-                    <span className="text-white/60">Solo/Duo:</span>
-                    <span className="text-accessible-blue ml-1 font-medium">
-                      {summoner.soloqRank
-                        ? `${summoner.soloqRank.tier} ${summoner.soloqRank.rank_level}`
-                        : 'Unranked'}
-                    </span>
+                </Badge>
+                <div className="mt-3 flex flex-col space-y-2">
+                  {/* Solo/Duo Rank Badge */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-white/60 min-w-[50px]">Solo/Duo:</span>
+                    {summoner.soloqRank ? (
+                      <Badge className={`${getTierColorScheme(summoner.soloqRank.tier).bg} ${getTierColorScheme(summoner.soloqRank.tier).border} ${getTierColorScheme(summoner.soloqRank.tier).text} px-3 py-1 font-bold shadow-lg backdrop-blur-sm`}>
+                        <Crown className="mr-1 h-3 w-3" />
+                        {summoner.soloqRank.tier} {summoner.soloqRank.rank_level}
+                      </Badge>
+                    ) : (
+                      <Badge className="border-gray-500/30 bg-gray-500/10 text-gray-400 px-3 py-1 font-medium">
+                        Unranked
+                      </Badge>
+                    )}
                   </div>
-                  <div className="text-xs">
-                    <span className="text-white/60">Flex:</span>
-                    <span className="text-accessible-green ml-1 font-medium">
-                      {summoner.flexRank
-                        ? `${summoner.flexRank.tier} ${summoner.flexRank.rank_level}`
-                        : 'Unranked'}
-                    </span>
+                  {/* Flex Rank Badge */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-white/60 min-w-[50px]">Flex:</span>
+                    {summoner.flexRank ? (
+                      <Badge className={`${getTierColorScheme(summoner.flexRank.tier).bg} ${getTierColorScheme(summoner.flexRank.tier).border} ${getTierColorScheme(summoner.flexRank.tier).text} px-3 py-1 font-bold shadow-lg backdrop-blur-sm`}>
+                        <Crown className="mr-1 h-3 w-3" />
+                        {summoner.flexRank.tier} {summoner.flexRank.rank_level}
+                      </Badge>
+                    ) : (
+                      <Badge className="border-gray-500/30 bg-gray-500/10 text-gray-400 px-3 py-1 font-medium">
+                        Unranked
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </div>
@@ -585,7 +674,7 @@ export function LeagueProfileCard({
         {/* Bottom Refresh Timers */}
         {refreshStatus && (
           <div className="border-t border-blue-500/30 pt-4">
-            <div className="grid grid-cols-2 gap-4 text-sm text-gray-400">
+            <div className="flex justify-between text-sm text-gray-400">
               <div className="flex items-center space-x-2">
                 <Clock className="h-4 w-4" />
                 <div>
