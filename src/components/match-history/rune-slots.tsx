@@ -95,12 +95,12 @@ export function RuneSlots({ runes, size = 'md', className }: RuneSlotsProps) {
                 'Inspiration'
               ];
               
-              let currentSrc = e.currentTarget.src;
-              let currentPath = fallbackPaths.find(path => currentSrc.includes(path));
-              let currentIndex = currentPath ? fallbackPaths.indexOf(currentPath) : -1;
+              const currentSrc = e.currentTarget.src;
+              const currentPath = fallbackPaths.find(path => currentSrc.includes(path));
+              const currentIndex = currentPath ? fallbackPaths.indexOf(currentPath) : -1;
               
               if (currentIndex < fallbackPaths.length - 1) {
-                let nextPath = fallbackPaths[currentIndex + 1];
+                const nextPath = fallbackPaths[currentIndex + 1];
                 e.currentTarget.src = `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/RunesReforged/${nextPath}/${secondaryRune.perk}/${secondaryRune.perk}.png`;
               } else {
                 e.currentTarget.src = '/images/rune-placeholder.png';

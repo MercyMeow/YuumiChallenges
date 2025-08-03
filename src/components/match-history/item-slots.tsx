@@ -8,7 +8,7 @@ import { useItem } from '@/hooks/use-item-data';
 
 interface ItemSlotProps {
   itemId: number;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
@@ -24,6 +24,7 @@ function ItemSlot({ itemId, size = 'md', className = '' }: ItemSlotProps) {
     sm: { width: 20, height: 20 },
     md: { width: 24, height: 24 },
     lg: { width: 32, height: 32 },
+    xl: { width: 40, height: 40 },
   };
 
   const { width, height } = sizes[size];
@@ -151,16 +152,18 @@ function ItemSlot({ itemId, size = 'md', className = '' }: ItemSlotProps) {
 
 interface ItemSlotsProps {
   items: number[]; // Array of 7 item IDs (6 items + trinket)
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
   showTrinketSeparately?: boolean;
+  gridLayout?: boolean; // New prop for 3x2 grid layout
 }
 
 export function ItemSlots({ 
   items, 
   size = 'md', 
   className = '',
-  showTrinketSeparately = false 
+  showTrinketSeparately = false,
+  gridLayout = false 
 }: ItemSlotsProps) {
   // Ensure we have exactly 7 slots (6 items + trinket)
   // Safe spread operation - handle undefined/null items array
@@ -173,6 +176,25 @@ export function ItemSlots({
 
   const regularItems = paddedItems.slice(0, 6);
   const trinket = paddedItems[6];
+
+  // Grid layout (3x2 + trinket separately)
+  if (gridLayout) {
+    return (
+      <div className={`flex items-center gap-2 ${className}`}>
+        <div className="grid grid-cols-3 gap-1">
+          {regularItems.map((itemId, index) => (
+            <ItemSlot 
+              key={index} 
+              itemId={itemId} 
+              size={size}
+            />
+          ))}
+        </div>
+        <div className="w-px h-6 bg-gray-500/30 mx-1" />
+        <ItemSlot itemId={trinket || 0} size={size} className="ring-1 ring-yellow-500/30" />
+      </div>
+    );
+  }
 
   if (showTrinketSeparately) {
     return (
@@ -208,7 +230,7 @@ export function ItemSlots({
 
 interface TrinketSlotProps {
   trinketId: number;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
@@ -235,7 +257,7 @@ export const TRINKET_IDS = {
  * Helper function to check if an item ID is a trinket
  */
 export function isTrinket(itemId: number): boolean {
-  return Object.values(TRINKET_IDS).includes(itemId as any);
+  return Object.values(TRINKET_IDS).includes(itemId as (typeof TRINKET_IDS)[keyof typeof TRINKET_IDS]);
 }
 
 /**

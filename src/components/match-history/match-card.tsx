@@ -13,10 +13,11 @@ import { formatDistanceToNow } from 'date-fns';
 import { 
   Clock, 
   Trophy, 
-  Target, 
   Gamepad2,
   ExternalLink
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { format } from 'date-fns';
 
 interface MatchCardProps {
   match: MatchData;
@@ -27,7 +28,6 @@ interface MatchCardProps {
 
 export function MatchCard({ 
   match, 
-  currentUserPuuid: _currentUserPuuid,
   className = '',
   compact = false
 }: MatchCardProps) {
@@ -97,205 +97,203 @@ export function MatchCard({
 
   return (
     <Card 
-      className={`border-l-4 ${getWinColor(match.win)} bg-black/20 backdrop-blur-md border border-white/10 transition-all duration-200 hover:bg-white/5 focus-card ${className}`}
+      className={`relative bg-gradient-to-br from-purple-500/5 to-purple-600/5 border border-purple-500/20 backdrop-blur-md transition-all duration-200 hover:bg-white/5 focus-card ${className}`}
       role="article"
       aria-labelledby={`match-title-${match.match_id}`}
       tabIndex={0}
     >
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          {/* Left side - Champion, items, spells, runes, and stats */}
-          <div className="flex items-center gap-6">
-            {/* Champion and basic info */}
-            <div className="flex items-center gap-4">
-              <ChampionIcon championId={match.champion} size="lg" />
-              
-              <div>
-                <h3 
-                  id={`match-title-${match.match_id}`}
-                  className="text-lg font-bold text-white"
-                >
-                  {match.champion}
-                </h3>
-                <div className="flex items-center gap-2 text-sm text-white/60">
-                  <Badge 
-                    variant="outline" 
-                    className={`${gameModeColor} border-current`}
-                  >
-                    <Gamepad2 className="h-3 w-3 mr-1" />
-                    {gameMode}
-                  </Badge>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {formatDuration(match.duration)}
-                  </div>
-                </div>
-                <div className="text-xs text-white/60 mt-1">
-                  {formatDistanceToNow(new Date(match.game_creation), { addSuffix: true })}
-                </div>
-              </div>
-            </div>
+      {/* Victory/Defeat badge - absolute positioned top-left */}
+      <Badge 
+        variant={match.win ? 'default' : 'destructive'} 
+        className={`absolute top-3 left-3 z-10 px-3 py-1 ${match.win ? 'bg-accessible-green/20 text-accessible-green border-accessible-green/30' : 'bg-accessible-red/20 text-accessible-red border-accessible-red/30'}`}
+      >
+        <Trophy className="h-3 w-3 mr-1" />
+        {match.win ? 'Victory' : 'Defeat'}
+      </Badge>
+      
+      {/* Game mode badge - positioned right of victory badge */}
+      <Badge 
+        variant="outline" 
+        className={`absolute top-3 left-28 z-10 ${gameModeColor} border-current`}
+      >
+        <Gamepad2 className="h-3 w-3 mr-1" />
+        {gameMode}
+      </Badge>
 
-            {/* Items, Spells, and Runes */}
-            <div className="flex flex-col gap-3">
-              {/* Items */}
-              {match.items && (
-                <ItemSlots 
-                  items={match.items} 
-                  size="md"
-                  showTrinketSeparately
-                />
+      <CardContent className="p-6 pt-16">
+        <div className="grid grid-cols-12 gap-6 items-center">
+          {/* Champion and level - col-span-2 */}
+          <div className="col-span-2 flex items-center gap-4">
+            <div className="relative">
+              <ChampionIcon championId={match.champion} size="xl" />
+              {/* Level badge overlay on champion */}
+              {match.champion_level && (
+                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded px-1.5 py-0.5 text-xs font-semibold">
+                  {match.champion_level}
+                </div>
               )}
-              
-              {/* Summoner Spells and Runes in a row */}
-              <div className="flex gap-3">
-                {match.summoner_spells && (
-                  <SummonerSpells 
-                    spell1Id={match.summoner_spells.spell1Id}
-                    spell2Id={match.summoner_spells.spell2Id}
-                    size="sm"
-                  />
-                )}
-                
-                {match.runes && (
-                  <RuneSlots 
-                    runes={match.runes}
-                    size="sm"
-                  />
-                )}
-              </div>
             </div>
-
-            {/* KDA and Stats */}
-            <div className="flex flex-col items-center gap-4">
-              <div className="text-center">
-                <div className={`text-xl font-bold ${getKDAColor(kdaRatio)}`}>
-                  {match.kills} / {match.deaths} / {match.assists}
-                </div>
-                <div className="text-sm text-white/60">
-                  {kda} KDA
+            
+            <div>
+              <h3 
+                id={`match-title-${match.match_id}`}
+                className="text-lg font-bold text-white"
+              >
+                {match.champion}
+              </h3>
+              <div className="flex items-center gap-2 text-sm text-white/60">
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {formatDuration(match.duration)}
                 </div>
               </div>
-
-              {/* Additional stats */}
-              <div className="grid grid-cols-2 gap-3 text-center">
-                {match.gold && (
-                  <div>
-                    <div className="text-yellow-400 font-semibold">
-                      {Math.round(match.gold / 1000)}k
-                    </div>
-                    <div className="text-xs text-white/60">Gold</div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-xs text-white/60 mt-1 cursor-help">
+                    {formatDistanceToNow(new Date(match.game_creation), { addSuffix: true })}
                   </div>
-                )}
-                {match.cs && (
-                  <div>
-                    <div className="text-purple-400 font-semibold">
-                      {match.cs}
-                    </div>
-                    <div className="text-xs text-white/60">CS</div>
-                  </div>
-                )}
-                {match.vision_score && (
-                  <div>
-                    <div className="text-pink-400 font-semibold">
-                      {match.vision_score}
-                    </div>
-                    <div className="text-xs text-white/60">Vision</div>
-                  </div>
-                )}
-                {match.champion_level && (
-                  <div>
-                    <div className="text-blue-400 font-semibold">
-                      {match.champion_level}
-                    </div>
-                    <div className="text-xs text-white/60">Level</div>
-                  </div>
-                )}
-              </div>
+                </TooltipTrigger>
+                <TooltipContent className="bg-black/90 backdrop-blur-md border border-purple-500/20">
+                  <p className="text-white">
+                    {format(new Date(match.game_creation), 'PPpp')}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
 
-          {/* Right side - Teams and match details button */}
-          <div className="flex items-center gap-6">
-            {/* Teams */}
-            {match.all_participants && match.all_participants.length > 0 && (
-              <div className="grid grid-cols-2 gap-6">
-                {/* Blue Team */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span className="text-xs font-medium text-blue-400">Blue Team</span>
-                  </div>
-                  <div className="space-y-1">
-                    {match.all_participants
-                      .filter((p) => p.teamId === 100)
-                      .slice(0, 5)
-                      .map((participant, index) => (
-                        <div key={index} className="flex items-center gap-2 text-xs">
-                          <ChampionIcon championId={participant.championName} size="xs" />
-                          <span className="truncate text-white/80 max-w-24">
-                            {participant.gameName}#{participant.tagLine}
-                          </span>
-                        </div>
-                      ))}
-                  </div>
-                </div>
+          {/* Items - col-span-3 */}
+          <div className="col-span-3">
+            {match.items && (
+              <ItemSlots 
+                items={match.items} 
+                size="lg"
+                gridLayout
+              />
+            )}
+          </div>
+          
+          {/* Summoner Spells and Runes - col-span-1 */}
+          <div className="col-span-1 flex flex-col gap-2">
+            {match.summoner_spells && (
+              <SummonerSpells 
+                spell1Id={match.summoner_spells.spell1Id}
+                spell2Id={match.summoner_spells.spell2Id}
+                size="lg"
+                orientation="vertical"
+              />
+            )}
+            
+            {match.runes && (
+              <RuneSlots 
+                runes={match.runes}
+                size="md"
+              />
+            )}
+          </div>
 
-                {/* Red Team */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <span className="text-xs font-medium text-red-400">Red Team</span>
+          {/* KDA and Stats - col-span-3 */}
+          <div className="col-span-3 flex items-center justify-center gap-6">
+            {/* Large KDA */}
+            <div className="text-center">
+              <div className={`text-2xl font-bold ${getKDAColor(kdaRatio)}`}>
+                {match.kills} / {match.deaths} / {match.assists}
+              </div>
+              <div className="text-sm text-white/60">
+                {kda} KDA
+              </div>
+            </div>
+
+            {/* Horizontal stats */}
+            <div className="flex items-center gap-4">
+              {match.gold && (
+                <div className="text-center">
+                  <div className="text-yellow-400 font-semibold">
+                    {Math.round(match.gold / 1000)}k
                   </div>
-                  <div className="space-y-1">
-                    {match.all_participants
-                      .filter((p) => p.teamId === 200)
-                      .slice(0, 5)
-                      .map((participant, index) => (
-                        <div key={index} className="flex items-center gap-2 text-xs">
-                          <ChampionIcon championId={participant.championName} size="xs" />
-                          <span className="truncate text-white/80 max-w-24">
-                            {participant.gameName}#{participant.tagLine}
-                          </span>
-                        </div>
-                      ))}
+                  <div className="text-xs text-white/60">Gold</div>
+                </div>
+              )}
+              {match.cs && (
+                <div className="text-center">
+                  <div className="text-purple-400 font-semibold">
+                    {match.cs}
                   </div>
+                  <div className="text-xs text-white/60">CS</div>
+                </div>
+              )}
+              {match.vision_score && (
+                <div className="text-center">
+                  <div className="text-pink-400 font-semibold">
+                    {match.vision_score}
+                  </div>
+                  <div className="text-xs text-white/60">Vision</div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Teams - col-span-2 */}
+          {match.all_participants && match.all_participants.length > 0 && (
+            <div className="col-span-2 grid grid-cols-2 gap-4">
+              {/* Blue Team */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-xs font-medium text-blue-400">Blue</span>
+                </div>
+                <div className="space-y-1">
+                  {match.all_participants
+                    .filter((p) => p.teamId === 100)
+                    .slice(0, 5)
+                    .map((participant, index) => (
+                      <div key={index} className="flex items-center gap-1 text-xs">
+                        <ChampionIcon championId={participant.championName} size="xs" />
+                        <span className="truncate text-white/80 max-w-20">
+                          {participant.gameName}#{participant.tagLine}
+                        </span>
+                      </div>
+                    ))}
                 </div>
               </div>
-            )}
 
-            {/* Result and match details button */}
-            <div className="flex flex-col items-center gap-3">
-              <Badge 
-                variant={match.win ? 'default' : 'destructive'} 
-                className={`px-4 py-2 ${match.win ? 'bg-accessible-green/20 text-accessible-green border-accessible-green/30' : 'bg-accessible-red/20 text-accessible-red border-accessible-red/30'}`}
-              >
-                <Trophy className="h-4 w-4 mr-2" />
-                {match.win ? 'Victory' : 'Defeat'}
-              </Badge>
-
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => window.open(`/match/${match.match_id}`, '_blank')}
-                className="text-white/60 hover:text-white hover:bg-white/10 border-white/20"
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Details
-              </Button>
+              {/* Red Team */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  <span className="text-xs font-medium text-red-400">Red</span>
+                </div>
+                <div className="space-y-1">
+                  {match.all_participants
+                    .filter((p) => p.teamId === 200)
+                    .slice(0, 5)
+                    .map((participant, index) => (
+                      <div key={index} className="flex items-center gap-1 text-xs">
+                        <ChampionIcon championId={participant.championName} size="xs" />
+                        <span className="truncate text-white/80 max-w-20">
+                          {participant.gameName}#{participant.tagLine}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </div>
             </div>
+          )}
+
+          {/* Match details button - col-span-1 */}
+          <div className="col-span-1 flex justify-center">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.open(`/match/${match.match_id}`, '_blank')}
+              className="text-white/60 hover:text-white hover:bg-white/10 border-white/20"
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Details
+            </Button>
           </div>
         </div>
 
-        {/* Challenge analysis status */}
-        {!match.analyzed_for_challenges && (
-          <div className="mt-4 pt-3 border-t border-white/10">
-            <div className="flex items-center gap-2 text-yellow-400">
-              <Target className="h-4 w-4" />
-              <span className="text-sm">Pending challenge analysis</span>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
@@ -311,15 +309,15 @@ interface MatchCardListProps {
 
 export function MatchCardList({ 
   matches, 
-  currentUserPuuid: _currentUserPuuid,
+  currentUserPuuid,
   loading = false,
   className = '',
   compact = false
 }: MatchCardListProps) {
   if (loading) {
     return (
-      <div className={`space-y-4 ${className}`}>
-        {[...Array(5)].map((_, i) => (
+      <div className={`${compact ? 'space-y-4' : 'grid grid-cols-1 xl:grid-cols-2 gap-4'} ${className}`}>
+        {[...Array(6)].map((_, i) => (
           <div 
             key={i} 
             className="h-32 bg-black/20 backdrop-blur-md border border-white/10 rounded-lg animate-pulse"
@@ -343,12 +341,12 @@ export function MatchCardList({
   }
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`${compact ? 'space-y-4' : 'grid grid-cols-1 xl:grid-cols-2 gap-4'} ${className}`}>
       {safeMatches.map((match) => (
         <MatchCard
           key={match.match_id}
           match={match}
-          {...(_currentUserPuuid ? { currentUserPuuid: _currentUserPuuid } : {})}
+          {...(currentUserPuuid ? { currentUserPuuid } : {})}
           compact={compact}
         />
       ))}
