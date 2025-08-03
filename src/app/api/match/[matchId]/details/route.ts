@@ -174,10 +174,9 @@ export async function GET(
           teamPosition: p.teamPosition || '',
           individualPosition: p.individualPosition || '',
           
-          // Summoner spells & runes
+          // Summoner spells
           spell1Id: p.spell1Id,
           spell2Id: p.spell2Id,
-          perks: p.perks || {},
           
           // Items (0-6: items, 6 is trinket)
           items: [

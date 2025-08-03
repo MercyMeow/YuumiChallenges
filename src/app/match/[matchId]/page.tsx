@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { ChampionIcon } from '@/components/ui/datadragon-image';
 import { ItemSlots } from '@/components/match-history/item-slots';
 import { SummonerSpells } from '@/components/match-history/summoner-spells';
-import { RuneSlots } from '@/components/match-history/rune-slots';
 import { getGameModeDisplayName, getGameModeCategoryColor } from '@/lib/utils/game-modes';
 import { formatDistanceToNow } from 'date-fns';
 import { 
@@ -302,13 +301,6 @@ export default function MatchDetailsPage() {
                     participant.item6
                   ];
 
-                  const runes = participant.perks ? {
-                    primaryStyle: participant.perks.styles[0]?.style || 0,
-                    subStyle: participant.perks.styles[1]?.style || 0,
-                    statPerks: participant.perks.statPerks,
-                    primarySelections: participant.perks.styles[0]?.selections || [],
-                    subSelections: participant.perks.styles[1]?.selections || []
-                  } : null;
 
                   return (
                     <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-blue-500/5 border border-blue-500/20">
@@ -344,10 +336,6 @@ export default function MatchDetailsPage() {
                           size="xs"
                         />
 
-                        {/* Runes */}
-                        {runes && (
-                          <RuneSlots runes={runes} size="xs" />
-                        )}
 
                         {/* Stats */}
                         <div className="grid grid-cols-3 gap-2 text-center text-xs">
@@ -407,13 +395,6 @@ export default function MatchDetailsPage() {
                     participant.item6
                   ];
 
-                  const runes = participant.perks ? {
-                    primaryStyle: participant.perks.styles[0]?.style || 0,
-                    subStyle: participant.perks.styles[1]?.style || 0,
-                    statPerks: participant.perks.statPerks,
-                    primarySelections: participant.perks.styles[0]?.selections || [],
-                    subSelections: participant.perks.styles[1]?.selections || []
-                  } : null;
 
                   return (
                     <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-red-500/5 border border-red-500/20">
@@ -449,10 +430,6 @@ export default function MatchDetailsPage() {
                           size="xs"
                         />
 
-                        {/* Runes */}
-                        {runes && (
-                          <RuneSlots runes={runes} size="xs" />
-                        )}
 
                         {/* Stats */}
                         <div className="grid grid-cols-3 gap-2 text-center text-xs">

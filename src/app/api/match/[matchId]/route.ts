@@ -112,7 +112,6 @@ export async function GET(
           individualPosition: string;
           spell1Id: number;
           spell2Id: number;
-          perks: Record<string, unknown>;
           item0: number;
           item1: number;
           item2: number;
@@ -196,10 +195,9 @@ export async function GET(
           teamPosition: p.teamPosition,
           individualPosition: p.individualPosition,
           
-          // Summoner spells & runes
+          // Summoner spells
           spell1Id: p.spell1Id,
           spell2Id: p.spell2Id,
-          perks: p.perks,
           
           // Items
           item0: p.item0,

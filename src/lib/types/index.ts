@@ -111,27 +111,6 @@ export interface MatchData {
     spell1Id: number;
     spell2Id: number;
   };
-  runes?: {
-    primaryStyle: number;
-    subStyle: number;
-    statPerks: {
-      defense: number;
-      flex: number;
-      offense: number;
-    };
-    primarySelections: {
-      perk: number;
-      var1: number;
-      var2: number;
-      var3: number;
-    }[];
-    subSelections: {
-      perk: number;
-      var1: number;
-      var2: number;
-      var3: number;
-    }[];
-  } | null;
   all_participants?: MatchParticipant[];
 }
 
@@ -153,23 +132,6 @@ export interface DetailedMatchParticipant {
   items: number[]; // Array of 7 item IDs (6 items + trinket)
   summoner1Id: number;
   summoner2Id: number;
-  perks: {
-    statPerks: {
-      defense: number;
-      flex: number;
-      offense: number;
-    };
-    styles: {
-      description: string;
-      selections: {
-        perk: number;
-        var1: number;
-        var2: number;
-        var3: number;
-      }[];
-      style: number;
-    }[];
-  };
 }
 
 export interface DetailedMatchTeam {
@@ -530,10 +492,9 @@ export interface EnhancedMatchParticipant {
   teamPosition: string;
   individualPosition: string;
   
-  // Summoner spells & runes
+  // Summoner spells
   spell1Id: number;
   spell2Id: number;
-  perks: Record<string, any>;
   
   // Items (0-6: items, 6 is trinket)
   items: number[];

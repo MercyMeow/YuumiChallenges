@@ -128,7 +128,12 @@ export function SummonerSpells({
   orientation = 'horizontal'
 }: SummonerSpellsProps) {
   const flexDirection = orientation === 'vertical' ? 'flex-col' : 'flex-row';
-  const gap = orientation === 'vertical' ? 'gap-0.5' : 'gap-1';
+  const gap = orientation === 'vertical' ? 'gap-1' : 'gap-1';
+  
+  // Enhanced vertical layout for match card display
+  const verticalContainerClasses = orientation === 'vertical' 
+    ? 'w-8 justify-center items-center' 
+    : '';
 
   // Validate that both spell IDs are valid before rendering
   if (!isValidSummonerSpell(spell1Id) || !isValidSummonerSpell(spell2Id)) {
@@ -136,7 +141,7 @@ export function SummonerSpells({
   }
 
   return (
-    <div className={`flex ${flexDirection} ${gap} ${className}`}>
+    <div className={`flex ${flexDirection} ${gap} ${verticalContainerClasses} ${className}`}>
       <SummonerSpell spellId={spell1Id} size={size} />
       <SummonerSpell spellId={spell2Id} size={size} />
     </div>

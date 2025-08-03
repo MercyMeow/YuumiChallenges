@@ -173,19 +173,6 @@ export const summonerSpellImages = {
 };
 
 /**
- * Rune Image URLs
- */
-export const runeImages = {
-  /**
-   * Gets the rune icon URL
-   */
-  icon: async (runeId: string): Promise<string> => {
-    const version = await getLatestVersion();
-    return `${DATADRAGON_BASE_URL}/cdn/${version}/img/perk/${runeId}.png`;
-  },
-};
-
-/**
  * Summoner Icon Image URLs
  */
 export const summonerIconImages = {

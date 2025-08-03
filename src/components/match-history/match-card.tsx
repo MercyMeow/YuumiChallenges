@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChampionIcon } from '@/components/ui/datadragon-image';
 import { ItemSlots } from './item-slots';
-import { SpellRuneGrid } from './spell-rune-grid';
+import { SummonerSpells } from './summoner-spells';
 import { MatchData } from '@/lib/types';
 import { getGameModeDisplayName, getGameModeCategoryColor } from '@/lib/utils/game-modes';
 import { formatDistanceToNow } from 'date-fns';
@@ -135,6 +135,49 @@ export function MatchCard({
         <ExternalLink className="h-2.5 w-2.5" />
       </Button>
 
+      {/* Teams Section - positioned in header area */}
+      {match.all_participants && match.all_participants.length > 0 && (
+        <div className="absolute top-3 right-4 z-10 flex gap-3 text-xs">
+          {/* Blue Team */}
+          <div className="flex items-center gap-1">
+            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+            <span className="text-blue-400 font-medium">Blue</span>
+            <div className="flex gap-0.5">
+              {match.all_participants
+                .filter((p) => p.teamId === 100)
+                .slice(0, 5)
+                .map((participant, index) => (
+                  <ChampionIcon 
+                    key={index}
+                    championId={participant.championName} 
+                    size="xs" 
+                    className="border border-blue-500/30 rounded"
+                  />
+                ))}
+            </div>
+          </div>
+
+          {/* Red Team */}
+          <div className="flex items-center gap-1">
+            <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+            <span className="text-red-400 font-medium">Red</span>
+            <div className="flex gap-0.5">
+              {match.all_participants
+                .filter((p) => p.teamId === 200)
+                .slice(0, 5)
+                .map((participant, index) => (
+                  <ChampionIcon 
+                    key={index}
+                    championId={participant.championName} 
+                    size="xs" 
+                    className="border border-red-500/30 rounded"
+                  />
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
+
 
       <CardContent className="p-6 pt-12">
         <div className="grid grid-cols-12 gap-4 items-start">
@@ -184,6 +227,18 @@ export function MatchCard({
             </div>
           </div>
 
+          {/* Summoner Spells - col-span-1 */}
+          <div className="col-span-1 flex justify-center">
+            {match.summoner_spells && (
+              <SummonerSpells 
+                spell1Id={match.summoner_spells.spell1Id}
+                spell2Id={match.summoner_spells.spell2Id}
+                size="lg"
+                orientation="vertical"
+              />
+            )}
+          </div>
+
           {/* Items - col-span-3 */}
           <div className="col-span-3">
             {match.items && (
@@ -194,21 +249,12 @@ export function MatchCard({
               />
             )}
           </div>
-          
-          {/* Summoner Spells and Runes Grid - col-span-1 */}
-          <div className="col-span-1 flex justify-center">
-            <SpellRuneGrid 
-              summoner_spells={match.summoner_spells || undefined}
-              runes={match.runes || undefined}
-              size="lg"
-            />
-          </div>
 
-          {/* KDA and Stats - col-span-2 */}
-          <div className="col-span-2 flex items-center justify-center gap-4">
-            {/* Harmonized KDA */}
+          {/* KDA and Stats - col-span-4 (expanded for vertical layout) */}
+          <div className="col-span-4 flex flex-col items-center gap-4">
+            {/* KDA on top */}
             <div className="text-center">
-              <div className={`text-xl font-bold ${getKDAColor(kdaRatio)}`}>
+              <div className={`text-2xl font-bold ${getKDAColor(kdaRatio)}`}>
                 {match.kills} / {match.deaths} / {match.assists}
               </div>
               <div className="text-sm text-white/60">
@@ -216,8 +262,8 @@ export function MatchCard({
               </div>
             </div>
 
-            {/* Compact horizontal stats */}
-            <div className="flex items-center gap-4">
+            {/* Secondary stats below */}
+            <div className="flex items-center gap-6">
               {match.gold && (
                 <div className="text-center">
                   <div className="text-base text-yellow-400 font-semibold">
@@ -245,60 +291,10 @@ export function MatchCard({
             </div>
           </div>
 
-          {/* Teams Section - col-span-4 (expanded) */}
-          {match.all_participants && match.all_participants.length > 0 && (
-            <div className="col-span-4 flex gap-4">
-              {/* Blue Team */}
-              <div className="flex-1">
-                <div className="flex items-center gap-1 mb-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-xs font-medium text-blue-400">Blue Team</span>
-                </div>
-                <div className="space-y-1">
-                  {match.all_participants
-                    .filter((p) => p.teamId === 100)
-                    .slice(0, 5)
-                    .map((participant, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <ChampionIcon 
-                          championId={participant.championName} 
-                          size="xs" 
-                          className="border border-blue-500/30 rounded"
-                        />
-                        <span className="text-xs text-white/70 truncate max-w-[120px]">
-                          {participant.gameName ? `${participant.gameName}#${participant.tagLine}` : `Player ${index + 1}`}
-                        </span>
-                      </div>
-                    ))}
-                </div>
-              </div>
-
-              {/* Red Team */}
-              <div className="flex-1">
-                <div className="flex items-center gap-1 mb-2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  <span className="text-xs font-medium text-red-400">Red Team</span>
-                </div>
-                <div className="space-y-1">
-                  {match.all_participants
-                    .filter((p) => p.teamId === 200)
-                    .slice(0, 5)
-                    .map((participant, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <ChampionIcon 
-                          championId={participant.championName} 
-                          size="xs" 
-                          className="border border-red-500/30 rounded"
-                        />
-                        <span className="text-xs text-white/70 truncate max-w-[120px]">
-                          {participant.gameName ? `${participant.gameName}#${participant.tagLine}` : `Player ${index + 1}`}
-                        </span>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Free space - col-span-2 (reserved for future use) */}
+          <div className="col-span-2">
+            {/* Reserved space for future enhancements */}
+          </div>
 
         </div>
 
