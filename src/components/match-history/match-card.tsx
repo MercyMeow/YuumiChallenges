@@ -48,8 +48,8 @@ export function MatchCard({
 
   const getWinColor = (win: boolean) => {
     return win 
-      ? 'border-l-accessible-green bg-accessible-green/10 border-accessible-green/30' 
-      : 'border-l-accessible-red bg-accessible-red/10 border-accessible-red/30';
+      ? 'border-l-4 border-l-accessible-green bg-accessible-green/10 border-r border-t border-b border-accessible-green/30' 
+      : 'border-l-4 border-l-accessible-red bg-accessible-red/10 border-r border-t border-b border-accessible-red/30';
   };
 
   const formatDuration = (seconds: number) => {
@@ -97,7 +97,11 @@ export function MatchCard({
 
   return (
     <Card 
-      className={`relative bg-gradient-to-br from-purple-500/5 to-purple-600/5 border border-purple-500/20 backdrop-blur-md transition-all duration-200 hover:bg-white/5 focus-card ${className}`}
+      className={`relative bg-gradient-to-br from-purple-500/5 to-purple-600/5 backdrop-blur-md transition-all duration-200 hover:bg-white/5 focus-card ${
+        match.win 
+          ? 'border-l-4 border-l-accessible-green border-r border-t border-b border-accessible-green/30' 
+          : 'border-l-4 border-l-accessible-red border-r border-t border-b border-accessible-red/30'
+      } ${className}`}
       role="article"
       aria-labelledby={`match-title-${match.match_id}`}
       tabIndex={0}
@@ -128,7 +132,10 @@ export function MatchCard({
               <ChampionIcon championId={match.champion} size="xl" />
               {/* Level badge overlay on champion */}
               {match.champion_level && (
-                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded px-1.5 py-0.5 text-xs font-semibold">
+                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 
+                          bg-blue-600 text-white text-xs font-bold 
+                          px-2 py-0.5 rounded-full border border-blue-500 
+                          shadow-sm">
                   {match.champion_level}
                 </div>
               )}
@@ -174,20 +181,26 @@ export function MatchCard({
           </div>
           
           {/* Summoner Spells and Runes - col-span-1 */}
-          <div className="col-span-1 flex flex-col gap-2">
-            {match.summoner_spells && (
+          <div className="col-span-1 flex flex-col gap-1">
+            {match.summoner_spells && 
+             match.summoner_spells.spell1Id > 0 && 
+             match.summoner_spells.spell2Id > 0 && (
               <SummonerSpells 
                 spell1Id={match.summoner_spells.spell1Id}
                 spell2Id={match.summoner_spells.spell2Id}
-                size="lg"
+                size="md"
                 orientation="vertical"
               />
             )}
             
-            {match.runes && (
+            {match.runes && 
+             match.runes.primarySelections && 
+             match.runes.primarySelections.length > 0 && 
+             match.runes.primarySelections[0] && 
+             match.runes.primarySelections[0].perk > 0 && (
               <RuneSlots 
                 runes={match.runes}
-                size="md"
+                size="sm"
               />
             )}
           </div>

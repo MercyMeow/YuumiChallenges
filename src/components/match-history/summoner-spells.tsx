@@ -130,6 +130,11 @@ export function SummonerSpells({
   const flexDirection = orientation === 'vertical' ? 'flex-col' : 'flex-row';
   const gap = orientation === 'vertical' ? 'gap-0.5' : 'gap-1';
 
+  // Validate that both spell IDs are valid before rendering
+  if (!isValidSummonerSpell(spell1Id) || !isValidSummonerSpell(spell2Id)) {
+    return null;
+  }
+
   return (
     <div className={`flex ${flexDirection} ${gap} ${className}`}>
       <SummonerSpell spellId={spell1Id} size={size} />
