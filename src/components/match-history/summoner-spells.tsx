@@ -105,8 +105,19 @@ export function SummonerSpell({ spellId, size = 'md', className = '' }: Summoner
           />
         </div>
       </TooltipTrigger>
-      <TooltipContent>
-        <p>{spell.name}</p>
+      <TooltipContent className="max-w-80 p-4 backdrop-blur-md bg-black/85 border-purple-500/30 shadow-lg shadow-purple-500/20">
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0">
+            <Image
+              src={imageUrl}
+              alt={spell.name}
+              width={24}
+              height={24}
+              className="rounded border border-purple-500/30"
+            />
+          </div>
+          <div className="font-semibold text-white text-base">{spell.name}</div>
+        </div>
       </TooltipContent>
     </Tooltip>
   );
