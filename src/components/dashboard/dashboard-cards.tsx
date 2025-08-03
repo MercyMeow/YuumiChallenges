@@ -622,7 +622,7 @@ export function LeagueProfileCard({
           <div className="grid grid-cols-2 gap-4" role="group" aria-label="Ranked statistics">
             {/* SoloQ Rank */}
             <div className="rounded-lg border border-blue-500/30 bg-black/40 p-4 backdrop-blur-md">
-              <div className="mb-3 text-center">
+              <div className="mb-3 flex justify-center">
                 <span className="text-xs font-medium text-blue-300 bg-blue-500/10 px-2 py-1 rounded-md border border-blue-500/20">
                   Solo/Duo
                 </span>
@@ -633,7 +633,7 @@ export function LeagueProfileCard({
                     <img
                       src={getRankEmblemUrl(summoner.soloqRank.tier)}
                       alt={`${summoner.soloqRank.tier} ${summoner.soloqRank.rank_level} emblem`}
-                      className="h-20 w-20 object-contain"
+                      className="h-24 w-24 object-contain"
                       onError={(e) => {
                         console.error(`Failed to load rank emblem for ${summoner.soloqRank?.tier}, falling back to unranked`);
                         const target = e.target as HTMLImageElement;
@@ -659,7 +659,7 @@ export function LeagueProfileCard({
                     <img
                       src={getRankEmblemUrl('UNRANKED')}
                       alt="Unranked emblem"
-                      className="h-20 w-20 object-contain"
+                      className="h-24 w-24 object-contain"
                     />
                   </div>
                   <div className="flex-1 text-center">
@@ -672,7 +672,7 @@ export function LeagueProfileCard({
 
             {/* Flex Rank */}
             <div className="rounded-lg border border-purple-500/30 bg-black/40 p-4 backdrop-blur-md">
-              <div className="mb-3 text-center">
+              <div className="mb-3 flex justify-center">
                 <span className="text-xs font-medium text-purple-300 bg-purple-500/10 px-2 py-1 rounded-md border border-purple-500/20">
                   Flex
                 </span>
@@ -683,7 +683,7 @@ export function LeagueProfileCard({
                     <img
                       src={getRankEmblemUrl(summoner.flexRank.tier)}
                       alt={`${summoner.flexRank.tier} ${summoner.flexRank.rank_level} emblem`}
-                      className="h-20 w-20 object-contain"
+                      className="h-24 w-24 object-contain"
                       onError={(e) => {
                         console.error(`Failed to load rank emblem for ${summoner.flexRank?.tier}, falling back to unranked`);
                         const target = e.target as HTMLImageElement;
@@ -709,7 +709,7 @@ export function LeagueProfileCard({
                     <img
                       src={getRankEmblemUrl('UNRANKED')}
                       alt="Unranked emblem"
-                      className="h-20 w-20 object-contain"
+                      className="h-24 w-24 object-contain"
                     />
                   </div>
                   <div className="flex-1 text-center">
