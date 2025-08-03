@@ -77,22 +77,42 @@ export function DataDragonImage({
   if (isLoading) {
     return (
       <div 
-        className={`bg-muted animate-pulse rounded ${className}`}
-        style={{ width, height }}
+        className={`bg-muted animate-pulse rounded flex-shrink-0 ${className || ''}`}
+        style={{ 
+          width: `${width}px`, 
+          height: `${height}px`,
+          minWidth: `${width}px`,
+          minHeight: `${height}px`,
+          maxWidth: `${width}px`,
+          maxHeight: `${height}px`
+        }}
       />
     );
   }
 
   return (
-    <Image
-      src={hasError || !imageUrl ? FALLBACK_IMAGE : imageUrl}
-      alt={alt || `${championId} ${type} image`}
-      width={width}
-      height={height}
-      priority={priority}
-      className={`rounded ${className}`}
-      onError={handleImageError}
-    />
+    <div 
+      className={`relative flex-shrink-0 overflow-hidden rounded ${className || ''}`}
+      style={{ 
+        width: `${width}px`, 
+        height: `${height}px`,
+        minWidth: `${width}px`,
+        minHeight: `${height}px`,
+        maxWidth: `${width}px`,
+        maxHeight: `${height}px`
+      }}
+    >
+      <Image
+        src={hasError || !imageUrl ? FALLBACK_IMAGE : imageUrl}
+        alt={alt || `${championId} ${type} image`}
+        width={width}
+        height={height}
+        priority={priority}
+        className="object-cover w-full h-full"
+        onError={handleImageError}
+        sizes={`${width}px`}
+      />
+    </div>
   );
 }
 
@@ -121,14 +141,25 @@ export function ChampionIcon({
   const { width, height } = sizes[size];
 
   return (
-    <DataDragonImage
-      championId={championId}
-      type="icon"
-      width={width}
-      height={height}
-      {...(className ? { className } : {})}
-      alt={alt || `Champion ${championId}`}
-    />
+    <div 
+      className={`relative inline-block flex-shrink-0 ${className || ''}`}
+      style={{ 
+        width: `${width}px`, 
+        height: `${height}px`,
+        minWidth: `${width}px`,
+        minHeight: `${height}px`,
+        maxWidth: `${width}px`,
+        maxHeight: `${height}px`
+      }}
+    >
+      <DataDragonImage
+        championId={championId}
+        type="icon"
+        width={width}
+        height={height}
+        alt={alt || `Champion ${championId}`}
+      />
+    </div>
   );
 }
 

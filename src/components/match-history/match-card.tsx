@@ -183,7 +183,7 @@ export function MatchCard({
         <div className="grid grid-cols-12 gap-4 items-start">
           {/* Champion and level - col-span-2 */}
           <div className="col-span-2 flex items-center gap-4">
-            <div className="relative">
+            <div className="relative flex-shrink-0">
               <ChampionIcon championId={match.champion} size="xxl" />
               {/* Level badge overlay on champion */}
               {match.champion_level && (
@@ -193,7 +193,7 @@ export function MatchCard({
                           px-2 py-0.5 rounded-full 
                           border border-purple-400/50
                           shadow-lg shadow-purple-500/25
-                          backdrop-blur-sm">
+                          backdrop-blur-sm z-10">
                   {match.champion_level}
                 </div>
               )}
