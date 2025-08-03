@@ -50,10 +50,10 @@ import {
 import { getProfileIconUrl } from '@/lib/utils/data-dragon';
 import { formatRelativeTime } from '@/lib/utils/time';
 
-// Utility function to get rank emblem URLs from Community Dragon CDN
+// Utility function to get rank emblem URLs with multiple fallback sources
+// Priority: 1) Riot GitHub Developer Assets (most official) 2) Community Dragon (fallback) 3) Crown icon (final fallback)
 const getRankEmblemUrl = (tier: string, division: string) => {
   const normalizedTier = tier.toUpperCase();
-  const baseUrl = 'https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblems';
   
   // Map tier names to emblem file names
   const tierMap: Record<string, string> = {
@@ -76,19 +76,22 @@ const getRankEmblemUrl = (tier: string, division: string) => {
   
   // For Master+ tiers, no division is needed
   if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(normalizedTier)) {
-    return `${baseUrl}/${tierName}.png`;
+    // Primary: Riot GitHub Developer Assets (most reliable for Master+ tiers)
+    return `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}.png`;
   }
   
   // For other tiers, include division (I, II, III, IV)
   const divisionMap: Record<string, string> = {
-    'I': '1',
-    'II': '2', 
-    'III': '3',
-    'IV': '4'
+    'I': 'i',
+    'II': 'ii', 
+    'III': 'iii',
+    'IV': 'iv'
   };
   
-  const divisionNumber = divisionMap[division] || '1';
-  return `${baseUrl}/${tierName}_${divisionNumber}.png`;
+  const divisionName = divisionMap[division] || 'i';
+  
+  // Primary: Riot GitHub Developer Assets (official source)
+  return `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}_${divisionName}.png`;
 };
 
 // Tier-specific color schemes for rank badges
@@ -616,36 +619,6 @@ export function LeagueProfileCard({
                     {summoner.region.toUpperCase()}
                   </Badge>
                 </div>
-                <div className="mt-3 flex flex-col space-y-2">
-                  {/* Solo/Duo Rank Badge */}
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-white/60 min-w-[50px]">Solo/Duo:</span>
-                    {summoner.soloqRank ? (
-                      <Badge className={`${getTierColorScheme(summoner.soloqRank.tier).bg} ${getTierColorScheme(summoner.soloqRank.tier).border} ${getTierColorScheme(summoner.soloqRank.tier).text} px-3 py-1 font-bold shadow-lg backdrop-blur-sm`}>
-                        <Crown className="mr-1 h-3 w-3" />
-                        {summoner.soloqRank.tier} {summoner.soloqRank.rank_level}
-                      </Badge>
-                    ) : (
-                      <Badge className="border-gray-500/30 bg-gray-500/10 text-gray-400 px-3 py-1 font-medium">
-                        Unranked
-                      </Badge>
-                    )}
-                  </div>
-                  {/* Flex Rank Badge */}
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-white/60 min-w-[50px]">Flex:</span>
-                    {summoner.flexRank ? (
-                      <Badge className={`${getTierColorScheme(summoner.flexRank.tier).bg} ${getTierColorScheme(summoner.flexRank.tier).border} ${getTierColorScheme(summoner.flexRank.tier).text} px-3 py-1 font-bold shadow-lg backdrop-blur-sm`}>
-                        <Crown className="mr-1 h-3 w-3" />
-                        {summoner.flexRank.tier} {summoner.flexRank.rank_level}
-                      </Badge>
-                    ) : (
-                      <Badge className="border-gray-500/30 bg-gray-500/10 text-gray-400 px-3 py-1 font-medium">
-                        Unranked
-                      </Badge>
-                    )}
-                  </div>
-                </div>
               </div>
             </div>
             <div className="text-right">
@@ -677,108 +650,140 @@ export function LeagueProfileCard({
           <div className="grid grid-cols-2 gap-4" role="group" aria-label="Ranked statistics">
             {/* SoloQ Rank */}
             <div className="rounded-lg border border-blue-500/30 bg-black/40 p-4 backdrop-blur-md">
-              <div className="mb-2 text-center">
-                <h4 className="text-sm font-medium text-white/80 mb-3">Solo/Duo Queue</h4>
-                {summoner.soloqRank ? (
-                  <>
-                    <div className="flex justify-center mb-3">
-                      <img
-                        src={getRankEmblemUrl(summoner.soloqRank.tier, summoner.soloqRank.rank_level) || ''}
-                        alt={`${summoner.soloqRank.tier} ${summoner.soloqRank.rank_level} emblem`}
-                        className="h-16 w-16 object-contain"
-                        onError={(e) => {
-                          // Fallback to a crown icon if emblem fails to load
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const parent = target.parentElement;
-                          if (parent) {
-                            parent.innerHTML = `<div class="flex h-16 w-16 items-center justify-center rounded-full ${getTierColorScheme(summoner.soloqRank?.tier || '').bg} ${getTierColorScheme(summoner.soloqRank?.tier || '').border} border-2"><svg class="h-8 w-8 ${getTierColorScheme(summoner.soloqRank?.tier || '').text}" fill="currentColor" viewBox="0 0 24 24"><path d="M12 6L9 9L12 12L15 9L12 6Z"/><path d="M12 2L8 6H16L12 2Z"/><path d="M8 18L12 22L16 18H8Z"/></svg></div>`;
+              {summoner.soloqRank ? (
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <img
+                      src={getRankEmblemUrl(summoner.soloqRank.tier, summoner.soloqRank.rank_level) || ''}
+                      alt={`${summoner.soloqRank.tier} ${summoner.soloqRank.rank_level} emblem`}
+                      className="h-16 w-16 object-contain"
+                      onError={(e) => {
+                        // Try fallback to Community Dragon if Riot GitHub fails
+                        const target = e.target as HTMLImageElement;
+                        const currentSrc = target.src;
+                        
+                        // If it was already the GitHub source, try Community Dragon fallback
+                        if (currentSrc.includes('githubusercontent.com')) {
+                          const tierName = summoner.soloqRank?.tier.toLowerCase();
+                          const divisionMap: Record<string, string> = {
+                            'I': '1', 'II': '2', 'III': '3', 'IV': '4'
+                          };
+                          const divisionNumber = divisionMap[summoner.soloqRank?.rank_level || 'I'] || '1';
+                          
+                          if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(summoner.soloqRank?.tier || '')) {
+                            target.src = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblems/${tierName}.png`;
+                          } else {
+                            target.src = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblems/${tierName}_${divisionNumber}.png`;
                           }
-                        }}
-                      />
+                          return;
+                        }
+                        
+                        // If all image sources fail, fallback to crown icon
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = `<div class="flex h-16 w-16 items-center justify-center rounded-full ${getTierColorScheme(summoner.soloqRank?.tier || '').bg} ${getTierColorScheme(summoner.soloqRank?.tier || '').border} border-2"><svg class="h-8 w-8 ${getTierColorScheme(summoner.soloqRank?.tier || '').text}" fill="currentColor" viewBox="0 0 24 24"><path d="M12 6L9 9L12 12L15 9L12 6Z"/><path d="M12 2L8 6H16L12 2Z"/><path d="M8 18L12 22L16 18H8Z"/></svg></div>`;
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <p className={`text-lg font-bold ${getTierColorScheme(summoner.soloqRank.tier).text}`}>
+                      {summoner.soloqRank.tier} {summoner.soloqRank.rank_level}
+                    </p>
+                    <p className="text-xl font-bold text-yellow-400">
+                      {summoner.soloqRank.league_points} LP
+                    </p>
+                    <p className="text-sm text-white/70">
+                      {summoner.soloqRank.wins}W / {summoner.soloqRank.losses}L
+                    </p>
+                    <p className="text-sm font-medium text-green-400">
+                      {safeCalculateWinRate(summoner.soloqRank.wins, summoner.soloqRank.losses)}% WR
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-500/20 border-2 border-gray-500/30">
+                      <Crown className="h-8 w-8 text-gray-400" />
                     </div>
-                    <div className="text-center space-y-1">
-                      <p className={`text-lg font-bold ${getTierColorScheme(summoner.soloqRank.tier).text}`}>
-                        {summoner.soloqRank.tier} {summoner.soloqRank.rank_level}
-                      </p>
-                      <p className="text-xl font-bold text-yellow-400">
-                        {summoner.soloqRank.league_points} LP
-                      </p>
-                      <p className="text-sm text-white/70">
-                        {summoner.soloqRank.wins}W / {summoner.soloqRank.losses}L
-                      </p>
-                      <p className="text-sm font-medium text-green-400">
-                        {safeCalculateWinRate(summoner.soloqRank.wins, summoner.soloqRank.losses)}% WR
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex justify-center mb-3">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-500/20 border-2 border-gray-500/30">
-                        <Crown className="h-8 w-8 text-gray-400" />
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-bold text-gray-400">Unranked</p>
-                      <p className="text-sm text-white/50 mt-2">Play ranked games to get a rank</p>
-                    </div>
-                  </>
-                )}
-              </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-lg font-bold text-gray-400">Unranked</p>
+                    <p className="text-sm text-white/50 mt-2">Play ranked games to get a rank</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Flex Rank */}
             <div className="rounded-lg border border-purple-500/30 bg-black/40 p-4 backdrop-blur-md">
-              <div className="mb-2 text-center">
-                <h4 className="text-sm font-medium text-white/80 mb-3">Flex Queue</h4>
-                {summoner.flexRank ? (
-                  <>
-                    <div className="flex justify-center mb-3">
-                      <img
-                        src={getRankEmblemUrl(summoner.flexRank.tier, summoner.flexRank.rank_level) || ''}
-                        alt={`${summoner.flexRank.tier} ${summoner.flexRank.rank_level} emblem`}
-                        className="h-16 w-16 object-contain"
-                        onError={(e) => {
-                          // Fallback to a crown icon if emblem fails to load
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const parent = target.parentElement;
-                          if (parent) {
-                            parent.innerHTML = `<div class="flex h-16 w-16 items-center justify-center rounded-full ${getTierColorScheme(summoner.flexRank?.tier || '').bg} ${getTierColorScheme(summoner.flexRank?.tier || '').border} border-2"><svg class="h-8 w-8 ${getTierColorScheme(summoner.flexRank?.tier || '').text}" fill="currentColor" viewBox="0 0 24 24"><path d="M12 6L9 9L12 12L15 9L12 6Z"/><path d="M12 2L8 6H16L12 2Z"/><path d="M8 18L12 22L16 18H8Z"/></svg></div>`;
+              {summoner.flexRank ? (
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <img
+                      src={getRankEmblemUrl(summoner.flexRank.tier, summoner.flexRank.rank_level) || ''}
+                      alt={`${summoner.flexRank.tier} ${summoner.flexRank.rank_level} emblem`}
+                      className="h-16 w-16 object-contain"
+                      onError={(e) => {
+                        // Try fallback to Community Dragon if Riot GitHub fails
+                        const target = e.target as HTMLImageElement;
+                        const currentSrc = target.src;
+                        
+                        // If it was already the GitHub source, try Community Dragon fallback
+                        if (currentSrc.includes('githubusercontent.com')) {
+                          const tierName = summoner.flexRank?.tier.toLowerCase();
+                          const divisionMap: Record<string, string> = {
+                            'I': '1', 'II': '2', 'III': '3', 'IV': '4'
+                          };
+                          const divisionNumber = divisionMap[summoner.flexRank?.rank_level || 'I'] || '1';
+                          
+                          if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(summoner.flexRank?.tier || '')) {
+                            target.src = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblems/${tierName}.png`;
+                          } else {
+                            target.src = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblems/${tierName}_${divisionNumber}.png`;
                           }
-                        }}
-                      />
+                          return;
+                        }
+                        
+                        // If all image sources fail, fallback to crown icon
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = `<div class="flex h-16 w-16 items-center justify-center rounded-full ${getTierColorScheme(summoner.flexRank?.tier || '').bg} ${getTierColorScheme(summoner.flexRank?.tier || '').border} border-2"><svg class="h-8 w-8 ${getTierColorScheme(summoner.flexRank?.tier || '').text}" fill="currentColor" viewBox="0 0 24 24"><path d="M12 6L9 9L12 12L15 9L12 6Z"/><path d="M12 2L8 6H16L12 2Z"/><path d="M8 18L12 22L16 18H8Z"/></svg></div>`;
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <p className={`text-lg font-bold ${getTierColorScheme(summoner.flexRank.tier).text}`}>
+                      {summoner.flexRank.tier} {summoner.flexRank.rank_level}
+                    </p>
+                    <p className="text-xl font-bold text-yellow-400">
+                      {summoner.flexRank.league_points} LP
+                    </p>
+                    <p className="text-sm text-white/70">
+                      {summoner.flexRank.wins}W / {summoner.flexRank.losses}L
+                    </p>
+                    <p className="text-sm font-medium text-green-400">
+                      {safeCalculateWinRate(summoner.flexRank.wins, summoner.flexRank.losses)}% WR
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-500/20 border-2 border-gray-500/30">
+                      <Crown className="h-8 w-8 text-gray-400" />
                     </div>
-                    <div className="text-center space-y-1">
-                      <p className={`text-lg font-bold ${getTierColorScheme(summoner.flexRank.tier).text}`}>
-                        {summoner.flexRank.tier} {summoner.flexRank.rank_level}
-                      </p>
-                      <p className="text-xl font-bold text-yellow-400">
-                        {summoner.flexRank.league_points} LP
-                      </p>
-                      <p className="text-sm text-white/70">
-                        {summoner.flexRank.wins}W / {summoner.flexRank.losses}L
-                      </p>
-                      <p className="text-sm font-medium text-green-400">
-                        {safeCalculateWinRate(summoner.flexRank.wins, summoner.flexRank.losses)}% WR
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex justify-center mb-3">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-500/20 border-2 border-gray-500/30">
-                        <Crown className="h-8 w-8 text-gray-400" />
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-bold text-gray-400">Unranked</p>
-                      <p className="text-sm text-white/50 mt-2">Play ranked games to get a rank</p>
-                    </div>
-                  </>
-                )}
-              </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-lg font-bold text-gray-400">Unranked</p>
+                    <p className="text-sm text-white/50 mt-2">Play ranked games to get a rank</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
