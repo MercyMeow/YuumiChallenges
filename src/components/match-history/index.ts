@@ -9,4 +9,4 @@ export { MatchCard, MatchCardList } from './match-card';
 export { TeamSection, TeamsComparison } from './team-section';
 export { PlayerRow, PlayersList } from './player-row';
 export { ItemSlots, TrinketSlot } from './item-slots';
-export { SummonerSpells } from './summoner-spells';
+export { SummonerSpells, SummonerSpell } from './summoner-spells';
