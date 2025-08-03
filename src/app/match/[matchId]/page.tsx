@@ -252,6 +252,33 @@ export default function MatchDetailsPage() {
     return num.toString();
   };
 
+  // Calculate team totals for percentage calculations
+  const teamTotals = useMemo(() => {
+    if (!data?.matchData?.info?.participants) {
+      return { 
+        blue: { damage: 0, taken: 0, gold: 0, kills: 0 },
+        red: { damage: 0, taken: 0, gold: 0, kills: 0 }
+      };
+    }
+
+    const blueTeam = data.matchData.info.participants.filter(p => p.teamId === 100);
+    const redTeam = data.matchData.info.participants.filter(p => p.teamId === 200);
+
+    const blueTotals = {
+      damage: blueTeam.reduce((sum, p) => sum + p.totalDamageDealtToChampions, 0),
+      taken: blueTeam.reduce((sum, p) => sum + p.totalDamageTaken, 0),
+      gold: blueTeam.reduce((sum, p) => sum + p.goldEarned, 0),
+      kills: blueTeam.reduce((sum, p) => sum + p.kills, 0),
+    };
+    const redTotals = {
+      damage: redTeam.reduce((sum, p) => sum + p.totalDamageDealtToChampions, 0),
+      taken: redTeam.reduce((sum, p) => sum + p.totalDamageTaken, 0),
+      gold: redTeam.reduce((sum, p) => sum + p.goldEarned, 0),
+      kills: redTeam.reduce((sum, p) => sum + p.kills, 0),
+    };
+    return { blue: blueTotals, red: redTotals };
+  }, [data]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
@@ -310,23 +337,6 @@ export default function MatchDetailsPage() {
   const comparePlayerData = comparePlayer !== null 
     ? matchData.info.participants[comparePlayer] 
     : null;
-
-  // Calculate team totals for percentage calculations
-  const teamTotals = useMemo(() => {
-    const blueTotals = {
-      damage: blueTeam.reduce((sum, p) => sum + p.totalDamageDealtToChampions, 0),
-      taken: blueTeam.reduce((sum, p) => sum + p.totalDamageTaken, 0),
-      gold: blueTeam.reduce((sum, p) => sum + p.goldEarned, 0),
-      kills: blueTeam.reduce((sum, p) => sum + p.kills, 0),
-    };
-    const redTotals = {
-      damage: redTeam.reduce((sum, p) => sum + p.totalDamageDealtToChampions, 0),
-      taken: redTeam.reduce((sum, p) => sum + p.totalDamageTaken, 0),
-      gold: redTeam.reduce((sum, p) => sum + p.goldEarned, 0),
-      kills: redTeam.reduce((sum, p) => sum + p.kills, 0),
-    };
-    return { blue: blueTotals, red: redTotals };
-  }, [blueTeam, redTeam]);
 
   const PlayerCard = ({ participant, teamColor, teamTotals }: any) => {
     const isSelected = selectedPlayer === matchData.info.participants.indexOf(participant);
