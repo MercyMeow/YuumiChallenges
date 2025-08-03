@@ -131,7 +131,7 @@ export interface MatchData {
       var2: number;
       var3: number;
     }[];
-  };
+  } | null;
   all_participants?: MatchParticipant[];
 }
 

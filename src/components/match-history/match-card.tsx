@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { ChampionIcon } from '@/components/ui/datadragon-image';
 import { ItemSlots } from './item-slots';
 import { SummonerSpells } from './summoner-spells';
 import { RuneSlots } from './rune-slots';
-import { MatchData, MatchParticipant } from '@/lib/types';
+import { MatchData } from '@/lib/types';
 import { getGameModeDisplayName, getGameModeCategoryColor } from '@/lib/utils/game-modes';
 import { formatDistanceToNow } from 'date-fns';
 import { 
@@ -28,7 +27,7 @@ interface MatchCardProps {
 
 export function MatchCard({ 
   match, 
-  currentUserPuuid,
+  currentUserPuuid: _currentUserPuuid,
   className = '',
   compact = false
 }: MatchCardProps) {
@@ -312,7 +311,7 @@ interface MatchCardListProps {
 
 export function MatchCardList({ 
   matches, 
-  currentUserPuuid,
+  currentUserPuuid: _currentUserPuuid,
   loading = false,
   className = '',
   compact = false
@@ -349,7 +348,7 @@ export function MatchCardList({
         <MatchCard
           key={match.match_id}
           match={match}
-          {...(currentUserPuuid ? { currentUserPuuid } : {})}
+          {...(_currentUserPuuid ? { currentUserPuuid: _currentUserPuuid } : {})}
           compact={compact}
         />
       ))}

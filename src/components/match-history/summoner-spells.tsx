@@ -27,7 +27,7 @@ export const SUMMONER_SPELLS = {
 
 interface SummonerSpellProps {
   spellId: number;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   className?: string;
 }
 
@@ -37,6 +37,7 @@ function SummonerSpell({ spellId, size = 'md', className = '' }: SummonerSpellPr
   const [hasError, setHasError] = useState(false);
 
   const sizes = {
+    xs: { width: 12, height: 12 },
     sm: { width: 16, height: 16 },
     md: { width: 20, height: 20 },
     lg: { width: 24, height: 24 },
@@ -113,7 +114,7 @@ function SummonerSpell({ spellId, size = 'md', className = '' }: SummonerSpellPr
 interface SummonerSpellsProps {
   spell1Id: number;
   spell2Id: number;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   className?: string;
   orientation?: 'horizontal' | 'vertical';
 }

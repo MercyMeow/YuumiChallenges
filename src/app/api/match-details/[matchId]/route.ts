@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RiotAPI } from '@/lib/apis/riot';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ matchId: string }> }
 ) {
   try {
@@ -44,8 +44,11 @@ export async function GET(
     };
 
     const platform = regionMatch[1];
-    const region = platformToRegion[platform];
+    if (!platform) {
+      return NextResponse.json({ error: 'Invalid match ID format - no platform found' }, { status: 400 });
+    }
     
+    const region = platformToRegion[platform];
     if (!region) {
       return NextResponse.json({ error: 'Unsupported region' }, { status: 400 });
     }
