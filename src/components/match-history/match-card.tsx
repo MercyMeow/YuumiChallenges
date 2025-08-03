@@ -217,7 +217,7 @@ export function MatchCard({
               {/* Date played below champion level badge */}
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 
+                  <div className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 
                                text-xs text-white/70 cursor-help font-medium whitespace-nowrap">
                     {formatDistanceToNow(new Date(match.game_creation), { addSuffix: true })}
                   </div>
@@ -310,7 +310,7 @@ export function MatchCard({
       
       {/* Teams Section - positioned at very top of card */}
       {match.all_participants && match.all_participants.length > 0 && (
-        <div className="absolute top-0 right-4 z-10 text-xs bg-black/60 backdrop-blur-md border border-white/20 rounded-b-lg p-3 max-w-[calc(100%-16rem)]">
+        <div className="absolute top-0 right-4 z-10 text-xs p-3 max-w-[calc(100%-16rem)]">
                 {/* Team Headers */}
                 <div className="grid grid-cols-2 gap-3 mb-2">
                   <div className="flex items-center gap-1 justify-center">
