@@ -8,18 +8,9 @@ import {
   LeagueProfileCard
 } from '@/components/dashboard/dashboard-cards';
 import { EnhancedMatchHistoryDisplay } from '@/components/match-history';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RefreshStatus } from '@/lib/types';
-import { Sparkles, Activity, Users, Award, Loader2, Zap } from 'lucide-react';
-
-interface DashboardStats {
-  winStreak: number;
-  userRank: string;
-  winRate: number;
-  activeChallenges: number;
-  currentRank: number | null;
-}
+import { Sparkles, Activity, Users, Loader2 } from 'lucide-react';
 
 
 interface SummonerData {
@@ -44,31 +35,11 @@ interface SummonerData {
 
 export default function Dashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
-  const [loadingStats, setLoadingStats] = useState(true);
   const [summonerData, setSummonerData] = useState<SummonerData | null>(null);
   const [refreshStatus, setRefreshStatus] = useState<RefreshStatus | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadingSummoner, setLoadingSummoner] = useState(true);
 
-  // Remove useCallback to prevent dependency issues - these functions are only called in effects
-  const fetchDashboardData = async () => {
-    try {
-      setLoadingStats(true);
-      
-      // Fetch dashboard stats
-      const dashboardRes = await fetch('/api/user/dashboard-stats');
-
-      if (dashboardRes.ok) {
-        const dashboardData = await dashboardRes.json();
-        setDashboardStats(dashboardData);
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoadingStats(false);
-    }
-  };
 
   const fetchRefreshStatus = async () => {
     try {
@@ -135,7 +106,6 @@ export default function Dashboard() {
         if (result.success) {
           // Refresh summoner data after successful auto-refresh
           await fetchSummonerData(false);
-          await fetchDashboardData(); // Refresh dashboard stats too
         }
       }
     } catch (error) {
@@ -165,7 +135,6 @@ export default function Dashboard() {
         if (result.success || result.data?.partial_success) {
           // Refresh all data after successful manual refresh
           await fetchSummonerData(false);
-          await fetchDashboardData();
           await fetchRefreshStatus(); // Update refresh status
         } else {
           console.error('Refresh failed:', result.message);
@@ -184,7 +153,6 @@ export default function Dashboard() {
   // Initial data loading - removed function dependencies to prevent infinite loop
   useEffect(() => {
     if (isAuthenticated && user) {
-      fetchDashboardData();
       fetchSummonerData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -233,7 +201,7 @@ export default function Dashboard() {
   }, [isAuthenticated, user, summonerData?.summoner]); // Simplified dependencies
 
   // Handle all loading and authentication states properly
-  if (isLoading || loadingStats) {
+  if (isLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
@@ -327,82 +295,6 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Quick Stats Bar */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4" aria-labelledby="quick-stats-heading">
-          <h2 id="quick-stats-heading" className="sr-only">Quick Statistics Overview</h2>
-          <Card 
-            className="p-4 bg-black/20 backdrop-blur-md border-purple-500/30 hover:border-purple-400/50 hover:bg-purple-500/10 transition-all duration-300 cursor-pointer group card-hover focus-card"
-            role="img"
-            aria-label={`Current win streak: ${dashboardStats?.winStreak || 0} games`}
-            tabIndex={0}
-          >
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-all duration-300" aria-hidden="true">
-                <Zap className="h-4 w-4 text-accessible-purple group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-accessible-purple group-hover:text-purple-300 transition-colors duration-300">
-                  {dashboardStats?.winStreak || 0}
-                </p>
-                <p className="text-xs text-white/70">Win Streak</p>
-              </div>
-            </div>
-          </Card>
-          <Card 
-            className="p-4 bg-black/20 backdrop-blur-md border-blue-500/30 hover:border-blue-400/50 hover:bg-blue-500/10 transition-all duration-300 cursor-pointer group card-hover focus-card"
-            role="img"
-            aria-label={`Current rank: ${dashboardStats?.currentRank || 'Not available'}`}
-            tabIndex={0}
-          >
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-all duration-300" aria-hidden="true">
-                <Award className="h-4 w-4 text-accessible-blue group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-accessible-blue group-hover:text-blue-300 transition-colors duration-300">
-                  {dashboardStats?.currentRank || 'N/A'}
-                </p>
-                <p className="text-xs text-white/70">Rank</p>
-              </div>
-            </div>
-          </Card>
-          <Card 
-            className="p-4 bg-black/20 backdrop-blur-md border-green-500/30 hover:border-green-400/50 hover:bg-green-500/10 transition-all duration-300 cursor-pointer group card-hover focus-card"
-            role="img"
-            aria-label={`Win rate: ${dashboardStats?.winRate || 0} percent`}
-            tabIndex={0}
-          >
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-all duration-300" aria-hidden="true">
-                <Activity className="h-4 w-4 text-accessible-green group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-accessible-green group-hover:text-green-300 transition-colors duration-300">
-                  {dashboardStats?.winRate || 0}%
-                </p>
-                <p className="text-xs text-white/70">Win Rate</p>
-              </div>
-            </div>
-          </Card>
-          <Card 
-            className="p-4 bg-black/20 backdrop-blur-md border-yellow-500/30 hover:border-yellow-400/50 hover:bg-yellow-500/10 transition-all duration-300 cursor-pointer group card-hover focus-card"
-            role="img"
-            aria-label={`Active challenges: ${dashboardStats?.activeChallenges || 0}`}
-            tabIndex={0}
-          >
-            <div className="flex items-center space-x-2">
-              <div className="p-2 bg-yellow-500/20 rounded-lg group-hover:bg-yellow-500/30 transition-all duration-300" aria-hidden="true">
-                <Users className="h-4 w-4 text-accessible-yellow group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-accessible-yellow group-hover:text-yellow-300 transition-colors duration-300">
-                  {dashboardStats?.activeChallenges || 0}
-                </p>
-                <p className="text-xs text-white/70">Active Challenges</p>
-              </div>
-            </div>
-          </Card>
-        </section>
 
         {/* Main Dashboard Grid - Simplified Layout */}
         <section className="space-y-6" aria-labelledby="dashboard-content-heading">
@@ -417,11 +309,10 @@ export default function Dashboard() {
               isRefreshing={isRefreshing}
               onRefresh={handleManualRefresh}
               onAccountChange={async () => {
-                // Refresh all dashboard data when account linking succeeds
+                // Refresh summoner data when account linking succeeds
                 console.log('🔄 DEBUG - Account linking completed, refreshing dashboard');
                 try {
                   await fetchSummonerData(false); // Don't show loading spinner for refresh
-                  await fetchDashboardData();
                   console.log('✅ DEBUG - Dashboard refresh completed successfully');
                 } catch (error) {
                   console.error('❌ ERROR - Dashboard refresh failed:', error);

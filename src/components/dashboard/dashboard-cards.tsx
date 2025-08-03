@@ -628,7 +628,7 @@ export function LeagueProfileCard({
                 </span>
               </div>
               {summoner.soloqRank ? (
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-col items-center space-y-3">
                   <div className="flex-shrink-0">
                     <img
                       src={getRankEmblemUrl(summoner.soloqRank.tier)}
@@ -641,17 +641,20 @@ export function LeagueProfileCard({
                       }}
                     />
                   </div>
-                  <div className="flex-1 space-y-1">
+                  <div className="text-center space-y-1">
                     <p className={`text-lg font-bold ${getTierColorScheme(summoner.soloqRank.tier).text}`}>
                       {summoner.soloqRank.tier} {summoner.soloqRank.rank_level}
                     </p>
-                    <p className="text-sm text-white/70">
+                    <p className="text-sm font-medium text-white">
+                      {summoner.soloqRank.league_points} LP
+                    </p>
+                    <p className="text-xs text-white/70">
                       {summoner.soloqRank.wins}W / {summoner.soloqRank.losses}L ({safeCalculateWinRate(summoner.soloqRank.wins, summoner.soloqRank.losses)}%)
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-col items-center space-y-3">
                   <div className="flex-shrink-0">
                     <img
                       src={getRankEmblemUrl('UNRANKED')}
@@ -659,9 +662,9 @@ export function LeagueProfileCard({
                       className="h-16 w-16 object-contain"
                     />
                   </div>
-                  <div className="flex-1">
+                  <div className="text-center">
                     <p className="text-lg font-bold text-gray-400">Unranked</p>
-                    <p className="text-sm text-white/50 mt-2">Play ranked games to get a rank</p>
+                    <p className="text-xs text-white/50 mt-2">Play ranked games to get a rank</p>
                   </div>
                 </div>
               )}
@@ -675,7 +678,7 @@ export function LeagueProfileCard({
                 </span>
               </div>
               {summoner.flexRank ? (
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-col items-center space-y-3">
                   <div className="flex-shrink-0">
                     <img
                       src={getRankEmblemUrl(summoner.flexRank.tier)}
@@ -688,17 +691,20 @@ export function LeagueProfileCard({
                       }}
                     />
                   </div>
-                  <div className="flex-1 space-y-1">
+                  <div className="text-center space-y-1">
                     <p className={`text-lg font-bold ${getTierColorScheme(summoner.flexRank.tier).text}`}>
                       {summoner.flexRank.tier} {summoner.flexRank.rank_level}
                     </p>
-                    <p className="text-sm text-white/70">
+                    <p className="text-sm font-medium text-white">
+                      {summoner.flexRank.league_points} LP
+                    </p>
+                    <p className="text-xs text-white/70">
                       {summoner.flexRank.wins}W / {summoner.flexRank.losses}L ({safeCalculateWinRate(summoner.flexRank.wins, summoner.flexRank.losses)}%)
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-col items-center space-y-3">
                   <div className="flex-shrink-0">
                     <img
                       src={getRankEmblemUrl('UNRANKED')}
@@ -706,9 +712,9 @@ export function LeagueProfileCard({
                       className="h-16 w-16 object-contain"
                     />
                   </div>
-                  <div className="flex-1">
+                  <div className="text-center">
                     <p className="text-lg font-bold text-gray-400">Unranked</p>
-                    <p className="text-sm text-white/50 mt-2">Play ranked games to get a rank</p>
+                    <p className="text-xs text-white/50 mt-2">Play ranked games to get a rank</p>
                   </div>
                 </div>
               )}
