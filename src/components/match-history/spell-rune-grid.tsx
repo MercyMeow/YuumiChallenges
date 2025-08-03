@@ -20,25 +20,76 @@ export function SpellRuneGrid({
   runes, 
   size = 'lg' 
 }: SpellRuneGridProps) {
-  const hasValidSpells = summoner_spells?.spell1Id && summoner_spells.spell1Id > 0 && summoner_spells?.spell2Id && summoner_spells.spell2Id > 0;
-  const hasValidRunes = runes?.primarySelections?.[0]?.perk && runes.primarySelections[0].perk > 0;
+  // Collect only valid items with proper typing
+  const validItems: Array<
+    | { type: 'spell'; data: number; key: string }
+    | { type: 'rune'; data: { perk: number; var1: number; var2: number; var3: number }; key: string }
+  > = [];
+
+  // Add valid spells
+  if (summoner_spells?.spell1Id && summoner_spells.spell1Id > 0) {
+    validItems.push({
+      type: 'spell',
+      data: summoner_spells.spell1Id,
+      key: 'spell1'
+    });
+  }
+  if (summoner_spells?.spell2Id && summoner_spells.spell2Id > 0) {
+    validItems.push({
+      type: 'spell',
+      data: summoner_spells.spell2Id,
+      key: 'spell2'
+    });
+  }
+
+  // Add valid runes
+  const keystone = runes?.primarySelections?.[0];
+  if (keystone?.perk && keystone.perk > 0) {
+    validItems.push({
+      type: 'rune',
+      data: keystone,
+      key: 'keystone'
+    });
+  }
   
-  // Don't render if no valid data
-  if (!hasValidSpells && !hasValidRunes) {
+  const secondaryRune = runes?.subSelections?.[0];
+  if (secondaryRune?.perk && secondaryRune.perk > 0) {
+    validItems.push({
+      type: 'rune',
+      data: secondaryRune,
+      key: 'secondary'
+    });
+  }
+
+  // Don't render if no valid items
+  if (validItems.length === 0) {
     return null;
   }
 
-  const spell1Id = summoner_spells?.spell1Id || 0;
-  const spell2Id = summoner_spells?.spell2Id || 0;
-  const keystone = runes?.primarySelections?.[0];
-  const secondaryRune = runes?.subSelections?.[0];
+  // Dynamic grid layout based on item count
+  const getGridLayout = (itemCount: number) => {
+    switch (itemCount) {
+      case 1:
+        return 'grid grid-cols-1 gap-1 w-8 h-8'; // Single item
+      case 2:
+        return 'grid grid-cols-2 gap-1 w-16 h-8'; // Two items horizontally
+      case 3:
+      case 4:
+        return 'grid grid-cols-2 gap-1 w-16 h-16'; // 2x2 grid
+      default:
+        return 'grid grid-cols-2 gap-1 w-16 h-16';
+    }
+  };
 
   return (
-    <div className="grid grid-cols-2 gap-1">
-      <SummonerSpell spellId={spell1Id} size={size} />
-      <SummonerSpell spellId={spell2Id} size={size} />
-      <RuneSlot rune={keystone} size={size} />
-      <RuneSlot rune={secondaryRune} size={size} />
+    <div className={getGridLayout(validItems.length)}>
+      {validItems.map((item) => (
+        item.type === 'spell' ? (
+          <SummonerSpell key={item.key} spellId={item.data} size={size} />
+        ) : (
+          <RuneSlot key={item.key} rune={item.data} size={size} />
+        )
+      ))}
     </div>
   );
 }

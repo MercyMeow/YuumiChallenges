@@ -135,55 +135,9 @@ export function MatchCard({
         <ExternalLink className="h-3 w-3" />
       </Button>
 
-      {/* Teams in Header - Compact Horizontal Display */}
-      {match.all_participants && match.all_participants.length > 0 && (
-        <div className="absolute top-3 right-3 z-10 flex items-center gap-6">
-          {/* Blue Team Compact */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="text-xs font-medium text-blue-400">Blue</span>
-            </div>
-            <div className="flex items-center gap-1">
-              {match.all_participants
-                .filter((p) => p.teamId === 100)
-                .slice(0, 5)
-                .map((participant, index) => (
-                  <ChampionIcon 
-                    key={index} 
-                    championId={participant.championName} 
-                    size="xs" 
-                    className="border border-blue-500/30 rounded"
-                  />
-                ))}
-            </div>
-          </div>
-
-          {/* Red Team Compact */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              <span className="text-xs font-medium text-red-400">Red</span>
-            </div>
-            <div className="flex items-center gap-1">
-              {match.all_participants
-                .filter((p) => p.teamId === 200)
-                .slice(0, 5)
-                .map((participant, index) => (
-                  <ChampionIcon 
-                    key={index} 
-                    championId={participant.championName} 
-                    size="xs" 
-                    className="border border-red-500/30 rounded"
-                  />
-                ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       <CardContent className="p-6 pt-12">
-        <div className="grid grid-cols-9 gap-4 items-start">
+        <div className="grid grid-cols-12 gap-4 items-start">
           {/* Champion and level - col-span-2 */}
           <div className="col-span-2 flex items-center gap-4">
             <div className="relative">
@@ -242,19 +196,16 @@ export function MatchCard({
           </div>
           
           {/* Summoner Spells and Runes Grid - col-span-1 */}
-          {((match.summoner_spells?.spell1Id && match.summoner_spells.spell1Id > 0 && match.summoner_spells?.spell2Id && match.summoner_spells.spell2Id > 0) || 
-            (match.runes?.primarySelections?.[0]?.perk && match.runes.primarySelections[0].perk > 0)) && (
-            <div className="col-span-1 flex justify-center">
-              <SpellRuneGrid 
-                summoner_spells={match.summoner_spells || undefined}
-                runes={match.runes || undefined}
-                size="lg"
-              />
-            </div>
-          )}
+          <div className="col-span-1 flex justify-center">
+            <SpellRuneGrid 
+              summoner_spells={match.summoner_spells || undefined}
+              runes={match.runes || undefined}
+              size="lg"
+            />
+          </div>
 
-          {/* KDA and Stats - col-span-6 (expanded) */}
-          <div className="col-span-6 flex items-center justify-center gap-6">
+          {/* KDA and Stats - col-span-3 */}
+          <div className="col-span-3 flex items-center justify-center gap-6">
             {/* Large KDA */}
             <div className="text-center">
               <div className={`text-2xl font-bold ${getKDAColor(kdaRatio)}`}>
@@ -294,7 +245,60 @@ export function MatchCard({
             </div>
           </div>
 
-          {/* Reserved space for future additional stats */}
+          {/* Teams Section - col-span-3 */}
+          {match.all_participants && match.all_participants.length > 0 && (
+            <div className="col-span-3 flex gap-4">
+              {/* Blue Team */}
+              <div className="flex-1">
+                <div className="flex items-center gap-1 mb-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-xs font-medium text-blue-400">Blue Team</span>
+                </div>
+                <div className="space-y-1">
+                  {match.all_participants
+                    .filter((p) => p.teamId === 100)
+                    .slice(0, 5)
+                    .map((participant, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <ChampionIcon 
+                          championId={participant.championName} 
+                          size="xs" 
+                          className="border border-blue-500/30 rounded"
+                        />
+                        <span className="text-xs text-white/70 truncate">
+                          {participant.gameName ? `${participant.gameName}#${participant.tagLine}` : `Player ${index + 1}`}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Red Team */}
+              <div className="flex-1">
+                <div className="flex items-center gap-1 mb-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  <span className="text-xs font-medium text-red-400">Red Team</span>
+                </div>
+                <div className="space-y-1">
+                  {match.all_participants
+                    .filter((p) => p.teamId === 200)
+                    .slice(0, 5)
+                    .map((participant, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <ChampionIcon 
+                          championId={participant.championName} 
+                          size="xs" 
+                          className="border border-red-500/30 rounded"
+                        />
+                        <span className="text-xs text-white/70 truncate">
+                          {participant.gameName ? `${participant.gameName}#${participant.tagLine}` : `Player ${index + 1}`}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
 
