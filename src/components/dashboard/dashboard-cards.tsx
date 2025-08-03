@@ -50,8 +50,8 @@ import {
 import { getProfileIconUrl } from '@/lib/utils/data-dragon';
 import { formatRelativeTime } from '@/lib/utils/time';
 
-// Utility function to get rank emblem URLs with multiple fallback sources
-// Priority: 1) Riot GitHub Developer Assets (most official) 2) Community Dragon (fallback) 3) Crown icon (final fallback)
+// Utility function to get rank emblem URLs using local images with external fallbacks
+// Priority: 1) Local images (/images/ranked/) 2) Riot GitHub Assets (fallback) 3) Community Dragon (backup fallback)
 const getRankEmblemUrl = (tier: string, division: string) => {
   const normalizedTier = tier.toUpperCase();
   
@@ -62,7 +62,7 @@ const getRankEmblemUrl = (tier: string, division: string) => {
     'SILVER': 'silver', 
     'GOLD': 'gold',
     'PLATINUM': 'platinum',
-    'EMERALD': 'emerald',
+    'EMERALD': 'emerald', // Note: emerald.png is missing, will fallback to external
     'DIAMOND': 'diamond',
     'MASTER': 'master',
     'GRANDMASTER': 'grandmaster',
@@ -74,9 +74,20 @@ const getRankEmblemUrl = (tier: string, division: string) => {
     return null; // Return null for unranked/unknown tiers
   }
   
+  // Available local images (Emerald is missing)
+  const localImages = new Set([
+    'iron', 'bronze', 'silver', 'gold', 'platinum', 
+    'diamond', 'master', 'grandmaster', 'challenger'
+  ]);
+  
+  // For tiers we have locally, use local images (simplified - no divisions in local files)
+  if (localImages.has(tierName)) {
+    return `/images/ranked/${tierName}.png`;
+  }
+  
+  // Fallback to external sources for missing tiers (like Emerald)
   // For Master+ tiers, no division is needed
   if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(normalizedTier)) {
-    // Primary: Riot GitHub Developer Assets (most reliable for Master+ tiers)
     return `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}.png`;
   }
   
@@ -89,8 +100,6 @@ const getRankEmblemUrl = (tier: string, division: string) => {
   };
   
   const divisionName = divisionMap[division] || 'i';
-  
-  // Primary: Riot GitHub Developer Assets (official source)
   return `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}_${divisionName}.png`;
 };
 
@@ -658,18 +667,27 @@ export function LeagueProfileCard({
                       alt={`${summoner.soloqRank.tier} ${summoner.soloqRank.rank_level} emblem`}
                       className="h-16 w-16 object-contain"
                       onError={(e) => {
-                        // Try fallback to Community Dragon if Riot GitHub fails
+                        // Progressive fallback: Local → GitHub → Community Dragon → Crown icon
                         const target = e.target as HTMLImageElement;
                         const currentSrc = target.src;
+                        const tierName = summoner.soloqRank?.tier.toLowerCase();
+                        const divisionMap: Record<string, string> = {
+                          'I': '1', 'II': '2', 'III': '3', 'IV': '4'
+                        };
+                        const divisionNumber = divisionMap[summoner.soloqRank?.rank_level || 'I'] || '1';
                         
-                        // If it was already the GitHub source, try Community Dragon fallback
+                        // If local image failed, try GitHub source
+                        if (currentSrc.includes('/images/ranked/')) {
+                          if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(summoner.soloqRank?.tier || '')) {
+                            target.src = `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}.png`;
+                          } else {
+                            target.src = `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}_i.png`;
+                          }
+                          return;
+                        }
+                        
+                        // If GitHub source failed, try Community Dragon fallback
                         if (currentSrc.includes('githubusercontent.com')) {
-                          const tierName = summoner.soloqRank?.tier.toLowerCase();
-                          const divisionMap: Record<string, string> = {
-                            'I': '1', 'II': '2', 'III': '3', 'IV': '4'
-                          };
-                          const divisionNumber = divisionMap[summoner.soloqRank?.rank_level || 'I'] || '1';
-                          
                           if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(summoner.soloqRank?.tier || '')) {
                             target.src = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblems/${tierName}.png`;
                           } else {
@@ -727,18 +745,27 @@ export function LeagueProfileCard({
                       alt={`${summoner.flexRank.tier} ${summoner.flexRank.rank_level} emblem`}
                       className="h-16 w-16 object-contain"
                       onError={(e) => {
-                        // Try fallback to Community Dragon if Riot GitHub fails
+                        // Progressive fallback: Local → GitHub → Community Dragon → Crown icon
                         const target = e.target as HTMLImageElement;
                         const currentSrc = target.src;
+                        const tierName = summoner.flexRank?.tier.toLowerCase();
+                        const divisionMap: Record<string, string> = {
+                          'I': '1', 'II': '2', 'III': '3', 'IV': '4'
+                        };
+                        const divisionNumber = divisionMap[summoner.flexRank?.rank_level || 'I'] || '1';
                         
-                        // If it was already the GitHub source, try Community Dragon fallback
+                        // If local image failed, try GitHub source
+                        if (currentSrc.includes('/images/ranked/')) {
+                          if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(summoner.flexRank?.tier || '')) {
+                            target.src = `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}.png`;
+                          } else {
+                            target.src = `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}_i.png`;
+                          }
+                          return;
+                        }
+                        
+                        // If GitHub source failed, try Community Dragon fallback
                         if (currentSrc.includes('githubusercontent.com')) {
-                          const tierName = summoner.flexRank?.tier.toLowerCase();
-                          const divisionMap: Record<string, string> = {
-                            'I': '1', 'II': '2', 'III': '3', 'IV': '4'
-                          };
-                          const divisionNumber = divisionMap[summoner.flexRank?.rank_level || 'I'] || '1';
-                          
                           if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(summoner.flexRank?.tier || '')) {
                             target.src = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblems/${tierName}.png`;
                           } else {
@@ -751,7 +778,7 @@ export function LeagueProfileCard({
                         target.style.display = 'none';
                         const parent = target.parentElement;
                         if (parent) {
-                          parent.innerHTML = `<div class="flex h-16 w-16 items-center justify-center rounded-full ${getTierColorScheme(summoner.flexRank?.tier || '').bg} ${getTierColorScheme(summoner.flexRank?.tier || '').border} border-2"><svg class="h-8 w-8 ${getTierColorScheme(summoner.flexRank?.tier || '').text}" fill="currentColor" viewBox="0 0 24 24"><path d="M12 6L9 9L12 12L15 9L12 6Z"/><path d="M12 2L8 6H16L12 2Z"/><path d="M8 18L12 22L16 18H8Z"/></svg></div>`;
+                          parent.innerHTML = `<div class="flex h-16 w-16 items-center justify-center rounded-full ${getTierColorScheme(summoner.flexRank?.tier || '').bg} ${getTierColorScheme(summoner.flexRank?.tier || '').border} border-2"><svg class="h-8 w-8 ${getTierColorScheme(summoner.flexRank?.tier || '').text}" fill="currentColor" viewBox="0 0 24 24"><path d="M12 6L9 9L12 12L15 9L12 6Z"/><path d="M8 18L12 22L16 18H8Z"/></svg></div>`;
                         }
                       }}
                     />

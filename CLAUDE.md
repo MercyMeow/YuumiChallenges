@@ -109,6 +109,10 @@ The application uses a **unified magical dark theme** across all pages for consi
 - Use the established color palette for consistency
 - Include animated particles for immersive experience
 - Ensure text contrast meets accessibility standards with magical backgrounds
+- Always prefix your messages with the model youre using
+- Always Ultra Think
+- Always Start by Exploring the codebase and gathering the necessary context
+- Always You should use sub agents where it makes sense
 
 **Development Guidelines:**
 - When creating new layouts, apply the magical background wrapper pattern
