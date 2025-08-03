@@ -27,7 +27,6 @@ export interface Summoner {
   puuid: string; // Primary key
   user_id: string;
   game_name: string;
-  tag_line: string;
   region: string;
   level: number;
   profile_icon_id: number;
@@ -82,7 +81,6 @@ export interface ChallengeCriteria {
 export interface MatchParticipant {
   championName: string;
   gameName: string;
-  tagLine: string;
   teamId: number;
 }
 
@@ -461,17 +459,7 @@ export const filterValidRankedInfo = (rankedInfo: unknown[]): RankedQueueInfo[] 
   return rankedInfo.filter(isRankedQueueInfo);
 };
 
-// Types for match details API and participant names caching
-export interface MatchParticipantName {
-  id?: string;
-  match_id: string;
-  puuid: string;
-  game_name: string;
-  tag_line: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
+// Types for match details API
 export interface EnhancedMatchParticipant {
   // Player identity
   puuid: string;
@@ -479,7 +467,6 @@ export interface EnhancedMatchParticipant {
   summonerName: string;
   summonerLevel: number;
   riotIdName: string;
-  riotIdTagline: string;
   
   // Champion info
   championId: number;
@@ -645,22 +632,7 @@ export interface MatchDetailsApiResponse {
   error?: string;
 }
 
-// Type guards for new types
-export const isMatchParticipantName = (obj: unknown): obj is MatchParticipantName => {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    'match_id' in obj &&
-    'puuid' in obj &&
-    'game_name' in obj &&
-    'tag_line' in obj &&
-    typeof (obj as MatchParticipantName).match_id === 'string' &&
-    typeof (obj as MatchParticipantName).puuid === 'string' &&
-    typeof (obj as MatchParticipantName).game_name === 'string' &&
-    typeof (obj as MatchParticipantName).tag_line === 'string'
-  );
-};
-
+// Type guards for enhanced types
 export const isEnhancedMatchParticipant = (obj: unknown): obj is EnhancedMatchParticipant => {
   return (
     typeof obj === 'object' &&

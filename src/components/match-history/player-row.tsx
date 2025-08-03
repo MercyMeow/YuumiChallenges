@@ -24,8 +24,8 @@ export function PlayerRow({
   // Helper function to get display name with proper format
   const getDisplayName = (participant: DetailedMatchParticipant | EnhancedMatchParticipant): string => {
     const enhanced = participant as EnhancedMatchParticipant;
-    if (enhanced.riotIdName && enhanced.riotIdTagline) {
-      return `${enhanced.riotIdName}#${enhanced.riotIdTagline}`;
+    if (enhanced.riotIdName) {
+      return enhanced.riotIdName;
     }
     return participant.summonerName;
   };
