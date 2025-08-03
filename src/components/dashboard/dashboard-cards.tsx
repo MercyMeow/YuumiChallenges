@@ -30,7 +30,6 @@ import {
 } from '@/lib/types';
 import {
   Target,
-  BarChart3,
   Trophy,
   Users,
   Star,
@@ -531,26 +530,25 @@ export function LeagueProfileCard({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="rounded-xl bg-blue-500/20 p-3">
-                <BarChart3 className="h-6 w-6 text-blue-400" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-xl">
+                <span>🐱</span>
               </div>
               <div>
-                <CardTitle className="text-xl font-bold">
-                  League Profile
-                </CardTitle>
-                <CardDescription className="text-white/70">
-                  Your linked League account
-                </CardDescription>
+                <p className="text-xl font-bold text-white">
+                  No Account Linked
+                </p>
+                <Badge className="border-gray-500/30 bg-gray-500/20 px-2 py-1 text-xs font-medium text-gray-400">
+                  Not Connected
+                </Badge>
               </div>
             </div>
-            <Badge className="border-gray-500/30 bg-gray-500/20 px-3 py-1 text-gray-400">
-              No Account
-            </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="py-8 text-center">
-            <BarChart3 className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+            <div className="mx-auto mb-4 h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-3xl">
+              <span>🐱</span>
+            </div>
             <p className="mb-4 text-gray-400">No League account linked</p>
             <p className="text-sm text-gray-500">
               Connect your League account to track your progress
@@ -570,16 +568,19 @@ export function LeagueProfileCard({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="rounded-xl bg-blue-500/20 p-3">
-              <BarChart3 className="h-6 w-6 text-blue-400" />
-            </div>
+            <ProfileIcon profileIconId={summoner.profile_icon_id} />
             <div>
-              <CardTitle className="text-xl font-bold">
-                League Profile
-              </CardTitle>
-              <CardDescription className="text-white/70">
-                Account statistics and performance
-              </CardDescription>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-xl font-bold text-white">
+                  {summoner.name}#{summoner.tagLine}
+                </p>
+                <Badge 
+                  variant="outline" 
+                  className="border-blue-500/30 bg-blue-500/10 text-blue-300 px-2 py-1 text-xs font-medium"
+                >
+                  {summoner.region.toUpperCase()}
+                </Badge>
+              </div>
             </div>
           </div>
           <div className="flex items-center space-x-3">
@@ -598,25 +599,6 @@ export function LeagueProfileCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="rounded-xl border border-blue-500/30 bg-black/20 p-4 backdrop-blur-md">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <ProfileIcon profileIconId={summoner.profile_icon_id} />
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-lg font-bold text-white">
-                    {summoner.name}#{summoner.tagLine}
-                  </p>
-                  <Badge 
-                    variant="outline" 
-                    className="border-blue-500/30 bg-blue-500/10 text-blue-300 px-2 py-1 text-xs font-medium"
-                  >
-                    {summoner.region.toUpperCase()}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Ranked Stats Display */}
           <div className="grid grid-cols-2 gap-4" role="group" aria-label="Ranked statistics">
@@ -720,7 +702,6 @@ export function LeagueProfileCard({
               )}
             </div>
           </div>
-        </div>
 
         {/* Bottom Refresh Timers */}
         {refreshStatus && (

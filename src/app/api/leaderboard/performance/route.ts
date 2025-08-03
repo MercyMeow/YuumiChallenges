@@ -44,30 +44,10 @@ export async function GET(request: NextRequest) {
       console.error('Error fetching win rate leaderboard:', winRateError);
     }
 
-    // Get Champion Mastery leaderboard (all summoners are verified by design)
-    const { data: masteryData, error: masteryError } = await supabase
-      .from('summoners')
-      .select(`
-        user_id,
-        name,
-        tag_line,
-        champion_mastery_points,
-        champion_mastery_level,
-        users (
-          id,
-          name,
-          image,
-          is_yuumi_member
-        )
-      `)
-      .eq('users.is_yuumi_member', true)
-      .not('champion_mastery_points', 'is', null)
-      .order('champion_mastery_points', { ascending: false })
-      .limit(limit);
-
-    if (masteryError) {
-      console.error('Error fetching mastery leaderboard:', masteryError);
-    }
+    // Get Champion Mastery leaderboard - NOTE: champion mastery data not available in current schema
+    // This would need to be fetched from Riot API or stored separately
+    // const masteryData: any[] = []; // Not implemented yet
+    // const masteryError = null;
 
     // Format KDA rankings
     const kdaRankings = (kdaData || []).map((entry: any, index: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -103,25 +83,8 @@ export async function GET(request: NextRequest) {
       timeframe: `Last ${timeframe} days`,
     }));
 
-    // Format Champion Mastery rankings
-    const masteryRankings = (masteryData || []).map((entry: any, index: number) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-      const user = Array.isArray(entry.users) ? entry.users[0] : entry.users;
-      return {
-        position: index + 1,
-        user: {
-          id: user?.id || entry.user_id,
-          name: user?.name || 'Unknown',
-          image: user?.image || '',
-        },
-        summoner: {
-          name: entry.name,
-          tagLine: entry.tag_line,
-        },
-        value: entry.champion_mastery_points,
-        level: entry.champion_mastery_level,
-        timeframe: 'All time',
-      };
-    });
+    // Format Champion Mastery rankings - currently empty due to schema changes
+    const masteryRankings: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
 
     return NextResponse.json({
       kda: kdaRankings,

@@ -187,6 +187,7 @@ export async function PUT(request: NextRequest) {
       }
 
       // Create summoner record (all summoners are verified through icon verification process)
+      // Include both game_name and tag_line for complete Riot ID
       const { data: newSummoner, error: createError } = await supabase
         .from('summoners')
         .insert({
