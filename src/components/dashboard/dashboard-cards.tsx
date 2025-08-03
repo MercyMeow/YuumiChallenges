@@ -622,6 +622,11 @@ export function LeagueProfileCard({
           <div className="grid grid-cols-2 gap-4" role="group" aria-label="Ranked statistics">
             {/* SoloQ Rank */}
             <div className="rounded-lg border border-blue-500/30 bg-black/40 p-4 backdrop-blur-md">
+              <div className="mb-3 text-center">
+                <span className="text-xs font-medium text-blue-300 bg-blue-500/10 px-2 py-1 rounded-md border border-blue-500/20">
+                  Solo/Duo
+                </span>
+              </div>
               {summoner.soloqRank ? (
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
@@ -664,6 +669,11 @@ export function LeagueProfileCard({
 
             {/* Flex Rank */}
             <div className="rounded-lg border border-purple-500/30 bg-black/40 p-4 backdrop-blur-md">
+              <div className="mb-3 text-center">
+                <span className="text-xs font-medium text-purple-300 bg-purple-500/10 px-2 py-1 rounded-md border border-purple-500/20">
+                  Flex
+                </span>
+              </div>
               {summoner.flexRank ? (
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
