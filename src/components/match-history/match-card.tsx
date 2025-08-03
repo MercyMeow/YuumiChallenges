@@ -137,7 +137,7 @@ export function MatchCard({
 
       {/* Teams Section - positioned in header area */}
       {match.all_participants && match.all_participants.length > 0 && (
-        <div className="absolute top-3 right-4 z-10 flex gap-3 text-xs">
+        <div className="absolute top-3 right-4 z-10 flex flex-col gap-2 text-xs">
           {/* Blue Team */}
           <div className="flex items-center gap-1">
             <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
