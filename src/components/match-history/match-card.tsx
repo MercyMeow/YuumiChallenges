@@ -184,7 +184,7 @@ export function MatchCard({
           {/* Champion and level - col-span-2 */}
           <div className="col-span-2 flex items-center gap-4">
             <div className="relative">
-              <ChampionIcon championId={match.champion} size="xl" />
+              <ChampionIcon championId={match.champion} size="xxl" />
               {/* Level badge overlay on champion */}
               {match.champion_level && (
                 <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 

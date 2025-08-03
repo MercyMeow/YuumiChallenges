@@ -98,7 +98,7 @@ export function DataDragonImage({
 
 interface ChampionIconProps {
   championId: string;
-  size?: "xs" | "sm" | "md" | "lg" | "xl";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "xxl";
   className?: string;
   alt?: string;
 }
@@ -115,6 +115,7 @@ export function ChampionIcon({
     md: { width: 48, height: 48 },
     lg: { width: 64, height: 64 },
     xl: { width: 96, height: 96 },
+    xxl: { width: 128, height: 128 },
   };
 
   const { width, height } = sizes[size];
@@ -163,7 +164,7 @@ export function ChampionSplash({
 
 interface YuumiImageProps {
   skinNum?: number;
-  size?: "xs" | "sm" | "md" | "lg" | "xl";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "xxl";
   className?: string;
   alt?: string;
 }
