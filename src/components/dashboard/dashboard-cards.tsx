@@ -12,11 +12,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { AddSummonerDialog } from '@/components/profile/add-summoner-dialog';
 import { RefreshStatusIndicator } from '@/components/ui/refresh-status';
 import {
@@ -37,7 +32,6 @@ import {
   Target,
   BarChart3,
   Trophy,
-  TrendingUp,
   Users,
   Star,
   Plus,
@@ -71,6 +65,7 @@ const getRankEmblemUrl = (tier: string, division: string) => {
   
   const tierName = tierMap[normalizedTier];
   if (!tierName) {
+    console.log(`[DEBUG] Unknown tier: ${tier}, returning null`);
     return null; // Return null for unranked/unknown tiers
   }
   
@@ -82,13 +77,17 @@ const getRankEmblemUrl = (tier: string, division: string) => {
   
   // For tiers we have locally, use local images (simplified - no divisions in local files)
   if (localImages.has(tierName)) {
-    return `/images/ranked/${tierName}.png`;
+    const localUrl = `/images/ranked/${tierName}.png`;
+    console.log(`[DEBUG] Using local image for ${tier}: ${localUrl}`);
+    return localUrl;
   }
   
   // Fallback to external sources for missing tiers (like Emerald)
   // For Master+ tiers, no division is needed
   if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(normalizedTier)) {
-    return `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}.png`;
+    const externalUrl = `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}.png`;
+    console.log(`[DEBUG] Using external image for ${tier}: ${externalUrl}`);
+    return externalUrl;
   }
   
   // For other tiers, include division (I, II, III, IV)
@@ -100,7 +99,9 @@ const getRankEmblemUrl = (tier: string, division: string) => {
   };
   
   const divisionName = divisionMap[division] || 'i';
-  return `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}_${divisionName}.png`;
+  const externalUrlWithDivision = `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}_${divisionName}.png`;
+  console.log(`[DEBUG] Using external image with division for ${tier} ${division}: ${externalUrlWithDivision}`);
+  return externalUrlWithDivision;
 };
 
 // Tier-specific color schemes for rank badges
@@ -630,29 +631,6 @@ export function LeagueProfileCard({
                 </div>
               </div>
             </div>
-            <div className="text-right">
-              {summoner.soloqRank && (
-                <>
-                  <p className="text-lg font-bold text-yellow-400">
-                    {summoner.soloqRank.league_points} LP
-                  </p>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <div className="flex items-center space-x-1 text-green-400">
-                        <TrendingUp className="h-4 w-4" />
-                        <span className="font-medium">
-                          {summoner.recentStats.recentLPGain > 0 ? '+' : ''}
-                          {summoner.recentStats.recentLPGain} LP
-                        </span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Recent LP change (Solo/Duo)</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </>
-              )}
-            </div>
           </div>
 
           {/* Ranked Stats Display */}
@@ -709,14 +687,8 @@ export function LeagueProfileCard({
                     <p className={`text-lg font-bold ${getTierColorScheme(summoner.soloqRank.tier).text}`}>
                       {summoner.soloqRank.tier} {summoner.soloqRank.rank_level}
                     </p>
-                    <p className="text-xl font-bold text-yellow-400">
-                      {summoner.soloqRank.league_points} LP
-                    </p>
                     <p className="text-sm text-white/70">
-                      {summoner.soloqRank.wins}W / {summoner.soloqRank.losses}L
-                    </p>
-                    <p className="text-sm font-medium text-green-400">
-                      {safeCalculateWinRate(summoner.soloqRank.wins, summoner.soloqRank.losses)}% WR
+                      {summoner.soloqRank.wins}W / {summoner.soloqRank.losses}L ({safeCalculateWinRate(summoner.soloqRank.wins, summoner.soloqRank.losses)}%)
                     </p>
                   </div>
                 </div>
@@ -787,14 +759,8 @@ export function LeagueProfileCard({
                     <p className={`text-lg font-bold ${getTierColorScheme(summoner.flexRank.tier).text}`}>
                       {summoner.flexRank.tier} {summoner.flexRank.rank_level}
                     </p>
-                    <p className="text-xl font-bold text-yellow-400">
-                      {summoner.flexRank.league_points} LP
-                    </p>
                     <p className="text-sm text-white/70">
-                      {summoner.flexRank.wins}W / {summoner.flexRank.losses}L
-                    </p>
-                    <p className="text-sm font-medium text-green-400">
-                      {safeCalculateWinRate(summoner.flexRank.wins, summoner.flexRank.losses)}% WR
+                      {summoner.flexRank.wins}W / {summoner.flexRank.losses}L ({safeCalculateWinRate(summoner.flexRank.wins, summoner.flexRank.losses)}%)
                     </p>
                   </div>
                 </div>
