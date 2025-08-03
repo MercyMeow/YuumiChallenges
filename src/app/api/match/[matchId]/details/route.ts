@@ -34,52 +34,6 @@ function getRegionFromMatchId(matchId: string): string {
   return regionCode ? (regionMap[regionCode] || 'na1') : 'na1'; // Default to NA1 if unknown
 }
 
-// Helper function to extract participant names and cache them
-async function cacheParticipantNames(matchId: string, participants: any[], supabase: any) {
-  const participantNameData = participants.map(p => ({
-    match_id: matchId,
-    puuid: p.puuid,
-    game_name: p.riotIdGameName || p.riotIdName || p.summonerName || 'Unknown',
-    tag_line: p.riotIdTagline || 'NA1'
-  }));
-
-  // Insert participant names, handling conflicts gracefully
-  const { error } = await supabase
-    .from('match_participants_names')
-    .upsert(participantNameData, {
-      onConflict: 'match_id,puuid',
-      ignoreDuplicates: true
-    });
-
-  if (error) {
-    console.warn('Failed to cache participant names:', error);
-    // Don't throw error, just log warning as this is not critical
-  }
-}
-
-// Helper function to get cached participant names
-async function getCachedParticipantNames(matchId: string, supabase: any) {
-  const { data, error } = await supabase
-    .from('match_participants_names')
-    .select('puuid, game_name, tag_line')
-    .eq('match_id', matchId);
-
-  if (error) {
-    console.warn('Failed to fetch cached participant names:', error);
-    return new Map();
-  }
-
-  // Create a map for quick lookup
-  const nameMap = new Map();
-  data?.forEach((p: any) => {
-    nameMap.set(p.puuid, {
-      gameName: p.game_name,
-      tagLine: p.tag_line
-    });
-  });
-
-  return nameMap;
-}
 
 export async function GET(
   _request: NextRequest,
@@ -130,8 +84,6 @@ export async function GET(
     // Get region from match ID
     const region = getRegionFromMatchId(matchId);
 
-    // First, check if we have cached participant names
-    let cachedNames = await getCachedParticipantNames(matchId, supabase);
 
     // Fetch detailed match data from Riot API
     try {
@@ -144,15 +96,8 @@ export async function GET(
         );
       }
 
-      // Cache participant names if we don't have them yet
-      if (cachedNames.size === 0) {
-        await cacheParticipantNames(matchId, matchDetails.info.participants, supabase);
-        cachedNames = await getCachedParticipantNames(matchId, supabase);
-      }
-
-      // Process participants with enhanced data including cached names
+      // Process participants with enhanced data
       const processedParticipants = matchDetails.info.participants.map((p: any) => {
-        const cachedName = cachedNames.get(p.puuid);
         
         return {
           // Player identity
@@ -160,8 +105,7 @@ export async function GET(
           summonerId: p.summonerId,
           summonerName: p.summonerName,
           summonerLevel: p.summonerLevel,
-          riotIdName: cachedName?.gameName || p.riotIdGameName || p.riotIdName || p.summonerName,
-          riotIdTagline: cachedName?.tagLine || p.riotIdTagline || 'NA1',
+          riotIdName: p.riotIdGameName || p.riotIdName || p.summonerName,
           
           // Champion info
           championId: p.championId,
