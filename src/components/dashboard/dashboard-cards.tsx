@@ -633,7 +633,7 @@ export function LeagueProfileCard({
                     <img
                       src={getRankEmblemUrl(summoner.soloqRank.tier)}
                       alt={`${summoner.soloqRank.tier} ${summoner.soloqRank.rank_level} emblem`}
-                      className="h-16 w-16 object-contain"
+                      className="h-20 w-20 object-contain"
                       onError={(e) => {
                         console.error(`Failed to load rank emblem for ${summoner.soloqRank?.tier}, falling back to unranked`);
                         const target = e.target as HTMLImageElement;
@@ -641,7 +641,7 @@ export function LeagueProfileCard({
                       }}
                     />
                   </div>
-                  <div className="flex-1 space-y-1">
+                  <div className="flex-1 space-y-1 text-center">
                     <p className={`text-lg font-bold ${getTierColorScheme(summoner.soloqRank.tier).text}`}>
                       {summoner.soloqRank.tier} {summoner.soloqRank.rank_level}
                     </p>
@@ -659,10 +659,10 @@ export function LeagueProfileCard({
                     <img
                       src={getRankEmblemUrl('UNRANKED')}
                       alt="Unranked emblem"
-                      className="h-16 w-16 object-contain"
+                      className="h-20 w-20 object-contain"
                     />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 text-center">
                     <p className="text-lg font-bold text-gray-400">Unranked</p>
                     <p className="text-xs text-white/50 mt-2">Play ranked games to get a rank</p>
                   </div>
@@ -683,7 +683,7 @@ export function LeagueProfileCard({
                     <img
                       src={getRankEmblemUrl(summoner.flexRank.tier)}
                       alt={`${summoner.flexRank.tier} ${summoner.flexRank.rank_level} emblem`}
-                      className="h-16 w-16 object-contain"
+                      className="h-20 w-20 object-contain"
                       onError={(e) => {
                         console.error(`Failed to load rank emblem for ${summoner.flexRank?.tier}, falling back to unranked`);
                         const target = e.target as HTMLImageElement;
@@ -709,10 +709,10 @@ export function LeagueProfileCard({
                     <img
                       src={getRankEmblemUrl('UNRANKED')}
                       alt="Unranked emblem"
-                      className="h-16 w-16 object-contain"
+                      className="h-20 w-20 object-contain"
                     />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 text-center">
                     <p className="text-lg font-bold text-gray-400">Unranked</p>
                     <p className="text-xs text-white/50 mt-2">Play ranked games to get a rank</p>
                   </div>
