@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RiotAPI } from '@/lib/apis/riot';
+import { getMatchCache, generateCacheKey, CACHE_KEYS, CACHE_TTL } from '@/lib/cache/match-cache';
 
 export async function GET(
   _request: NextRequest,
@@ -7,6 +8,7 @@ export async function GET(
 ) {
   try {
     const { matchId } = await params;
+    const cache = getMatchCache();
     
     if (!matchId) {
       return NextResponse.json({ error: 'Match ID is required' }, { status: 400 });
@@ -57,6 +59,20 @@ export async function GET(
 
     console.log('Processing match request:', { matchId, platform, region });
 
+    // Check cache first
+    const cacheKey = generateCacheKey(CACHE_KEYS.MATCH_DETAILS, matchId);
+    const cachedData = cache.get<{ matchData: any; timelineData: any }>(cacheKey);
+    
+    if (cachedData) {
+      console.log('Returning cached match data for:', matchId);
+      return NextResponse.json({
+        success: true,
+        ...cachedData,
+        matchId,
+        cached: true
+      });
+    }
+
     const riotAPI = new RiotAPI(riotApiKey);
     
     try {
@@ -76,11 +92,17 @@ export async function GET(
         // Timeline is optional, continue without it
       }
 
+      // Cache the data
+      const dataToCache = { matchData, timelineData };
+      cache.set(cacheKey, dataToCache, CACHE_TTL.MATCH_DETAILS);
+      console.log('Cached match data for:', matchId);
+
       return NextResponse.json({
         success: true,
         matchData,
         timelineData,
-        matchId
+        matchId,
+        cached: false
       });
 
     } catch (riotError: any) {
