@@ -128,11 +128,11 @@ export function MatchCard({
         variant="outline" 
         size="sm"
         onClick={() => window.open(`/match/${match.match_id}`, '_blank')}
-        className="absolute top-3 left-52 z-10 px-3 py-1 text-xs 
+        className="absolute top-3 left-52 z-10 px-2 py-0.5 text-xs 
                    text-white/60 hover:text-white hover:bg-white/10 
                    border-white/20 backdrop-blur-sm"
       >
-        <ExternalLink className="h-3 w-3" />
+        <ExternalLink className="h-2.5 w-2.5" />
       </Button>
 
 
@@ -204,11 +204,11 @@ export function MatchCard({
             />
           </div>
 
-          {/* KDA and Stats - col-span-3 */}
-          <div className="col-span-3 flex items-center justify-center gap-6">
-            {/* Large KDA */}
+          {/* KDA and Stats - col-span-2 */}
+          <div className="col-span-2 flex items-center justify-center gap-4">
+            {/* Harmonized KDA */}
             <div className="text-center">
-              <div className={`text-2xl font-bold ${getKDAColor(kdaRatio)}`}>
+              <div className={`text-xl font-bold ${getKDAColor(kdaRatio)}`}>
                 {match.kills} / {match.deaths} / {match.assists}
               </div>
               <div className="text-sm text-white/60">
@@ -216,11 +216,11 @@ export function MatchCard({
               </div>
             </div>
 
-            {/* Expanded horizontal stats */}
-            <div className="flex items-center gap-6">
+            {/* Compact horizontal stats */}
+            <div className="flex items-center gap-4">
               {match.gold && (
                 <div className="text-center">
-                  <div className="text-yellow-400 font-semibold">
+                  <div className="text-base text-yellow-400 font-semibold">
                     {Math.round(match.gold / 1000)}k
                   </div>
                   <div className="text-xs text-white/60">Gold</div>
@@ -228,7 +228,7 @@ export function MatchCard({
               )}
               {match.cs && (
                 <div className="text-center">
-                  <div className="text-purple-400 font-semibold">
+                  <div className="text-base text-purple-400 font-semibold">
                     {match.cs}
                   </div>
                   <div className="text-xs text-white/60">CS</div>
@@ -236,7 +236,7 @@ export function MatchCard({
               )}
               {match.vision_score && (
                 <div className="text-center">
-                  <div className="text-pink-400 font-semibold">
+                  <div className="text-base text-pink-400 font-semibold">
                     {match.vision_score}
                   </div>
                   <div className="text-xs text-white/60">Vision</div>
@@ -245,9 +245,9 @@ export function MatchCard({
             </div>
           </div>
 
-          {/* Teams Section - col-span-3 */}
+          {/* Teams Section - col-span-4 (expanded) */}
           {match.all_participants && match.all_participants.length > 0 && (
-            <div className="col-span-3 flex gap-4">
+            <div className="col-span-4 flex gap-4">
               {/* Blue Team */}
               <div className="flex-1">
                 <div className="flex items-center gap-1 mb-2">
@@ -265,7 +265,7 @@ export function MatchCard({
                           size="xs" 
                           className="border border-blue-500/30 rounded"
                         />
-                        <span className="text-xs text-white/70 truncate">
+                        <span className="text-xs text-white/70 truncate max-w-[120px]">
                           {participant.gameName ? `${participant.gameName}#${participant.tagLine}` : `Player ${index + 1}`}
                         </span>
                       </div>
@@ -290,7 +290,7 @@ export function MatchCard({
                           size="xs" 
                           className="border border-red-500/30 rounded"
                         />
-                        <span className="text-xs text-white/70 truncate">
+                        <span className="text-xs text-white/70 truncate max-w-[120px]">
                           {participant.gameName ? `${participant.gameName}#${participant.tagLine}` : `Player ${index + 1}`}
                         </span>
                       </div>
