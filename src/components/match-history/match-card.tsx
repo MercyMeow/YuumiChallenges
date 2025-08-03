@@ -186,7 +186,7 @@ export function MatchCard({
       <CardContent className="p-6 pt-20">
         <div className="grid grid-cols-12 gap-4 items-start">
           {/* Champion and level - col-span-2 */}
-          <div className="col-span-2 flex items-center gap-4">
+          <div className="col-span-2 flex items-start gap-4 -mt-2">
             <div className="relative flex-shrink-0">
               <ChampionIcon championId={match.champion} size="xl" />
               
