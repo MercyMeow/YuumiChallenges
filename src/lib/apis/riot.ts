@@ -85,6 +85,21 @@ export class RiotAPI {
     return response.json();
   }
 
+  async getMatchTimeline(matchId: string, region: string) {
+    const endpoint = `/lol/match/v5/matches/${matchId}/timeline`;
+    const url = this.buildUrl(region, endpoint, true);
+    
+    const response = await fetch(url, {
+      headers: this.getHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch match timeline: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
   async getRankedInfo(summonerId: string, region: string) {
     const endpoint = `/lol/league/v4/entries/by-summoner/${summonerId}`;
     const url = this.buildUrl(region, endpoint);

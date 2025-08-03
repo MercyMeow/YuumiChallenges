@@ -27,6 +27,41 @@ interface RiotParticipant {
   deaths: number;
   assists: number;
   win: boolean;
+  goldEarned: number;
+  totalMinionsKilled: number;
+  neutralMinionsKilled: number;
+  visionScore: number;
+  champLevel: number;
+  item0: number;
+  item1: number;
+  item2: number;
+  item3: number;
+  item4: number;
+  item5: number;
+  item6: number;
+  summoner1Id: number;
+  summoner2Id: number;
+  perks: {
+    statPerks: {
+      defense: number;
+      flex: number;
+      offense: number;
+    };
+    styles: Array<{
+      description: string;
+      selections: Array<{
+        perk: number;
+        var1: number;
+        var2: number;
+        var3: number;
+      }>;
+      style: number;
+    }>;
+  };
+  riotIdGameName?: string;
+  riotIdTagline?: string;
+  summonerName?: string;
+  teamId: number;
 }
 
 export async function POST(request: Request) {
@@ -239,6 +274,23 @@ export async function POST(request: Request) {
                   );
 
                   if (participant) {
+                    // Extract all participants data
+                    const allParticipants = matchDetails.info.participants.map((p: RiotParticipant) => ({
+                      championName: p.championName,
+                      gameName: p.riotIdGameName || p.summonerName || 'Unknown',
+                      tagLine: p.riotIdTagline || 'NA1',
+                      teamId: p.teamId
+                    }));
+
+                    // Extract runes data
+                    const runesData = participant.perks ? {
+                      primaryStyle: participant.perks.styles[0]?.style || 0,
+                      subStyle: participant.perks.styles[1]?.style || 0,
+                      statPerks: participant.perks.statPerks,
+                      primarySelections: participant.perks.styles[0]?.selections || [],
+                      subSelections: participant.perks.styles[1]?.selections || []
+                    } : null;
+
                     const matchData: Omit<MatchData, 'id' | 'created_at'> = {
                       match_id: matchId,
                       summoner_id: summoner.puuid,
@@ -251,7 +303,27 @@ export async function POST(request: Request) {
                       game_mode: matchDetails.info.gameMode,
                       queue_id: matchDetails.info.queueId,
                       game_creation: new Date(matchDetails.info.gameCreation),
-                      analyzed_for_challenges: false
+                      analyzed_for_challenges: false,
+                      // New fields
+                      gold: participant.goldEarned,
+                      cs: participant.totalMinionsKilled + participant.neutralMinionsKilled,
+                      vision_score: participant.visionScore,
+                      champion_level: participant.champLevel,
+                      items: [
+                        participant.item0,
+                        participant.item1,
+                        participant.item2,
+                        participant.item3,
+                        participant.item4,
+                        participant.item5,
+                        participant.item6
+                      ],
+                      summoner_spells: {
+                        spell1Id: participant.summoner1Id,
+                        spell2Id: participant.summoner2Id
+                      },
+                      runes: runesData,
+                      all_participants: allParticipants
                     };
 
                     const { error: matchError } = await supabase

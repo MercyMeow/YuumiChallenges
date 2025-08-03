@@ -79,6 +79,13 @@ export interface ChallengeCriteria {
   time_period?: 'daily' | 'weekly' | 'monthly' | 'all_time';
 }
 
+export interface MatchParticipant {
+  championName: string;
+  gameName: string;
+  tagLine: string;
+  teamId: number;
+}
+
 export interface MatchData {
   id?: string;
   match_id: string;
@@ -94,6 +101,38 @@ export interface MatchData {
   game_creation: Date;
   analyzed_for_challenges?: boolean;
   created_at: Date;
+  // New fields
+  gold?: number;
+  cs?: number;
+  vision_score?: number;
+  champion_level?: number;
+  items?: number[];
+  summoner_spells?: {
+    spell1Id: number;
+    spell2Id: number;
+  };
+  runes?: {
+    primaryStyle: number;
+    subStyle: number;
+    statPerks: {
+      defense: number;
+      flex: number;
+      offense: number;
+    };
+    primarySelections: {
+      perk: number;
+      var1: number;
+      var2: number;
+      var3: number;
+    }[];
+    subSelections: {
+      perk: number;
+      var1: number;
+      var2: number;
+      var3: number;
+    }[];
+  };
+  all_participants?: MatchParticipant[];
 }
 
 // Enhanced types for detailed match data
