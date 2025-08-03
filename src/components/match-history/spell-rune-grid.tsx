@@ -20,6 +20,14 @@ export function SpellRuneGrid({
   runes, 
   size = 'lg' 
 }: SpellRuneGridProps) {
+  const hasValidSpells = summoner_spells?.spell1Id && summoner_spells.spell1Id > 0 && summoner_spells?.spell2Id && summoner_spells.spell2Id > 0;
+  const hasValidRunes = runes?.primarySelections?.[0]?.perk && runes.primarySelections[0].perk > 0;
+  
+  // Don't render if no valid data
+  if (!hasValidSpells && !hasValidRunes) {
+    return null;
+  }
+
   const spell1Id = summoner_spells?.spell1Id || 0;
   const spell2Id = summoner_spells?.spell2Id || 0;
   const keystone = runes?.primarySelections?.[0];

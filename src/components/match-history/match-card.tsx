@@ -117,18 +117,18 @@ export function MatchCard({
       {/* Game mode badge - positioned right of victory badge */}
       <Badge 
         variant="outline" 
-        className={`absolute top-3 left-28 z-10 ${gameModeColor} border-current`}
+        className={`absolute top-3 left-28 z-10 px-3 py-1 ${gameModeColor} border-current`}
       >
         <Gamepad2 className="h-3 w-3 mr-1" />
         {gameMode}
       </Badge>
 
-      {/* Details button - absolute positioned top-right */}
+      {/* Details button - positioned right of gamemode badge */}
       <Button 
         variant="outline" 
         size="sm"
         onClick={() => window.open(`/match/${match.match_id}`, '_blank')}
-        className="absolute top-3 right-3 z-10 px-2 py-1 text-xs 
+        className="absolute top-3 left-52 z-10 px-2 py-1 text-xs 
                    text-white/60 hover:text-white hover:bg-white/10 
                    border-white/20 backdrop-blur-sm"
       >
@@ -195,13 +195,16 @@ export function MatchCard({
           </div>
           
           {/* Summoner Spells and Runes Grid - col-span-1 */}
-          <div className="col-span-1 flex justify-center">
-            <SpellRuneGrid 
-              summoner_spells={match.summoner_spells || undefined}
-              runes={match.runes || undefined}
-              size="lg"
-            />
-          </div>
+          {((match.summoner_spells?.spell1Id && match.summoner_spells.spell1Id > 0 && match.summoner_spells?.spell2Id && match.summoner_spells.spell2Id > 0) || 
+            (match.runes?.primarySelections?.[0]?.perk && match.runes.primarySelections[0].perk > 0)) && (
+            <div className="col-span-1 flex justify-center">
+              <SpellRuneGrid 
+                summoner_spells={match.summoner_spells || undefined}
+                runes={match.runes || undefined}
+                size="lg"
+              />
+            </div>
+          )}
 
           {/* KDA and Stats - col-span-3 */}
           <div className="col-span-3 flex items-center justify-center gap-4">
