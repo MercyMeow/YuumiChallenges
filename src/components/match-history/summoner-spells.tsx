@@ -31,7 +31,7 @@ interface SummonerSpellProps {
   className?: string;
 }
 
-function SummonerSpell({ spellId, size = 'md', className = '' }: SummonerSpellProps) {
+export function SummonerSpell({ spellId, size = 'md', className = '' }: SummonerSpellProps) {
   const [imageUrl, setImageUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);

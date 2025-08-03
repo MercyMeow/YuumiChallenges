@@ -10,3 +10,4 @@ export { TeamSection, TeamsComparison } from './team-section';
 export { PlayerRow, PlayersList } from './player-row';
 export { ItemSlots, TrinketSlot } from './item-slots';
 export { SummonerSpells } from './summoner-spells';
+export { SpellRuneGrid } from './spell-rune-grid';

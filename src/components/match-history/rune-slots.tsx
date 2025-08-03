@@ -113,4 +113,82 @@ export function RuneSlots({ runes, size = 'md', className }: RuneSlotsProps) {
   );
 }
 
+interface RuneSlotProps {
+  rune?: {
+    perk: number;
+    var1: number;
+    var2: number;
+    var3: number;
+  } | undefined;
+  size?: 'xs' | 'sm' | 'md' | 'lg';
+}
+
+export function RuneSlot({ rune, size = 'md' }: RuneSlotProps) {
+  const sizeClasses = {
+    xs: 'w-4 h-4',
+    sm: 'w-6 h-6',
+    md: 'w-8 h-8',
+    lg: 'w-8 h-8', // 32px to match items
+  };
+
+  if (!rune || rune.perk <= 0) {
+    return (
+      <div className={cn(
+        'rounded-full border border-gray-600/30 bg-black/30',
+        sizeClasses[size]
+      )} />
+    );
+  }
+
+  // Determine the rune tree path for the image URL
+  const getRuneImageUrl = (perkId: number) => {
+    // For keystone runes, use the Keystone path
+    const keystoneIds = [8005, 8008, 8021, 8010, 9923, 8112, 8124, 8128, 8143, 8136, 8139, 8465, 8351, 8360, 8369, 8437, 8439, 8465];
+    
+    if (keystoneIds.includes(perkId)) {
+      return `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/RunesReforged/Keystone/${perkId}/${perkId}.png`;
+    }
+    
+    // For other runes, we'll try the most common path first
+    return `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/RunesReforged/Precision/${perkId}/${perkId}.png`;
+  };
+
+  return (
+    <div
+      className={cn(
+        'rounded-full border border-purple-500/30 bg-gradient-to-br from-purple-400/20 to-pink-500/20 flex items-center justify-center overflow-hidden',
+        sizeClasses[size]
+      )}
+      title="Rune"
+    >
+      <img
+        src={getRuneImageUrl(rune.perk)}
+        alt="Rune"
+        className={cn('rounded-full', sizeClasses[size])}
+        onError={(e) => {
+          // Try different rune tree paths as fallback
+          const fallbackPaths = [
+            'Domination',
+            'Sorcery',
+            'Resolve',
+            'Inspiration',
+            'Keystone'
+          ];
+          
+          const currentSrc = e.currentTarget.src;
+          const currentPath = fallbackPaths.find(path => currentSrc.includes(path));
+          const currentIndex = currentPath ? fallbackPaths.indexOf(currentPath) : -1;
+          
+          if (currentIndex < fallbackPaths.length - 1) {
+            const nextPath = fallbackPaths[currentIndex + 1];
+            e.currentTarget.src = `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/RunesReforged/${nextPath}/${rune.perk}/${rune.perk}.png`;
+          } else {
+            e.currentTarget.src = '/images/rune-placeholder.png';
+          }
+        }}
+      />
+    </div>
+  );
+}
+
 export default RuneSlots;
