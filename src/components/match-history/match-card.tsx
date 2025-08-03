@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ChampionIcon } from '@/components/ui/datadragon-image';
 import { ItemSlots } from './item-slots';
 import { SummonerSpells } from './summoner-spells';
-import { MatchData } from '@/lib/types';
+import { MatchData, MatchParticipant } from '@/lib/types';
 import { getGameModeDisplayName, getGameModeCategoryColor } from '@/lib/utils/game-modes';
 import { formatDistanceToNow } from 'date-fns';
 import { 
@@ -27,6 +27,7 @@ interface MatchCardProps {
 
 export function MatchCard({ 
   match, 
+  currentUserPuuid,
   className = '',
   compact = false
 }: MatchCardProps) {
@@ -55,6 +56,42 @@ export function MatchCard({
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  // Helper function to identify if a participant is the current user
+  const isCurrentUser = (participant: MatchParticipant) => {
+    if (!currentUserPuuid || !match.summoner_id) return false;
+    
+    // Check if the current user is the owner of this match record
+    const isMatchOwner = currentUserPuuid === match.summoner_id;
+    if (!isMatchOwner) return false;
+    
+    // If the user owns this match, they should be the participant with the same champion
+    return participant.championName === match.champion;
+  };
+
+  // Enhanced styling for current user highlighting
+  const getUserHighlightStyles = (participant: MatchParticipant, isBlueTeam: boolean) => {
+    if (!isCurrentUser(participant)) {
+      return {
+        containerClass: '',
+        iconClass: isBlueTeam ? 'border border-blue-500/30 rounded' : 'border border-red-500/30 rounded',
+        textClass: isBlueTeam ? 'text-blue-300' : 'text-red-300'
+      };
+    }
+    
+    // Enhanced highlighting for current user
+    return {
+      containerClass: isBlueTeam 
+        ? 'bg-gradient-to-r from-blue-500/20 to-blue-400/10 rounded-md px-1 py-0.5 border border-blue-400/40' 
+        : 'bg-gradient-to-r from-red-500/20 to-red-400/10 rounded-md px-1 py-0.5 border border-red-400/40',
+      iconClass: isBlueTeam 
+        ? 'border-2 border-blue-400 rounded shadow-lg shadow-blue-500/30' 
+        : 'border-2 border-red-400 rounded shadow-lg shadow-red-500/30',
+      textClass: isBlueTeam 
+        ? 'text-blue-100 font-semibold' 
+        : 'text-red-100 font-semibold'
+    };
   };
 
   const gameMode = getGameModeDisplayName(match.queue_id);
@@ -122,84 +159,48 @@ export function MatchCard({
         <Gamepad2 className="h-3 w-3 mr-1" />
         {gameMode}
       </Badge>
+      
+      {/* Game duration badge - positioned right of game mode badge */}
+      <Badge 
+        variant="outline" 
+        className="absolute top-3 left-48 z-10 px-3 py-1 bg-gray-500/20 text-gray-300 border-gray-500/30"
+      >
+        <Clock className="h-3 w-3 mr-1" />
+        {formatDuration(match.duration)}
+      </Badge>
 
-      {/* Details button - positioned right of gamemode badge */}
+      {/* Details button - positioned right of duration badge */}
       <Button 
         variant="outline" 
         size="sm"
         onClick={() => window.open(`/match/${match.match_id}`, '_blank')}
-        className="absolute top-3 left-52 z-10 px-2 py-0.5 text-xs 
+        className="absolute top-3 left-72 z-10 px-2 py-0.5 text-xs 
                    text-white/60 hover:text-white hover:bg-white/10 
                    border-white/20 backdrop-blur-sm"
       >
         <ExternalLink className="h-2.5 w-2.5" />
       </Button>
 
-      {/* Teams Section - positioned in header area */}
-      {match.all_participants && match.all_participants.length > 0 && (
-        <div className="absolute top-3 right-4 z-10 text-xs bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-3">
-          {/* Team Headers */}
-          <div className="grid grid-cols-2 gap-4 mb-2">
-            <div className="flex items-center gap-1 justify-center">
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-              <span className="text-blue-400 font-medium">Blue</span>
-            </div>
-            <div className="flex items-center gap-1 justify-center">
-              <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-              <span className="text-red-400 font-medium">Red</span>
-            </div>
-          </div>
-          
-          {/* Team Players Side by Side */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Blue Team Players */}
-            <div className="space-y-1">
-              {match.all_participants
-                .filter((p) => p.teamId === 100)
-                .slice(0, 5)
-                .map((participant, index) => (
-                  <div key={index} className="flex items-center gap-1">
-                    <ChampionIcon 
-                      championId={participant.championName} 
-                      size="xs" 
-                      className="border border-blue-500/30 rounded flex-shrink-0"
-                    />
-                    <span className="text-blue-300 truncate text-[10px] max-w-16">
-                      {participant.gameName || 'Unknown'}
-                    </span>
-                  </div>
-                ))}
-            </div>
-            
-            {/* Red Team Players */}
-            <div className="space-y-1">
-              {match.all_participants
-                .filter((p) => p.teamId === 200)
-                .slice(0, 5)
-                .map((participant, index) => (
-                  <div key={index} className="flex items-center gap-1">
-                    <ChampionIcon 
-                      championId={participant.championName} 
-                      size="xs" 
-                      className="border border-red-500/30 rounded flex-shrink-0"
-                    />
-                    <span className="text-red-300 truncate text-[10px] max-w-16">
-                      {participant.gameName || 'Unknown'}
-                    </span>
-                  </div>
-                ))}
-            </div>
-          </div>
-        </div>
-      )}
 
 
-      <CardContent className="p-6 pt-12">
+      <CardContent className="p-6 pt-20">
         <div className="grid grid-cols-12 gap-4 items-start">
           {/* Champion and level - col-span-2 */}
           <div className="col-span-2 flex items-center gap-4">
             <div className="relative flex-shrink-0">
               <ChampionIcon championId={match.champion} size="xl" />
+              
+              {/* Champion name badge overlay on top of champion */}
+              <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 
+                        bg-gradient-to-br from-blue-500 to-indigo-600 
+                        text-white text-xs font-bold 
+                        px-2 py-0.5 rounded-full 
+                        border border-blue-400/50
+                        shadow-lg shadow-blue-500/25
+                        backdrop-blur-sm z-10">
+                {match.champion}
+              </div>
+              
               {/* Level badge overlay on champion */}
               {match.champion_level && (
                 <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 
@@ -214,22 +215,11 @@ export function MatchCard({
               )}
             </div>
             
-            <div>
-              <h3 
-                id={`match-title-${match.match_id}`}
-                className="text-lg font-bold text-white"
-              >
-                {match.champion}
-              </h3>
-              <div className="flex items-center gap-2 text-sm text-white/60">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {formatDuration(match.duration)}
-                </div>
-              </div>
+            <div className="flex flex-col justify-center">
+              {/* Date played moved here */}
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="text-xs text-white/60 mt-1 cursor-help">
+                  <div className="text-sm text-white/70 cursor-help font-medium">
                     {formatDistanceToNow(new Date(match.game_creation), { addSuffix: true })}
                   </div>
                 </TooltipTrigger>
@@ -242,8 +232,8 @@ export function MatchCard({
             </div>
           </div>
 
-          {/* Summoner Spells - col-span-1 */}
-          <div className="col-span-1 flex justify-center">
+          {/* Summoner Spells - col-span-1 - lowered positioning */}
+          <div className="col-span-1 flex justify-center items-end pb-2">
             {match.summoner_spells && (
               <SummonerSpells 
                 spell1Id={match.summoner_spells.spell1Id}
@@ -254,8 +244,8 @@ export function MatchCard({
             )}
           </div>
 
-          {/* Items - col-span-3 */}
-          <div className="col-span-3">
+          {/* Items - col-span-3 - lowered positioning */}
+          <div className="col-span-3 flex items-end pb-2">
             {match.items && (
               <ItemSlots 
                 items={match.items} 
@@ -265,23 +255,23 @@ export function MatchCard({
             )}
           </div>
 
-          {/* KDA and Stats - col-span-4 (expanded for vertical layout) */}
-          <div className="col-span-4 flex flex-col items-center gap-4">
-            {/* KDA on top */}
+          {/* KDA and Stats - col-span-3 (reduced to make room) */}
+          <div className="col-span-3 flex flex-col items-center gap-3">
+            {/* KDA on top - resized to match champion name font */}
             <div className="text-center">
-              <div className={`text-2xl font-bold ${getKDAColor(kdaRatio)}`}>
+              <div className={`text-lg font-bold ${getKDAColor(kdaRatio)}`}>
                 {match.kills} / {match.deaths} / {match.assists}
               </div>
-              <div className="text-sm text-white/60">
+              <div className="text-xs text-white/60">
                 {kda} KDA
               </div>
             </div>
 
             {/* Secondary stats below */}
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
               {match.gold && (
                 <div className="text-center">
-                  <div className="text-base text-yellow-400 font-semibold">
+                  <div className="text-sm text-yellow-400 font-semibold">
                     {Math.round(match.gold / 1000)}k
                   </div>
                   <div className="text-xs text-white/60">Gold</div>
@@ -289,7 +279,7 @@ export function MatchCard({
               )}
               {match.cs && (
                 <div className="text-center">
-                  <div className="text-base text-purple-400 font-semibold">
+                  <div className="text-sm text-purple-400 font-semibold">
                     {match.cs}
                   </div>
                   <div className="text-xs text-white/60">CS</div>
@@ -297,7 +287,7 @@ export function MatchCard({
               )}
               {match.vision_score && (
                 <div className="text-center">
-                  <div className="text-base text-pink-400 font-semibold">
+                  <div className="text-sm text-pink-400 font-semibold">
                     {match.vision_score}
                   </div>
                   <div className="text-xs text-white/60">Vision</div>
@@ -306,9 +296,76 @@ export function MatchCard({
             </div>
           </div>
 
-          {/* Free space - col-span-2 (reserved for future use) */}
-          <div className="col-span-2">
-            {/* Reserved space for future enhancements */}
+          {/* Teams Section - moved to main grid layout col-span-3 */}
+          <div className="col-span-3">
+            {match.all_participants && match.all_participants.length > 0 && (
+              <div className="text-xs bg-black/40 backdrop-blur-sm border border-white/20 rounded-lg p-3">
+                {/* Team Headers */}
+                <div className="grid grid-cols-2 gap-3 mb-2">
+                  <div className="flex items-center gap-1 justify-center">
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                    <span className="text-blue-400 font-medium">Blue</span>
+                  </div>
+                  <div className="flex items-center gap-1 justify-center">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                    <span className="text-red-400 font-medium">Red</span>
+                  </div>
+                </div>
+                
+                {/* Team Players Side by Side */}
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Blue Team Players */}
+                  <div className="space-y-1">
+                    {match.all_participants
+                      .filter((p) => p.teamId === 100)
+                      .slice(0, 5)
+                      .map((participant, index) => {
+                        const highlightStyles = getUserHighlightStyles(participant, true);
+                        return (
+                          <div 
+                            key={index} 
+                            className={`flex items-center gap-1 ${highlightStyles.containerClass}`}
+                          >
+                            <ChampionIcon 
+                              championId={participant.championName} 
+                              size="xs" 
+                              className={`${highlightStyles.iconClass} flex-shrink-0`}
+                            />
+                            <span className={`truncate text-[10px] max-w-16 ${highlightStyles.textClass}`}>
+                              {participant.gameName || 'Unknown'}
+                            </span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                  
+                  {/* Red Team Players */}
+                  <div className="space-y-1">
+                    {match.all_participants
+                      .filter((p) => p.teamId === 200)
+                      .slice(0, 5)
+                      .map((participant, index) => {
+                        const highlightStyles = getUserHighlightStyles(participant, false);
+                        return (
+                          <div 
+                            key={index} 
+                            className={`flex items-center gap-1 ${highlightStyles.containerClass}`}
+                          >
+                            <ChampionIcon 
+                              championId={participant.championName} 
+                              size="xs" 
+                              className={`${highlightStyles.iconClass} flex-shrink-0`}
+                            />
+                            <span className={`truncate text-[10px] max-w-16 ${highlightStyles.textClass}`}>
+                              {participant.gameName || 'Unknown'}
+                            </span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
         </div>
