@@ -44,9 +44,9 @@ import {
 import { getProfileIconUrl } from '@/lib/utils/data-dragon';
 import { formatRelativeTime } from '@/lib/utils/time';
 
-// Utility function to get rank emblem URLs using local images with external fallbacks
-// Priority: 1) Local images (/images/ranked/) 2) Riot GitHub Assets (fallback) 3) Community Dragon (backup fallback)
-const getRankEmblemUrl = (tier: string, division: string) => {
+// Utility function to get rank emblem URLs using only local images
+// Always returns a valid image path, defaulting to unranked for invalid cases
+const getRankEmblemUrl = (tier: string): string => {
   const normalizedTier = tier.toUpperCase();
   
   // Map tier names to emblem file names
@@ -56,7 +56,7 @@ const getRankEmblemUrl = (tier: string, division: string) => {
     'SILVER': 'silver', 
     'GOLD': 'gold',
     'PLATINUM': 'platinum',
-    'EMERALD': 'emerald', // Note: emerald.png is missing, will fallback to external
+    'EMERALD': 'emerald',
     'DIAMOND': 'diamond',
     'MASTER': 'master',
     'GRANDMASTER': 'grandmaster',
@@ -65,43 +65,22 @@ const getRankEmblemUrl = (tier: string, division: string) => {
   
   const tierName = tierMap[normalizedTier];
   if (!tierName) {
-    console.log(`[DEBUG] Unknown tier: ${tier}, returning null`);
-    return null; // Return null for unranked/unknown tiers
+    return '/images/ranked/unranked.png'; // Default to unranked for unknown tiers
   }
   
-  // Available local images (Emerald is missing)
+  // Available local images (all tiers now included)
   const localImages = new Set([
-    'iron', 'bronze', 'silver', 'gold', 'platinum', 
+    'iron', 'bronze', 'silver', 'gold', 'platinum', 'emerald',
     'diamond', 'master', 'grandmaster', 'challenger'
   ]);
   
-  // For tiers we have locally, use local images (simplified - no divisions in local files)
+  // Only use local images - fallback to unranked for missing tiers
   if (localImages.has(tierName)) {
-    const localUrl = `/images/ranked/${tierName}.png`;
-    console.log(`[DEBUG] Using local image for ${tier}: ${localUrl}`);
-    return localUrl;
+    return `/images/ranked/${tierName}.png`;
   }
   
-  // Fallback to external sources for missing tiers (like Emerald)
-  // For Master+ tiers, no division is needed
-  if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(normalizedTier)) {
-    const externalUrl = `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}.png`;
-    console.log(`[DEBUG] Using external image for ${tier}: ${externalUrl}`);
-    return externalUrl;
-  }
-  
-  // For other tiers, include division (I, II, III, IV)
-  const divisionMap: Record<string, string> = {
-    'I': 'i',
-    'II': 'ii', 
-    'III': 'iii',
-    'IV': 'iv'
-  };
-  
-  const divisionName = divisionMap[division] || 'i';
-  const externalUrlWithDivision = `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}_${divisionName}.png`;
-  console.log(`[DEBUG] Using external image with division for ${tier} ${division}: ${externalUrlWithDivision}`);
-  return externalUrlWithDivision;
+  // Default fallback to unranked for any edge cases
+  return '/images/ranked/unranked.png';
 };
 
 // Tier-specific color schemes for rank badges
@@ -168,6 +147,12 @@ const getTierColorScheme = (tier: string) => {
         bg: 'bg-gradient-to-r from-orange-400/20 to-orange-500/20',
         border: 'border-orange-400/40',
         text: 'text-orange-300'
+      };
+    case 'UNRANKED':
+      return {
+        bg: 'bg-gray-500/10',
+        border: 'border-gray-500/30',
+        text: 'text-gray-400'
       };
     default:
       return {
@@ -641,45 +626,13 @@ export function LeagueProfileCard({
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
                     <img
-                      src={getRankEmblemUrl(summoner.soloqRank.tier, summoner.soloqRank.rank_level) || ''}
+                      src={getRankEmblemUrl(summoner.soloqRank.tier)}
                       alt={`${summoner.soloqRank.tier} ${summoner.soloqRank.rank_level} emblem`}
                       className="h-16 w-16 object-contain"
                       onError={(e) => {
-                        // Progressive fallback: Local → GitHub → Community Dragon → Crown icon
+                        console.error(`Failed to load rank emblem for ${summoner.soloqRank?.tier}, falling back to unranked`);
                         const target = e.target as HTMLImageElement;
-                        const currentSrc = target.src;
-                        const tierName = summoner.soloqRank?.tier.toLowerCase();
-                        const divisionMap: Record<string, string> = {
-                          'I': '1', 'II': '2', 'III': '3', 'IV': '4'
-                        };
-                        const divisionNumber = divisionMap[summoner.soloqRank?.rank_level || 'I'] || '1';
-                        
-                        // If local image failed, try GitHub source
-                        if (currentSrc.includes('/images/ranked/')) {
-                          if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(summoner.soloqRank?.tier || '')) {
-                            target.src = `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}.png`;
-                          } else {
-                            target.src = `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}_i.png`;
-                          }
-                          return;
-                        }
-                        
-                        // If GitHub source failed, try Community Dragon fallback
-                        if (currentSrc.includes('githubusercontent.com')) {
-                          if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(summoner.soloqRank?.tier || '')) {
-                            target.src = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblems/${tierName}.png`;
-                          } else {
-                            target.src = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblems/${tierName}_${divisionNumber}.png`;
-                          }
-                          return;
-                        }
-                        
-                        // If all image sources fail, fallback to crown icon
-                        target.style.display = 'none';
-                        const parent = target.parentElement;
-                        if (parent) {
-                          parent.innerHTML = `<div class="flex h-16 w-16 items-center justify-center rounded-full ${getTierColorScheme(summoner.soloqRank?.tier || '').bg} ${getTierColorScheme(summoner.soloqRank?.tier || '').border} border-2"><svg class="h-8 w-8 ${getTierColorScheme(summoner.soloqRank?.tier || '').text}" fill="currentColor" viewBox="0 0 24 24"><path d="M12 6L9 9L12 12L15 9L12 6Z"/><path d="M12 2L8 6H16L12 2Z"/><path d="M8 18L12 22L16 18H8Z"/></svg></div>`;
-                        }
+                        target.src = '/images/ranked/unranked.png';
                       }}
                     />
                   </div>
@@ -695,9 +648,11 @@ export function LeagueProfileCard({
               ) : (
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-500/20 border-2 border-gray-500/30">
-                      <Crown className="h-8 w-8 text-gray-400" />
-                    </div>
+                    <img
+                      src={getRankEmblemUrl('UNRANKED')}
+                      alt="Unranked emblem"
+                      className="h-16 w-16 object-contain"
+                    />
                   </div>
                   <div className="flex-1">
                     <p className="text-lg font-bold text-gray-400">Unranked</p>
@@ -713,45 +668,13 @@ export function LeagueProfileCard({
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
                     <img
-                      src={getRankEmblemUrl(summoner.flexRank.tier, summoner.flexRank.rank_level) || ''}
+                      src={getRankEmblemUrl(summoner.flexRank.tier)}
                       alt={`${summoner.flexRank.tier} ${summoner.flexRank.rank_level} emblem`}
                       className="h-16 w-16 object-contain"
                       onError={(e) => {
-                        // Progressive fallback: Local → GitHub → Community Dragon → Crown icon
+                        console.error(`Failed to load rank emblem for ${summoner.flexRank?.tier}, falling back to unranked`);
                         const target = e.target as HTMLImageElement;
-                        const currentSrc = target.src;
-                        const tierName = summoner.flexRank?.tier.toLowerCase();
-                        const divisionMap: Record<string, string> = {
-                          'I': '1', 'II': '2', 'III': '3', 'IV': '4'
-                        };
-                        const divisionNumber = divisionMap[summoner.flexRank?.rank_level || 'I'] || '1';
-                        
-                        // If local image failed, try GitHub source
-                        if (currentSrc.includes('/images/ranked/')) {
-                          if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(summoner.flexRank?.tier || '')) {
-                            target.src = `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}.png`;
-                          } else {
-                            target.src = `https://raw.githubusercontent.com/RiotAPI/Riot-Games-API-Developer-Assets/master/tier-icons/${tierName}_i.png`;
-                          }
-                          return;
-                        }
-                        
-                        // If GitHub source failed, try Community Dragon fallback
-                        if (currentSrc.includes('githubusercontent.com')) {
-                          if (['MASTER', 'GRANDMASTER', 'CHALLENGER'].includes(summoner.flexRank?.tier || '')) {
-                            target.src = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblems/${tierName}.png`;
-                          } else {
-                            target.src = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblems/${tierName}_${divisionNumber}.png`;
-                          }
-                          return;
-                        }
-                        
-                        // If all image sources fail, fallback to crown icon
-                        target.style.display = 'none';
-                        const parent = target.parentElement;
-                        if (parent) {
-                          parent.innerHTML = `<div class="flex h-16 w-16 items-center justify-center rounded-full ${getTierColorScheme(summoner.flexRank?.tier || '').bg} ${getTierColorScheme(summoner.flexRank?.tier || '').border} border-2"><svg class="h-8 w-8 ${getTierColorScheme(summoner.flexRank?.tier || '').text}" fill="currentColor" viewBox="0 0 24 24"><path d="M12 6L9 9L12 12L15 9L12 6Z"/><path d="M8 18L12 22L16 18H8Z"/></svg></div>`;
-                        }
+                        target.src = '/images/ranked/unranked.png';
                       }}
                     />
                   </div>
@@ -767,9 +690,11 @@ export function LeagueProfileCard({
               ) : (
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-500/20 border-2 border-gray-500/30">
-                      <Crown className="h-8 w-8 text-gray-400" />
-                    </div>
+                    <img
+                      src={getRankEmblemUrl('UNRANKED')}
+                      alt="Unranked emblem"
+                      className="h-16 w-16 object-contain"
+                    />
                   </div>
                   <div className="flex-1">
                     <p className="text-lg font-bold text-gray-400">Unranked</p>
