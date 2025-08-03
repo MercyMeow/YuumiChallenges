@@ -23,46 +23,54 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid match ID format' }, { status: 400 });
     }
 
-    // Map platform to region for API calls
+    // Map platform to region codes (must match database region_type enum)
     const platformToRegion: Record<string, string> = {
-      'BR1': 'americas',
-      'EUN1': 'europe',
-      'EUW1': 'europe', 
-      'JP1': 'asia',
-      'KR': 'asia',
-      'LA1': 'americas',
-      'LA2': 'americas',
-      'NA1': 'americas',
-      'OC1': 'sea',
-      'PH2': 'sea',
-      'RU': 'europe',
-      'SG2': 'sea',
-      'TH2': 'sea',
-      'TR1': 'europe',
-      'TW2': 'sea',
-      'VN2': 'sea'
+      'BR1': 'br1',
+      'EUN1': 'eun1',
+      'EUW1': 'euw1', 
+      'JP1': 'jp1',
+      'KR': 'kr',
+      'LA1': 'la1',
+      'LA2': 'la2',
+      'NA1': 'na1',
+      'OC1': 'oc1',
+      'PH2': 'ph2',
+      'RU': 'ru',
+      'SG2': 'sg2',
+      'TH2': 'th2',
+      'TR1': 'tr1',
+      'TW2': 'tw2',
+      'VN2': 'vn2'
     };
 
     const platform = regionMatch[1];
     if (!platform) {
+      console.error('Failed to extract platform from match ID:', matchId);
       return NextResponse.json({ error: 'Invalid match ID format - no platform found' }, { status: 400 });
     }
     
     const region = platformToRegion[platform];
     if (!region) {
-      return NextResponse.json({ error: 'Unsupported region' }, { status: 400 });
+      console.error('Unsupported platform:', platform, 'Available platforms:', Object.keys(platformToRegion));
+      return NextResponse.json({ error: `Unsupported region: ${platform}` }, { status: 400 });
     }
+
+    console.log('Processing match request:', { matchId, platform, region });
 
     const riotAPI = new RiotAPI(riotApiKey);
     
     try {
       // Fetch match details
+      console.log('Fetching match details from Riot API:', { matchId, region });
       const matchData = await riotAPI.getMatchDetails(matchId, region);
+      console.log('Successfully fetched match details');
       
       // Fetch timeline data as well
       let timelineData = null;
       try {
+        console.log('Fetching match timeline from Riot API:', { matchId, region });
         timelineData = await riotAPI.getMatchTimeline(matchId, region);
+        console.log('Successfully fetched match timeline');
       } catch (timelineError) {
         console.warn('Failed to fetch match timeline:', timelineError);
         // Timeline is optional, continue without it
