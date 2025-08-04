@@ -62,101 +62,69 @@ export interface SupportItemEvolution {
   toItemId: number;
   stage: 'base' | 'tier1' | 'tier2' | 'tier3';
   chainName: string;
-  evolutionType: 'relic' | 'steel' | 'spectral_sickle' | 'spectral_spellthief';
+  evolutionType: 'world_atlas' | 'relic' | 'steel' | 'spectral_sickle' | 'spectral_spellthief';
 }
 
-// Support item evolution mapping
+// Support item evolution mapping - Current World Atlas System (Season 14+)
 export const SUPPORT_ITEM_EVOLUTIONS: Record<number, SupportItemEvolution> = {
-  // Relic Shield Evolution Chain
-  3850: { // Relic Shield
+  // World Atlas Evolution Chain (Universal Support Starter)
+  3865: { // World Atlas
     fromItemId: 0,
-    toItemId: 3851,
+    toItemId: 3866,
     stage: 'base',
-    chainName: 'Relic Shield',
-    evolutionType: 'relic'
+    chainName: 'World Atlas',
+    evolutionType: 'world_atlas'
   },
-  3851: { // Relic Shield (Tier 1)
-    fromItemId: 3850,
-    toItemId: 3853,
+  3866: { // Runic Compass
+    fromItemId: 3865,
+    toItemId: 3867,
     stage: 'tier1',
-    chainName: 'Relic Shield',
-    evolutionType: 'relic'
+    chainName: 'Runic Compass',
+    evolutionType: 'world_atlas'
   },
-  3853: { // Pauldrons of Whiterock
-    fromItemId: 3851,
-    toItemId: 0,
+  3867: { // Bounty of Worlds
+    fromItemId: 3866,
+    toItemId: 0, // Can evolve to multiple final items
     stage: 'tier2',
-    chainName: 'Pauldrons of Whiterock',
-    evolutionType: 'relic'
+    chainName: 'Bounty of Worlds',
+    evolutionType: 'world_atlas'
   },
   
-  // Steel Shoulderguards Evolution Chain  
-  3854: { // Steel Shoulderguards
-    fromItemId: 0,
-    toItemId: 3855,
-    stage: 'base',
-    chainName: 'Steel Shoulderguards',
-    evolutionType: 'steel'
-  },
-  3855: { // Runesteel Spaulders
-    fromItemId: 3854,
-    toItemId: 3857,
-    stage: 'tier1',
-    chainName: 'Runesteel Spaulders',
-    evolutionType: 'steel'
-  },
-  3857: { // Bulwark of the Mountain
-    fromItemId: 3855,
+  // Final Support Item Evolutions from Bounty of Worlds
+  3869: { // Celestial Opposition
+    fromItemId: 3867,
     toItemId: 0,
-    stage: 'tier2',
-    chainName: 'Bulwark of the Mountain',
-    evolutionType: 'steel'
+    stage: 'tier3',
+    chainName: 'Celestial Opposition',
+    evolutionType: 'world_atlas'
   },
-  
-  // Spectral Sickle Evolution Chain (ADC Support)
-  3858: { // Spectral Sickle
-    fromItemId: 0,
-    toItemId: 3859,
-    stage: 'base',
-    chainName: 'Spectral Sickle',
-    evolutionType: 'spectral_sickle'
-  },
-  3859: { // Spectral Sickle (Tier 1)
-    fromItemId: 3858,
-    toItemId: 3860,
-    stage: 'tier1',
-    chainName: 'Spectral Sickle',
-    evolutionType: 'spectral_sickle'
-  },
-  3860: { // Pauldrons of Whiterock (ADC variant)
-    fromItemId: 3859,
+  3870: { // Dream Maker
+    fromItemId: 3867,
     toItemId: 0,
-    stage: 'tier2',
-    chainName: 'Pauldrons of Whiterock',
-    evolutionType: 'spectral_sickle'
+    stage: 'tier3',
+    chainName: 'Dream Maker',
+    evolutionType: 'world_atlas'
   },
-  
-  // Spectral Sickle Evolution Chain (AP Support)
-  3862: { // Spectral Sickle (AP)
-    fromItemId: 0,
-    toItemId: 3863,
-    stage: 'base',
-    chainName: 'Spectral Sickle',
-    evolutionType: 'spectral_spellthief'
-  },
-  3863: { // Spectral Sickle (AP Tier 1)
-    fromItemId: 3862,
-    toItemId: 3864,
-    stage: 'tier1',
-    chainName: 'Spectral Sickle',
-    evolutionType: 'spectral_spellthief'  
-  },
-  3864: { // Bulwark of the Mountain (AP variant)
-    fromItemId: 3863,
+  3871: { // Zaz'Zak's Realmspike
+    fromItemId: 3867,
     toItemId: 0,
-    stage: 'tier2',
-    chainName: 'Bulwark of the Mountain',
-    evolutionType: 'spectral_spellthief'
+    stage: 'tier3',
+    chainName: "Zaz'Zak's Realmspike",
+    evolutionType: 'world_atlas'
+  },
+  3876: { // Solstice Sleigh
+    fromItemId: 3867,
+    toItemId: 0,
+    stage: 'tier3',
+    chainName: 'Solstice Sleigh',
+    evolutionType: 'world_atlas'
+  },
+  3877: { // Bloodsong
+    fromItemId: 3867,
+    toItemId: 0,
+    stage: 'tier3',
+    chainName: 'Bloodsong',
+    evolutionType: 'world_atlas'
   }
 };
 

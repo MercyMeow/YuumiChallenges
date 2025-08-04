@@ -1420,33 +1420,6 @@ export default function MatchDetailsPage() {
                           </span>
                         </div>
 
-                        {/* Support Quest Completed (custom stat) */}
-                        <div className="flex justify-between">
-                          <span className="text-white/60">
-                            Support Quest Completed
-                          </span>
-                          {(() => {
-                            const questCompleteMs =
-                              supportItemCompletionTimes?.tier3 ??
-                              supportItemCompletionTimes?.tier2 ??
-                              supportItemCompletionTimes?.tier1 ??
-                              null;
-
-                            return (
-                              <span
-                                className={
-                                  questCompleteMs
-                                    ? 'text-green-300'
-                                    : 'text-white/40'
-                                }
-                              >
-                                {questCompleteMs
-                                  ? formatMatchTime(questCompleteMs)
-                                  : '—'}
-                              </span>
-                            );
-                          })()}
-                        </div>
 
                         <Separator className="my-2" />
                         <div className="flex justify-between">
@@ -1475,59 +1448,6 @@ export default function MatchDetailsPage() {
                         </div>
                         <Separator className="my-2" />
 
-                        {/* Comparison block for Support Quest Completed when a compare player is selected */}
-                        {comparePlayerData && (
-                          <div className="flex items-center justify-between rounded-md border border-white/10 bg-white/5 p-2">
-                            <span className="text-white/60">
-                              Support Quest Completed (Compare)
-                            </span>
-                            <div className="flex items-center gap-4">
-                              {/* Selected Player value */}
-                              {(() => {
-                                const questSelected =
-                                  supportItemCompletionTimes?.tier3 ??
-                                  supportItemCompletionTimes?.tier2 ??
-                                  supportItemCompletionTimes?.tier1 ??
-                                  null;
-                                return (
-                                  <span
-                                    className={
-                                      questSelected
-                                        ? 'text-green-300'
-                                        : 'text-white/40'
-                                    }
-                                  >
-                                    {questSelected
-                                      ? formatMatchTime(questSelected)
-                                      : '—'}
-                                  </span>
-                                );
-                              })()}
-                              <span className="text-white/30">vs</span>
-                              {/* Compare Player value */}
-                              {(() => {
-                                const questCompare =
-                                  compareSupportItemCompletionTimes?.tier3 ??
-                                  compareSupportItemCompletionTimes?.tier2 ??
-                                  compareSupportItemCompletionTimes?.tier1 ??
-                                  null;
-                                return (
-                                  <span
-                                    className={
-                                      questCompare
-                                        ? 'text-green-300'
-                                        : 'text-white/40'
-                                    }
-                                  >
-                                    {questCompare
-                                      ? formatMatchTime(questCompare)
-                                      : '—'}
-                                  </span>
-                                );
-                              })()}
-                            </div>
-                          </div>
-                        )}
 
                         <div className="flex justify-between">
                           <span className="text-white/60">Time Dead</span>
@@ -2223,6 +2143,42 @@ export default function MatchDetailsPage() {
                             numValue1:
                               selectedPlayerData.longestTimeSpentLiving,
                             numValue2: comparePlayerData.longestTimeSpentLiving,
+                          },
+                          {
+                            label: 'Support Quest Completed',
+                            value1: (() => {
+                              const questSelected =
+                                supportItemCompletionTimes?.tier3 ??
+                                supportItemCompletionTimes?.tier2 ??
+                                supportItemCompletionTimes?.tier1 ??
+                                null;
+                              return questSelected ? formatMatchTime(questSelected) : '—';
+                            })(),
+                            value2: (() => {
+                              const questCompare =
+                                compareSupportItemCompletionTimes?.tier3 ??
+                                compareSupportItemCompletionTimes?.tier2 ??
+                                compareSupportItemCompletionTimes?.tier1 ??
+                                null;
+                              return questCompare ? formatMatchTime(questCompare) : '—';
+                            })(),
+                            numValue1: (() => {
+                              const questSelected =
+                                supportItemCompletionTimes?.tier3 ??
+                                supportItemCompletionTimes?.tier2 ??
+                                supportItemCompletionTimes?.tier1 ??
+                                null;
+                              return questSelected ? questSelected / 1000 : 999999; // Convert to seconds, use high number for no completion
+                            })(),
+                            numValue2: (() => {
+                              const questCompare =
+                                compareSupportItemCompletionTimes?.tier3 ??
+                                compareSupportItemCompletionTimes?.tier2 ??
+                                compareSupportItemCompletionTimes?.tier1 ??
+                                null;
+                              return questCompare ? questCompare / 1000 : 999999; // Convert to seconds, use high number for no completion
+                            })(),
+                            isReverse: true, // Earlier completion is better
                           },
                         ].map((stat, index) => (
                           <React.Fragment key={index}>

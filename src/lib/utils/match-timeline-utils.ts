@@ -199,7 +199,7 @@ export type SupportItemTier = 'base' | 'tier1' | 'tier2' | 'tier3';
 /**
  * Support item evolution chain types
  */
-export type SupportItemChainType = 'relic' | 'steel' | 'spectral_sickle' | 'spectral_spellthief';
+export type SupportItemChainType = 'world_atlas' | 'relic' | 'steel' | 'spectral_sickle' | 'spectral_spellthief';
 
 /**
  * Support item completion information
@@ -412,13 +412,21 @@ export function detectSupportItemCompletion(
     return completionTimes;
   }
   
+  // Test with known support item IDs to verify detection works
+  console.log('[DEBUG] Testing support item detection:');
+  const testItems = [3850, 3851, 3853, 3854, 3855, 3857];
+  testItems.forEach(itemId => {
+    const completion = getSupportItemCompletion(itemId);
+    console.log(`[DEBUG] Item ${itemId}:`, completion);
+  });
+  
   // Process timeline events to find support item purchases
   const purchaseEvents = timelineEvents.filter(event => event.type === 'ITEM_PURCHASED');
   console.log('[DEBUG] Found purchase events:', purchaseEvents.length);
+  console.log('[DEBUG] Purchase event item IDs:', purchaseEvents.map(e => e.itemId));
   
   for (const event of purchaseEvents) {
     const completion = getSupportItemCompletion(event.itemId);
-    console.log('[DEBUG] Item', event.itemId, 'completion:', completion);
     
     if (completion.isSupportItem && completion.tier) {
       console.log('[DEBUG] Found support item completion:', {
@@ -611,5 +619,5 @@ export function isSupportItemTier(value: unknown): value is SupportItemTier {
  */
 export function isSupportItemChainType(value: unknown): value is SupportItemChainType {
   return typeof value === 'string' && 
-         ['relic', 'steel', 'spectral_sickle', 'spectral_spellthief'].includes(value);
+         ['world_atlas', 'relic', 'steel', 'spectral_sickle', 'spectral_spellthief'].includes(value);
 }
