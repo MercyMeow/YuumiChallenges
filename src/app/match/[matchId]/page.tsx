@@ -561,7 +561,7 @@ export default function MatchDetailsPage() {
       selectedPlayer,
       comparePlayer,
       activeTab,
-      activeTimelineView
+      activeTimelineView,
     });
     console.groupEnd();
   }, [matchId]); // Only log when matchId changes
@@ -574,9 +574,16 @@ export default function MatchDetailsPage() {
       dataExists: !!data,
       processedTimelineExists: !!processedTimeline,
       isProcessing,
-      processingTime: processingTime
+      processingTime: processingTime,
     });
-  }, [selectedPlayer, comparePlayer, data, processedTimeline, isProcessing, processingTime]);
+  }, [
+    selectedPlayer,
+    comparePlayer,
+    data,
+    processedTimeline,
+    isProcessing,
+    processingTime,
+  ]);
 
   useEffect(() => {
     if (!matchId) return;
@@ -612,15 +619,18 @@ export default function MatchDetailsPage() {
 
   // Support quest completion times for compare player (mirror of selected player computation)
   const compareSupportItemCompletionTimes = useMemo(() => {
-    console.group('🔄 [COMPARE PLAYER USEMEMO] compareSupportItemCompletionTimes calculation');
-    
+    console.group(
+      '🔄 [COMPARE PLAYER USEMEMO] compareSupportItemCompletionTimes calculation'
+    );
+
     console.log('📥 useMemo Dependencies (Compare Player):', {
       processedTimelineExists: !!processedTimeline,
-      processedTimelineEventsLength: processedTimeline?.playerTimeline?.events?.length || 0,
+      processedTimelineEventsLength:
+        processedTimeline?.playerTimeline?.events?.length || 0,
       dataExists: !!data,
       participantsLength: data?.matchData?.info?.participants?.length || 0,
       comparePlayer,
-      comparePlayerType: typeof comparePlayer
+      comparePlayerType: typeof comparePlayer,
     });
 
     if (
@@ -628,11 +638,15 @@ export default function MatchDetailsPage() {
       !data?.matchData?.info?.participants ||
       comparePlayer === null
     ) {
-      console.warn('⚠️ Early return: Missing required data for compare player', {
-        hasProcessedTimelineEvents: !!processedTimeline?.playerTimeline?.events,
-        hasParticipants: !!data?.matchData?.info?.participants,
-        comparePlayerIsNull: comparePlayer === null
-      });
+      console.warn(
+        '⚠️ Early return: Missing required data for compare player',
+        {
+          hasProcessedTimelineEvents:
+            !!processedTimeline?.playerTimeline?.events,
+          hasParticipants: !!data?.matchData?.info?.participants,
+          comparePlayerIsNull: comparePlayer === null,
+        }
+      );
       console.groupEnd();
       return null;
     }
@@ -642,20 +656,27 @@ export default function MatchDetailsPage() {
       console.warn('⚠️ Early return: Compare player data not found', {
         comparePlayer,
         participantsLength: data.matchData.info.participants.length,
-        availableIndices: data.matchData.info.participants.map((_, index) => index)
+        availableIndices: data.matchData.info.participants.map(
+          (_, index) => index
+        ),
       });
       console.groupEnd();
       return null;
     }
 
-    console.log('✅ All data available for compare player, calling detectSupportItemCompletionFromRaw:', {
-      comparePlayer,
-      playerName: player.riotIdGameName || player.summonerName,
-      championName: player.championName,
-      participantId: comparePlayer + 1
-    });
+    console.log(
+      '✅ All data available for compare player, calling detectSupportItemCompletionFromRaw:',
+      {
+        comparePlayer,
+        playerName: player.riotIdGameName || player.summonerName,
+        championName: player.championName,
+        participantId: comparePlayer + 1,
+      }
+    );
 
-    console.log('✅ Using raw timeline processing for compare player - events properly filtered');
+    console.log(
+      '✅ Using raw timeline processing for compare player - events properly filtered'
+    );
 
     // Use raw timeline processing to properly filter events for compare player
     const result = detectSupportItemCompletionFromRaw(
@@ -666,7 +687,8 @@ export default function MatchDetailsPage() {
     console.log('📋 useMemo Result for compare player:', {
       comparePlayer,
       result,
-      hasCompletions: result && Object.values(result).some(time => time !== null)
+      hasCompletions:
+        result && Object.values(result).some((time) => time !== null),
     });
 
     console.groupEnd();
@@ -766,15 +788,18 @@ export default function MatchDetailsPage() {
 
   // Calculate support item completion times for selected player
   const supportItemCompletionTimes = useMemo(() => {
-    console.group('🎯 [SELECTED PLAYER USEMEMO] supportItemCompletionTimes calculation');
-    
+    console.group(
+      '🎯 [SELECTED PLAYER USEMEMO] supportItemCompletionTimes calculation'
+    );
+
     console.log('📥 useMemo Dependencies:', {
       processedTimelineExists: !!processedTimeline,
-      processedTimelineEventsLength: processedTimeline?.playerTimeline?.events?.length || 0,
+      processedTimelineEventsLength:
+        processedTimeline?.playerTimeline?.events?.length || 0,
       dataExists: !!data,
       participantsLength: data?.matchData?.info?.participants?.length || 0,
       selectedPlayer,
-      selectedPlayerType: typeof selectedPlayer
+      selectedPlayerType: typeof selectedPlayer,
     });
 
     if (
@@ -785,7 +810,7 @@ export default function MatchDetailsPage() {
       console.warn('⚠️ Early return: Missing required data', {
         hasProcessedTimelineEvents: !!processedTimeline?.playerTimeline?.events,
         hasParticipants: !!data?.matchData?.info?.participants,
-        selectedPlayerIsNull: selectedPlayer === null
+        selectedPlayerIsNull: selectedPlayer === null,
       });
       console.groupEnd();
       return null;
@@ -796,7 +821,9 @@ export default function MatchDetailsPage() {
       console.warn('⚠️ Early return: Selected player data not found', {
         selectedPlayer,
         participantsLength: data.matchData.info.participants.length,
-        availableIndices: data.matchData.info.participants.map((_, index) => index)
+        availableIndices: data.matchData.info.participants.map(
+          (_, index) => index
+        ),
       });
       console.groupEnd();
       return null;
@@ -804,25 +831,31 @@ export default function MatchDetailsPage() {
 
     console.log('✅ All data available, calling detectSupportItemCompletion:', {
       selectedPlayer,
-      playerName: selectedPlayerData.riotIdGameName || selectedPlayerData.summonerName,
+      playerName:
+        selectedPlayerData.riotIdGameName || selectedPlayerData.summonerName,
       championName: selectedPlayerData.championName,
       eventsLength: processedTimeline.playerTimeline.events.length,
-      playerDataKeys: Object.keys(selectedPlayerData)
+      playerDataKeys: Object.keys(selectedPlayerData),
     });
-    
+
     // Log the actual events to check their structure
-    console.log('📋 Sample Timeline Events for debugging:', 
-      processedTimeline.playerTimeline.events.slice(0, 10).map((event, idx) => ({
-        index: idx,
-        type: event.type,
-        itemId: event.itemId,
-        timestamp: event.timestamp,
-        isEvolution: event.isEvolution,
-        hasAllFields: !!(event.type && event.itemId && event.timestamp)
-      }))
+    console.log(
+      '📋 Sample Timeline Events for debugging:',
+      processedTimeline.playerTimeline.events
+        .slice(0, 10)
+        .map((event, idx) => ({
+          index: idx,
+          type: event.type,
+          itemId: event.itemId,
+          timestamp: event.timestamp,
+          isEvolution: event.isEvolution,
+          hasAllFields: !!(event.type && event.itemId && event.timestamp),
+        }))
     );
-    
-    console.log('✅ Using raw timeline processing for selected player - bypassing pre-processed events');
+
+    console.log(
+      '✅ Using raw timeline processing for selected player - bypassing pre-processed events'
+    );
 
     // Use raw timeline processing to avoid pre-filtering issues
     const result = detectSupportItemCompletionFromRaw(
@@ -833,7 +866,8 @@ export default function MatchDetailsPage() {
     console.log('📋 useMemo Result for selected player:', {
       selectedPlayer,
       result,
-      hasCompletions: result && Object.values(result).some(time => time !== null)
+      hasCompletions:
+        result && Object.values(result).some((time) => time !== null),
     });
 
     console.groupEnd();
@@ -905,7 +939,6 @@ export default function MatchDetailsPage() {
 
   const comparePlayerData =
     comparePlayer !== null ? matchData.info.participants[comparePlayer] : null;
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
@@ -1541,59 +1574,115 @@ export default function MatchDetailsPage() {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-white/60">Support Quest Completed</span>
-                          <span className={
-                            (() => {
+                          <span className="text-white/60">
+                            Support Quest Completed
+                          </span>
+                          <span
+                            className={(() => {
                               const questCompleted =
                                 supportItemCompletionTimes?.tier3 ??
                                 supportItemCompletionTimes?.tier2 ??
                                 supportItemCompletionTimes?.tier1 ??
                                 null;
-                              return questCompleted ? "text-green-400" : "text-white/60";
-                            })()
-                          }>
+                              return questCompleted
+                                ? 'text-green-400'
+                                : 'text-white/60';
+                            })()}
+                          >
                             {(() => {
                               const questCompleted =
                                 supportItemCompletionTimes?.tier3 ??
                                 supportItemCompletionTimes?.tier2 ??
                                 supportItemCompletionTimes?.tier1 ??
                                 null;
-                              return questCompleted ? formatMatchTime(questCompleted) : "—";
+                              return questCompleted
+                                ? formatMatchTime(questCompleted)
+                                : '—';
                             })()}
                           </span>
                         </div>
-                        
-                        {/* Debug: Show detailed support item progression */}
-                        {process.env.NODE_ENV === 'development' && supportItemCompletionTimes && (
-                          <div className="mt-2 space-y-1 rounded bg-black/20 p-2 text-xs">
-                            <div className="text-white/40">Debug: Support Item Detection</div>
-                            <div className="flex justify-between">
-                              <span className="text-white/60">Base (3865):</span>
-                              <span className={supportItemCompletionTimes.base ? "text-blue-400" : "text-white/30"}>
-                                {supportItemCompletionTimes.base ? formatMatchTime(supportItemCompletionTimes.base) : "Not found"}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-white/60">Tier 1 (3866):</span>
-                              <span className={supportItemCompletionTimes.tier1 ? "text-purple-400" : "text-white/30"}>
-                                {supportItemCompletionTimes.tier1 ? formatMatchTime(supportItemCompletionTimes.tier1) : "Not found"}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-white/60">Tier 2 (3867):</span>
-                              <span className={supportItemCompletionTimes.tier2 ? "text-yellow-400" : "text-white/30"}>
-                                {supportItemCompletionTimes.tier2 ? formatMatchTime(supportItemCompletionTimes.tier2) : "Not found"}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-white/60">Tier 3 (3869-3877):</span>
-                              <span className={supportItemCompletionTimes.tier3 ? "text-green-400" : "text-white/30"}>
-                                {supportItemCompletionTimes.tier3 ? formatMatchTime(supportItemCompletionTimes.tier3) : "Not found"}
-                              </span>
-                            </div>
-                          </div>
-                        )}
 
+                        {/* Debug: Show detailed support item progression */}
+                        {process.env.NODE_ENV === 'development' &&
+                          supportItemCompletionTimes && (
+                            <div className="mt-2 space-y-1 rounded bg-black/20 p-2 text-xs">
+                              <div className="text-white/40">
+                                Debug: Support Item Detection
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-white/60">
+                                  Base (3865):
+                                </span>
+                                <span
+                                  className={
+                                    supportItemCompletionTimes.base
+                                      ? 'text-blue-400'
+                                      : 'text-white/30'
+                                  }
+                                >
+                                  {supportItemCompletionTimes.base
+                                    ? formatMatchTime(
+                                        supportItemCompletionTimes.base
+                                      )
+                                    : 'Not found'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-white/60">
+                                  Tier 1 (3866):
+                                </span>
+                                <span
+                                  className={
+                                    supportItemCompletionTimes.tier1
+                                      ? 'text-purple-400'
+                                      : 'text-white/30'
+                                  }
+                                >
+                                  {supportItemCompletionTimes.tier1
+                                    ? formatMatchTime(
+                                        supportItemCompletionTimes.tier1
+                                      )
+                                    : 'Not found'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-white/60">
+                                  Tier 2 (3867):
+                                </span>
+                                <span
+                                  className={
+                                    supportItemCompletionTimes.tier2
+                                      ? 'text-yellow-400'
+                                      : 'text-white/30'
+                                  }
+                                >
+                                  {supportItemCompletionTimes.tier2
+                                    ? formatMatchTime(
+                                        supportItemCompletionTimes.tier2
+                                      )
+                                    : 'Not found'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-white/60">
+                                  Tier 3 (3869-3877):
+                                </span>
+                                <span
+                                  className={
+                                    supportItemCompletionTimes.tier3
+                                      ? 'text-green-400'
+                                      : 'text-white/30'
+                                  }
+                                >
+                                  {supportItemCompletionTimes.tier3
+                                    ? formatMatchTime(
+                                        supportItemCompletionTimes.tier3
+                                      )
+                                    : 'Not found'}
+                                </span>
+                              </div>
+                            </div>
+                          )}
 
                         <Separator className="my-2" />
                         <div className="flex justify-between">
@@ -1621,7 +1710,6 @@ export default function MatchDetailsPage() {
                           </span>
                         </div>
                         <Separator className="my-2" />
-
 
                         <div className="flex justify-between">
                           <span className="text-white/60">Time Dead</span>
@@ -2326,7 +2414,9 @@ export default function MatchDetailsPage() {
                                 supportItemCompletionTimes?.tier2 ??
                                 supportItemCompletionTimes?.tier1 ??
                                 null;
-                              return questSelected ? formatMatchTime(questSelected) : '—';
+                              return questSelected
+                                ? formatMatchTime(questSelected)
+                                : '—';
                             })(),
                             value2: (() => {
                               const questCompare =
@@ -2334,7 +2424,9 @@ export default function MatchDetailsPage() {
                                 compareSupportItemCompletionTimes?.tier2 ??
                                 compareSupportItemCompletionTimes?.tier1 ??
                                 null;
-                              return questCompare ? formatMatchTime(questCompare) : '—';
+                              return questCompare
+                                ? formatMatchTime(questCompare)
+                                : '—';
                             })(),
                             numValue1: (() => {
                               const questSelected =
@@ -2342,7 +2434,9 @@ export default function MatchDetailsPage() {
                                 supportItemCompletionTimes?.tier2 ??
                                 supportItemCompletionTimes?.tier1 ??
                                 null;
-                              return questSelected ? questSelected / 1000 : 999999; // Convert to seconds, use high number for no completion
+                              return questSelected
+                                ? questSelected / 1000
+                                : 999999; // Convert to seconds, use high number for no completion
                             })(),
                             numValue2: (() => {
                               const questCompare =
@@ -2350,7 +2444,9 @@ export default function MatchDetailsPage() {
                                 compareSupportItemCompletionTimes?.tier2 ??
                                 compareSupportItemCompletionTimes?.tier1 ??
                                 null;
-                              return questCompare ? questCompare / 1000 : 999999; // Convert to seconds, use high number for no completion
+                              return questCompare
+                                ? questCompare / 1000
+                                : 999999; // Convert to seconds, use high number for no completion
                             })(),
                             isReverse: true, // Earlier completion is better
                           },
@@ -2667,18 +2763,50 @@ export default function MatchDetailsPage() {
                                 </div>
                                 <div className="space-y-2">
                                   {importantEvents.map(
-                                    (event: any, eventIndex: number) => (
-                                      <TimelineEventItem
-                                        key={eventIndex}
-                                        event={event}
-                                        participants={
-                                          matchData.info.participants
-                                        }
-                                        participantPuuids={
-                                          matchData.metadata.participants
-                                        }
-                                      />
-                                    )
+                                    (event: any, eventIndex: number) => {
+                                      try {
+                                        return (
+                                          <TimelineEventItem
+                                            key={eventIndex}
+                                            event={event}
+                                            participants={
+                                              matchData.info.participants
+                                            }
+                                            participantPuuids={
+                                              matchData.metadata.participants
+                                            }
+                                          />
+                                        );
+                                      } catch (err) {
+                                        try {
+                                          // eslint-disable-next-line no-console
+                                          console.error(
+                                            '[MatchDetailsPage] Combat event render failed:',
+                                            {
+                                              error: String(err),
+                                              stack: (err as any)?.stack,
+                                              frameIndex,
+                                              eventIndex,
+                                              eventPreview: event
+                                                ? {
+                                                    type: event.type,
+                                                    ts: event.timestamp,
+                                                  }
+                                                : null,
+                                            }
+                                          );
+                                        } catch {}
+                                        return (
+                                          <div
+                                            key={`combat-fallback-${frameIndex}-${eventIndex}`}
+                                            className="rounded border border-red-500/20 bg-red-900/10 p-2 text-xs text-red-300"
+                                          >
+                                            Failed to render combat event #
+                                            {eventIndex}
+                                          </div>
+                                        );
+                                      }
+                                    }
                                   )}
                                 </div>
                               </div>

@@ -455,20 +455,47 @@ export function ItemTimelineDisplay({
             // Grouped display
             <div className="space-y-6">
               {processedEvents.map((group, index) => {
-                if (!group || !Array.isArray(group.events)) {
-                  console.warn(
-                    'Invalid group encountered in ItemTimelineDisplay:',
-                    group
+                try {
+                  if (!group || !Array.isArray(group.events)) {
+                    console.warn(
+                      'Invalid group encountered in ItemTimelineDisplay:',
+                      group
+                    );
+                    return null;
+                  }
+                  return (
+                    <TimelineEventGroupDisplay
+                      key={`${group.startTimestamp}-${index}`}
+                      group={group}
+                      config={config}
+                    />
                   );
-                  return null;
+                } catch (err) {
+                  try {
+                    console.error(
+                      '[ItemTimelineDisplay] Group render failed:',
+                      {
+                        error: String(err),
+                        stack: (err as any)?.stack,
+                        groupIndex: index,
+                        groupPreview: group
+                          ? {
+                              start: group.startTimestamp,
+                              count: group.events?.length,
+                            }
+                          : null,
+                      }
+                    );
+                  } catch {}
+                  return (
+                    <div
+                      key={`group-fallback-${index}`}
+                      className="rounded border border-red-500/20 bg-red-900/10 p-2 text-xs text-red-300"
+                    >
+                      Failed to render group #{index}
+                    </div>
+                  );
                 }
-                return (
-                  <TimelineEventGroupDisplay
-                    key={`${group.startTimestamp}-${index}`}
-                    group={group}
-                    config={config}
-                  />
-                );
               })}
             </div>
           ) : (
@@ -476,23 +503,50 @@ export function ItemTimelineDisplay({
             <div className="space-y-3">
               {Array.isArray(playerTimeline.events) &&
                 playerTimeline.events.map((event, index) => {
-                  if (
-                    !event ||
-                    typeof event.timestamp !== 'number' ||
-                    typeof event.itemId !== 'number' ||
-                    typeof event.type !== 'string'
-                  ) {
-                    console.warn('Invalid event data:', event);
-                    return null;
+                  try {
+                    if (
+                      !event ||
+                      typeof event.timestamp !== 'number' ||
+                      typeof event.itemId !== 'number' ||
+                      typeof event.type !== 'string'
+                    ) {
+                      console.warn('Invalid event data:', event);
+                      return null;
+                    }
+                    return (
+                      <ItemEventDisplay
+                        key={`${event.timestamp}-${event.itemId}-${index}`}
+                        event={event}
+                        config={config}
+                      />
+                    );
+                  } catch (err) {
+                    try {
+                      console.error(
+                        '[ItemTimelineDisplay] Event render failed:',
+                        {
+                          error: String(err),
+                          stack: (err as any)?.stack,
+                          eventIndex: index,
+                          eventPreview: event
+                            ? {
+                                type: (event as any).type,
+                                itemId: (event as any).itemId,
+                                ts: (event as any).timestamp,
+                              }
+                            : null,
+                        }
+                      );
+                    } catch {}
+                    return (
+                      <div
+                        key={`event-fallback-${index}`}
+                        className="rounded border border-red-500/20 bg-red-900/10 p-2 text-xs text-red-300"
+                      >
+                        Failed to render event #{index}
+                      </div>
+                    );
                   }
-
-                  return (
-                    <ItemEventDisplay
-                      key={`${event.timestamp}-${event.itemId}-${index}`}
-                      event={event}
-                      config={config}
-                    />
-                  );
                 })}
             </div>
           )}
