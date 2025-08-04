@@ -456,23 +456,77 @@ export function ItemTimelineDisplay({
                   console.warn('Invalid event data:', event);
                   return null;
                 }
-                // Guard against invalid element type for ItemEventDisplay
-                if (typeof ItemEventDisplay !== 'function') {
-                  console.error(
-                    'ItemEventDisplay is not a valid React component',
-                    {
-                      type: typeof ItemEventDisplay,
-                      value: ItemEventDisplay,
-                    }
-                  );
-                  return null;
-                }
+
+                // Render a safe inline fallback instead of ItemEventDisplay to avoid invalid element type
                 return (
-                  <ItemEventDisplay
+                  <div
                     key={`${event.timestamp}-${event.itemId}-${index}`}
-                    event={event}
-                    config={config}
-                  />
+                    className={cn(
+                      'flex items-start gap-3 rounded-lg border border-white/10 p-3',
+                      'bg-gradient-to-r from-black/10 to-black/5'
+                    )}
+                  >
+                    <div className="mt-0.5 flex-shrink-0">
+                      {event.type === 'ITEM_PURCHASED' ? (
+                        <ShoppingCart className="h-4 w-4 text-green-400" />
+                      ) : event.type === 'ITEM_SOLD' ? (
+                        <X className="h-4 w-4 text-yellow-400" />
+                      ) : event.type === 'ITEM_DESTROYED' ? (
+                        <Trash2 className="h-4 w-4 text-red-400" />
+                      ) : event.type === 'ITEM_UNDO' ? (
+                        <ArrowRight className="h-4 w-4 -rotate-180 transform text-gray-400" />
+                      ) : (
+                        <Package className="h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-1 items-center gap-2">
+                          {config.showItemIcons && (
+                            <ItemSlot itemId={event.itemId} size="sm" />
+                          )}
+                          <div className="flex flex-col">
+                            <span
+                              className={cn('font-medium', {
+                                'text-green-400':
+                                  event.type === 'ITEM_PURCHASED',
+                                'text-yellow-400': event.type === 'ITEM_SOLD',
+                                'text-red-400': event.type === 'ITEM_DESTROYED',
+                                'text-gray-400': event.type === 'ITEM_UNDO',
+                              })}
+                            >
+                              {event.type.replace(/_/g, ' ').toLowerCase()}
+                              {config.showItemNames && event.itemName && (
+                                <span className="ml-1 text-white">
+                                  {event.itemName}
+                                </span>
+                              )}
+                            </span>
+
+                            {event.isEvolution &&
+                              event.evolutionChain &&
+                              config.showEvolutionChains && (
+                                <div className="mt-1 flex items-center gap-2">
+                                  <Sparkles className="h-3 w-3 text-purple-400" />
+                                  <Badge className="bg-purple-500/20 text-xs text-purple-400">
+                                    {event.evolutionChain.chainName} (
+                                    {event.evolutionChain.stage.toUpperCase()})
+                                  </Badge>
+                                </div>
+                              )}
+                          </div>
+                        </div>
+
+                        {config.showTimestamps && (
+                          <div className="flex items-center gap-1 text-xs text-white/60">
+                            <Clock className="h-3 w-3" />
+                            {event.timeFormatted}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 );
               })}
             </div>

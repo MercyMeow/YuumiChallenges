@@ -551,6 +551,33 @@ export default function MatchDetailsPage() {
   const { processedTimeline, isProcessing, processingTime, processTimeline } =
     useTimelineProcessor();
 
+  // Debug logging for component lifecycle
+  useEffect(() => {
+    console.group('🚀 [MATCH PAGE DEBUG] Component mounted/matchId changed');
+    console.log('Match ID:', matchId);
+    console.log('Component state on mount:', {
+      loading,
+      error,
+      selectedPlayer,
+      comparePlayer,
+      activeTab,
+      activeTimelineView
+    });
+    console.groupEnd();
+  }, [matchId]); // Only log when matchId changes
+
+  // Debug logging for key state changes
+  useEffect(() => {
+    console.log('🔄 [MATCH PAGE DEBUG] Key state changed:', {
+      selectedPlayer,
+      comparePlayer,
+      dataExists: !!data,
+      processedTimelineExists: !!processedTimeline,
+      isProcessing,
+      processingTime: processingTime
+    });
+  }, [selectedPlayer, comparePlayer, data, processedTimeline, isProcessing, processingTime]);
+
   useEffect(() => {
     if (!matchId) return;
 
@@ -585,26 +612,72 @@ export default function MatchDetailsPage() {
 
   // Support quest completion times for compare player (mirror of selected player computation)
   const compareSupportItemCompletionTimes = useMemo(() => {
+    console.group('🔄 [COMPARE PLAYER USEMEMO] compareSupportItemCompletionTimes calculation');
+    
+    console.log('📥 useMemo Dependencies (Compare Player):', {
+      processedTimelineExists: !!processedTimeline,
+      processedTimelineEventsLength: processedTimeline?.playerTimeline?.events?.length || 0,
+      dataExists: !!data,
+      participantsLength: data?.matchData?.info?.participants?.length || 0,
+      comparePlayer,
+      comparePlayerType: typeof comparePlayer
+    });
+
     if (
       !processedTimeline?.playerTimeline?.events ||
       !data?.matchData?.info?.participants ||
       comparePlayer === null
     ) {
+      console.warn('⚠️ Early return: Missing required data for compare player', {
+        hasProcessedTimelineEvents: !!processedTimeline?.playerTimeline?.events,
+        hasParticipants: !!data?.matchData?.info?.participants,
+        comparePlayerIsNull: comparePlayer === null
+      });
+      console.groupEnd();
       return null;
     }
 
     const player = data.matchData.info.participants[comparePlayer];
     if (!player) {
+      console.warn('⚠️ Early return: Compare player data not found', {
+        comparePlayer,
+        participantsLength: data.matchData.info.participants.length,
+        availableIndices: data.matchData.info.participants.map((_, index) => index)
+      });
+      console.groupEnd();
       return null;
     }
+
+    console.log('✅ All data available for compare player, calling detectSupportItemCompletion:', {
+      comparePlayer,
+      playerName: player.riotIdGameName || player.summonerName,
+      championName: player.championName,
+      eventsLength: processedTimeline.playerTimeline.events.length,
+      playerDataKeys: Object.keys(player)
+    });
+
+    console.warn('⚠️ IMPORTANT NOTE: Using same timeline events as selected player - this may be incorrect!', {
+      selectedPlayerNote: 'Timeline processor runs per selected player',
+      comparePlayerNote: 'Compare player may need separate event processing',
+      eventsAreForPlayer: 'Events are currently for selected player, not compare player'
+    });
 
     // Reuse the same events; processor currently runs per selected player,
     // but detectSupportItemCompletion only needs events and the player's chain mapping.
     // If per-participant events segmentation is required later, adapt here.
-    return detectSupportItemCompletion(
+    const result = detectSupportItemCompletion(
       player,
       processedTimeline.playerTimeline.events
     );
+
+    console.log('📋 useMemo Result for compare player:', {
+      comparePlayer,
+      result,
+      hasCompletions: result && Object.values(result).some(time => time !== null)
+    });
+
+    console.groupEnd();
+    return result;
   }, [processedTimeline, data?.matchData?.info?.participants, comparePlayer]);
 
   const formatDuration = (seconds: number) => {
@@ -700,23 +773,63 @@ export default function MatchDetailsPage() {
 
   // Calculate support item completion times for selected player
   const supportItemCompletionTimes = useMemo(() => {
+    console.group('🎯 [SELECTED PLAYER USEMEMO] supportItemCompletionTimes calculation');
+    
+    console.log('📥 useMemo Dependencies:', {
+      processedTimelineExists: !!processedTimeline,
+      processedTimelineEventsLength: processedTimeline?.playerTimeline?.events?.length || 0,
+      dataExists: !!data,
+      participantsLength: data?.matchData?.info?.participants?.length || 0,
+      selectedPlayer,
+      selectedPlayerType: typeof selectedPlayer
+    });
+
     if (
       !processedTimeline?.playerTimeline?.events ||
       !data?.matchData?.info?.participants ||
       selectedPlayer === null
     ) {
+      console.warn('⚠️ Early return: Missing required data', {
+        hasProcessedTimelineEvents: !!processedTimeline?.playerTimeline?.events,
+        hasParticipants: !!data?.matchData?.info?.participants,
+        selectedPlayerIsNull: selectedPlayer === null
+      });
+      console.groupEnd();
       return null;
     }
 
     const selectedPlayerData = data.matchData.info.participants[selectedPlayer];
     if (!selectedPlayerData) {
+      console.warn('⚠️ Early return: Selected player data not found', {
+        selectedPlayer,
+        participantsLength: data.matchData.info.participants.length,
+        availableIndices: data.matchData.info.participants.map((_, index) => index)
+      });
+      console.groupEnd();
       return null;
     }
 
-    return detectSupportItemCompletion(
+    console.log('✅ All data available, calling detectSupportItemCompletion:', {
+      selectedPlayer,
+      playerName: selectedPlayerData.riotIdGameName || selectedPlayerData.summonerName,
+      championName: selectedPlayerData.championName,
+      eventsLength: processedTimeline.playerTimeline.events.length,
+      playerDataKeys: Object.keys(selectedPlayerData)
+    });
+
+    const result = detectSupportItemCompletion(
       selectedPlayerData,
       processedTimeline.playerTimeline.events
     );
+
+    console.log('📋 useMemo Result for selected player:', {
+      selectedPlayer,
+      result,
+      hasCompletions: result && Object.values(result).some(time => time !== null)
+    });
+
+    console.groupEnd();
+    return result;
   }, [processedTimeline, data?.matchData?.info?.participants, selectedPlayer]);
 
   if (loading) {
@@ -1417,6 +1530,28 @@ export default function MatchDetailsPage() {
                           <span className="text-white/60">Wards Killed</span>
                           <span className="text-white">
                             {selectedPlayerData.wardsKilled}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-white/60">Support Quest Completed</span>
+                          <span className={
+                            (() => {
+                              const questCompleted =
+                                supportItemCompletionTimes?.tier3 ??
+                                supportItemCompletionTimes?.tier2 ??
+                                supportItemCompletionTimes?.tier1 ??
+                                null;
+                              return questCompleted ? "text-green-400" : "text-white/60";
+                            })()
+                          }>
+                            {(() => {
+                              const questCompleted =
+                                supportItemCompletionTimes?.tier3 ??
+                                supportItemCompletionTimes?.tier2 ??
+                                supportItemCompletionTimes?.tier1 ??
+                                null;
+                              return questCompleted ? formatMatchTime(questCompleted) : "—";
+                            })()}
                           </span>
                         </div>
 

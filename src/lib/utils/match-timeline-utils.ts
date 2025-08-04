@@ -395,10 +395,29 @@ export function detectSupportItemCompletion(
   _playerData: any,
   timelineEvents: Array<{ itemId: number; timestamp: number; type: string }>
 ): Record<SupportItemTier, number | null> {
-  console.log('[DEBUG] detectSupportItemCompletion called with:', {
-    timelineEventsLength: timelineEvents?.length,
-    sampleEvents: timelineEvents?.slice(0, 5)
+  console.group('🔍 [SUPPORT QUEST DEBUG] detectSupportItemCompletion called');
+  
+  // 1. LOG INPUT PARAMETERS
+  console.log('📥 INPUT PARAMETERS:', {
+    playerDataExists: !!_playerData,
+    playerDataKeys: _playerData ? Object.keys(_playerData) : null,
+    timelineEventsLength: timelineEvents?.length || 0,
+    timelineEventsType: typeof timelineEvents,
+    isArray: Array.isArray(timelineEvents)
   });
+  
+  if (timelineEvents?.length > 0) {
+    console.log('📋 SAMPLE TIMELINE EVENTS (first 5):', 
+      timelineEvents.slice(0, 5).map((event, index) => ({
+        index,
+        type: event.type,
+        itemId: event.itemId,
+        timestamp: event.timestamp,
+        timeFormatted: formatMillisecondsToTime(event.timestamp),
+        hasRequiredFields: !!(event.type && event.itemId && event.timestamp)
+      }))
+    );
+  }
   
   const completionTimes: Record<SupportItemTier, number | null> = {
     base: null,
@@ -408,41 +427,204 @@ export function detectSupportItemCompletion(
   };
   
   if (!timelineEvents?.length) {
-    console.log('[DEBUG] No timeline events provided');
+    console.warn('⚠️ No timeline events provided - returning empty completion times');
+    console.groupEnd();
     return completionTimes;
   }
   
-  // Test with known support item IDs to verify detection works
-  console.log('[DEBUG] Testing support item detection:');
-  const testItems = [3850, 3851, 3853, 3854, 3855, 3857];
-  testItems.forEach(itemId => {
-    const completion = getSupportItemCompletion(itemId);
-    console.log(`[DEBUG] Item ${itemId}:`, completion);
+  // 2. LOG ITEM FILTERING - Check what item IDs are found
+  console.group('🔎 ITEM FILTERING ANALYSIS');
+  
+  const allEventTypes = [...new Set(timelineEvents.map(e => e.type))];
+  console.log('📊 ALL EVENT TYPES:', allEventTypes);
+  
+  const allItemIds = [...new Set(timelineEvents.map(e => e.itemId).filter(id => id != null))];
+  console.log('🏷️ ALL UNIQUE ITEM IDs:', allItemIds.sort((a, b) => a - b));
+  
+  const purchaseEvents = timelineEvents.filter(event => event.type === 'ITEM_PURCHASED');
+  console.log('🛒 PURCHASE EVENTS:', {
+    count: purchaseEvents.length,
+    itemIds: purchaseEvents.map(e => e.itemId).sort((a, b) => a - b)
   });
   
-  // Process timeline events to find support item purchases
-  const purchaseEvents = timelineEvents.filter(event => event.type === 'ITEM_PURCHASED');
-  console.log('[DEBUG] Found purchase events:', purchaseEvents.length);
-  console.log('[DEBUG] Purchase event item IDs:', purchaseEvents.map(e => e.itemId));
+  // Log events by type for debugging
+  const eventsByType = allEventTypes.reduce((acc, type) => {
+    acc[type] = timelineEvents.filter(e => e.type === type).length;
+    return acc;
+  }, {} as Record<string, number>);
+  console.log('📈 EVENTS BY TYPE:', eventsByType);
+  
+  console.groupEnd();
+  
+  // 3. LOG SUPPORT ITEM DETECTION
+  console.group('🛡️ SUPPORT ITEM DETECTION');
+  
+  // Test current World Atlas support items
+  console.log('🌍 TESTING CURRENT WORLD ATLAS ITEMS:');
+  const currentWorldAtlasItems = [3865, 3866, 3867, 3869, 3870, 3871, 3876, 3877];
+  currentWorldAtlasItems.forEach(itemId => {
+    const completion = getSupportItemCompletion(itemId);
+    const inTimeline = allItemIds.includes(itemId);
+    console.log(`  Item ${itemId} (${completion.chainName || 'Unknown'}):`, {
+      isSupportItem: completion.isSupportItem,
+      tier: completion.tier,
+      chainType: completion.chainType,
+      inTimeline: inTimeline,
+      ...(inTimeline && { 
+        timelineEvents: timelineEvents.filter(e => e.itemId === itemId).length 
+      })
+    });
+  });
+  
+  // Check which items in timeline are support items
+  const supportItemsInTimeline = allItemIds.filter(itemId => isSupportItem(itemId));
+  console.log('✅ SUPPORT ITEMS FOUND IN TIMELINE:', supportItemsInTimeline.map(itemId => {
+    const completion = getSupportItemCompletion(itemId);
+    return {
+      itemId,
+      tier: completion.tier,
+      chainName: completion.chainName,
+      chainType: completion.chainType,
+      eventCount: timelineEvents.filter(e => e.itemId === itemId).length
+    };
+  }));
+  
+  if (supportItemsInTimeline.length === 0) {
+    console.warn('⚠️ NO SUPPORT ITEMS FOUND IN TIMELINE');
+  }
+  
+  // Test if the support item lookup is working correctly
+  console.log('🔍 SUPPORT ITEM LOOKUP TEST:');
+  console.log('  SUPPORT_ITEM_LOOKUP size:', SUPPORT_ITEM_LOOKUP.size);
+  console.log('  Known support items:', Array.from(SUPPORT_ITEM_LOOKUP).sort((a, b) => a - b));
+  
+  // Test specific item from the match data (3871 - Zaz'Zak's Realmspike)
+  if (allItemIds.includes(3871)) {
+    console.log('🎯 SPECIFIC TEST - Item 3871 (Zaz\'Zak\'s Realmspike):');
+    const item3871Completion = getSupportItemCompletion(3871);
+    const item3871Events = timelineEvents.filter(e => e.itemId === 3871);
+    console.log('  Completion data:', item3871Completion);
+    console.log('  Timeline events:', item3871Events.map(e => ({
+      type: e.type,
+      timestamp: e.timestamp,
+      timeFormatted: formatMillisecondsToTime(e.timestamp)
+    })));
+  }
+  
+  console.groupEnd();
+  
+  // 4. LOG TIMELINE PROCESSING
+  console.group('⏱️ TIMELINE PROCESSING');
+  
+  console.log('🔄 PROCESSING PURCHASE EVENTS:', purchaseEvents.length);
+  
+  const processedEvents: Array<{
+    event: typeof purchaseEvents[0];
+    completion: SupportItemCompletion;
+    willRecord: boolean;
+    tierAlreadyRecorded: boolean;
+  }> = [];
   
   for (const event of purchaseEvents) {
     const completion = getSupportItemCompletion(event.itemId);
+    const tierAlreadyRecorded = completion.tier ? (completionTimes[completion.tier] !== null) : false;
+    const willRecord = Boolean(completion.isSupportItem && completion.tier && !tierAlreadyRecorded);
+    
+    processedEvents.push({
+      event,
+      completion,
+      willRecord,
+      tierAlreadyRecorded
+    });
+    
+    console.log(`  📦 Event ${event.itemId} at ${formatMillisecondsToTime(event.timestamp)}:`, {
+      isSupportItem: completion.isSupportItem,
+      tier: completion.tier,
+      chainName: completion.chainName,
+      tierAlreadyRecorded,
+      willRecord: willRecord ? '✅ WILL RECORD' : '❌ WILL NOT RECORD'
+    });
     
     if (completion.isSupportItem && completion.tier) {
-      console.log('[DEBUG] Found support item completion:', {
+      console.log('    🛡️ Support item details:', {
         itemId: event.itemId,
         tier: completion.tier,
-        timestamp: event.timestamp
+        chainType: completion.chainType,
+        isFinalEvolution: completion.isFinalEvolution,
+        completionPercentage: completion.completionPercentage,
+        timestamp: event.timestamp,
+        timeFormatted: formatMillisecondsToTime(event.timestamp)
       });
       
       // Only record the first completion of each tier
       if (completionTimes[completion.tier] === null) {
         completionTimes[completion.tier] = event.timestamp;
+        console.log(`    ✅ RECORDED ${completion.tier} completion at ${formatMillisecondsToTime(event.timestamp)}`);
+      } else {
+        console.log(`    ⏭️ SKIPPED - ${completion.tier} already recorded at ${formatMillisecondsToTime(completionTimes[completion.tier]!)}`);
       }
+    } else if (!completion.isSupportItem) {
+      console.log('    ❌ Not a support item');
+    } else if (!completion.tier) {
+      console.log('    ❌ No tier information');
     }
   }
   
-  console.log('[DEBUG] Final completion times:', completionTimes);
+  console.log('📊 PROCESSING SUMMARY:', {
+    totalPurchaseEvents: purchaseEvents.length,
+    supportItemEvents: processedEvents.filter(p => p.completion.isSupportItem).length,
+    recordedEvents: processedEvents.filter(p => p.willRecord).length,
+    skippedDuplicates: processedEvents.filter(p => p.completion.isSupportItem && p.tierAlreadyRecorded).length
+  });
+  
+  console.groupEnd();
+  
+  // 5. LOG FINAL RESULT
+  console.group('🎯 FINAL RESULTS');
+  
+  console.log('📋 COMPLETION TIMES:', completionTimes);
+  
+  const completedTiers = Object.entries(completionTimes)
+    .filter(([, timestamp]) => timestamp !== null)
+    .map(([tier, timestamp]) => ({
+      tier,
+      timestamp: timestamp!,
+      timeFormatted: formatMillisecondsToTime(timestamp!)
+    }));
+  
+  if (completedTiers.length > 0) {
+    console.log('✅ COMPLETED TIERS:');
+    completedTiers.forEach(({ tier, timestamp, timeFormatted }) => {
+      console.log(`  ${tier}: ${timeFormatted} (${timestamp}ms)`);
+    });
+  } else {
+    console.warn('⚠️ NO SUPPORT QUEST COMPLETIONS DETECTED');
+  }
+  
+  const uncompletedTiers = Object.entries(completionTimes)
+    .filter(([, timestamp]) => timestamp === null)
+    .map(([tier]) => tier);
+  
+  if (uncompletedTiers.length > 0) {
+    console.log('❌ UNCOMPLETED TIERS:', uncompletedTiers);
+  }
+  
+  // Log completion progression
+  const progression = completedTiers.sort((a, b) => a.timestamp - b.timestamp);
+  if (progression.length > 1) {
+    console.log('📈 PROGRESSION TIMELINE:');
+    progression.forEach((tier, index) => {
+      const nextTier = progression[index + 1];
+      const timeBetween = nextTier 
+        ? formatMillisecondsToTime(nextTier.timestamp - tier.timestamp)
+        : 'N/A';
+      console.log(`  ${index + 1}. ${tier.tier} at ${tier.timeFormatted} ${nextTier ? `(+${timeBetween} to next)` : '(final)'}`);
+    });
+  }
+  
+  console.groupEnd();
+  console.groupEnd();
+  
   return completionTimes;
 }
 

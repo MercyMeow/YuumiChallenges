@@ -124,11 +124,20 @@ export function filterEventsForParticipant(
     selectedPlayerId: participantId,
     riotParticipantId,
     totalEvents: events.length,
-    sampleParticipantIds: events.slice(0, 10).map(e => e.participantId)
+    sampleParticipantIds: events.slice(0, 10).map(e => e.participantId),
+    allParticipantIds: [...new Set(events.map(e => e.participantId))].sort()
   });
   
   const filtered = events.filter(event => event.participantId === riotParticipantId);
-  console.log('[DEBUG] Filtered events for participant:', filtered.length);
+  console.log('[DEBUG] Filtered events for participant:', {
+    filteredCount: filtered.length,
+    sampleFilteredEvents: filtered.slice(0, 5).map(e => ({
+      type: e.type,
+      itemId: e.itemId,
+      participantId: e.participantId,
+      timestamp: e.timestamp
+    }))
+  });
   
   return filtered;
 }
