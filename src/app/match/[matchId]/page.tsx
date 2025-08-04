@@ -628,7 +628,14 @@ export default function MatchDetailsPage() {
 
   // Effect to process item timeline for selected player using Web Worker
   useEffect(() => {
-    if (!data?.timelineData || selectedPlayer === null) {
+    // Ensure we have timeline frames before attempting to process
+    if (
+      !data?.timelineData ||
+      !data.timelineData.info ||
+      !Array.isArray(data.timelineData.info.frames) ||
+      data.timelineData.info.frames.length === 0 ||
+      selectedPlayer === null
+    ) {
       return;
     }
 
@@ -1584,118 +1591,726 @@ export default function MatchDetailsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-3 gap-4">
-                    {/* Player 1 */}
-                    <div className="text-right">
-                      <div className="mb-4 flex items-center justify-end gap-2">
-                        <span className="font-medium text-white">
-                          {selectedPlayerData.riotIdGameName}
-                        </span>
-                        <ChampionIcon
-                          championId={selectedPlayerData.championName}
-                          size="sm"
-                        />
+                  <div className="space-y-8">
+                    {/* Player Headers */}
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <span className="font-medium text-white">
+                            {selectedPlayerData.riotIdGameName}
+                          </span>
+                          <ChampionIcon
+                            championId={selectedPlayerData.championName}
+                            size="sm"
+                          />
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <h4 className="text-white/60">Player Comparison</h4>
+                      </div>
+                      <div className="text-left">
+                        <div className="flex items-center gap-2">
+                          <ChampionIcon
+                            championId={comparePlayerData.championName}
+                            size="sm"
+                          />
+                          <span className="font-medium text-white">
+                            {comparePlayerData.riotIdGameName}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Stat Names */}
-                    <div className="text-center">
-                      <h4 className="mb-4 text-white/60">Stat Comparison</h4>
-                    </div>
-
-                    {/* Player 2 */}
-                    <div className="text-left">
-                      <div className="mb-4 flex items-center gap-2">
-                        <ChampionIcon
-                          championId={comparePlayerData.championName}
-                          size="sm"
-                        />
-                        <span className="font-medium text-white">
-                          {comparePlayerData.riotIdGameName}
-                        </span>
+                    {/* Combat Stats Section */}
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div></div>
+                        <div className="text-center">
+                          <h4 className="flex items-center justify-center gap-2 text-sm font-semibold text-orange-400">
+                            <Swords className="h-4 w-4" />
+                            Combat
+                          </h4>
+                        </div>
+                        <div></div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        {[
+                          {
+                            label: 'KDA',
+                            value1: `${selectedPlayerData.kills}/${selectedPlayerData.deaths}/${selectedPlayerData.assists}`,
+                            value2: `${comparePlayerData.kills}/${comparePlayerData.deaths}/${comparePlayerData.assists}`,
+                            isNumeric: false,
+                          },
+                          {
+                            label: 'Total Damage Dealt',
+                            value1: formatNumber(
+                              selectedPlayerData.totalDamageDealt
+                            ),
+                            value2: formatNumber(
+                              comparePlayerData.totalDamageDealt
+                            ),
+                            numValue1: selectedPlayerData.totalDamageDealt,
+                            numValue2: comparePlayerData.totalDamageDealt,
+                          },
+                          {
+                            label: 'Damage to Champions',
+                            value1: formatNumber(
+                              selectedPlayerData.totalDamageDealtToChampions
+                            ),
+                            value2: formatNumber(
+                              comparePlayerData.totalDamageDealtToChampions
+                            ),
+                            numValue1:
+                              selectedPlayerData.totalDamageDealtToChampions,
+                            numValue2:
+                              comparePlayerData.totalDamageDealtToChampions,
+                          },
+                          {
+                            label: 'Physical Damage Dealt',
+                            value1: formatNumber(
+                              selectedPlayerData.physicalDamageDealt
+                            ),
+                            value2: formatNumber(
+                              comparePlayerData.physicalDamageDealt
+                            ),
+                            numValue1: selectedPlayerData.physicalDamageDealt,
+                            numValue2: comparePlayerData.physicalDamageDealt,
+                          },
+                          {
+                            label: 'Magic Damage Dealt',
+                            value1: formatNumber(
+                              selectedPlayerData.magicDamageDealt
+                            ),
+                            value2: formatNumber(
+                              comparePlayerData.magicDamageDealt
+                            ),
+                            numValue1: selectedPlayerData.magicDamageDealt,
+                            numValue2: comparePlayerData.magicDamageDealt,
+                          },
+                          {
+                            label: 'True Damage Dealt',
+                            value1: formatNumber(
+                              selectedPlayerData.trueDamageDealt
+                            ),
+                            value2: formatNumber(
+                              comparePlayerData.trueDamageDealt
+                            ),
+                            numValue1: selectedPlayerData.trueDamageDealt,
+                            numValue2: comparePlayerData.trueDamageDealt,
+                          },
+                          {
+                            label: 'Damage Taken',
+                            value1: formatNumber(
+                              selectedPlayerData.totalDamageTaken
+                            ),
+                            value2: formatNumber(
+                              comparePlayerData.totalDamageTaken
+                            ),
+                            numValue1: selectedPlayerData.totalDamageTaken,
+                            numValue2: comparePlayerData.totalDamageTaken,
+                          },
+                          {
+                            label: 'Damage Mitigated',
+                            value1: formatNumber(
+                              selectedPlayerData.damageSelfMitigated
+                            ),
+                            value2: formatNumber(
+                              comparePlayerData.damageSelfMitigated
+                            ),
+                            numValue1: selectedPlayerData.damageSelfMitigated,
+                            numValue2: comparePlayerData.damageSelfMitigated,
+                          },
+                          {
+                            label: 'Healing Done',
+                            value1: formatNumber(selectedPlayerData.totalHeal),
+                            value2: formatNumber(comparePlayerData.totalHeal),
+                            numValue1: selectedPlayerData.totalHeal,
+                            numValue2: comparePlayerData.totalHeal,
+                          },
+                          {
+                            label: 'CC Time Dealt',
+                            value1: `${selectedPlayerData.totalTimeCCDealt}s`,
+                            value2: `${comparePlayerData.totalTimeCCDealt}s`,
+                            numValue1: selectedPlayerData.totalTimeCCDealt,
+                            numValue2: comparePlayerData.totalTimeCCDealt,
+                          },
+                          {
+                            label: 'Damage to Objectives',
+                            value1: formatNumber(
+                              selectedPlayerData.damageDealtToObjectives ?? 0
+                            ),
+                            value2: formatNumber(
+                              comparePlayerData.damageDealtToObjectives ?? 0
+                            ),
+                            numValue1:
+                              selectedPlayerData.damageDealtToObjectives ?? 0,
+                            numValue2:
+                              comparePlayerData.damageDealtToObjectives ?? 0,
+                          },
+                          {
+                            label: 'Damage to Turrets',
+                            value1: formatNumber(
+                              selectedPlayerData.damageDealtToTurrets ?? 0
+                            ),
+                            value2: formatNumber(
+                              comparePlayerData.damageDealtToTurrets ?? 0
+                            ),
+                            numValue1:
+                              selectedPlayerData.damageDealtToTurrets ?? 0,
+                            numValue2:
+                              comparePlayerData.damageDealtToTurrets ?? 0,
+                          },
+                          {
+                            label: 'DPM',
+                            value1: Math.round(
+                              selectedPlayerData.challenges?.damagePerMinute ??
+                                selectedPlayerData.totalDamageDealtToChampions /
+                                  Math.max(1, matchData.info.gameDuration / 60)
+                            ).toString(),
+                            value2: Math.round(
+                              comparePlayerData.challenges?.damagePerMinute ??
+                                comparePlayerData.totalDamageDealtToChampions /
+                                  Math.max(1, matchData.info.gameDuration / 60)
+                            ).toString(),
+                            numValue1: Math.round(
+                              selectedPlayerData.challenges?.damagePerMinute ??
+                                selectedPlayerData.totalDamageDealtToChampions /
+                                  Math.max(1, matchData.info.gameDuration / 60)
+                            ),
+                            numValue2: Math.round(
+                              comparePlayerData.challenges?.damagePerMinute ??
+                                comparePlayerData.totalDamageDealtToChampions /
+                                  Math.max(1, matchData.info.gameDuration / 60)
+                            ),
+                          },
+                        ].map((stat, index) => (
+                          <React.Fragment key={index}>
+                            <div className="text-right">
+                              <span
+                                className={cn(
+                                  'font-medium',
+                                  stat.isNumeric === false ||
+                                    (stat.numValue1 ?? stat.value1) >
+                                      (stat.numValue2 ?? stat.value2)
+                                    ? 'text-green-400'
+                                    : 'text-white/60'
+                                )}
+                              >
+                                {stat.value1}
+                              </span>
+                            </div>
+                            <div className="text-center text-xs text-white/40">
+                              {stat.label}
+                            </div>
+                            <div className="text-left">
+                              <span
+                                className={cn(
+                                  'font-medium',
+                                  stat.isNumeric === false ||
+                                    (stat.numValue2 ?? stat.value2) >
+                                      (stat.numValue1 ?? stat.value1)
+                                    ? 'text-green-400'
+                                    : 'text-white/60'
+                                )}
+                              >
+                                {stat.value2}
+                              </span>
+                            </div>
+                          </React.Fragment>
+                        ))}
                       </div>
                     </div>
 
-                    {/* Comparison Rows */}
-                    {[
-                      {
-                        label: 'KDA',
-                        value1: `${selectedPlayerData.kills}/${selectedPlayerData.deaths}/${selectedPlayerData.assists}`,
-                        value2: `${comparePlayerData.kills}/${comparePlayerData.deaths}/${comparePlayerData.assists}`,
-                      },
-                      {
-                        label: 'Damage to Champions',
-                        value1: formatNumber(
-                          selectedPlayerData.totalDamageDealtToChampions
-                        ),
-                        value2: formatNumber(
-                          comparePlayerData.totalDamageDealtToChampions
-                        ),
-                      },
-                      {
-                        label: 'Gold Earned',
-                        value1: formatNumber(selectedPlayerData.goldEarned),
-                        value2: formatNumber(comparePlayerData.goldEarned),
-                      },
-                      {
-                        label: 'CS',
-                        value1:
-                          selectedPlayerData.totalMinionsKilled +
-                          selectedPlayerData.neutralMinionsKilled,
-                        value2:
-                          comparePlayerData.totalMinionsKilled +
-                          comparePlayerData.neutralMinionsKilled,
-                      },
-                      {
-                        label: 'Vision Score',
-                        value1: selectedPlayerData.visionScore,
-                        value2: comparePlayerData.visionScore,
-                      },
-                      {
-                        label: 'Damage Taken',
-                        value1: formatNumber(
-                          selectedPlayerData.totalDamageTaken
-                        ),
-                        value2: formatNumber(
-                          comparePlayerData.totalDamageTaken
-                        ),
-                      },
-                      {
-                        label: 'Healing Done',
-                        value1: formatNumber(selectedPlayerData.totalHeal),
-                        value2: formatNumber(comparePlayerData.totalHeal),
-                      },
-                    ].map((stat, index) => (
-                      <React.Fragment key={index}>
-                        <div className="text-right">
-                          <span
-                            className={cn(
-                              'font-medium',
-                              stat.value1 > stat.value2
-                                ? 'text-green-400'
-                                : 'text-white/60'
-                            )}
-                          >
-                            {stat.value1}
-                          </span>
+                    {/* Economy Stats Section */}
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div></div>
+                        <div className="text-center">
+                          <h4 className="flex items-center justify-center gap-2 text-sm font-semibold text-yellow-400">
+                            <Coins className="h-4 w-4" />
+                            Economy
+                          </h4>
                         </div>
-                        <div className="text-center text-sm text-white/40">
-                          {stat.label}
+                        <div></div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        {[
+                          {
+                            label: 'Gold Earned',
+                            value1: formatNumber(selectedPlayerData.goldEarned),
+                            value2: formatNumber(comparePlayerData.goldEarned),
+                            numValue1: selectedPlayerData.goldEarned,
+                            numValue2: comparePlayerData.goldEarned,
+                          },
+                          {
+                            label: 'Gold Spent',
+                            value1: formatNumber(selectedPlayerData.goldSpent),
+                            value2: formatNumber(comparePlayerData.goldSpent),
+                            numValue1: selectedPlayerData.goldSpent,
+                            numValue2: comparePlayerData.goldSpent,
+                          },
+                          {
+                            label: 'Gold/Min',
+                            value1: Math.round(
+                              selectedPlayerData.goldEarned /
+                                Math.max(1, matchData.info.gameDuration / 60)
+                            ).toString(),
+                            value2: Math.round(
+                              comparePlayerData.goldEarned /
+                                Math.max(1, matchData.info.gameDuration / 60)
+                            ).toString(),
+                            numValue1: Math.round(
+                              selectedPlayerData.goldEarned /
+                                Math.max(1, matchData.info.gameDuration / 60)
+                            ),
+                            numValue2: Math.round(
+                              comparePlayerData.goldEarned /
+                                Math.max(1, matchData.info.gameDuration / 60)
+                            ),
+                          },
+                          {
+                            label: 'CS',
+                            value1: (
+                              selectedPlayerData.totalMinionsKilled +
+                              selectedPlayerData.neutralMinionsKilled
+                            ).toString(),
+                            value2: (
+                              comparePlayerData.totalMinionsKilled +
+                              comparePlayerData.neutralMinionsKilled
+                            ).toString(),
+                            numValue1:
+                              selectedPlayerData.totalMinionsKilled +
+                              selectedPlayerData.neutralMinionsKilled,
+                            numValue2:
+                              comparePlayerData.totalMinionsKilled +
+                              comparePlayerData.neutralMinionsKilled,
+                          },
+                          {
+                            label: 'Minion Kills',
+                            value1:
+                              selectedPlayerData.totalMinionsKilled.toString(),
+                            value2:
+                              comparePlayerData.totalMinionsKilled.toString(),
+                            numValue1: selectedPlayerData.totalMinionsKilled,
+                            numValue2: comparePlayerData.totalMinionsKilled,
+                          },
+                          {
+                            label: 'Jungle CS',
+                            value1:
+                              selectedPlayerData.neutralMinionsKilled.toString(),
+                            value2:
+                              comparePlayerData.neutralMinionsKilled.toString(),
+                            numValue1: selectedPlayerData.neutralMinionsKilled,
+                            numValue2: comparePlayerData.neutralMinionsKilled,
+                          },
+                          {
+                            label: 'Enemy Jungle CS',
+                            value1:
+                              selectedPlayerData.totalEnemyJungleMinionsKilled.toString(),
+                            value2:
+                              comparePlayerData.totalEnemyJungleMinionsKilled.toString(),
+                            numValue1:
+                              selectedPlayerData.totalEnemyJungleMinionsKilled,
+                            numValue2:
+                              comparePlayerData.totalEnemyJungleMinionsKilled,
+                          },
+                          {
+                            label: 'CS/Min',
+                            value1: (
+                              (selectedPlayerData.totalMinionsKilled +
+                                selectedPlayerData.neutralMinionsKilled) /
+                              Math.max(1, matchData.info.gameDuration / 60)
+                            ).toFixed(1),
+                            value2: (
+                              (comparePlayerData.totalMinionsKilled +
+                                comparePlayerData.neutralMinionsKilled) /
+                              Math.max(1, matchData.info.gameDuration / 60)
+                            ).toFixed(1),
+                            numValue1:
+                              (selectedPlayerData.totalMinionsKilled +
+                                selectedPlayerData.neutralMinionsKilled) /
+                              Math.max(1, matchData.info.gameDuration / 60),
+                            numValue2:
+                              (comparePlayerData.totalMinionsKilled +
+                                comparePlayerData.neutralMinionsKilled) /
+                              Math.max(1, matchData.info.gameDuration / 60),
+                          },
+                          {
+                            label: 'Items Purchased',
+                            value1:
+                              selectedPlayerData.itemsPurchased.toString(),
+                            value2: comparePlayerData.itemsPurchased.toString(),
+                            numValue1: selectedPlayerData.itemsPurchased,
+                            numValue2: comparePlayerData.itemsPurchased,
+                          },
+                          {
+                            label: 'Consumables',
+                            value1:
+                              selectedPlayerData.consumablesPurchased.toString(),
+                            value2:
+                              comparePlayerData.consumablesPurchased.toString(),
+                            numValue1: selectedPlayerData.consumablesPurchased,
+                            numValue2: comparePlayerData.consumablesPurchased,
+                          },
+                        ].map((stat, index) => (
+                          <React.Fragment key={index}>
+                            <div className="text-right">
+                              <span
+                                className={cn(
+                                  'font-medium',
+                                  (stat.numValue1 ??
+                                    parseFloat(stat.value1.toString())) >
+                                    (stat.numValue2 ??
+                                      parseFloat(stat.value2.toString()))
+                                    ? 'text-green-400'
+                                    : 'text-white/60'
+                                )}
+                              >
+                                {stat.value1}
+                              </span>
+                            </div>
+                            <div className="text-center text-xs text-white/40">
+                              {stat.label}
+                            </div>
+                            <div className="text-left">
+                              <span
+                                className={cn(
+                                  'font-medium',
+                                  (stat.numValue2 ??
+                                    parseFloat(stat.value2.toString())) >
+                                    (stat.numValue1 ??
+                                      parseFloat(stat.value1.toString()))
+                                    ? 'text-green-400'
+                                    : 'text-white/60'
+                                )}
+                              >
+                                {stat.value2}
+                              </span>
+                            </div>
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Vision & Objectives Section */}
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div></div>
+                        <div className="text-center">
+                          <h4 className="flex items-center justify-center gap-2 text-sm font-semibold text-pink-400">
+                            <Eye className="h-4 w-4" />
+                            Vision & Objectives
+                          </h4>
                         </div>
-                        <div className="text-left">
-                          <span
-                            className={cn(
-                              'font-medium',
-                              stat.value2 > stat.value1
-                                ? 'text-green-400'
-                                : 'text-white/60'
-                            )}
-                          >
-                            {stat.value2}
-                          </span>
+                        <div></div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        {[
+                          {
+                            label: 'Vision Score',
+                            value1: selectedPlayerData.visionScore.toString(),
+                            value2: comparePlayerData.visionScore.toString(),
+                            numValue1: selectedPlayerData.visionScore,
+                            numValue2: comparePlayerData.visionScore,
+                          },
+                          {
+                            label: 'Vision Score/Min',
+                            value1: (
+                              selectedPlayerData.visionScore /
+                              Math.max(1, matchData.info.gameDuration / 60)
+                            ).toFixed(1),
+                            value2: (
+                              comparePlayerData.visionScore /
+                              Math.max(1, matchData.info.gameDuration / 60)
+                            ).toFixed(1),
+                            numValue1:
+                              selectedPlayerData.visionScore /
+                              Math.max(1, matchData.info.gameDuration / 60),
+                            numValue2:
+                              comparePlayerData.visionScore /
+                              Math.max(1, matchData.info.gameDuration / 60),
+                          },
+                          {
+                            label: 'Wards Placed',
+                            value1: selectedPlayerData.wardsPlaced.toString(),
+                            value2: comparePlayerData.wardsPlaced.toString(),
+                            numValue1: selectedPlayerData.wardsPlaced,
+                            numValue2: comparePlayerData.wardsPlaced,
+                          },
+                          {
+                            label: 'Control Wards',
+                            value1:
+                              selectedPlayerData.detectorWardsPlaced.toString(),
+                            value2:
+                              comparePlayerData.detectorWardsPlaced.toString(),
+                            numValue1: selectedPlayerData.detectorWardsPlaced,
+                            numValue2: comparePlayerData.detectorWardsPlaced,
+                          },
+                          {
+                            label: 'Wards Killed',
+                            value1: selectedPlayerData.wardsKilled.toString(),
+                            value2: comparePlayerData.wardsKilled.toString(),
+                            numValue1: selectedPlayerData.wardsKilled,
+                            numValue2: comparePlayerData.wardsKilled,
+                          },
+                          {
+                            label: 'Turret Kills',
+                            value1: selectedPlayerData.turretKills.toString(),
+                            value2: comparePlayerData.turretKills.toString(),
+                            numValue1: selectedPlayerData.turretKills,
+                            numValue2: comparePlayerData.turretKills,
+                          },
+                          {
+                            label: 'Inhibitor Kills',
+                            value1:
+                              selectedPlayerData.inhibitorKills.toString(),
+                            value2: comparePlayerData.inhibitorKills.toString(),
+                            numValue1: selectedPlayerData.inhibitorKills,
+                            numValue2: comparePlayerData.inhibitorKills,
+                          },
+                          {
+                            label: 'Baron Kills',
+                            value1: selectedPlayerData.baronKills.toString(),
+                            value2: comparePlayerData.baronKills.toString(),
+                            numValue1: selectedPlayerData.baronKills,
+                            numValue2: comparePlayerData.baronKills,
+                          },
+                          {
+                            label: 'Dragon Kills',
+                            value1: selectedPlayerData.dragonKills.toString(),
+                            value2: comparePlayerData.dragonKills.toString(),
+                            numValue1: selectedPlayerData.dragonKills,
+                            numValue2: comparePlayerData.dragonKills,
+                          },
+                          {
+                            label: 'Time Dead',
+                            value1: `${selectedPlayerData.totalTimeSpentDead}s`,
+                            value2: `${comparePlayerData.totalTimeSpentDead}s`,
+                            numValue1: selectedPlayerData.totalTimeSpentDead,
+                            numValue2: comparePlayerData.totalTimeSpentDead,
+                            isReverse: true, // Lower is better for time dead
+                          },
+                          {
+                            label: 'Longest Life',
+                            value1: `${selectedPlayerData.longestTimeSpentLiving}s`,
+                            value2: `${comparePlayerData.longestTimeSpentLiving}s`,
+                            numValue1:
+                              selectedPlayerData.longestTimeSpentLiving,
+                            numValue2: comparePlayerData.longestTimeSpentLiving,
+                          },
+                        ].map((stat, index) => (
+                          <React.Fragment key={index}>
+                            <div className="text-right">
+                              <span
+                                className={cn(
+                                  'font-medium',
+                                  stat.isReverse
+                                    ? (stat.numValue1 ??
+                                        parseFloat(stat.value1.toString())) <
+                                      (stat.numValue2 ??
+                                        parseFloat(stat.value2.toString()))
+                                      ? 'text-green-400'
+                                      : 'text-white/60'
+                                    : (stat.numValue1 ??
+                                          parseFloat(stat.value1.toString())) >
+                                        (stat.numValue2 ??
+                                          parseFloat(stat.value2.toString()))
+                                      ? 'text-green-400'
+                                      : 'text-white/60'
+                                )}
+                              >
+                                {stat.value1}
+                              </span>
+                            </div>
+                            <div className="text-center text-xs text-white/40">
+                              {stat.label}
+                            </div>
+                            <div className="text-left">
+                              <span
+                                className={cn(
+                                  'font-medium',
+                                  stat.isReverse
+                                    ? (stat.numValue2 ??
+                                        parseFloat(stat.value2.toString())) <
+                                      (stat.numValue1 ??
+                                        parseFloat(stat.value1.toString()))
+                                      ? 'text-green-400'
+                                      : 'text-white/60'
+                                    : (stat.numValue2 ??
+                                          parseFloat(stat.value2.toString())) >
+                                        (stat.numValue1 ??
+                                          parseFloat(stat.value1.toString()))
+                                      ? 'text-green-400'
+                                      : 'text-white/60'
+                                )}
+                              >
+                                {stat.value2}
+                              </span>
+                            </div>
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Achievements Section */}
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div></div>
+                        <div className="text-center">
+                          <h4 className="flex items-center justify-center gap-2 text-sm font-semibold text-purple-400">
+                            <Crown className="h-4 w-4" />
+                            Achievements
+                          </h4>
                         </div>
-                      </React.Fragment>
-                    ))}
+                        <div></div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        {[
+                          {
+                            label: 'Penta Kills',
+                            value1: selectedPlayerData.pentaKills.toString(),
+                            value2: comparePlayerData.pentaKills.toString(),
+                            numValue1: selectedPlayerData.pentaKills,
+                            numValue2: comparePlayerData.pentaKills,
+                          },
+                          {
+                            label: 'Quadra Kills',
+                            value1: selectedPlayerData.quadraKills.toString(),
+                            value2: comparePlayerData.quadraKills.toString(),
+                            numValue1: selectedPlayerData.quadraKills,
+                            numValue2: comparePlayerData.quadraKills,
+                          },
+                          {
+                            label: 'Triple Kills',
+                            value1: selectedPlayerData.tripleKills.toString(),
+                            value2: comparePlayerData.tripleKills.toString(),
+                            numValue1: selectedPlayerData.tripleKills,
+                            numValue2: comparePlayerData.tripleKills,
+                          },
+                          {
+                            label: 'Double Kills',
+                            value1: selectedPlayerData.doubleKills.toString(),
+                            value2: comparePlayerData.doubleKills.toString(),
+                            numValue1: selectedPlayerData.doubleKills,
+                            numValue2: comparePlayerData.doubleKills,
+                          },
+                          {
+                            label: 'Killing Spree',
+                            value1:
+                              selectedPlayerData.largestKillingSpree.toString(),
+                            value2:
+                              comparePlayerData.largestKillingSpree.toString(),
+                            numValue1: selectedPlayerData.largestKillingSpree,
+                            numValue2: comparePlayerData.largestKillingSpree,
+                          },
+                          {
+                            label: 'Largest Crit',
+                            value1:
+                              selectedPlayerData.largestCriticalStrike.toString(),
+                            value2:
+                              comparePlayerData.largestCriticalStrike.toString(),
+                            numValue1: selectedPlayerData.largestCriticalStrike,
+                            numValue2: comparePlayerData.largestCriticalStrike,
+                          },
+                          {
+                            label: 'Summoner 1 Casts',
+                            value1:
+                              selectedPlayerData.summoner1Casts.toString(),
+                            value2: comparePlayerData.summoner1Casts.toString(),
+                            numValue1: selectedPlayerData.summoner1Casts,
+                            numValue2: comparePlayerData.summoner1Casts,
+                          },
+                          {
+                            label: 'Summoner 2 Casts',
+                            value1:
+                              selectedPlayerData.summoner2Casts.toString(),
+                            value2: comparePlayerData.summoner2Casts.toString(),
+                            numValue1: selectedPlayerData.summoner2Casts,
+                            numValue2: comparePlayerData.summoner2Casts,
+                          },
+                          {
+                            label: 'Q Casts',
+                            value1: (
+                              selectedPlayerData.spell1Casts ?? 0
+                            ).toString(),
+                            value2: (
+                              comparePlayerData.spell1Casts ?? 0
+                            ).toString(),
+                            numValue1: selectedPlayerData.spell1Casts ?? 0,
+                            numValue2: comparePlayerData.spell1Casts ?? 0,
+                          },
+                          {
+                            label: 'W Casts',
+                            value1: (
+                              selectedPlayerData.spell2Casts ?? 0
+                            ).toString(),
+                            value2: (
+                              comparePlayerData.spell2Casts ?? 0
+                            ).toString(),
+                            numValue1: selectedPlayerData.spell2Casts ?? 0,
+                            numValue2: comparePlayerData.spell2Casts ?? 0,
+                          },
+                          {
+                            label: 'E Casts',
+                            value1: (
+                              selectedPlayerData.spell3Casts ?? 0
+                            ).toString(),
+                            value2: (
+                              comparePlayerData.spell3Casts ?? 0
+                            ).toString(),
+                            numValue1: selectedPlayerData.spell3Casts ?? 0,
+                            numValue2: comparePlayerData.spell3Casts ?? 0,
+                          },
+                          {
+                            label: 'R Casts',
+                            value1: (
+                              selectedPlayerData.spell4Casts ?? 0
+                            ).toString(),
+                            value2: (
+                              comparePlayerData.spell4Casts ?? 0
+                            ).toString(),
+                            numValue1: selectedPlayerData.spell4Casts ?? 0,
+                            numValue2: comparePlayerData.spell4Casts ?? 0,
+                          },
+                        ].map((stat, index) => (
+                          <React.Fragment key={index}>
+                            <div className="text-right">
+                              <span
+                                className={cn(
+                                  'font-medium',
+                                  (stat.numValue1 ??
+                                    parseFloat(stat.value1.toString())) >
+                                    (stat.numValue2 ??
+                                      parseFloat(stat.value2.toString()))
+                                    ? 'text-green-400'
+                                    : 'text-white/60'
+                                )}
+                              >
+                                {stat.value1}
+                              </span>
+                            </div>
+                            <div className="text-center text-xs text-white/40">
+                              {stat.label}
+                            </div>
+                            <div className="text-left">
+                              <span
+                                className={cn(
+                                  'font-medium',
+                                  (stat.numValue2 ??
+                                    parseFloat(stat.value2.toString())) >
+                                    (stat.numValue1 ??
+                                      parseFloat(stat.value1.toString()))
+                                    ? 'text-green-400'
+                                    : 'text-white/60'
+                                )}
+                              >
+                                {stat.value2}
+                              </span>
+                            </div>
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

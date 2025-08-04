@@ -536,79 +536,66 @@ export function RuneTreeDisplay({
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   void sanitizeRuneHtml;
 
+  // Redesigned layout:
+  // - Two-column card: left = Primary, right = Secondary
+  // - Each tree shows header badge, keystone prominent, minor runes grouped per row
+  // - Stat shards as compact pill row with labels
   return (
-    <div className={cn('space-y-6', className)}>
-      {/* Primary Tree */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          {primaryTree && (
-            <RuneTreeIcon treeId={primaryTree.id} size="sm" showName />
-          )}
-          <span className="text-sm font-medium text-purple-400">
-            Primary Tree
-          </span>
-        </div>
-
-        <div className="grid grid-cols-4 gap-3">
-          {primaryStyle?.selections.map((selection, index) => (
-            <div key={index} className="space-y-2">
-              <RuneIcon
-                runeId={selection.perk}
-                size={index === 0 ? 'lg' : 'md'}
-                variant={index === 0 ? 'keystone' : 'normal'}
-              />
-
-              {/* Show stat values if they exist */}
-              {(selection.var1 > 0 ||
-                selection.var2 > 0 ||
-                selection.var3 > 0) && (
-                <div className="space-y-1 text-center text-xs">
-                  {selection.var1 > 0 && (
-                    <div className="text-green-400">+{selection.var1}</div>
-                  )}
-                  {selection.var2 > 0 && (
-                    <div className="text-blue-400">+{selection.var2}</div>
-                  )}
-                  {selection.var3 > 0 && (
-                    <div className="text-purple-400">+{selection.var3}</div>
-                  )}
-                </div>
+    <div className={cn('grid grid-cols-1 gap-6 lg:grid-cols-3', className)}>
+      {/* Primary and Secondary Column Container */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:col-span-2">
+        {/* Primary */}
+        <div className="rounded-lg border border-purple-500/20 bg-black/20 p-4">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {primaryTree && (
+                <RuneTreeIcon treeId={primaryTree.id} size="sm" showName />
               )}
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Secondary Tree */}
-      {secondaryStyle && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            {secondaryTree && (
-              <RuneTreeIcon treeId={secondaryTree.id} size="sm" showName />
-            )}
-            <span className="text-sm font-medium text-blue-400">
-              Secondary Tree
+            <span className="rounded-md border border-purple-500/30 bg-purple-500/10 px-2 py-0.5 text-xs text-purple-300">
+              Primary
             </span>
           </div>
 
-          <div className="flex gap-3">
-            {secondaryStyle.selections.map((selection, index) => (
-              <div key={index} className="space-y-2">
-                <RuneIcon runeId={selection.perk} size="md" />
+          {/* Keystone row */}
+          <div className="mb-4">
+            {primaryStyle?.selections?.[0] && (
+              <div className="flex items-center gap-3">
+                <RuneIcon
+                  runeId={primaryStyle.selections[0].perk}
+                  size="xl"
+                  variant="keystone"
+                  className="shrink-0"
+                />
+                <div className="text-xs text-purple-300">Keystone</div>
+              </div>
+            )}
+          </div>
 
-                {/* Show stat values if they exist */}
+          {/* Minor runes grid (3 remaining selections) */}
+          <div className="grid grid-cols-3 gap-3">
+            {primaryStyle?.selections.slice(1).map((selection, idx) => (
+              <div
+                key={idx}
+                className="flex flex-col items-center gap-1 rounded-md border border-white/5 bg-white/5 p-2"
+              >
+                <RuneIcon runeId={selection.perk} size="md" />
                 {(selection.var1 > 0 ||
                   selection.var2 > 0 ||
                   selection.var3 > 0) && (
-                  <div className="space-y-1 text-center text-xs">
+                  <div className="grid grid-cols-3 gap-0.5 text-[10px] leading-none">
                     {selection.var1 > 0 && (
-                      <div className="text-green-400">+{selection.var1}</div>
+                      <span className="text-accessible-green">
+                        +{selection.var1}
+                      </span>
                     )}
                     {selection.var2 > 0 && (
-                      <div className="text-blue-400">+{selection.var2}</div>
+                      <span className="text-accessible-blue">
+                        +{selection.var2}
+                      </span>
                     )}
                     {selection.var3 > 0 && (
-                      <div className="text-purple-400">+{selection.var3}</div>
+                      <span className="text-purple-300">+{selection.var3}</span>
                     )}
                   </div>
                 )}
@@ -616,23 +603,95 @@ export function RuneTreeDisplay({
             ))}
           </div>
         </div>
-      )}
 
-      {/* Stat Shards */}
-      <div className="space-y-3">
-        <span className="text-sm font-medium text-yellow-400">Stat Shards</span>
-        <div className="flex justify-center gap-4">
-          <div className="space-y-2 text-center">
-            <StatShardIcon statShardId={perks.statPerks.offense} size="md" />
-            <div className="text-xs text-orange-400">Offense</div>
+        {/* Secondary */}
+        <div className="rounded-lg border border-blue-500/20 bg-black/20 p-4">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {secondaryTree && (
+                <RuneTreeIcon treeId={secondaryTree.id} size="sm" showName />
+              )}
+            </div>
+            <span className="rounded-md border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-xs text-blue-300">
+              Secondary
+            </span>
           </div>
-          <div className="space-y-2 text-center">
-            <StatShardIcon statShardId={perks.statPerks.flex} size="md" />
-            <div className="text-xs text-purple-400">Flex</div>
+
+          {/* Secondary runes (2 picks) */}
+          <div className="grid grid-cols-2 gap-3">
+            {secondaryStyle?.selections.map((selection, index) => (
+              <div
+                key={index}
+                className="flex flex-col items-center gap-1 rounded-md border border-white/5 bg-white/5 p-2"
+              >
+                <RuneIcon runeId={selection.perk} size="md" />
+                {(selection.var1 > 0 ||
+                  selection.var2 > 0 ||
+                  selection.var3 > 0) && (
+                  <div className="grid grid-cols-3 gap-0.5 text-[10px] leading-none">
+                    {selection.var1 > 0 && (
+                      <span className="text-accessible-green">
+                        +{selection.var1}
+                      </span>
+                    )}
+                    {selection.var2 > 0 && (
+                      <span className="text-accessible-blue">
+                        +{selection.var2}
+                      </span>
+                    )}
+                    {selection.var3 > 0 && (
+                      <span className="text-purple-300">+{selection.var3}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-          <div className="space-y-2 text-center">
-            <StatShardIcon statShardId={perks.statPerks.defense} size="md" />
-            <div className="text-xs text-green-400">Defense</div>
+        </div>
+      </div>
+
+      {/* Stat shards side panel */}
+      <div className="rounded-lg border border-yellow-500/20 bg-black/20 p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-sm font-medium text-yellow-300">
+            Stat Shards
+          </span>
+          <span className="text-xxs rounded-md border border-yellow-500/30 bg-yellow-500/10 px-2 py-0.5 text-yellow-300">
+            3 Picks
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <StatShardIcon statShardId={perks.statPerks.offense} size="lg" />
+            <div className="leading-tight">
+              <div className="text-xs text-orange-300">Offense</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <StatShardIcon statShardId={perks.statPerks.flex} size="lg" />
+            <div className="leading-tight">
+              <div className="text-xs text-purple-300">Flex</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <StatShardIcon statShardId={perks.statPerks.defense} size="lg" />
+            <div className="leading-tight">
+              <div className="text-xs text-green-300">Defense</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="text-xxs mt-4 grid grid-cols-3 gap-2 text-white/60">
+          <div className="rounded border border-orange-500/20 bg-orange-500/5 p-2 text-center">
+            Damage
+          </div>
+          <div className="rounded border border-purple-500/20 bg-purple-500/5 p-2 text-center">
+            Adaptive
+          </div>
+          <div className="rounded border border-green-500/20 bg-green-500/5 p-2 text-center">
+            Defense
           </div>
         </div>
       </div>
