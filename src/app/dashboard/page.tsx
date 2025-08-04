@@ -6,8 +6,8 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { 
   ChallengesCard, 
   LeagueProfileCard
-} from '@/components/dashboard/dashboard-cards';
-import { EnhancedMatchHistoryDisplay } from '@/components/match-history/enhanced-match-history-display';
+} from '@/components/dashboard/dashboard-cards-minimal';
+// import { EnhancedMatchHistoryDisplay } from '@/components/match-history/enhanced-match-history-display';
 import { Badge } from '@/components/ui/badge';
 import { RefreshStatus } from '@/lib/types';
 import { Sparkles, Activity, Users, Loader2 } from 'lucide-react';
@@ -38,7 +38,7 @@ export default function Dashboard() {
   const [summonerData, setSummonerData] = useState<SummonerData | null>(null);
   const [refreshStatus, setRefreshStatus] = useState<RefreshStatus | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [loadingSummoner, setLoadingSummoner] = useState(true);
+  // const [loadingSummoner, setLoadingSummoner] = useState(true);
 
 
   const fetchRefreshStatus = async () => {
@@ -57,11 +57,11 @@ export default function Dashboard() {
     }
   };
 
-  const fetchSummonerData = async (isInitialLoad = true) => {
+  const fetchSummonerData = async (_isInitialLoad = true) => {
     try {
-      if (isInitialLoad) {
-        setLoadingSummoner(true);
-      }
+      // if (isInitialLoad) {
+      //   setLoadingSummoner(true);
+      // }
       
       const response = await fetch('/api/summoners');
       if (response.ok) {
@@ -83,9 +83,9 @@ export default function Dashboard() {
       setSummonerData({ summoner: null, stats: null });
     } finally {
       // Always set loading to false when we're done
-      if (isInitialLoad) {
-        setLoadingSummoner(false);
-      }
+      // if (isInitialLoad) {
+      //   setLoadingSummoner(false);
+      // }
     }
   };
 
@@ -115,39 +115,40 @@ export default function Dashboard() {
     }
   };
 
-  const handleManualRefresh = async () => {
-    if (!refreshStatus?.can_manual_refresh || isRefreshing) {
-      return;
-    }
-    
-    try {
-      setIsRefreshing(true);
-      
-      const response = await fetch('/api/summoners/refresh', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ manual: true }),
-      });
-      
-      const result = await response.json();
-      
-      if (response.ok) {
-        if (result.success || result.data?.partial_success) {
-          // Refresh all data after successful manual refresh
-          await fetchSummonerData(false);
-          await fetchRefreshStatus(); // Update refresh status
-        } else {
-          console.error('Refresh failed:', result.message);
-        }
-      } else {
-        console.error('Refresh API error:', response.status, result);
-      }
-    } catch (error) {
-      console.error('Error during manual refresh:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
+  // Temporarily commented out for debugging
+  // const handleManualRefresh = async () => {
+  //   if (!refreshStatus?.can_manual_refresh || isRefreshing) {
+  //     return;
+  //   }
+  //   
+  //   try {
+  //     setIsRefreshing(true);
+  //     
+  //     const response = await fetch('/api/summoners/refresh', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ manual: true }),
+  //     });
+  //     
+  //     const result = await response.json();
+  //     
+  //     if (response.ok) {
+  //       if (result.success || result.data?.partial_success) {
+  //         // Refresh all data after successful manual refresh
+  //         await fetchSummonerData(false);
+  //         await fetchRefreshStatus(); // Update refresh status
+  //       } else {
+  //         console.error('Refresh failed:', result.message);
+  //       }
+  //     } else {
+  //       console.error('Refresh API error:', response.status, result);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error during manual refresh:', error);
+  //   } finally {
+  //     setIsRefreshing(false);
+  //   }
+  // };
 
 
   // Initial data loading - removed function dependencies to prevent infinite loop
@@ -302,27 +303,12 @@ export default function Dashboard() {
           
           {/* Top Row - Most Important Cards */}
           <div className="grid gap-6 md:grid-cols-2">
-            <LeagueProfileCard 
-              summonerData={summonerData}
-              isLoading={loadingSummoner}
-              refreshStatus={refreshStatus}
-              isRefreshing={isRefreshing}
-              onRefresh={handleManualRefresh}
-              onAccountChange={async () => {
-                // Refresh summoner data when account linking succeeds
-                console.log('🔄 DEBUG - Account linking completed, refreshing dashboard');
-                try {
-                  await fetchSummonerData(false); // Don't show loading spinner for refresh
-                  console.log('✅ DEBUG - Dashboard refresh completed successfully');
-                } catch (error) {
-                  console.error('❌ ERROR - Dashboard refresh failed:', error);
-                }
-              }}
-            />
+            <LeagueProfileCard />
             <ChallengesCard />
           </div>
           
           {/* Enhanced Match History Display */}
+          {/* Temporarily commented out to debug circular dependency
           {summonerData?.summoner && (
             <EnhancedMatchHistoryDisplay
               summonerId={summonerData.summoner.puuid}
@@ -331,6 +317,7 @@ export default function Dashboard() {
               isRefreshing={isRefreshing}
             />
           )}
+          */}
         </section>
       </main>
     </DashboardLayout>

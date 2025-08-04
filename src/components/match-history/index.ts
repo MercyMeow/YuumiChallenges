@@ -10,4 +10,4 @@ export { TeamSection, TeamsComparison } from './team-section';
 export { PlayerRow, PlayersList } from './player-row';
 export { ItemSlot, ItemSlots, TrinketSlot } from './item-slots';
 export { SummonerSpells, SummonerSpell } from './summoner-spells';
-export { TimelineEventItem } from './timeline-event-item';
+// NOTE: TimelineEventItem and SimpleItemTimeline removed from barrel export to prevent circular dependencies
