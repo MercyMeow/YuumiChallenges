@@ -23,9 +23,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { 
-  isFinalSupportItemEvolution
-} from '@/lib/utils/match-timeline-utils';
+import { isFinalSupportItemEvolution } from '@/lib/utils/match-timeline-utils';
 import { SUPPORT_EVOLUTIONS } from '@/lib/types/item-timeline-new';
 
 // Component prop interfaces
@@ -49,7 +47,11 @@ interface PlayerTimeline {
 }
 
 interface ItemEvent {
-  readonly type: 'ITEM_PURCHASED' | 'ITEM_SOLD' | 'ITEM_DESTROYED' | 'ITEM_UNDO';
+  readonly type:
+    | 'ITEM_PURCHASED'
+    | 'ITEM_SOLD'
+    | 'ITEM_DESTROYED'
+    | 'ITEM_UNDO';
   readonly timestamp: number;
   readonly timeFormatted: string;
   readonly itemId: number;
@@ -73,71 +75,66 @@ interface GroupedEvents {
 }
 
 // Support Quest Detection
-const detectSupportQuestCompletions = (events: readonly ItemEvent[]): SupportQuestCompletion[] => {
+const detectSupportQuestCompletions = (
+  events: readonly ItemEvent[]
+): SupportQuestCompletion[] => {
   const completions: SupportQuestCompletion[] = [];
   const seenTiers = new Set<string>();
-  
+
   // Process events chronologically to find first completion of each tier
   const sortedEvents = [...events].sort((a, b) => a.timestamp - b.timestamp);
-  
+
   for (const event of sortedEvents) {
-    if (event.type === 'ITEM_PURCHASED' && event.isEvolution && event.evolutionStage) {
+    if (
+      event.type === 'ITEM_PURCHASED' &&
+      event.isEvolution &&
+      event.evolutionStage
+    ) {
       const tierKey = event.evolutionStage;
-      
+
       if (!seenTiers.has(tierKey)) {
         seenTiers.add(tierKey);
         const evolution = SUPPORT_EVOLUTIONS[event.itemId];
-        
+
         completions.push({
           tier: event.evolutionStage,
           timestamp: event.timestamp,
           timeFormatted: event.timeFormatted,
           itemId: event.itemId,
           itemName: evolution?.name || `Item ${event.itemId}`,
-          isQuestComplete: event.evolutionStage === 'tier3'
+          isQuestComplete: event.evolutionStage === 'tier3',
         });
       }
     }
   }
-  
+
   return completions.sort((a, b) => a.timestamp - b.timestamp);
 };
 
-// Enhanced evolution detection for destruction->purchase sequences
+
+/**
+ * Detect evolution chains in timeline events
+ */
 const detectEvolutionChains = (events: readonly ItemEvent[]): Map<number, ItemEvent[]> => {
-  const evolutionChains = new Map<number, ItemEvent[]>();
-  const sortedEvents = [...events].sort((a, b) => a.timestamp - b.timestamp);
+  const chains = new Map<number, ItemEvent[]>();
   
-  for (let i = 0; i < sortedEvents.length - 1; i++) {
-    const currentEvent = sortedEvents[i];
-    const nextEvent = sortedEvents[i + 1];
-    
-    // Look for destruction followed by purchase within 1 second (evolution pattern)
-    if (
-      currentEvent &&
-      nextEvent &&
-      currentEvent.type === 'ITEM_DESTROYED' &&
-      nextEvent.type === 'ITEM_PURCHASED' &&
-      nextEvent.timestamp - currentEvent.timestamp <= 1000 &&
-      currentEvent.isEvolution &&
-      nextEvent.isEvolution
-    ) {
-      // This is an evolution chain
-      const chainKey = Math.floor(currentEvent.timestamp / 1000); // Group by second
-      if (!evolutionChains.has(chainKey)) {
-        evolutionChains.set(chainKey, []);
-      }
-      evolutionChains.get(chainKey)!.push(currentEvent, nextEvent);
+  // Group evolution events by item ID
+  const evolutionEvents = events.filter(event => event.isEvolution);
+  
+  for (const event of evolutionEvents) {
+    if (!chains.has(event.itemId)) {
+      chains.set(event.itemId, []);
     }
+    chains.get(event.itemId)?.push(event);
   }
   
-  return evolutionChains;
+  return chains;
 };
 
 // Utility functions for event processing
 const groupEventsByTime = (events: readonly ItemEvent[]): GroupedEvents[] => {
   const groups = new Map<number, ItemEvent[]>();
-  
+
   events.forEach((event) => {
     const existingGroup = groups.get(event.timestamp);
     if (existingGroup) {
@@ -146,78 +143,111 @@ const groupEventsByTime = (events: readonly ItemEvent[]): GroupedEvents[] => {
       groups.set(event.timestamp, [event]);
     }
   });
-  
-  return Array.from(groups.entries()).map(([timestamp, groupEvents]) => ({
-    timestamp,
-    timeFormatted: groupEvents[0]?.timeFormatted || '', // All events in group have same time
-    events: groupEvents,
-  })).sort((a, b) => a.timestamp - b.timestamp);
+
+  return Array.from(groups.entries())
+    .map(([timestamp, groupEvents]) => ({
+      timestamp,
+      timeFormatted: groupEvents[0]?.timeFormatted || '', // All events in group have same time
+      events: groupEvents,
+    }))
+    .sort((a, b) => a.timestamp - b.timestamp);
 };
 
-const filterEvents = (events: readonly ItemEvent[], showDestroyed: boolean): readonly ItemEvent[] => {
+const filterEvents = (
+  events: readonly ItemEvent[],
+  showDestroyed: boolean
+): readonly ItemEvent[] => {
   if (showDestroyed) return events;
-  
+
   // Hide destroyed items but still show evolutions
-  return events.filter(event => 
-    event.type !== 'ITEM_DESTROYED' || event.isEvolution
+  return events.filter(
+    (event) => event.type !== 'ITEM_DESTROYED' || event.isEvolution
   );
 };
 
-// Event type styling utilities
-const getEventIcon = (eventType: string) => {
-  switch (eventType) {
+/**
+ * Tone down colors for icons to improve contrast without glare.
+ * Also show item icon before the item name instead of the event name when possible.
+ */
+const getEventIcon = (
+  event: ItemEvent,
+  getItemIconUrl?: (id: number) => string | null
+) => {
+  const url = getItemIconUrl ? getItemIconUrl(event.itemId) : null;
+
+  if (url) {
+    // Render the item icon image as the leading icon
+    return (
+      <img
+        src={url}
+        alt={`Item ${event.itemId}`}
+        className="h-5 w-5 rounded border border-white/10 object-cover"
+      />
+    );
+  }
+
+  // Fallback to generic type icon with toned-down palette
+  switch (event.type) {
     case 'ITEM_PURCHASED':
-      return <ShoppingCart className="h-4 w-4 text-accessible-green" />;
+      return <ShoppingCart className="h-4 w-4 text-emerald-300" />;
     case 'ITEM_SOLD':
-      return <X className="h-4 w-4 text-accessible-yellow" />;
+      return <X className="h-4 w-4 text-amber-300" />;
     case 'ITEM_DESTROYED':
-      return <Trash2 className="h-4 w-4 text-accessible-red" />;
+      return <Trash2 className="h-4 w-4 text-rose-300" />;
     case 'ITEM_UNDO':
-      return <ArrowRight className="h-4 w-4 rotate-180 text-muted-foreground" />;
+      return <ArrowRight className="h-4 w-4 rotate-180 text-white/60" />;
     default:
-      return <Package className="h-4 w-4 text-muted-foreground" />;
+      return <Package className="h-4 w-4 text-white/60" />;
   }
 };
 
+/**
+ * Text color palette aligned with toned-down icon scheme.
+ */
 const getEventColor = (eventType: string) => {
   switch (eventType) {
     case 'ITEM_PURCHASED':
-      return 'text-accessible-green';
+      return 'text-emerald-300';
     case 'ITEM_SOLD':
-      return 'text-accessible-yellow';
+      return 'text-amber-300';
     case 'ITEM_DESTROYED':
-      return 'text-accessible-red';
+      return 'text-rose-300';
     case 'ITEM_UNDO':
-      return 'text-muted-foreground';
+      return 'text-white/70';
     default:
-      return 'text-muted-foreground';
+      return 'text-white/70';
   }
 };
 
+/**
+ * Reduce border contrast for non-evolution events, keep evolution clear but not overpowering.
+ */
 const getEventBorderColor = (eventType: string, isEvolution: boolean) => {
   if (isEvolution) {
-    return 'border-accessible-purple/30';
+    return 'border-purple-400/30';
   }
-  
   switch (eventType) {
     case 'ITEM_PURCHASED':
-      return 'border-accessible-green/20';
+      return 'border-emerald-400/15';
     case 'ITEM_SOLD':
-      return 'border-accessible-yellow/20';
+      return 'border-amber-400/15';
     case 'ITEM_DESTROYED':
-      return 'border-accessible-red/20';
+      return 'border-rose-400/15';
     case 'ITEM_UNDO':
-      return 'border-border/30';
+      return 'border-white/10';
     default:
-      return 'border-border/20';
+      return 'border-white/10';
   }
 };
 
-const formatEventType = (eventType: string, isEvolutionChain: boolean = false) => {
+const formatEventType = (
+  eventType: string,
+  isEvolutionChain: boolean = false
+) => {
   if (isEvolutionChain && eventType === 'ITEM_DESTROYED') {
     return 'Evolution';
   }
-  
+
   switch (eventType) {
     case 'ITEM_PURCHASED':
       return 'Purchased';
@@ -232,44 +262,53 @@ const formatEventType = (eventType: string, isEvolutionChain: boolean = false) =
   }
 };
 
-// Evolution stage styling
+/**
+ * Evolution stage styling with toned-down, high-contrast scheme for readability.
+ * Removed intense animations/visual noise that made the timeline hard to scan.
+ */
 const getEvolutionStageColor = (stage?: string) => {
   switch (stage) {
     case 'base':
-      return 'bg-accessible-blue/20 text-accessible-blue border-accessible-blue/30';
+      // subtle blue outline, muted fill
+      return 'bg-blue-500/8 text-blue-200 border-blue-400/30';
     case 'tier1':
-      return 'bg-accessible-purple/20 text-accessible-purple border-accessible-purple/30';
+      // subtle purple outline, muted fill
+      return 'bg-purple-500/8 text-purple-200 border-purple-400/30';
     case 'tier2':
-      return 'bg-accessible-yellow/20 text-accessible-yellow border-accessible-yellow/30';
+      // subtle amber outline, muted fill
+      return 'bg-amber-500/8 text-amber-200 border-amber-400/30';
     case 'tier3':
-      return 'bg-accessible-red/20 text-accessible-red border-accessible-red/30';
+      // subtle rose outline, muted fill
+      return 'bg-rose-500/8 text-rose-200 border-rose-400/30';
     default:
-      return 'bg-accessible-purple/20 text-accessible-purple border-accessible-purple/30';
+      return 'bg-purple-500/8 text-purple-200 border-purple-400/30';
   }
 };
 
-// Support Quest Completion Component
 interface SupportQuestCompletionProps {
   completion: SupportQuestCompletion;
   className?: string;
 }
 
-const SupportQuestCompletionItem = ({ completion, className }: SupportQuestCompletionProps) => {
+const SupportQuestCompletionItem = ({
+  completion,
+  className,
+}: SupportQuestCompletionProps) => {
   return (
     <div
       className={cn(
         'flex items-center gap-3 rounded-lg p-4',
-        'backdrop-blur-md bg-gradient-to-r border-2',
-        completion.isQuestComplete 
-          ? 'from-yellow-500/20 to-orange-500/20 border-yellow-500/50 animate-pulse'
-          : 'from-purple-500/20 to-blue-500/20 border-purple-500/40',
+        'border-2 bg-gradient-to-r backdrop-blur-md',
+        completion.isQuestComplete
+          ? 'animate-pulse border-yellow-500/50 from-yellow-500/20 to-orange-500/20'
+          : 'border-purple-500/40 from-purple-500/20 to-blue-500/20',
         'transition-all duration-300 hover:scale-[1.02]',
         className
       )}
     >
       {/* Quest icon */}
       <div className="flex-shrink-0">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-purple-500/30 to-blue-500/30 border border-purple-400/50">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-purple-400/50 bg-gradient-to-r from-purple-500/30 to-blue-500/30">
           {completion.isQuestComplete ? (
             <Crown className="h-5 w-5 text-yellow-400" />
           ) : (
@@ -287,10 +326,12 @@ const SupportQuestCompletionItem = ({ completion, className }: SupportQuestCompl
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center gap-2">
             <span className="font-bold text-white">
-              {completion.isQuestComplete ? 'Support Quest Completed!' : `Support Quest ${completion.tier.toUpperCase()}`}
+              {completion.isQuestComplete
+                ? 'Support Quest Completed!'
+                : `Support Quest ${completion.tier.toUpperCase()}`}
             </span>
             {completion.isQuestComplete && (
-              <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
+              <Badge className="border-yellow-500/30 bg-yellow-500/20 text-yellow-300">
                 <Trophy className="mr-1 h-3 w-3" />
                 QUEST COMPLETE
               </Badge>
@@ -298,13 +339,13 @@ const SupportQuestCompletionItem = ({ completion, className }: SupportQuestCompl
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-300">
             <span>{completion.itemName}</span>
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className={cn(
                 'text-xs',
-                completion.tier === 'tier3' 
-                  ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
-                  : 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                completion.tier === 'tier3'
+                  ? 'border-yellow-500/30 bg-yellow-500/20 text-yellow-300'
+                  : 'border-purple-500/30 bg-purple-500/20 text-purple-300'
               )}
             >
               {completion.tier.toUpperCase()}
@@ -329,22 +370,25 @@ interface ItemEventItemProps {
   className?: string | undefined;
 }
 
-const ItemEventItem = ({ event, isEvolutionChain = false, className }: ItemEventItemProps) => {
+const ItemEventItem = ({
+  event,
+  isEvolutionChain = false,
+  className,
+}: ItemEventItemProps) => {
   return (
     <div
       className={cn(
         'flex items-center gap-3 rounded-lg p-4',
-        'backdrop-blur-md bg-black/20 border',
+        'border bg-black/20 backdrop-blur-md',
         getEventBorderColor(event.type, event.isEvolution),
-        'transition-all duration-200 hover:bg-black/30',
         event.isEvolution && 'animate-subtle-pulse',
         className
       )}
     >
       {/* Timeline connector dot */}
       <div className="flex-shrink-0">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-md border border-purple-500/20">
-          {getEventIcon(event.type)}
+        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-purple-500/20 bg-black/30 backdrop-blur-md">
+          {getEventIcon(event)}
         </div>
       </div>
 
@@ -363,7 +407,7 @@ const ItemEventItem = ({ event, isEvolutionChain = false, className }: ItemEvent
               <Zap className="h-4 w-4 text-purple-400" />
             )}
             <ItemNameDisplay itemId={event.itemId} />
-            
+
             {/* Evolution badge */}
             {event.isEvolution && (
               <Badge
@@ -371,24 +415,24 @@ const ItemEventItem = ({ event, isEvolutionChain = false, className }: ItemEvent
                 className={cn(
                   'text-xs',
                   getEvolutionStageColor(event.evolutionStage),
-                  isEvolutionChain && 'animate-pulse'
+                  ''
                 )}
               >
                 <Sparkles className="mr-1 h-3 w-3" />
-                {isEvolutionChain && event.type === 'ITEM_DESTROYED' 
+                {isEvolutionChain && event.type === 'ITEM_DESTROYED'
                   ? 'Evolution Chain'
-                  : `Evolution ${event.evolutionStage?.toUpperCase() || ''}`
-                }
+                  : `Evolution ${event.evolutionStage?.toUpperCase() || ''}`}
               </Badge>
             )}
-            
+
             {/* Final Evolution indicator */}
-            {event.type === 'ITEM_PURCHASED' && isFinalSupportItemEvolution(event.itemId) && (
-              <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30 animate-pulse">
-                <Crown className="mr-1 h-3 w-3" />
-                FINAL EVOLUTION
-              </Badge>
-            )}
+            {event.type === 'ITEM_PURCHASED' &&
+              isFinalSupportItemEvolution(event.itemId) && (
+                <Badge className="border-yellow-500/30 bg-yellow-500/20 text-yellow-300">
+                  <Crown className="mr-1 h-3 w-3" />
+                  FINAL EVOLUTION
+                </Badge>
+              )}
           </div>
         </div>
 
@@ -409,22 +453,34 @@ interface GroupedEventItemProps {
   className?: string;
 }
 
-const GroupedEventItem = ({ group, evolutionChains, className }: GroupedEventItemProps) => {
+const GroupedEventItem = ({
+  group,
+  evolutionChains,
+  className,
+}: GroupedEventItemProps) => {
   if (group.events.length === 1 && group.events[0]) {
     // Check if this event is part of an evolution chain
     const firstEvent = group.events[0];
     if (!firstEvent) return null;
 
-    const isEvolutionChain = evolutionChains ? 
-      Array.from(evolutionChains.values()).some(chainEvents => 
-        chainEvents.some(chainEvent => 
-          chainEvent.timestamp === firstEvent.timestamp && 
-          chainEvent.itemId === firstEvent.itemId
+    const isEvolutionChain = evolutionChains
+      ? Array.from(evolutionChains.values()).some((chainEvents) =>
+          chainEvents.some(
+            (chainEvent) =>
+              chainEvent.timestamp === firstEvent.timestamp &&
+              chainEvent.itemId === firstEvent.itemId
+          )
         )
-      ) : false;
-      
+      : false;
+
     // Single event - render normally
-    return <ItemEventItem event={firstEvent} isEvolutionChain={isEvolutionChain} className={className} />;
+    return (
+      <ItemEventItem
+        event={firstEvent}
+        isEvolutionChain={isEvolutionChain}
+        className={className}
+      />
+    );
   }
 
   // Multiple events at same time - render as a group
@@ -432,46 +488,48 @@ const GroupedEventItem = ({ group, evolutionChains, className }: GroupedEventIte
     <div
       className={cn(
         'rounded-lg p-4',
-        'backdrop-blur-md bg-black/20 border border-purple-500/20',
-        'transition-all duration-200 hover:bg-black/30',
+        'border border-purple-500/20 bg-black/20 backdrop-blur-md',
         className
       )}
     >
       {/* Group header with timestamp */}
       <div className="mb-3 flex items-center gap-2">
-        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/30 backdrop-blur-md border border-purple-500/20">
+        <div className="flex h-6 w-6 items-center justify-center rounded-full border border-purple-500/20 bg-black/30 backdrop-blur-md">
           <Clock className="h-3 w-3 text-purple-300" />
         </div>
-        <span className="text-sm text-muted-foreground font-medium">
+        <span className="text-sm font-medium text-muted-foreground">
           {group.timeFormatted} - {group.events.length} events
         </span>
       </div>
 
       {/* Individual events in the group */}
-      <div className="space-y-2 ml-8">
+      <div className="ml-8 space-y-2">
         {group.events.map((event, index) => {
           // Check if this event is part of an evolution chain
-          const isEvolutionChain = evolutionChains ? 
-            Array.from(evolutionChains.values()).some(chainEvents => 
-              chainEvents.some(chainEvent => 
-                chainEvent.timestamp === event.timestamp && 
-                chainEvent.itemId === event.itemId
+          const isEvolutionChain = evolutionChains
+            ? Array.from(evolutionChains.values()).some((chainEvents) =>
+                chainEvents.some(
+                  (chainEvent) =>
+                    chainEvent.timestamp === event.timestamp &&
+                    chainEvent.itemId === event.itemId
+                )
               )
-            ) : false;
-            
+            : false;
+
           return (
             <div
               key={`${event.timestamp}-${event.itemId}-${index}`}
               className={cn(
-                'flex items-center gap-3 rounded-md p-2 border',
-                'bg-black/10 border-purple-500/10',
-                isEvolutionChain && 'bg-purple-500/10 border-purple-500/20 animate-subtle-pulse'
+                'flex items-center gap-3 rounded-md border p-2',
+                'border-purple-500/10 bg-black/10',
+                isEvolutionChain &&
+                  'animate-subtle-pulse border-purple-500/20 bg-purple-500/10'
               )}
             >
               {/* Event icon */}
               <div className="flex-shrink-0">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/30 backdrop-blur-md border border-purple-500/20">
-                  {getEventIcon(event.type)}
+                <div className="flex h-6 w-6 items-center justify-center rounded-full border border-purple-500/20 bg-black/30 backdrop-blur-md">
+                  {getEventIcon(event)}
                 </div>
               </div>
 
@@ -480,14 +538,19 @@ const GroupedEventItem = ({ group, evolutionChains, className }: GroupedEventIte
 
               {/* Event details */}
               <div className="flex min-w-0 flex-1 items-center gap-2">
-                <span className={cn('text-sm font-medium', getEventColor(event.type))}>
+                <span
+                  className={cn(
+                    'text-sm font-medium',
+                    getEventColor(event.type)
+                  )}
+                >
                   {formatEventType(event.type, isEvolutionChain)}
                 </span>
                 {isEvolutionChain && event.type === 'ITEM_DESTROYED' && (
                   <Zap className="h-3 w-3 text-purple-400" />
                 )}
                 <ItemNameDisplay itemId={event.itemId} className="text-sm" />
-                
+
                 {/* Evolution badge */}
                 {event.isEvolution && (
                   <Badge
@@ -495,24 +558,24 @@ const GroupedEventItem = ({ group, evolutionChains, className }: GroupedEventIte
                     className={cn(
                       'text-xs',
                       getEvolutionStageColor(event.evolutionStage),
-                      isEvolutionChain && 'animate-pulse'
+                      ''
                     )}
                   >
                     <Sparkles className="mr-1 h-2 w-2" />
-                    {isEvolutionChain && event.type === 'ITEM_DESTROYED' 
+                    {isEvolutionChain && event.type === 'ITEM_DESTROYED'
                       ? 'Evolution Chain'
-                      : `Evolution ${event.evolutionStage?.toUpperCase() || ''}`
-                    }
+                      : `Evolution ${event.evolutionStage?.toUpperCase() || ''}`}
                   </Badge>
                 )}
-                
+
                 {/* Final Evolution indicator */}
-                {event.type === 'ITEM_PURCHASED' && isFinalSupportItemEvolution(event.itemId) && (
-                  <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30 text-xs">
-                    <Crown className="mr-1 h-2 w-2" />
-                    FINAL
-                  </Badge>
-                )}
+                {event.type === 'ITEM_PURCHASED' &&
+                  isFinalSupportItemEvolution(event.itemId) && (
+                    <Badge className="border-yellow-500/30 bg-yellow-500/20 text-xs text-yellow-300">
+                      <Crown className="mr-1 h-2 w-2" />
+                      FINAL
+                    </Badge>
+                  )}
               </div>
             </div>
           );
@@ -530,7 +593,7 @@ interface ItemNameDisplayProps {
 
 const ItemNameDisplay = ({ itemId, className }: ItemNameDisplayProps) => {
   const { item, isLoading: itemLoading } = useItem(itemId);
-  
+
   const getItemName = () => {
     if (itemLoading) return '...';
     if (item?.name) return item.name;
@@ -538,7 +601,7 @@ const ItemNameDisplay = ({ itemId, className }: ItemNameDisplayProps) => {
   };
 
   return (
-    <span className={cn('text-white/90 font-medium', className)}>
+    <span className={cn('font-medium text-white/90', className)}>
       {getItemName()}
     </span>
   );
@@ -551,7 +614,7 @@ const LoadingSkeleton = () => {
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
-          className="flex items-center gap-3 rounded-lg p-4 backdrop-blur-md bg-black/20 border border-purple-500/20"
+          className="flex items-center gap-3 rounded-lg border border-purple-500/20 bg-black/20 p-4 backdrop-blur-md"
         >
           <div className="h-8 w-8 animate-pulse rounded-full bg-gray-600/50" />
           <div className="h-6 w-6 animate-pulse rounded bg-gray-600/50" />
@@ -569,7 +632,7 @@ const LoadingSkeleton = () => {
 const EmptyState = () => {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <Package className="mb-4 h-12 w-12 text-muted-foreground/50" />
+      <Package className="text-muted-foreground/50 mb-4 h-12 w-12" />
       <h3 className="mb-2 font-medium text-foreground">No Item Events</h3>
       <p className="text-sm text-muted-foreground">
         No item purchases, sales, or evolutions found in this match.
@@ -582,8 +645,10 @@ const EmptyState = () => {
 const ErrorState = ({ error }: { error: string }) => {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <AlertCircle className="mb-4 h-12 w-12 text-accessible-red/50" />
-      <h3 className="mb-2 font-medium text-foreground">Unable to Load Timeline</h3>
+      <AlertCircle className="text-accessible-red/50 mb-4 h-12 w-12" />
+      <h3 className="mb-2 font-medium text-foreground">
+        Unable to Load Timeline
+      </h3>
       <p className="text-sm text-muted-foreground">{error}</p>
     </div>
   );
@@ -598,31 +663,31 @@ interface StatsHeaderProps {
 const StatsHeader = ({ stats, participantId }: StatsHeaderProps) => {
   return (
     <div className="flex flex-wrap items-center gap-4 text-sm">
-      <Badge className="bg-blue-500/20 text-accessible-blue border-accessible-blue/30">
+      <Badge className="text-accessible-blue border-accessible-blue/30 bg-blue-500/20">
         Player {participantId}
       </Badge>
 
       <div className="flex items-center gap-1">
-        <ShoppingCart className="h-4 w-4 text-accessible-green" />
+        <ShoppingCart className="text-accessible-green h-4 w-4" />
         <span className="text-accessible-green">{stats.purchases}</span>
         <span className="text-muted-foreground">purchases</span>
       </div>
 
       <div className="flex items-center gap-1">
-        <X className="h-4 w-4 text-accessible-yellow" />
+        <X className="text-accessible-yellow h-4 w-4" />
         <span className="text-accessible-yellow">{stats.sales}</span>
         <span className="text-muted-foreground">sales</span>
       </div>
 
       <div className="flex items-center gap-1">
-        <Trash2 className="h-4 w-4 text-accessible-red" />
+        <Trash2 className="text-accessible-red h-4 w-4" />
         <span className="text-accessible-red">{stats.destructions}</span>
         <span className="text-muted-foreground">destroyed</span>
       </div>
 
       {stats.evolutions > 0 && (
         <div className="flex items-center gap-1">
-          <Sparkles className="h-4 w-4 text-accessible-purple" />
+          <Sparkles className="text-accessible-purple h-4 w-4" />
           <span className="text-accessible-purple">{stats.evolutions}</span>
           <span className="text-muted-foreground">evolutions</span>
         </div>
@@ -640,17 +705,21 @@ export function SimpleItemTimeline({
   maxHeight = 600,
 }: ItemTimelineProps) {
   const [showDestroyed, setShowDestroyed] = useState(false);
-  
+
   // Calculate support quest completions and evolution chains
   const questAnalysis = useMemo(() => {
     if (!timeline?.events) {
-      return { completions: [], evolutionChains: new Map(), hasQuestComplete: false };
+      return {
+        completions: [],
+        evolutionChains: new Map(),
+        hasQuestComplete: false,
+      };
     }
-    
+
     const completions = detectSupportQuestCompletions(timeline.events);
     const evolutionChains = detectEvolutionChains(timeline.events);
-    const hasQuestComplete = completions.some(c => c.isQuestComplete);
-    
+    const hasQuestComplete = completions.some((c) => c.isQuestComplete);
+
     return { completions, evolutionChains, hasQuestComplete };
   }, [timeline?.events]);
   // Handle loading state
@@ -658,7 +727,7 @@ export function SimpleItemTimeline({
     return (
       <Card
         className={cn(
-          'border border-purple-500/20 backdrop-blur-md bg-black/20',
+          'border border-purple-500/20 bg-black/20 backdrop-blur-md',
           className
         )}
       >
@@ -681,7 +750,7 @@ export function SimpleItemTimeline({
     return (
       <Card
         className={cn(
-          'border border-purple-500/20 backdrop-blur-md bg-black/20',
+          'border border-purple-500/20 bg-black/20 backdrop-blur-md',
           className
         )}
       >
@@ -703,7 +772,7 @@ export function SimpleItemTimeline({
     return (
       <Card
         className={cn(
-          'border border-purple-500/20 backdrop-blur-md bg-black/20',
+          'border border-purple-500/20 bg-black/20 backdrop-blur-md',
           className
         )}
       >
@@ -712,7 +781,7 @@ export function SimpleItemTimeline({
             <Package className="h-5 w-5" />
             Item Timeline
             {timeline && (
-              <Badge className="ml-2 bg-blue-500/20 text-accessible-blue border-accessible-blue/30">
+              <Badge className="text-accessible-blue border-accessible-blue/30 ml-2 bg-blue-500/20">
                 Player {timeline.participantId}
               </Badge>
             )}
@@ -732,7 +801,7 @@ export function SimpleItemTimeline({
   return (
     <Card
       className={cn(
-        'border border-purple-500/20 backdrop-blur-md bg-black/20',
+        'border border-purple-500/20 bg-black/20 backdrop-blur-md',
         className
       )}
     >
@@ -741,29 +810,31 @@ export function SimpleItemTimeline({
           <Package className="h-5 w-5" />
           Item Timeline
         </CardTitle>
-        
+
         {/* Stats header */}
-        <StatsHeader 
-          stats={timeline.stats} 
-          participantId={timeline.participantId} 
+        <StatsHeader
+          stats={timeline.stats}
+          participantId={timeline.participantId}
         />
-        
+
         {/* Support Quest Summary */}
         {questAnalysis.completions.length > 0 && (
-          <div className="mt-3 p-3 rounded-lg backdrop-blur-md bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="mt-3 rounded-lg border border-purple-500/20 bg-gradient-to-r from-purple-500/10 to-blue-500/10 p-3 backdrop-blur-md">
+            <div className="mb-2 flex items-center gap-2">
               <Star className="h-4 w-4 text-purple-300" />
-              <span className="text-sm font-medium text-purple-300">Support Quest Progress</span>
+              <span className="text-sm font-medium text-purple-300">
+                Support Quest Progress
+              </span>
             </div>
             <div className="flex flex-wrap gap-2">
               {questAnalysis.completions.map((completion, index) => (
-                <Badge 
+                <Badge
                   key={`quest-${completion.tier}-${index}`}
                   className={cn(
                     'text-xs',
                     completion.isQuestComplete
-                      ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
-                      : 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                      ? 'border-yellow-500/30 bg-yellow-500/20 text-yellow-300'
+                      : 'border-purple-500/30 bg-purple-500/20 text-purple-300'
                   )}
                 >
                   {completion.isQuestComplete ? (
@@ -774,7 +845,8 @@ export function SimpleItemTimeline({
                   ) : (
                     <>
                       <Star className="mr-1 h-3 w-3" />
-                      {completion.tier.toUpperCase()} at {completion.timeFormatted}
+                      {completion.tier.toUpperCase()} at{' '}
+                      {completion.timeFormatted}
                     </>
                   )}
                 </Badge>
@@ -793,7 +865,7 @@ export function SimpleItemTimeline({
             />
             <Label
               htmlFor="show-destroyed"
-              className="text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+              className="cursor-pointer text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               Show destroyed items
             </Label>
@@ -811,7 +883,7 @@ export function SimpleItemTimeline({
                 completion={completion}
               />
             ))}
-            
+
             {/* Regular timeline events */}
             {groupedEvents.map((group, index) => {
               return (

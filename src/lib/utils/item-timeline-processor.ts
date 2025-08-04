@@ -71,6 +71,7 @@ function calculateStats(events: ItemEvent[]) {
   return {
     purchases: events.filter(e => e.type === 'ITEM_PURCHASED').length,
     sales: events.filter(e => e.type === 'ITEM_SOLD').length,
+    destructions: events.filter(e => e.type === 'ITEM_DESTROYED').length,
     evolutions: events.filter(e => e.isEvolution).length,
   };
 }
