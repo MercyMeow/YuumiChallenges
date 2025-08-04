@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, memo } from 'react';
+import React, { useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -45,142 +45,128 @@ interface ItemEventDisplayProps {
 /**
  * Individual item event display component
  */
-const ItemEventDisplay = memo(
-  function ItemEventDisplay({
-    event,
-    config,
-    className,
-  }: ItemEventDisplayProps) {
-    const getEventIcon = (eventType: string) => {
-      switch (eventType) {
-        case 'ITEM_PURCHASED':
-          return <ShoppingCart className="h-4 w-4 text-green-400" />;
-        case 'ITEM_SOLD':
-          return <X className="h-4 w-4 text-yellow-400" />;
-        case 'ITEM_DESTROYED':
-          return <Trash2 className="h-4 w-4 text-red-400" />;
-        case 'ITEM_UNDO':
-          return (
-            <ArrowRight className="h-4 w-4 rotate-180 transform text-gray-400" />
-          );
-        default:
-          return <Package className="h-4 w-4 text-gray-400" />;
-      }
-    };
+function ItemEventDisplay({
+  event,
+  config,
+  className,
+}: ItemEventDisplayProps) {
+  const getEventIcon = (eventType: string) => {
+    switch (eventType) {
+      case 'ITEM_PURCHASED':
+        return <ShoppingCart className="h-4 w-4 text-green-400" />;
+      case 'ITEM_SOLD':
+        return <X className="h-4 w-4 text-yellow-400" />;
+      case 'ITEM_DESTROYED':
+        return <Trash2 className="h-4 w-4 text-red-400" />;
+      case 'ITEM_UNDO':
+        return (
+          <ArrowRight className="h-4 w-4 rotate-180 transform text-gray-400" />
+        );
+      default:
+        return <Package className="h-4 w-4 text-gray-400" />;
+    }
+  };
 
-    const getEventColor = (eventType: string) => {
-      switch (eventType) {
-        case 'ITEM_PURCHASED':
-          return 'text-green-400';
-        case 'ITEM_SOLD':
-          return 'text-yellow-400';
-        case 'ITEM_DESTROYED':
-          return 'text-red-400';
-        case 'ITEM_UNDO':
-          return 'text-gray-400';
-        default:
-          return 'text-gray-400';
-      }
-    };
+  const getEventColor = (eventType: string) => {
+    switch (eventType) {
+      case 'ITEM_PURCHASED':
+        return 'text-green-400';
+      case 'ITEM_SOLD':
+        return 'text-yellow-400';
+      case 'ITEM_DESTROYED':
+        return 'text-red-400';
+      case 'ITEM_UNDO':
+        return 'text-gray-400';
+      default:
+        return 'text-gray-400';
+    }
+  };
 
-    const formatEventType = (eventType: string) => {
-      switch (eventType) {
-        case 'ITEM_PURCHASED':
-          return 'Purchased';
-        case 'ITEM_SOLD':
-          return 'Sold';
-        case 'ITEM_DESTROYED':
-          return 'Destroyed';
-        case 'ITEM_UNDO':
-          return 'Undone';
-        default:
-          return eventType.replace(/_/g, ' ').toLowerCase();
-      }
-    };
+  const formatEventType = (eventType: string) => {
+    switch (eventType) {
+      case 'ITEM_PURCHASED':
+        return 'Purchased';
+      case 'ITEM_SOLD':
+        return 'Sold';
+      case 'ITEM_DESTROYED':
+        return 'Destroyed';
+      case 'ITEM_UNDO':
+        return 'Undone';
+      default:
+        return eventType.replace(/_/g, ' ').toLowerCase();
+    }
+  };
 
-    const renderEvolutionBadge = (evolution: SupportItemEvolution) => {
-      const stageColors = {
-        base: 'bg-blue-500/20 text-blue-400',
-        tier1: 'bg-purple-500/20 text-purple-400',
-        tier2: 'bg-yellow-500/20 text-yellow-400',
-        tier3: 'bg-red-500/20 text-red-400',
-      };
-
-      return (
-        <div className="mt-1 flex items-center gap-2">
-          <Sparkles className="h-3 w-3 text-purple-400" />
-          <Badge className={`text-xs ${stageColors[evolution.stage]}`}>
-            {evolution.chainName} ({evolution.stage.toUpperCase()})
-          </Badge>
-        </div>
-      );
+  const renderEvolutionBadge = (evolution: SupportItemEvolution) => {
+    const stageColors = {
+      base: 'bg-blue-500/20 text-blue-400',
+      tier1: 'bg-purple-500/20 text-purple-400',
+      tier2: 'bg-yellow-500/20 text-yellow-400',
+      tier3: 'bg-red-500/20 text-red-400',
     };
 
     return (
-      <div
-        className={cn(
-          'flex items-start gap-3 rounded-lg p-3',
-          'border border-white/5 bg-gradient-to-r from-black/5 to-black/10',
-          'transition-all duration-200 hover:from-black/10 hover:to-black/15',
-          event.isEvolution &&
-            config.highlightEvolutions &&
-            'bg-gradient-to-r from-purple-500/5 to-blue-500/5 ring-1 ring-purple-500/30',
-          className
-        )}
-      >
-        {/* Event Icon */}
-        <div className="mt-0.5 flex-shrink-0">{getEventIcon(event.type)}</div>
-
-        {/* Event Content */}
-        <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex items-center justify-between">
-            {/* Event Description */}
-            <div className="flex flex-1 items-center gap-2">
-              {config.showItemIcons && (
-                <ItemSlot itemId={event.itemId} size="sm" />
-              )}
-
-              <div className="flex flex-col">
-                <span className={cn('font-medium', getEventColor(event.type))}>
-                  {formatEventType(event.type)}
-                  {config.showItemNames && event.itemName && (
-                    <span className="ml-1 text-white">{event.itemName}</span>
-                  )}
-                </span>
-
-                {/* Evolution Chain Display */}
-                {event.isEvolution &&
-                  event.evolutionChain &&
-                  config.showEvolutionChains &&
-                  renderEvolutionBadge(event.evolutionChain)}
-              </div>
-            </div>
-
-            {/* Timestamp */}
-            {config.showTimestamps && (
-              <div className="flex items-center gap-1 text-xs text-white/60">
-                <Clock className="h-3 w-3" />
-                {event.timeFormatted}
-              </div>
-            )}
-          </div>
-        </div>
+      <div className="mt-1 flex items-center gap-2">
+        <Sparkles className="h-3 w-3 text-purple-400" />
+        <Badge className={`text-xs ${stageColors[evolution.stage]}`}>
+          {evolution.chainName} ({evolution.stage.toUpperCase()})
+        </Badge>
       </div>
     );
-  },
-  (prevProps, nextProps) => {
-    // Custom comparison for better performance
-    return (
-      prevProps.event.itemId === nextProps.event.itemId &&
-      prevProps.event.timestamp === nextProps.event.timestamp &&
-      prevProps.event.type === nextProps.event.type &&
-      prevProps.event.isEvolution === nextProps.event.isEvolution &&
-      prevProps.config.showItemIcons === nextProps.config.showItemIcons &&
-      prevProps.config.showItemNames === nextProps.config.showItemNames &&
-      prevProps.config.showTimestamps === nextProps.config.showTimestamps
-    );
-  }
-);
+  };
+
+  return (
+    <div
+      className={cn(
+        'flex items-start gap-3 rounded-lg p-3',
+        'border border-white/5 bg-gradient-to-r from-black/5 to-black/10',
+        'transition-all duration-200 hover:from-black/10 hover:to-black/15',
+        event.isEvolution &&
+          config.highlightEvolutions &&
+          'bg-gradient-to-r from-purple-500/5 to-blue-500/5 ring-1 ring-purple-500/30',
+        className
+      )}
+    >
+      {/* Event Icon */}
+      <div className="mt-0.5 flex-shrink-0">{getEventIcon(event.type)}</div>
+
+      {/* Event Content */}
+      <div className="min-w-0 flex-1 space-y-1">
+        <div className="flex items-center justify-between">
+          {/* Event Description */}
+          <div className="flex flex-1 items-center gap-2">
+            {config.showItemIcons && (
+              <ItemSlot itemId={event.itemId} size="sm" />
+            )}
+
+            <div className="flex flex-col">
+              <span className={cn('font-medium', getEventColor(event.type))}>
+                {formatEventType(event.type)}
+                {config.showItemNames && event.itemName && (
+                  <span className="ml-1 text-white">{event.itemName}</span>
+                )}
+              </span>
+
+              {/* Evolution Chain Display */}
+              {event.isEvolution &&
+                event.evolutionChain &&
+                config.showEvolutionChains &&
+                renderEvolutionBadge(event.evolutionChain)}
+            </div>
+          </div>
+
+          {/* Timestamp */}
+          {config.showTimestamps && (
+            <div className="flex items-center gap-1 text-xs text-white/60">
+              <Clock className="h-3 w-3" />
+              {event.timeFormatted}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Timeline event group display component
@@ -425,16 +411,6 @@ export function ItemTimelineDisplay({
                   );
                   return null;
                 }
-                // Guard against undefined component references
-                if (typeof TimelineEventGroupDisplay !== 'function') {
-                  console.error(
-                    'TimelineEventGroupDisplay is not a valid React component',
-                    {
-                      type: typeof TimelineEventGroupDisplay,
-                    }
-                  );
-                  return null;
-                }
                 return (
                   <TimelineEventGroupDisplay
                     key={`${group.startTimestamp}-${index}`}
@@ -457,76 +433,12 @@ export function ItemTimelineDisplay({
                   return null;
                 }
 
-                // Render a safe inline fallback instead of ItemEventDisplay to avoid invalid element type
                 return (
-                  <div
+                  <ItemEventDisplay
                     key={`${event.timestamp}-${event.itemId}-${index}`}
-                    className={cn(
-                      'flex items-start gap-3 rounded-lg border border-white/10 p-3',
-                      'bg-gradient-to-r from-black/10 to-black/5'
-                    )}
-                  >
-                    <div className="mt-0.5 flex-shrink-0">
-                      {event.type === 'ITEM_PURCHASED' ? (
-                        <ShoppingCart className="h-4 w-4 text-green-400" />
-                      ) : event.type === 'ITEM_SOLD' ? (
-                        <X className="h-4 w-4 text-yellow-400" />
-                      ) : event.type === 'ITEM_DESTROYED' ? (
-                        <Trash2 className="h-4 w-4 text-red-400" />
-                      ) : event.type === 'ITEM_UNDO' ? (
-                        <ArrowRight className="h-4 w-4 -rotate-180 transform text-gray-400" />
-                      ) : (
-                        <Package className="h-4 w-4 text-gray-400" />
-                      )}
-                    </div>
-
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <div className="flex flex-1 items-center gap-2">
-                          {config.showItemIcons && (
-                            <ItemSlot itemId={event.itemId} size="sm" />
-                          )}
-                          <div className="flex flex-col">
-                            <span
-                              className={cn('font-medium', {
-                                'text-green-400':
-                                  event.type === 'ITEM_PURCHASED',
-                                'text-yellow-400': event.type === 'ITEM_SOLD',
-                                'text-red-400': event.type === 'ITEM_DESTROYED',
-                                'text-gray-400': event.type === 'ITEM_UNDO',
-                              })}
-                            >
-                              {event.type.replace(/_/g, ' ').toLowerCase()}
-                              {config.showItemNames && event.itemName && (
-                                <span className="ml-1 text-white">
-                                  {event.itemName}
-                                </span>
-                              )}
-                            </span>
-
-                            {event.isEvolution &&
-                              event.evolutionChain &&
-                              config.showEvolutionChains && (
-                                <div className="mt-1 flex items-center gap-2">
-                                  <Sparkles className="h-3 w-3 text-purple-400" />
-                                  <Badge className="bg-purple-500/20 text-xs text-purple-400">
-                                    {event.evolutionChain.chainName} (
-                                    {event.evolutionChain.stage.toUpperCase()})
-                                  </Badge>
-                                </div>
-                              )}
-                          </div>
-                        </div>
-
-                        {config.showTimestamps && (
-                          <div className="flex items-center gap-1 text-xs text-white/60">
-                            <Clock className="h-3 w-3" />
-                            {event.timeFormatted}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                    event={event}
+                    config={config}
+                  />
                 );
               })}
             </div>

@@ -816,6 +816,31 @@ export default function MatchDetailsPage() {
       eventsLength: processedTimeline.playerTimeline.events.length,
       playerDataKeys: Object.keys(selectedPlayerData)
     });
+    
+    // Log the actual events to check their structure
+    console.log('📋 Sample Timeline Events for debugging:', 
+      processedTimeline.playerTimeline.events.slice(0, 10).map((event, idx) => ({
+        index: idx,
+        type: event.type,
+        itemId: event.itemId,
+        timestamp: event.timestamp,
+        isEvolution: event.isEvolution,
+        hasAllFields: !!(event.type && event.itemId && event.timestamp)
+      }))
+    );
+    
+    // Check for support items in the timeline
+    const supportItemIds = [3865, 3866, 3867, 3869, 3870, 3871, 3876, 3877];
+    const supportItemsInEvents = processedTimeline.playerTimeline.events
+      .filter((e: any) => supportItemIds.includes(e.itemId))
+      .map((e: any) => ({
+        itemId: e.itemId,
+        type: e.type,
+        timestamp: e.timestamp,
+        timeFormatted: e.timeFormatted
+      }));
+    
+    console.log('🛡️ Support items found in timeline:', supportItemsInEvents);
 
     const result = detectSupportItemCompletion(
       selectedPlayerData,
@@ -1554,6 +1579,37 @@ export default function MatchDetailsPage() {
                             })()}
                           </span>
                         </div>
+                        
+                        {/* Debug: Show detailed support item progression */}
+                        {process.env.NODE_ENV === 'development' && supportItemCompletionTimes && (
+                          <div className="mt-2 space-y-1 rounded bg-black/20 p-2 text-xs">
+                            <div className="text-white/40">Debug: Support Item Detection</div>
+                            <div className="flex justify-between">
+                              <span className="text-white/60">Base (3865):</span>
+                              <span className={supportItemCompletionTimes.base ? "text-blue-400" : "text-white/30"}>
+                                {supportItemCompletionTimes.base ? formatMatchTime(supportItemCompletionTimes.base) : "Not found"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-white/60">Tier 1 (3866):</span>
+                              <span className={supportItemCompletionTimes.tier1 ? "text-purple-400" : "text-white/30"}>
+                                {supportItemCompletionTimes.tier1 ? formatMatchTime(supportItemCompletionTimes.tier1) : "Not found"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-white/60">Tier 2 (3867):</span>
+                              <span className={supportItemCompletionTimes.tier2 ? "text-yellow-400" : "text-white/30"}>
+                                {supportItemCompletionTimes.tier2 ? formatMatchTime(supportItemCompletionTimes.tier2) : "Not found"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-white/60">Tier 3 (3869-3877):</span>
+                              <span className={supportItemCompletionTimes.tier3 ? "text-green-400" : "text-white/30"}>
+                                {supportItemCompletionTimes.tier3 ? formatMatchTime(supportItemCompletionTimes.tier3) : "Not found"}
+                              </span>
+                            </div>
+                          </div>
+                        )}
 
 
                         <Separator className="my-2" />
