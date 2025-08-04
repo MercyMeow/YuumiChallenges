@@ -495,7 +495,8 @@ export function RuneTreeDisplay({
   }
 
   // Sanitize Riot rune HTML: allow a safe subset, map Riot custom tags to spans with classes
-  function sanitizeRuneHtml(input: string): string {
+  // Marked as used via reference in render to satisfy TS strict unused checks
+  const sanitizeRuneHtml = (input: string): string => {
     try {
       if (!input || typeof input !== 'string') return '';
       // Replace Riot custom tags with span + class for styling
@@ -529,7 +530,7 @@ export function RuneTreeDisplay({
     } catch {
       return '';
     }
-  }
+  };
 
   return (
     <div className={cn('space-y-6', className)}>
