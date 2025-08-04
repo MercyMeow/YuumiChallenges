@@ -45,11 +45,11 @@ interface ItemEventDisplayProps {
 /**
  * Individual item event display component
  */
-function ItemEventDisplay({
+const ItemEventDisplay = ({
   event,
   config,
   className,
-}: ItemEventDisplayProps) {
+}: ItemEventDisplayProps) => {
   const getEventIcon = (eventType: string) => {
     switch (eventType) {
       case 'ITEM_PURCHASED':
@@ -166,18 +166,18 @@ function ItemEventDisplay({
       </div>
     </div>
   );
-}
+};
 
 /**
  * Timeline event group display component
  */
-function TimelineEventGroupDisplay({
+const TimelineEventGroupDisplay = ({
   group,
   config,
 }: {
   group: TimelineEventGroup;
   config: ItemTimelineDisplayConfig;
-}) {
+}) => {
   return (
     <div className="space-y-3">
       {/* Group Header */}
@@ -229,7 +229,7 @@ function TimelineEventGroupDisplay({
       </div>
     </div>
   );
-}
+};
 
 /**
  * Main item timeline display component
