@@ -1,10 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { ItemSlot } from './item-slots';
+import { useItem } from '@/hooks/use-item-data';
 import {
   Clock,
   ShoppingCart,
@@ -45,6 +48,41 @@ interface ItemEvent {
   readonly isEvolution: boolean;
   readonly evolutionStage?: 'base' | 'tier1' | 'tier2' | 'tier3';
 }
+
+interface GroupedEvents {
+  readonly timestamp: number;
+  readonly timeFormatted: string;
+  readonly events: readonly ItemEvent[];
+}
+
+// Utility functions for event processing
+const groupEventsByTime = (events: readonly ItemEvent[]): GroupedEvents[] => {
+  const groups = new Map<number, ItemEvent[]>();
+  
+  events.forEach((event) => {
+    const existingGroup = groups.get(event.timestamp);
+    if (existingGroup) {
+      existingGroup.push(event);
+    } else {
+      groups.set(event.timestamp, [event]);
+    }
+  });
+  
+  return Array.from(groups.entries()).map(([timestamp, groupEvents]) => ({
+    timestamp,
+    timeFormatted: groupEvents[0]?.timeFormatted || '', // All events in group have same time
+    events: groupEvents,
+  })).sort((a, b) => a.timestamp - b.timestamp);
+};
+
+const filterEvents = (events: readonly ItemEvent[], showDestroyed: boolean): readonly ItemEvent[] => {
+  if (showDestroyed) return events;
+  
+  // Hide destroyed items but still show evolutions
+  return events.filter(event => 
+    event.type !== 'ITEM_DESTROYED' || event.isEvolution
+  );
+};
 
 // Event type styling utilities
 const getEventIcon = (eventType: string) => {
@@ -130,7 +168,7 @@ const getEvolutionStageColor = (stage?: string) => {
 // Individual event component
 interface ItemEventItemProps {
   event: ItemEvent;
-  className?: string;
+  className?: string | undefined;
 }
 
 const ItemEventItem = ({ event, className }: ItemEventItemProps) => {
@@ -163,6 +201,7 @@ const ItemEventItem = ({ event, className }: ItemEventItemProps) => {
             <span className={cn('font-medium', getEventColor(event.type))}>
               {formatEventType(event.type)}
             </span>
+            <ItemNameDisplay itemId={event.itemId} />
             
             {/* Evolution badge */}
             {event.isEvolution && (
@@ -187,6 +226,105 @@ const ItemEventItem = ({ event, className }: ItemEventItemProps) => {
         </div>
       </div>
     </div>
+  );
+};
+
+// Grouped events component
+interface GroupedEventItemProps {
+  group: GroupedEvents;
+  className?: string;
+}
+
+const GroupedEventItem = ({ group, className }: GroupedEventItemProps) => {
+  if (group.events.length === 1 && group.events[0]) {
+    // Single event - render normally
+    return <ItemEventItem event={group.events[0]} className={className} />;
+  }
+
+  // Multiple events at same time - render as a group
+  return (
+    <div
+      className={cn(
+        'rounded-lg p-4',
+        'backdrop-blur-md bg-black/20 border border-purple-500/20',
+        'transition-all duration-200 hover:bg-black/30',
+        className
+      )}
+    >
+      {/* Group header with timestamp */}
+      <div className="mb-3 flex items-center gap-2">
+        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/30 backdrop-blur-md border border-purple-500/20">
+          <Clock className="h-3 w-3 text-purple-300" />
+        </div>
+        <span className="text-sm text-muted-foreground font-medium">
+          {group.timeFormatted} - {group.events.length} events
+        </span>
+      </div>
+
+      {/* Individual events in the group */}
+      <div className="space-y-2 ml-8">
+        {group.events.map((event, index) => (
+          <div
+            key={`${event.timestamp}-${event.itemId}-${index}`}
+            className="flex items-center gap-3 rounded-md p-2 bg-black/10 border border-purple-500/10"
+          >
+            {/* Event icon */}
+            <div className="flex-shrink-0">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/30 backdrop-blur-md border border-purple-500/20">
+                {getEventIcon(event.type)}
+              </div>
+            </div>
+
+            {/* Item icon */}
+            <ItemSlot itemId={event.itemId} size="sm" />
+
+            {/* Event details */}
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <span className={cn('text-sm font-medium', getEventColor(event.type))}>
+                {formatEventType(event.type)}
+              </span>
+              <ItemNameDisplay itemId={event.itemId} className="text-sm" />
+              
+              {/* Evolution badge */}
+              {event.isEvolution && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'text-xs',
+                    getEvolutionStageColor(event.evolutionStage)
+                  )}
+                >
+                  <Sparkles className="mr-1 h-2 w-2" />
+                  Evolution {event.evolutionStage?.toUpperCase() || ''}
+                </Badge>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Separate component for item name display to avoid hook duplication
+interface ItemNameDisplayProps {
+  itemId: number;
+  className?: string;
+}
+
+const ItemNameDisplay = ({ itemId, className }: ItemNameDisplayProps) => {
+  const { item, isLoading: itemLoading } = useItem(itemId);
+  
+  const getItemName = () => {
+    if (itemLoading) return '...';
+    if (item?.name) return item.name;
+    return `Item ${itemId}`;
+  };
+
+  return (
+    <span className={cn('text-white/90 font-medium', className)}>
+      {getItemName()}
+    </span>
   );
 };
 
@@ -285,6 +423,7 @@ export function SimpleItemTimeline({
   className,
   maxHeight = 600,
 }: ItemTimelineProps) {
+  const [showDestroyed, setShowDestroyed] = useState(false);
   // Handle loading state
   if (isLoading) {
     return (
@@ -357,6 +496,10 @@ export function SimpleItemTimeline({
     );
   }
 
+  // Process events - filter and group
+  const filteredEvents = filterEvents(timeline.events, showDestroyed);
+  const groupedEvents = groupEventsByTime(filteredEvents);
+
   return (
     <Card
       className={cn(
@@ -375,15 +518,32 @@ export function SimpleItemTimeline({
           stats={timeline.stats} 
           participantId={timeline.participantId} 
         />
+
+        {/* Controls */}
+        <div className="flex items-center gap-2 pt-2">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="show-destroyed"
+              checked={showDestroyed}
+              onCheckedChange={setShowDestroyed}
+            />
+            <Label
+              htmlFor="show-destroyed"
+              className="text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+            >
+              Show destroyed items
+            </Label>
+          </div>
+        </div>
       </CardHeader>
 
       <CardContent>
         <ScrollArea className="pr-4" style={{ height: maxHeight }}>
           <div className="space-y-3">
-            {timeline.events.map((event, index) => (
-              <ItemEventItem
-                key={`${event.timestamp}-${event.itemId}-${index}`}
-                event={event}
+            {groupedEvents.map((group, index) => (
+              <GroupedEventItem
+                key={`${group.timestamp}-${index}`}
+                group={group}
               />
             ))}
           </div>
