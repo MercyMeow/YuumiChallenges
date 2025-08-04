@@ -102,6 +102,22 @@ export async function getSummonerSpellImageUrl(spellKey: string): Promise<string
 }
 
 /**
+ * Generates the URL for a rune image using the latest Data Dragon version
+ * @param runeIconPath - The rune icon path from the rune data (e.g., 'perk-images/Styles/Domination/DarkHarvest/DarkHarvest.png')
+ */
+export async function getRuneImageUrl(runeIconPath: string): Promise<string> {
+  return `https://ddragon.leagueoflegends.com/cdn/img/${runeIconPath}`;
+}
+
+/**
+ * Generates the URL for a rune tree image using the latest Data Dragon version
+ * @param treeIconPath - The rune tree icon path from the tree data
+ */
+export async function getRuneTreeImageUrl(treeIconPath: string): Promise<string> {
+  return `https://ddragon.leagueoflegends.com/cdn/img/${treeIconPath}`;
+}
+
+/**
  * Clear the cached Data Dragon version (useful for testing or forcing refresh)
  */
 export function clearDataDragonCache(): void {

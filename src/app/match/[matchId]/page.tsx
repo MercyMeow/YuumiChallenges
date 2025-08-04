@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { ChampionIcon } from '@/components/ui/datadragon-image';
 import { ItemSlots } from '@/components/match-history/item-slots';
 import { SummonerSpells } from '@/components/match-history/summoner-spells';
+import { RuneTreeDisplay, RuneIcon } from '@/components/ui/rune-display';
 import { getGameModeDisplayName, getGameModeCategoryColor } from '@/lib/utils/game-modes';
 import { formatDistanceToNow } from 'date-fns';
 import { 
@@ -461,6 +462,18 @@ export default function MatchDetailsPage() {
               spell2Id={participant.summoner2Id}
               size="xs"
             />
+
+            {/* Keystone Rune */}
+            {participant.perks?.styles?.[0]?.selections?.[0] && (
+              <div className="flex flex-col items-center gap-1">
+                <RuneIcon 
+                  runeId={participant.perks.styles[0].selections[0].perk}
+                  size="sm"
+                  variant="keystone"
+                />
+                <div className="text-xs text-purple-400">Keystone</div>
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex gap-2">
@@ -1102,63 +1115,10 @@ export default function MatchDetailsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6">
-                    {/* Rune Trees */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {selectedPlayerData.perks.styles.map((style, index) => (
-                        <div key={index} className="space-y-3">
-                          <h3 className="text-lg font-semibold text-purple-400">
-                            {index === 0 ? 'Primary Tree' : 'Secondary Tree'} - {style.description}
-                          </h3>
-                          <div className="space-y-2">
-                            {style.selections.map((selection, selIndex) => (
-                              <div key={selIndex} className="p-3 bg-white/5 rounded-lg border border-white/10">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-white/60">Rune {selection.perk}</span>
-                                  <div className="flex gap-4 text-sm">
-                                    {selection.var1 > 0 && (
-                                      <span className="text-green-400">+{selection.var1}</span>
-                                    )}
-                                    {selection.var2 > 0 && (
-                                      <span className="text-blue-400">+{selection.var2}</span>
-                                    )}
-                                    {selection.var3 > 0 && (
-                                      <span className="text-purple-400">+{selection.var3}</span>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Stat Shards */}
-                    <div>
-                      <h3 className="text-lg font-semibold text-yellow-400 mb-3">Stat Shards</h3>
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="p-3 bg-white/5 rounded-lg border border-white/10 text-center">
-                          <div className="text-xs text-white/60 mb-1">Offense</div>
-                          <div className="text-lg font-semibold text-orange-400">
-                            {selectedPlayerData.perks.statPerks.offense}
-                          </div>
-                        </div>
-                        <div className="p-3 bg-white/5 rounded-lg border border-white/10 text-center">
-                          <div className="text-xs text-white/60 mb-1">Flex</div>
-                          <div className="text-lg font-semibold text-purple-400">
-                            {selectedPlayerData.perks.statPerks.flex}
-                          </div>
-                        </div>
-                        <div className="p-3 bg-white/5 rounded-lg border border-white/10 text-center">
-                          <div className="text-xs text-white/60 mb-1">Defense</div>
-                          <div className="text-lg font-semibold text-green-400">
-                            {selectedPlayerData.perks.statPerks.defense}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <RuneTreeDisplay 
+                    perks={selectedPlayerData.perks}
+                    className="p-6 bg-gradient-to-br from-purple-500/5 to-blue-600/5 border border-purple-500/20 rounded-lg"
+                  />
                 </CardContent>
               </Card>
             ) : (

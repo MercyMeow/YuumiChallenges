@@ -53,6 +53,46 @@ export interface ItemData {
   };
 }
 
+export interface RuneData {
+  id: number;
+  key: string;
+  icon: string;
+  name: string;
+  shortDesc: string;
+  longDesc: string;
+}
+
+export interface RuneSlot {
+  runes: RuneData[];
+}
+
+export interface RuneTree {
+  id: number;
+  key: string;
+  icon: string;
+  name: string;
+  slots: RuneSlot[];
+}
+
+export interface StatShard {
+  id: number;
+  name: string;
+  description: string;
+  slot: 'offense' | 'flex' | 'defense';
+}
+
+export interface RuneSelection {
+  primaryTree: number;
+  keystone: number;
+  slot1: number;
+  slot2: number;
+  slot3: number;
+  secondaryTree: number;
+  secondary1: number;
+  secondary2: number;
+  statShards: [number, number, number]; // [offense, flex, defense]
+}
+
 /**
  * Fetches the latest DataDragon versions
  */
@@ -186,6 +226,25 @@ export const summonerIconImages = {
 };
 
 /**
+ * Rune Image URLs
+ */
+export const runeImages = {
+  /**
+   * Gets the rune icon URL
+   */
+  icon: async (runeIconPath: string): Promise<string> => {
+    return `${DATADRAGON_BASE_URL}/cdn/img/${runeIconPath}`;
+  },
+  
+  /**
+   * Gets the rune tree icon URL
+   */
+  treeIcon: async (treeIconPath: string): Promise<string> => {
+    return `${DATADRAGON_BASE_URL}/cdn/img/${treeIconPath}`;
+  },
+};
+
+/**
  * Fetches champion data from DataDragon
  */
 export async function getChampionData(locale: string = "en_US"): Promise<Record<string, ChampionData>> {
@@ -244,6 +303,27 @@ export async function getItemData(locale: string = "en_US"): Promise<Record<stri
     return data.data;
   } catch (error) {
     console.error("Error fetching item data:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches rune data from DataDragon
+ */
+export async function getRuneData(locale: string = "en_US"): Promise<RuneTree[]> {
+  const version = await getLatestVersion();
+  const url = `${DATADRAGON_BASE_URL}/cdn/${version}/data/${locale}/runesReforged.json`;
+  
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch rune data: ${response.status}`);
+    }
+    
+    const data: RuneTree[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching rune data:", error);
     throw error;
   }
 }
@@ -387,3 +467,174 @@ export async function getSummonerIconUrl(iconId: number): Promise<string> {
  * Default fallback image for when DataDragon images fail to load
  */
 export const FALLBACK_IMAGE = "/images/champion-placeholder.png";
+
+/**
+ * Stat Shard mapping constants
+ * These are not included in the runesReforged.json and need manual mapping
+ */
+export const STAT_SHARDS: Record<number, StatShard> = {
+  // Offense Slot (First Row)
+  5005: {
+    id: 5005,
+    name: "Attack Speed",
+    description: "+10% Attack Speed",
+    slot: 'offense'
+  },
+  5008: {
+    id: 5008,
+    name: "Adaptive Force",
+    description: "+9 Adaptive Force",
+    slot: 'offense'
+  },
+  5007: {
+    id: 5007,
+    name: "Ability Haste",
+    description: "+8 Ability Haste",
+    slot: 'offense'
+  },
+  
+  // Flex Slot (Second Row) - Note: 5008 appears in multiple slots
+  5002: {
+    id: 5002,
+    name: "Armor",
+    description: "+10 Armor",
+    slot: 'flex'
+  },
+  5003: {
+    id: 5003,
+    name: "Magic Resist",
+    description: "+8 Magic Resist",
+    slot: 'flex'
+  },
+  
+  // Defense Slot (Third Row)
+  5001: {
+    id: 5001,
+    name: "Health",
+    description: "+15-140 Health (based on level)",
+    slot: 'defense'
+  }
+};
+
+/**
+ * Stat shard options by slot position
+ */
+export const STAT_SHARD_SLOTS = {
+  offense: [5005, 5008, 5007], // Attack Speed, Adaptive Force, Ability Haste  
+  flex: [5008, 5002, 5003],    // Adaptive Force, Armor, Magic Resist
+  defense: [5001, 5002, 5003]  // Health, Armor, Magic Resist
+} as const;
+
+/**
+ * Rune utility functions
+ */
+
+/**
+ * Gets a rune by ID from rune tree data
+ */
+export function getRuneById(runeTrees: RuneTree[], runeId: number): RuneData | null {
+  for (const tree of runeTrees) {
+    for (const slot of tree.slots) {
+      for (const rune of slot.runes) {
+        if (rune.id === runeId) {
+          return rune;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Gets a rune tree by ID
+ */
+export function getRuneTreeById(runeTrees: RuneTree[], treeId: number): RuneTree | null {
+  return runeTrees.find(tree => tree.id === treeId) || null;
+}
+
+/**
+ * Gets stat shard info by ID
+ */
+export function getStatShardById(statShardId: number): StatShard | null {
+  return STAT_SHARDS[statShardId] || null;
+}
+
+/**
+ * Gets all runes from a specific tree and slot
+ */
+export function getRunesByTreeAndSlot(runeTrees: RuneTree[], treeId: number, slotIndex: number): RuneData[] {
+  const tree = getRuneTreeById(runeTrees, treeId);
+  if (!tree || !tree.slots[slotIndex]) {
+    return [];
+  }
+  return tree.slots[slotIndex].runes;
+}
+
+/**
+ * Gets keystone runes (first slot of each tree)
+ */
+export function getKeystoneRunes(runeTrees: RuneTree[]): RuneData[] {
+  return runeTrees.flatMap(tree => 
+    tree.slots[0]?.runes || []
+  );
+}
+
+/**
+ * Validates a rune selection
+ */
+export function validateRuneSelection(runeTrees: RuneTree[], selection: RuneSelection): boolean {
+  // Check if primary tree exists
+  const primaryTree = getRuneTreeById(runeTrees, selection.primaryTree);
+  if (!primaryTree) return false;
+  
+  // Check if secondary tree exists and is different from primary
+  const secondaryTree = getRuneTreeById(runeTrees, selection.secondaryTree);
+  if (!secondaryTree || selection.secondaryTree === selection.primaryTree) return false;
+  
+  // Check if all runes exist in their respective trees
+  const primaryRunes = [selection.keystone, selection.slot1, selection.slot2, selection.slot3];
+  for (let i = 0; i < primaryRunes.length; i++) {
+    const runesInSlot = getRunesByTreeAndSlot(runeTrees, selection.primaryTree, i);
+    if (!runesInSlot.some(rune => rune.id === primaryRunes[i])) {
+      return false;
+    }
+  }
+  
+  // Check secondary runes (can be from any slot except keystone)
+  const secondaryRunes = [selection.secondary1, selection.secondary2];
+  for (const secondaryRuneId of secondaryRunes) {
+    let found = false;
+    for (let i = 1; i < secondaryTree.slots.length; i++) { // Skip keystone slot
+      const runesInSlot = getRunesByTreeAndSlot(runeTrees, selection.secondaryTree, i);
+      if (runesInSlot.some(rune => rune.id === secondaryRuneId)) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) return false;
+  }
+  
+  // Check stat shards
+  const [offense, flex, defense] = selection.statShards;
+  if (!(STAT_SHARD_SLOTS.offense as readonly number[]).includes(offense) ||
+      !(STAT_SHARD_SLOTS.flex as readonly number[]).includes(flex) ||
+      !(STAT_SHARD_SLOTS.defense as readonly number[]).includes(defense)) {
+    return false;
+  }
+  
+  return true;
+}
+
+/**
+ * Gets rune icon URL with convenience function
+ */
+export async function getRuneIconUrl(runeIconPath: string): Promise<string> {
+  return runeImages.icon(runeIconPath);
+}
+
+/**
+ * Gets rune tree icon URL with convenience function
+ */
+export async function getRuneTreeIconUrl(treeIconPath: string): Promise<string> {
+  return runeImages.treeIcon(treeIconPath);
+}
