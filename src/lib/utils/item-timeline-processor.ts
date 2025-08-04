@@ -1,466 +1,229 @@
 /**
- * Item Timeline Data Processing Utilities
+ * Simplified Item Timeline Data Processing
  * 
- * This module provides functions to process and transform League of Legends
- * timeline data into structured item purchase/sale/destruction events for
- * individual players, with support for evolution detection and time formatting.
+ * Clean, reliable data processing with minimal complexity and maximum maintainability.
  */
 
 import {
   RawTimelineData,
   RawTimelineEvent,
-  ItemTimelineEvent,
-  PlayerItemTimeline,
-  ProcessedItemTimeline,
-  TimelineProcessingOptions,
-  TimelineProcessingError,
+  ItemEvent,
+  ProcessingOptions,
+  ProcessingResult,
   ItemEventType,
-  SupportItemEvolution,
-  SUPPORT_ITEM_EVOLUTIONS,
-  TimelineEventGroup,
-  ItemTimelineDisplayConfig
+  SUPPORT_EVOLUTIONS,
 } from '@/lib/types/item-timeline';
 import { formatMillisecondsToTime } from '@/lib/utils/match-timeline-utils';
 
 /**
- * Convert milliseconds timestamp to MM:SS format
- * @deprecated Use formatMillisecondsToTime from match-timeline-utils instead
+ * Format timestamp to MM:SS format
  */
-export function formatTimestamp(milliseconds: number): string {
+function formatTimestamp(milliseconds: number): string {
   return formatMillisecondsToTime(milliseconds);
 }
 
 /**
- * Convert milliseconds to seconds
+ * Check if item is a support evolution item
  */
-export function millisecondsToSeconds(milliseconds: number): number {
-  return Math.floor(milliseconds / 1000);
+function isSupportEvolution(itemId: number): boolean {
+  return itemId in SUPPORT_EVOLUTIONS;
 }
 
 /**
- * Check if an item ID is a support item that can evolve
+ * Filter and validate raw timeline events for item events only
  */
-export function isSupportItem(itemId: number): boolean {
-  return itemId in SUPPORT_ITEM_EVOLUTIONS;
-}
-
-/**
- * Get support item evolution information
- */
-export function getSupportItemEvolution(itemId: number): SupportItemEvolution | null {
-  return SUPPORT_ITEM_EVOLUTIONS[itemId] || null;
-}
-
-/**
- * Detect if an item purchase is part of a support item evolution chain
- */
-export function detectItemEvolution(
-  currentEvent: RawTimelineEvent,
-  previousEvents: ItemTimelineEvent[]
-): { isEvolution: boolean; evolutionChain?: SupportItemEvolution } {
-  if (!currentEvent.itemId || currentEvent.type !== 'ITEM_PURCHASED') {
-    return { isEvolution: false };
-  }
-
-  const evolution = getSupportItemEvolution(currentEvent.itemId);
-  if (!evolution) {
-    return { isEvolution: false };
-  }
-
-  // Check if this is the first item in the chain (base item)
-  if (evolution.stage === 'base') {
-    return { isEvolution: true, evolutionChain: evolution };
-  }
-
-  // For evolved items, check if the previous item in the chain was purchased
-  const previousItemId = evolution.fromItemId;
-  const hasPrerequisite = previousEvents.some(event => 
-    event.itemId === previousItemId && 
-    event.type === 'ITEM_PURCHASED' &&
-    !previousEvents.some(laterEvent => 
-      laterEvent.itemId === previousItemId && 
-      laterEvent.type === 'ITEM_SOLD' &&
-      laterEvent.timestamp > event.timestamp
-    )
-  );
-
-  if (hasPrerequisite) {
-    return { 
-      isEvolution: true, 
-      evolutionChain: evolution 
-    };
-  } else {
-    return { 
-      isEvolution: false 
-    };
-  }
-}
-
-/**
- * Filter timeline events for item-related events only
- */
-export function filterItemEvents(events: RawTimelineEvent[]): RawTimelineEvent[] {
+function getItemEvents(events: RawTimelineEvent[], participantId: number): RawTimelineEvent[] {
   const itemEventTypes: ItemEventType[] = ['ITEM_PURCHASED', 'ITEM_SOLD', 'ITEM_DESTROYED', 'ITEM_UNDO'];
   
   return events.filter(event => 
     itemEventTypes.includes(event.type as ItemEventType) &&
-    event.itemId !== undefined &&
-    event.itemId !== 0 &&
-    event.participantId !== undefined
+    event.itemId > 0 &&
+    event.participantId === participantId
   );
 }
 
 /**
- * Filter events for a specific participant
+ * Transform raw event to processed item event
  */
-export function filterEventsForParticipant(
-  events: RawTimelineEvent[], 
-  participantId: number
-): RawTimelineEvent[] {
-  // Convert 0-indexed participantId to 1-indexed for Riot API
-  const riotParticipantId = participantId + 1;
+function transformEvent(rawEvent: RawTimelineEvent): ItemEvent {
+  const isEvolution = isSupportEvolution(rawEvent.itemId);
+  const evolutionStage: 'base' | 'tier1' | 'tier2' | 'tier3' | undefined = isEvolution ? SUPPORT_EVOLUTIONS[rawEvent.itemId]?.stage : undefined;
   
-  console.log('[DEBUG] filterEventsForParticipant:', {
-    selectedPlayerId: participantId,
-    riotParticipantId,
-    totalEvents: events.length,
-    sampleParticipantIds: events.slice(0, 10).map(e => e.participantId),
-    allParticipantIds: [...new Set(events.map(e => e.participantId))].sort()
-  });
-  
-  const filtered = events.filter(event => event.participantId === riotParticipantId);
-  console.log('[DEBUG] Filtered events for participant:', {
-    filteredCount: filtered.length,
-    sampleFilteredEvents: filtered.slice(0, 5).map(e => ({
-      type: e.type,
-      itemId: e.itemId,
-      participantId: e.participantId,
-      timestamp: e.timestamp
-    }))
-  });
-  
-  return filtered;
-}
-
-/**
- * Transform raw timeline event to processed item timeline event
- */
-export function transformTimelineEvent(
-  rawEvent: RawTimelineEvent,
-  previousEvents: ItemTimelineEvent[] = [],
-  options: TimelineProcessingOptions
-): ItemTimelineEvent | null {
-  if (!rawEvent.itemId || !rawEvent.participantId) {
-    return null;
-  }
-
-  // Detect evolution if enabled
-  let isEvolution = false;
-  let evolutionChain: SupportItemEvolution | undefined;
-  
-  if (options.detectEvolutions !== false) {
-    const evolutionResult = detectItemEvolution(rawEvent, previousEvents);
-    isEvolution = evolutionResult.isEvolution;
-    evolutionChain = evolutionResult.evolutionChain;
-  }
-
-  // Format timestamp based on options
-  let timeFormatted: string;
-  switch (options.timeFormat) {
-    case 'seconds':
-      timeFormatted = millisecondsToSeconds(rawEvent.timestamp).toString();
-      break;
-    case 'milliseconds':
-      timeFormatted = rawEvent.timestamp.toString();
-      break;
-    case 'MM:SS':
-    default:
-      timeFormatted = formatTimestamp(rawEvent.timestamp);
-      break;
-  }
-
-  const baseEvent: ItemTimelineEvent = {
+  const event: ItemEvent = {
     type: rawEvent.type as ItemEventType,
     timestamp: rawEvent.timestamp,
-    timeFormatted,
-    participantId: rawEvent.participantId,
+    timeFormatted: formatTimestamp(rawEvent.timestamp),
     itemId: rawEvent.itemId,
-    isEvolution
+    isEvolution,
   };
-
-  // Only add evolutionChain if it exists to comply with exactOptionalPropertyTypes
-  if (evolutionChain) {
-    baseEvent.evolutionChain = evolutionChain;
+  
+  if (evolutionStage !== undefined) {
+    (event as any).evolutionStage = evolutionStage;
   }
-
-  return baseEvent;
+  
+  return event;
 }
 
 /**
- * Process raw timeline data for a specific player
+ * Calculate timeline statistics
+ */
+function calculateStats(events: ItemEvent[]) {
+  return {
+    purchases: events.filter(e => e.type === 'ITEM_PURCHASED').length,
+    sales: events.filter(e => e.type === 'ITEM_SOLD').length,
+    evolutions: events.filter(e => e.isEvolution).length,
+  };
+}
+
+/**
+ * Main processing function - transforms raw timeline data into clean player timeline
+ */
+export function processItemTimeline(
+  timelineData: RawTimelineData,
+  options: ProcessingOptions
+): ProcessingResult {
+  try {
+    // Validate participant ID
+    if (options.participantId < 1 || options.participantId > 10) {
+      return {
+        success: false,
+        error: `Invalid participant ID: ${options.participantId}. Must be 1-10.`,
+      };
+    }
+
+    // Collect all events across frames
+    const allEvents: RawTimelineEvent[] = [];
+    
+    for (const frame of timelineData.info.frames) {
+      const itemEvents = getItemEvents(frame.events, options.participantId);
+      allEvents.push(...itemEvents);
+    }
+
+    // Transform events
+    let events = allEvents.map(transformEvent);
+
+    // Filter out undo events if not requested
+    if (!options.includeUndoEvents) {
+      events = events.filter(event => event.type !== 'ITEM_UNDO');
+    }
+
+    // Sort by timestamp
+    events.sort((a, b) => a.timestamp - b.timestamp);
+
+    // Calculate statistics
+    const stats = calculateStats(events);
+
+    return {
+      success: true,
+      data: {
+        participantId: options.participantId,
+        events,
+        stats,
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Processing failed',
+    };
+  }
+}
+
+/**
+ * Legacy compatibility function - wraps new simple processor
+ * @deprecated Use processItemTimeline instead
  */
 export function processPlayerItemTimeline(
   timelineData: RawTimelineData,
-  options: TimelineProcessingOptions
-): ProcessedItemTimeline {
-  const errors: TimelineProcessingError[] = [];
-  const processedEvents: ItemTimelineEvent[] = [];
-  
-  // Validate selected player ID
-  if (options.selectedPlayerId < 0 || options.selectedPlayerId > 9) {
-    errors.push({
-      type: 'INVALID_PARTICIPANT_ID',
-      message: `Invalid participant ID: ${options.selectedPlayerId}. Must be between 0-9.`
-    });
-    
+  options: { selectedPlayerId: number; includeUndoEvents?: boolean }
+) {
+  const includeUndoEvents: boolean | undefined = options.includeUndoEvents;
+  const result = processItemTimeline(timelineData, {
+    participantId: options.selectedPlayerId + 1, // Convert 0-indexed to 1-indexed
+    includeUndoEvents,
+  });
+
+  if (!result.success || !result.data) {
+    // Return legacy format for error cases
     return {
-      playerTimeline: createEmptyPlayerTimeline(options.selectedPlayerId),
+      playerTimeline: {
+        playerId: options.selectedPlayerId,
+        participantId: options.selectedPlayerId + 1,
+        events: [],
+        totalPurchases: 0,
+        totalSales: 0,
+        totalDestructions: 0,
+        supportItemEvolutions: [],
+      },
       totalFrames: 0,
       matchDuration: 0,
       processingOptions: options,
-      errors
+      errors: [{ type: 'MISSING_ITEM_DATA' as const, message: result.error || 'Unknown error' }],
     };
   }
 
-  // Process each frame
-  timelineData.info.frames.forEach((frame, frameIndex) => {
-    try {
-      // Filter for item events
-      const itemEvents = filterItemEvents(frame.events);
-      
-      // Filter for selected participant
-      const playerEvents = filterEventsForParticipant(itemEvents, options.selectedPlayerId);
-      
-      // Transform each event
-      playerEvents.forEach((rawEvent, eventIndex) => {
-        try {
-          const transformedEvent = transformTimelineEvent(
-            rawEvent, 
-            processedEvents, 
-            options
-          );
-          
-          if (transformedEvent) {
-            processedEvents.push(transformedEvent);
-          }
-        } catch (error) {
-          const errorObj: TimelineProcessingError = {
-            type: 'INVALID_TIMESTAMP',
-            message: `Failed to process event at frame ${frameIndex}, event ${eventIndex}: ${error}`,
-            frameIndex,
-            eventIndex
-          };
-          
-          // Only add optional properties if they have defined values
-          if (rawEvent.itemId !== undefined) {
-            errorObj.itemId = rawEvent.itemId;
-          }
-          if (rawEvent.participantId !== undefined) {
-            errorObj.participantId = rawEvent.participantId;
-          }
-          
-          errors.push(errorObj);
-        }
-      });
-    } catch (error) {
-      errors.push({
-        type: 'MISSING_ITEM_DATA',
-        message: `Failed to process frame ${frameIndex}: ${error}`,
-        frameIndex
-      });
-    }
-  });
-
-  // Sort events by timestamp
-  processedEvents.sort((a, b) => a.timestamp - b.timestamp);
-
-  // Group consecutive events if enabled
-  const finalEvents = options.groupConsecutiveEvents 
-    ? groupConsecutiveEvents(processedEvents)
-    : processedEvents;
-
-  // Filter out undo events if not included
-  const filteredEvents = options.includeUndoEvents 
-    ? finalEvents 
-    : finalEvents.filter(event => event.type !== 'ITEM_UNDO');
-
-  // Calculate statistics
-  const purchaseEvents = filteredEvents.filter(e => e.type === 'ITEM_PURCHASED');
-  const saleEvents = filteredEvents.filter(e => e.type === 'ITEM_SOLD');
-  const destructionEvents = filteredEvents.filter(e => e.type === 'ITEM_DESTROYED');
-  const evolutionEvents = filteredEvents.filter(e => e.isEvolution);
-
-  const playerTimeline: PlayerItemTimeline = {
-    playerId: options.selectedPlayerId,
-    participantId: options.selectedPlayerId + 1,
-    events: filteredEvents,
-    totalPurchases: purchaseEvents.length,
-    totalSales: saleEvents.length,
-    totalDestructions: destructionEvents.length,
-    supportItemEvolutions: evolutionEvents
-  };
-
-  // Only add optional timestamp properties if they have values
-  if (purchaseEvents.length > 0) {
-    const firstPurchase = purchaseEvents[0];
-    const lastPurchase = purchaseEvents[purchaseEvents.length - 1];
-    
-    if (firstPurchase) {
-      playerTimeline.firstItemTimestamp = firstPurchase.timestamp;
-    }
-    if (lastPurchase) {
-      playerTimeline.finalBuildTimestamp = lastPurchase.timestamp;
-    }
-  }
-
-  const lastFrame = timelineData.info.frames[timelineData.info.frames.length - 1];
-  const matchDuration = lastFrame ? lastFrame.timestamp : 0;
-
+  // Transform new format to legacy format for compatibility
+  const { data } = result;
+  const evolutionEvents = data.events.filter(e => e.isEvolution);
+  
   return {
-    playerTimeline,
+    playerTimeline: {
+      playerId: options.selectedPlayerId,
+      participantId: data.participantId,
+      events: data.events.map(event => ({
+        type: event.type,
+        timestamp: event.timestamp,
+        timeFormatted: event.timeFormatted,
+        participantId: data.participantId,
+        itemId: event.itemId,
+        isEvolution: event.isEvolution,
+        evolutionChain: event.isEvolution && event.evolutionStage ? {
+          stage: event.evolutionStage,
+          chainName: SUPPORT_EVOLUTIONS[event.itemId]?.name || 'Unknown',
+        } : undefined,
+      })),
+      totalPurchases: data.stats.purchases,
+      totalSales: data.stats.sales,
+      totalDestructions: 0, // Not tracked in simplified version
+      supportItemEvolutions: evolutionEvents.map(event => ({
+        type: event.type,
+        timestamp: event.timestamp,
+        timeFormatted: event.timeFormatted,
+        participantId: data.participantId,
+        itemId: event.itemId,
+        isEvolution: true,
+      })),
+    },
     totalFrames: timelineData.info.frames.length,
-    matchDuration,
+    matchDuration: timelineData.info.frames[timelineData.info.frames.length - 1]?.timestamp || 0,
     processingOptions: options,
-    errors
+    errors: [],
   };
 }
 
 /**
- * Group consecutive events that happen at the same timestamp
+ * Legacy format timestamp function
+ * @deprecated Use processItemTimeline instead
  */
-export function groupConsecutiveEvents(events: ItemTimelineEvent[]): ItemTimelineEvent[] {
-  if (events.length <= 1) return events;
-
-  const grouped: ItemTimelineEvent[] = [];
-  const firstEvent = events[0];
-  if (!firstEvent) return events;
-  
-  let currentGroup: ItemTimelineEvent[] = [firstEvent];
-
-  for (let i = 1; i < events.length; i++) {
-    const currentEvent = events[i];
-    const lastInGroup = currentGroup[currentGroup.length - 1];
-
-    if (!currentEvent || !lastInGroup) continue;
-
-    // If timestamps are the same (within 1 second), add to current group
-    if (Math.abs(currentEvent.timestamp - lastInGroup.timestamp) <= 1000) {
-      currentGroup.push(currentEvent);
-    } else {
-      // Process current group and start new one
-      grouped.push(...processEventGroup(currentGroup));
-      currentGroup = [currentEvent];
-    }
-  }
-
-  // Process final group
-  grouped.push(...processEventGroup(currentGroup));
-
-  return grouped;
+export function legacyFormatTimestamp(milliseconds: number): string {
+  return formatMillisecondsToTime(milliseconds);
 }
 
 /**
- * Process a group of events that occurred at the same time
- * Handles item replacements and upgrades intelligently
+ * Legacy utility functions for backward compatibility
+ * @deprecated Use the simplified processItemTimeline function instead
  */
-function processEventGroup(eventGroup: ItemTimelineEvent[]): ItemTimelineEvent[] {
-  if (eventGroup.length === 1) return eventGroup;
-
-  // Sort by event type priority: SOLD -> PURCHASED -> DESTROYED
-  const eventTypePriority = {
-    'ITEM_SOLD': 1,
-    'ITEM_PURCHASED': 2,
-    'ITEM_DESTROYED': 3,
-    'ITEM_UNDO': 4
-  };
-
-  return eventGroup.sort((a, b) => 
-    eventTypePriority[a.type] - eventTypePriority[b.type]
-  );
-}
-
-/**
- * Create empty player timeline for error cases
- */
-function createEmptyPlayerTimeline(playerId: number): PlayerItemTimeline {
-  return {
-    playerId,
-    participantId: playerId + 1,
-    events: [],
-    totalPurchases: 0,
-    totalSales: 0,
-    totalDestructions: 0,
-    supportItemEvolutions: [],
-  };
-}
-
-/**
- * Group timeline events by time intervals for display
- */
-export function groupEventsByTimeInterval(
-  events: ItemTimelineEvent[],
-  intervalMinutes: number = 1
-): TimelineEventGroup[] {
-  if (events.length === 0) return [];
-
-  const intervalMs = intervalMinutes * 60 * 1000;
-  const groups: TimelineEventGroup[] = [];
-  
-  // Find the earliest timestamp to establish intervals
-  const firstEvent = events[0];
-  const lastEvent = events[events.length - 1];
-  
-  if (!firstEvent || !lastEvent) return [];
-  
-  const firstTimestamp = firstEvent.timestamp;
-  const lastTimestamp = lastEvent.timestamp;
-  
-  // Create interval groups
-  for (let timestamp = firstTimestamp; timestamp <= lastTimestamp; timestamp += intervalMs) {
-    const intervalStart = timestamp;
-    const intervalEnd = timestamp + intervalMs;
-    
-    const intervalEvents = events.filter(event => 
-      event.timestamp >= intervalStart && event.timestamp < intervalEnd
-    );
-    
-    if (intervalEvents.length > 0) {
-      const startFormatted = formatTimestamp(intervalStart);
-      const endFormatted = formatTimestamp(intervalEnd);
-      
-      groups.push({
-        timeInterval: `${startFormatted}-${endFormatted}`,
-        startTimestamp: intervalStart,
-        endTimestamp: intervalEnd,
-        events: intervalEvents,
-        eventCount: intervalEvents.length,
-        hasEvolutions: intervalEvents.some(e => e.isEvolution)
-      });
-    }
-  }
-  
-  return groups;
-}
-
-/**
- * Create default processing options
- */
-export function createDefaultProcessingOptions(
-  selectedPlayerId: number
-): TimelineProcessingOptions {
+export function createDefaultProcessingOptions(selectedPlayerId: number) {
   return {
     selectedPlayerId,
     includeUndoEvents: false,
     groupConsecutiveEvents: true,
     detectEvolutions: true,
-    timeFormat: 'MM:SS'
+    timeFormat: 'MM:SS' as const
   };
 }
 
-/**
- * Create default display configuration
- */
-export function createDefaultDisplayConfig(): ItemTimelineDisplayConfig {
+export function createDefaultDisplayConfig() {
   return {
     showItemIcons: true,
     showItemNames: true,
@@ -472,4 +235,48 @@ export function createDefaultDisplayConfig(): ItemTimelineDisplayConfig {
     highlightEvolutions: true,
     compactView: false
   };
+}
+
+export function groupEventsByTimeInterval(events: any[], intervalMinutes: number = 1) {
+  // Simplified grouping for backward compatibility
+  if (events.length === 0) return [];
+  
+  const intervalMs = intervalMinutes * 60 * 1000;
+  const groups: any[] = [];
+  
+  let currentGroup: any[] = [];
+  let currentIntervalStart = events[0]?.timestamp || 0;
+  
+  for (const event of events) {
+    if (event.timestamp - currentIntervalStart >= intervalMs) {
+      if (currentGroup.length > 0) {
+        groups.push({
+          timeInterval: `${formatTimestamp(currentIntervalStart)}-${formatTimestamp(currentIntervalStart + intervalMs)}`,
+          startTimestamp: currentIntervalStart,
+          endTimestamp: currentIntervalStart + intervalMs,
+          events: currentGroup,
+          eventCount: currentGroup.length,
+          hasEvolutions: currentGroup.some(e => e.isEvolution)
+        });
+      }
+      currentGroup = [event];
+      currentIntervalStart = event.timestamp;
+    } else {
+      currentGroup.push(event);
+    }
+  }
+  
+  // Add final group
+  if (currentGroup.length > 0) {
+    groups.push({
+      timeInterval: `${formatTimestamp(currentIntervalStart)}-${formatTimestamp(currentIntervalStart + intervalMs)}`,
+      startTimestamp: currentIntervalStart,
+      endTimestamp: currentIntervalStart + intervalMs,
+      events: currentGroup,
+      eventCount: currentGroup.length,
+      hasEvolutions: currentGroup.some(e => e.isEvolution)
+    });
+  }
+  
+  return groups;
 }

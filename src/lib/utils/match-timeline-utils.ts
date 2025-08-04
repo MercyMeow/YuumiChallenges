@@ -8,7 +8,7 @@
  * @version 1.0.0
  */
 
-import { SUPPORT_ITEM_EVOLUTIONS } from '@/lib/types/item-timeline';
+import { SUPPORT_EVOLUTIONS } from '@/lib/types/item-timeline-new';
 
 // =============================================
 // TIME FORMATTING UTILITIES
@@ -224,7 +224,7 @@ export interface SupportItemCompletion {
 /**
  * Fast lookup map for support items (for O(1) performance)
  */
-const SUPPORT_ITEM_LOOKUP = new Set(Object.keys(SUPPORT_ITEM_EVOLUTIONS).map(Number));
+const SUPPORT_ITEM_LOOKUP = new Set(Object.keys(SUPPORT_EVOLUTIONS).map(Number));
 
 /**
  * Tier mapping for completion percentage calculation
@@ -285,7 +285,7 @@ export function getSupportItemCompletion(itemId: number | null | undefined): Sup
     return defaultResult;
   }
   
-  const evolution = SUPPORT_ITEM_EVOLUTIONS[itemId!];
+  const evolution = SUPPORT_EVOLUTIONS[itemId!];
   if (!evolution) {
     return defaultResult;
   }
@@ -293,10 +293,10 @@ export function getSupportItemCompletion(itemId: number | null | undefined): Sup
   return {
     isSupportItem: true,
     tier: evolution.stage,
-    chainType: evolution.evolutionType,
-    isFinalEvolution: evolution.toItemId === 0,
-    nextItemId: evolution.toItemId,
-    chainName: evolution.chainName,
+    chainType: 'world_atlas', // All current support items use world atlas system
+    isFinalEvolution: evolution.stage === 'tier3',
+    nextItemId: 0, // Simplified - we don't track next item IDs
+    chainName: evolution.name,
     completionPercentage: TIER_COMPLETION_MAP[evolution.stage]
   };
 }
@@ -319,8 +319,8 @@ export function getNextEvolutionItemId(itemId: number | null | undefined): numbe
     return 0;
   }
   
-  const evolution = SUPPORT_ITEM_EVOLUTIONS[itemId!];
-  return evolution?.toItemId ?? 0;
+  // Simplified: since we don't track next item IDs in the new system, just return 0
+  return 0;
 }
 
 /**
@@ -360,15 +360,14 @@ export function getSupportItemChain(itemId: number | null | undefined): number[]
     return [];
   }
   
-  const evolution = SUPPORT_ITEM_EVOLUTIONS[itemId!];
+  const evolution = SUPPORT_EVOLUTIONS[itemId!];
   if (!evolution) {
     return [];
   }
   
-  // Find all items with the same evolution type
-  const chainItems = Object.entries(SUPPORT_ITEM_EVOLUTIONS)
-    .filter(([, evo]) => evo.evolutionType === evolution.evolutionType)
-    .map(([id, evo]) => ({ id: Number(id), stage: evo.stage, fromItemId: evo.fromItemId, toItemId: evo.toItemId }))
+  // Find all items (simplified - all use world atlas chain now)
+  const chainItems = Object.entries(SUPPORT_EVOLUTIONS)
+    .map(([id, evo]) => ({ id: Number(id), stage: evo.stage }))
     .sort((a, b) => {
       // Sort by dependency chain
       const stageOrder = { base: 0, tier1: 1, tier2: 2, tier3: 3 };

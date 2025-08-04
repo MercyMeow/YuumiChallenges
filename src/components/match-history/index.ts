@@ -11,4 +11,4 @@ export { PlayerRow, PlayersList } from './player-row';
 export { ItemSlot, ItemSlots, TrinketSlot } from './item-slots';
 export { SummonerSpells, SummonerSpell } from './summoner-spells';
 export { TimelineEventItem } from './timeline-event-item';
-export { ItemTimelineDisplay, CompactItemTimelineDisplay } from './item-timeline-display';
+export { SimpleItemTimeline } from './simple-item-timeline';

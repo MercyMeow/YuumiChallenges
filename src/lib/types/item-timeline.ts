@@ -1,193 +1,152 @@
 /**
- * Item Timeline Types and Interfaces for League of Legends Match Details
+ * Simplified Item Timeline Types for League of Legends Match Details
  * 
- * This module provides comprehensive TypeScript interfaces and type definitions
- * for processing and displaying item purchase/sale/destruction events from
- * League of Legends match timeline data.
+ * Clean, maintainable TypeScript interfaces with minimal complexity
+ * and focus on type safety and ease of use.
  */
 
-// Raw timeline data structure from Riot API
-export interface RawTimelineFrame {
-  timestamp: number;
-  events: RawTimelineEvent[];
-  participantFrames: Record<string, {
-    championStats: any;
-    currentGold: number;
-    totalGold: number;
-    level: number;
-    xp: number;
-    minionsKilled: number;
-    jungleMinionsKilled: number;
-    damageStats: any;
-    position?: { x: number; y: number };
-  }>;
+// Raw data from Riot API - minimal required structure
+export interface RawTimelineData {
+  metadata?: any;
+  info: {
+    frameInterval?: number;
+    frames: {
+      timestamp: number;
+      events: RawTimelineEvent[];
+    }[];
+  };
 }
 
 export interface RawTimelineEvent {
   type: string;
   timestamp: number;
-  participantId?: number;
-  itemId?: number;
-  afterId?: number;  // Item ID after transformation/evolution
-  beforeId?: number; // Item ID before transformation/evolution
-  [key: string]: any; // Allow for other event properties
+  participantId: number;
+  itemId: number;
 }
 
-export interface RawTimelineData {
-  metadata: any;
-  info: {
-    frameInterval: number;
-    frames: RawTimelineFrame[];
+// Clean event types
+export type ItemEventType = 'ITEM_PURCHASED' | 'ITEM_SOLD' | 'ITEM_DESTROYED' | 'ITEM_UNDO';
+
+// Processed item event - simplified structure
+export interface ItemEvent {
+  readonly type: ItemEventType;
+  readonly timestamp: number;
+  readonly timeFormatted: string;
+  readonly itemId: number;
+  readonly isEvolution: boolean;
+  readonly evolutionStage?: 'base' | 'tier1' | 'tier2' | 'tier3' | undefined;
+}
+
+// Legacy compatibility types
+export interface ItemTimelineEvent extends ItemEvent {
+  readonly participantId: number;
+  readonly itemName?: string;
+  readonly evolutionChain?: {
+    readonly stage: 'base' | 'tier1' | 'tier2' | 'tier3';
+    readonly chainName: string;
   };
 }
 
-// Item event types
-export type ItemEventType = 'ITEM_PURCHASED' | 'ITEM_SOLD' | 'ITEM_DESTROYED' | 'ITEM_UNDO';
-
-// Processed item timeline event
-export interface ItemTimelineEvent {
-  type: ItemEventType;
-  timestamp: number;
-  timeFormatted: string; // MM:SS format
-  participantId: number; // 1-indexed as per Riot API
-  itemId: number;
-  itemName?: string;
-  isEvolution?: boolean; // Whether this is a support item evolution
-  evolutionChain?: SupportItemEvolution; // Evolution details if applicable
+export interface PlayerItemTimeline {
+  readonly playerId: number;
+  readonly participantId: number;
+  readonly events: ItemTimelineEvent[];
+  readonly totalPurchases: number;
+  readonly totalSales: number;
+  readonly totalDestructions: number;
+  readonly supportItemEvolutions: ItemTimelineEvent[];
+  readonly firstItemTimestamp?: number;
+  readonly finalBuildTimestamp?: number;
 }
 
-// Support item evolution chains
+export interface TimelineEventGroup {
+  readonly timeInterval: string;
+  readonly startTimestamp: number;
+  readonly endTimestamp: number;
+  readonly events: ItemTimelineEvent[];
+  readonly eventCount: number;
+  readonly hasEvolutions: boolean;
+}
+
+export interface ItemTimelineDisplayConfig {
+  readonly showItemIcons: boolean;
+  readonly showItemNames: boolean;
+  readonly showTimestamps: boolean;
+  readonly showEvolutionChains: boolean;
+  readonly groupByTimeInterval: boolean;
+  readonly timeInterval: number;
+  readonly maxEventsPerGroup: number;
+  readonly highlightEvolutions: boolean;
+  readonly compactView: boolean;
+}
+
 export interface SupportItemEvolution {
-  fromItemId: number;
-  toItemId: number;
-  stage: 'base' | 'tier1' | 'tier2' | 'tier3';
-  chainName: string;
-  evolutionType: 'world_atlas' | 'relic' | 'steel' | 'spectral_sickle' | 'spectral_spellthief';
+  readonly stage: 'base' | 'tier1' | 'tier2' | 'tier3';
+  readonly chainName: string;
+  readonly fromItemId: number;
+  readonly toItemId: number;
+  readonly evolutionType: string;
 }
 
-// Support item evolution mapping - Current World Atlas System (Season 14+)
-export const SUPPORT_ITEM_EVOLUTIONS: Record<number, SupportItemEvolution> = {
-  // World Atlas Evolution Chain (Universal Support Starter)
-  3865: { // World Atlas
-    fromItemId: 0,
-    toItemId: 3866,
-    stage: 'base',
-    chainName: 'World Atlas',
-    evolutionType: 'world_atlas'
-  },
-  3866: { // Runic Compass
-    fromItemId: 3865,
-    toItemId: 3867,
-    stage: 'tier1',
-    chainName: 'Runic Compass',
-    evolutionType: 'world_atlas'
-  },
-  3867: { // Bounty of Worlds
-    fromItemId: 3866,
-    toItemId: 0, // Can evolve to multiple final items
-    stage: 'tier2',
-    chainName: 'Bounty of Worlds',
-    evolutionType: 'world_atlas'
-  },
+// Create legacy compatible support item evolutions
+const createLegacySupportEvolutions = () => {
+  const legacy: Record<number, SupportItemEvolution> = {};
   
-  // Final Support Item Evolutions from Bounty of Worlds
-  3869: { // Celestial Opposition
-    fromItemId: 3867,
-    toItemId: 0,
-    stage: 'tier3',
-    chainName: 'Celestial Opposition',
-    evolutionType: 'world_atlas'
-  },
-  3870: { // Dream Maker
-    fromItemId: 3867,
-    toItemId: 0,
-    stage: 'tier3',
-    chainName: 'Dream Maker',
-    evolutionType: 'world_atlas'
-  },
-  3871: { // Zaz'Zak's Realmspike
-    fromItemId: 3867,
-    toItemId: 0,
-    stage: 'tier3',
-    chainName: "Zaz'Zak's Realmspike",
-    evolutionType: 'world_atlas'
-  },
-  3876: { // Solstice Sleigh
-    fromItemId: 3867,
-    toItemId: 0,
-    stage: 'tier3',
-    chainName: 'Solstice Sleigh',
-    evolutionType: 'world_atlas'
-  },
-  3877: { // Bloodsong
-    fromItemId: 3867,
-    toItemId: 0,
-    stage: 'tier3',
-    chainName: 'Bloodsong',
-    evolutionType: 'world_atlas'
+  for (const [itemIdStr, evolution] of Object.entries(SUPPORT_EVOLUTIONS)) {
+    const itemId = parseInt(itemIdStr, 10);
+    legacy[itemId] = {
+      stage: evolution.stage,
+      chainName: evolution.name,
+      fromItemId: 0, // Simplified - not tracking full chain
+      toItemId: 0,   // Simplified - not tracking full chain  
+      evolutionType: 'world_atlas',
+    };
   }
+  
+  return legacy;
 };
 
-// Processed timeline data for selected player
-export interface PlayerItemTimeline {
-  playerId: number; // 0-indexed participant array position
-  participantId: number; // 1-indexed Riot API participant ID
-  events: ItemTimelineEvent[];
-  totalPurchases: number;
-  totalSales: number;
-  totalDestructions: number;
-  supportItemEvolutions: ItemTimelineEvent[];
-  firstItemTimestamp?: number;
-  finalBuildTimestamp?: number;
+// Legacy compatibility exports
+export const SUPPORT_ITEM_EVOLUTIONS = createLegacySupportEvolutions();
+
+// Support item evolution data - simplified mapping
+export interface SupportEvolution {
+  readonly stage: 'base' | 'tier1' | 'tier2' | 'tier3';
+  readonly name: string;
 }
 
-// Timeline processing options
-export interface TimelineProcessingOptions {
-  selectedPlayerId: number; // 0-indexed participant position
-  includeUndoEvents?: boolean;
-  groupConsecutiveEvents?: boolean; // Group events at same timestamp
-  detectEvolutions?: boolean;
-  timeFormat?: 'MM:SS' | 'seconds' | 'milliseconds';
+// Support item evolution mapping - Current World Atlas System
+export const SUPPORT_EVOLUTIONS: Record<number, SupportEvolution> = {
+  3865: { stage: 'base', name: 'World Atlas' },
+  3866: { stage: 'tier1', name: 'Runic Compass' },
+  3867: { stage: 'tier2', name: 'Bounty of Worlds' },
+  3869: { stage: 'tier3', name: 'Celestial Opposition' },
+  3870: { stage: 'tier3', name: 'Dream Maker' },
+  3871: { stage: 'tier3', name: "Zaz'Zak's Realmspike" },
+  3876: { stage: 'tier3', name: 'Solstice Sleigh' },
+  3877: { stage: 'tier3', name: 'Bloodsong' },
+} as const;
+
+// Player timeline result - simplified structure
+export interface PlayerTimeline {
+  readonly participantId: number;
+  readonly events: ItemEvent[];
+  readonly stats: {
+    readonly purchases: number;
+    readonly sales: number;
+    readonly evolutions: number;
+  };
 }
 
-// Timeline processing result
-export interface ProcessedItemTimeline {
-  playerTimeline: PlayerItemTimeline;
-  totalFrames: number;
-  matchDuration: number;
-  processingOptions: TimelineProcessingOptions;
-  errors: TimelineProcessingError[];
+// Processing options - minimal configuration
+export interface ProcessingOptions {
+  readonly participantId: number; // 1-indexed Riot API participant ID
+  readonly includeUndoEvents?: boolean | undefined;
 }
 
-// Error handling for timeline processing
-export interface TimelineProcessingError {
-  type: 'INVALID_PARTICIPANT_ID' | 'MISSING_ITEM_DATA' | 'INVALID_TIMESTAMP' | 'EVOLUTION_DETECTION_FAILED';
-  message: string;
-  eventIndex?: number;
-  frameIndex?: number;
-  itemId?: number;
-  participantId?: number;
-}
-
-// Item timeline display configuration
-export interface ItemTimelineDisplayConfig {
-  showItemIcons: boolean;
-  showItemNames: boolean;
-  showTimestamps: boolean;
-  showEvolutionChains: boolean;
-  groupByTimeInterval: boolean; // Group events by minute intervals
-  timeInterval: number; // Minutes for grouping
-  maxEventsPerGroup: number;
-  highlightEvolutions: boolean;
-  compactView: boolean;
-}
-
-// Timeline event grouping
-export interface TimelineEventGroup {
-  timeInterval: string; // "5:00-6:00" format
-  startTimestamp: number;
-  endTimestamp: number;
-  events: ItemTimelineEvent[];
-  eventCount: number;
-  hasEvolutions: boolean;
+// Processing result with simple error handling
+export interface ProcessingResult {
+  readonly success: boolean;
+  readonly data?: PlayerTimeline;
+  readonly error?: string;
 }

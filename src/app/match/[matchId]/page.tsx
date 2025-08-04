@@ -16,18 +16,18 @@ import {
   RuneIcon,
   StatShardIcon,
 } from '@/components/ui/rune-display';
-import { ItemTimelineDisplay } from '@/components/match-history/item-timeline-display';
+import { SimpleItemTimeline } from '@/components/match-history/simple-item-timeline';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TimelineEventItem } from '@/components/match-history/timeline-event-item';
-import { useTimelineProcessor } from '@/lib/hooks/use-timeline-processor';
+import { useSimpleTimelineProcessor } from '@/lib/hooks/use-timeline-processor-new';
 import {
   getGameModeDisplayName,
   getGameModeCategoryColor,
 } from '@/lib/utils/game-modes';
-import { createDefaultProcessingOptions } from '@/lib/utils/item-timeline-processor';
+import { createDefaultProcessingOptions } from '@/lib/utils/item-timeline-processor-new';
 import { formatMatchTime } from '@/lib/utils/time';
 import { detectSupportItemCompletionFromRaw } from '@/lib/utils/match-timeline-utils';
-import { RawTimelineData } from '@/lib/types/item-timeline';
+import { RawTimelineData } from '@/lib/types/item-timeline-new';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Clock,
@@ -547,9 +547,9 @@ export default function MatchDetailsPage() {
     'combat' | 'items'
   >('combat');
 
-  // Add timeline processor hook
-  const { processedTimeline, isProcessing, processingTime, processTimeline } =
-    useTimelineProcessor();
+  // Add simple timeline processor hook
+  const { timeline: processedTimeline, isProcessing, error: timelineError, processTimeline } =
+    useSimpleTimelineProcessor();
 
   // Debug logging for component lifecycle
   useEffect(() => {
@@ -574,7 +574,6 @@ export default function MatchDetailsPage() {
       dataExists: !!data,
       processedTimelineExists: !!processedTimeline,
       isProcessing,
-      processingTime: processingTime,
     });
   }, [
     selectedPlayer,
@@ -582,7 +581,6 @@ export default function MatchDetailsPage() {
     data,
     processedTimeline,
     isProcessing,
-    processingTime,
   ]);
 
   useEffect(() => {
@@ -626,7 +624,7 @@ export default function MatchDetailsPage() {
     console.log('📥 useMemo Dependencies (Compare Player):', {
       processedTimelineExists: !!processedTimeline,
       processedTimelineEventsLength:
-        processedTimeline?.playerTimeline?.events?.length || 0,
+        processedTimeline?.events?.length || 0,
       dataExists: !!data,
       participantsLength: data?.matchData?.info?.participants?.length || 0,
       comparePlayer,
@@ -634,7 +632,7 @@ export default function MatchDetailsPage() {
     });
 
     if (
-      !processedTimeline?.playerTimeline?.events ||
+      !processedTimeline?.events ||
       !data?.matchData?.info?.participants ||
       comparePlayer === null
     ) {
@@ -642,7 +640,7 @@ export default function MatchDetailsPage() {
         '⚠️ Early return: Missing required data for compare player',
         {
           hasProcessedTimelineEvents:
-            !!processedTimeline?.playerTimeline?.events,
+            !!processedTimeline?.events,
           hasParticipants: !!data?.matchData?.info?.participants,
           comparePlayerIsNull: comparePlayer === null,
         }
@@ -755,7 +753,7 @@ export default function MatchDetailsPage() {
     return { blue: blueTotals, red: redTotals };
   }, [data]);
 
-  // Effect to process item timeline for selected player using Web Worker
+  // Effect to process item timeline for selected player
   useEffect(() => {
     // Ensure we have timeline frames before attempting to process
     if (
@@ -769,20 +767,18 @@ export default function MatchDetailsPage() {
     }
 
     const rawTimelineData: RawTimelineData = {
-      metadata: data.timelineData.metadata,
       info: {
         frameInterval: data.timelineData.info.frameInterval,
         frames: data.timelineData.info.frames.map((frame) => ({
           timestamp: frame.timestamp,
           events: frame.events || [],
-          participantFrames: frame.participantFrames || {},
         })),
       },
     };
 
-    const processingOptions = createDefaultProcessingOptions(selectedPlayer);
+    const processingOptions = createDefaultProcessingOptions(selectedPlayer + 1); // Convert to 1-indexed
 
-    // Trigger async processing
+    // Trigger processing
     processTimeline(rawTimelineData, processingOptions);
   }, [data?.timelineData, selectedPlayer, processTimeline]);
 
@@ -795,7 +791,7 @@ export default function MatchDetailsPage() {
     console.log('📥 useMemo Dependencies:', {
       processedTimelineExists: !!processedTimeline,
       processedTimelineEventsLength:
-        processedTimeline?.playerTimeline?.events?.length || 0,
+        processedTimeline?.events?.length || 0,
       dataExists: !!data,
       participantsLength: data?.matchData?.info?.participants?.length || 0,
       selectedPlayer,
@@ -803,12 +799,12 @@ export default function MatchDetailsPage() {
     });
 
     if (
-      !processedTimeline?.playerTimeline?.events ||
+      !processedTimeline?.events ||
       !data?.matchData?.info?.participants ||
       selectedPlayer === null
     ) {
       console.warn('⚠️ Early return: Missing required data', {
-        hasProcessedTimelineEvents: !!processedTimeline?.playerTimeline?.events,
+        hasProcessedTimelineEvents: !!processedTimeline?.events,
         hasParticipants: !!data?.matchData?.info?.participants,
         selectedPlayerIsNull: selectedPlayer === null,
       });
@@ -834,14 +830,14 @@ export default function MatchDetailsPage() {
       playerName:
         selectedPlayerData.riotIdGameName || selectedPlayerData.summonerName,
       championName: selectedPlayerData.championName,
-      eventsLength: processedTimeline.playerTimeline.events.length,
+      eventsLength: processedTimeline.events.length,
       playerDataKeys: Object.keys(selectedPlayerData),
     });
 
     // Log the actual events to check their structure
     console.log(
       '📋 Sample Timeline Events for debugging:',
-      processedTimeline.playerTimeline.events
+      processedTimeline.events
         .slice(0, 10)
         .map((event, idx) => ({
           index: idx,
@@ -2677,11 +2673,6 @@ export default function MatchDetailsPage() {
                   <CardTitle className="flex items-center gap-2 text-white">
                     <Timer className="h-5 w-5" />
                     Match Timeline
-                    {processingTime > 0 && (
-                      <Badge className="ml-2 bg-green-500/20 text-xs text-green-400">
-                        Processed in {processingTime.toFixed(0)}ms
-                      </Badge>
-                    )}
                   </CardTitle>
                   {/* Segmented toggle */}
                   <div className="inline-flex rounded-lg border border-white/10 bg-black/30 p-1">
@@ -2836,28 +2827,14 @@ export default function MatchDetailsPage() {
                           Item timeline requires detailed match timeline data
                         </p>
                       </div>
-                    ) : processedTimeline?.playerTimeline ? (
-                      <ItemTimelineDisplay
-                        playerTimeline={processedTimeline.playerTimeline}
-                        config={{
-                          showItemIcons: true,
-                          showItemNames: true,
-                          showTimestamps: true,
-                          showEvolutionChains: true,
-                          highlightEvolutions: true,
-                          groupByTimeInterval: false,
-                          compactView: false,
-                        }}
+                    ) : (
+                      <SimpleItemTimeline
+                        timeline={processedTimeline}
+                        isLoading={isProcessing}
+                        error={timelineError}
                         className="w-full"
                         maxHeight={600}
                       />
-                    ) : (
-                      <div className="py-12 text-center">
-                        <Loader2 className="mx-auto mb-4 h-10 w-10 animate-spin text-white/60" />
-                        <p className="text-white/60">
-                          Processing item timeline...
-                        </p>
-                      </div>
                     )}
                   </>
                 )}
