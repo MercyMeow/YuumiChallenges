@@ -573,6 +573,9 @@ export function detectSupportItemCompletion(
   // Create evolution tracking map
   const evolutionTracker = new Map<SupportItemTier, number>();
   
+  // **ENHANCED: Specifically track Runic Compass (3866) destruction as quest completion**
+  let runicCompassDestructionTime: number | null = null;
+  
   // Process events to detect tier completions
   for (const event of supportItemEvents) {
     const completion = getSupportItemCompletion(event.itemId);
@@ -582,6 +585,12 @@ export function detectSupportItemCompletion(
     const currentTierTime = evolutionTracker.get(completion.tier);
     
     console.log(`📦 Processing ${event.type} of ${event.itemId} (${completion.chainName}, ${completion.tier}) at ${formatMillisecondsToTime(event.timestamp)}`);
+    
+    // **SPECIAL CASE: Runic Compass (3866) destruction indicates quest completion**
+    if (event.type === 'ITEM_DESTROYED' && event.itemId === 3866) {
+      runicCompassDestructionTime = event.timestamp;
+      console.log(`    🏆 QUEST COMPLETION DETECTED: Runic Compass destroyed at ${formatMillisecondsToTime(event.timestamp)}`);
+    }
     
     // For purchases: this indicates tier completion 
     if (event.type === 'ITEM_PURCHASED') {
@@ -615,6 +624,12 @@ export function detectSupportItemCompletion(
         console.log(`    💥 Standalone destruction (no immediate evolution detected)`);
       }
     }
+  }
+  
+  // **ENHANCED: If we detected Runic Compass destruction, use it as the primary tier2 completion time**
+  if (runicCompassDestructionTime !== null) {
+    evolutionTracker.set('tier2', runicCompassDestructionTime);
+    console.log(`🎯 OVERRIDING tier2 completion with Runic Compass destruction time: ${formatMillisecondsToTime(runicCompassDestructionTime)}`);
   }
   
   // Convert evolution tracker to completion times
@@ -715,19 +730,26 @@ export function detectSupportItemCompletionFromRaw(
   });
   
   const allItemPurchases: Array<{ itemId: number; timestamp: number; participantId: number }> = [];
+  const allItemDestructions: Array<{ itemId: number; timestamp: number; participantId: number }> = [];
   
-  // Extract all item purchase events
+  // Extract all item purchase and destruction events
   rawTimelineData.info.frames.forEach((frame: any) => {
     if (frame.events) {
       frame.events.forEach((event: any) => {
-        if (event.type === 'ITEM_PURCHASED' && 
-            event.participantId === participantId && 
-            event.itemId) {
-          allItemPurchases.push({
-            itemId: event.itemId,
-            timestamp: event.timestamp,
-            participantId: event.participantId
-          });
+        if (event.participantId === participantId && event.itemId) {
+          if (event.type === 'ITEM_PURCHASED') {
+            allItemPurchases.push({
+              itemId: event.itemId,
+              timestamp: event.timestamp,
+              participantId: event.participantId
+            });
+          } else if (event.type === 'ITEM_DESTROYED') {
+            allItemDestructions.push({
+              itemId: event.itemId,
+              timestamp: event.timestamp,
+              participantId: event.participantId
+            });
+          }
         }
       });
     }
@@ -748,6 +770,21 @@ export function detectSupportItemCompletionFromRaw(
         isSupportItem: isSupportItem(p.itemId)
       }))
   });
+  
+  console.log('💥 RAW ITEM DESTRUCTIONS FOUND:', {
+    totalDestructions: allItemDestructions.length,
+    participantId,
+    itemIds: allItemDestructions.map(d => d.itemId).sort((a, b) => a - b),
+    supportItems: allItemDestructions.filter(d => isSupportItem(d.itemId)),
+    runicCompassDestruction: allItemDestructions.find(d => d.itemId === 3866)
+  });
+  
+  // **ENHANCED: Check for Runic Compass (3866) destruction first**
+  const runicCompassDestruction = allItemDestructions.find(d => d.itemId === 3866);
+  if (runicCompassDestruction) {
+    completionTimes.tier2 = runicCompassDestruction.timestamp;
+    console.log(`🏆 RAW QUEST COMPLETION - Runic Compass destroyed at ${formatMillisecondsToTime(runicCompassDestruction.timestamp)}`);
+  }
   
   // Process support item purchases
   allItemPurchases

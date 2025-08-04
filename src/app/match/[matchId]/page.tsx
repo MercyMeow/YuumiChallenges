@@ -1597,8 +1597,8 @@ export default function MatchDetailsPage() {
                           <span
                             className={(() => {
                               const questCompleted =
-                                supportItemCompletionTimes?.tier3 ??
                                 supportItemCompletionTimes?.tier2 ??
+                                supportItemCompletionTimes?.tier3 ??
                                 supportItemCompletionTimes?.tier1 ??
                                 null;
                               return questCompleted
@@ -1608,8 +1608,8 @@ export default function MatchDetailsPage() {
                           >
                             {(() => {
                               const questCompleted =
-                                supportItemCompletionTimes?.tier3 ??
                                 supportItemCompletionTimes?.tier2 ??
+                                supportItemCompletionTimes?.tier3 ??
                                 supportItemCompletionTimes?.tier1 ??
                                 null;
                               return questCompleted
@@ -1664,7 +1664,7 @@ export default function MatchDetailsPage() {
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-white/60">
-                                  Tier 2 (3867):
+                                  Quest Complete (3866→3867):
                                 </span>
                                 <span
                                   className={
@@ -1761,7 +1761,7 @@ export default function MatchDetailsPage() {
                                 const tierNames = {
                                   base: 'Support Item Started',
                                   tier1: 'Tier 1 Evolution',
-                                  tier2: 'Tier 2 Evolution',
+                                  tier2: 'Quest Completed (Runic Compass→Bounty)',
                                   tier3: 'Final Evolution',
                                 };
 
@@ -2427,8 +2427,8 @@ export default function MatchDetailsPage() {
                             label: 'Support Quest Completed',
                             value1: (() => {
                               const questSelected =
-                                supportItemCompletionTimes?.tier3 ??
                                 supportItemCompletionTimes?.tier2 ??
+                                supportItemCompletionTimes?.tier3 ??
                                 supportItemCompletionTimes?.tier1 ??
                                 null;
                               return questSelected
@@ -2437,8 +2437,8 @@ export default function MatchDetailsPage() {
                             })(),
                             value2: (() => {
                               const questCompare =
-                                compareSupportItemCompletionTimes?.tier3 ??
                                 compareSupportItemCompletionTimes?.tier2 ??
+                                compareSupportItemCompletionTimes?.tier3 ??
                                 compareSupportItemCompletionTimes?.tier1 ??
                                 null;
                               return questCompare
@@ -2447,8 +2447,8 @@ export default function MatchDetailsPage() {
                             })(),
                             numValue1: (() => {
                               const questSelected =
-                                supportItemCompletionTimes?.tier3 ??
                                 supportItemCompletionTimes?.tier2 ??
+                                supportItemCompletionTimes?.tier3 ??
                                 supportItemCompletionTimes?.tier1 ??
                                 null;
                               return questSelected
@@ -2457,8 +2457,8 @@ export default function MatchDetailsPage() {
                             })(),
                             numValue2: (() => {
                               const questCompare =
-                                compareSupportItemCompletionTimes?.tier3 ??
                                 compareSupportItemCompletionTimes?.tier2 ??
+                                compareSupportItemCompletionTimes?.tier3 ??
                                 compareSupportItemCompletionTimes?.tier1 ??
                                 null;
                               return questCompare
