@@ -395,6 +395,11 @@ export function detectSupportItemCompletion(
   _playerData: any,
   timelineEvents: Array<{ itemId: number; timestamp: number; type: string }>
 ): Record<SupportItemTier, number | null> {
+  console.log('[DEBUG] detectSupportItemCompletion called with:', {
+    timelineEventsLength: timelineEvents?.length,
+    sampleEvents: timelineEvents?.slice(0, 5)
+  });
+  
   const completionTimes: Record<SupportItemTier, number | null> = {
     base: null,
     tier1: null,
@@ -403,16 +408,25 @@ export function detectSupportItemCompletion(
   };
   
   if (!timelineEvents?.length) {
+    console.log('[DEBUG] No timeline events provided');
     return completionTimes;
   }
   
   // Process timeline events to find support item purchases
   const purchaseEvents = timelineEvents.filter(event => event.type === 'ITEM_PURCHASED');
+  console.log('[DEBUG] Found purchase events:', purchaseEvents.length);
   
   for (const event of purchaseEvents) {
     const completion = getSupportItemCompletion(event.itemId);
+    console.log('[DEBUG] Item', event.itemId, 'completion:', completion);
     
     if (completion.isSupportItem && completion.tier) {
+      console.log('[DEBUG] Found support item completion:', {
+        itemId: event.itemId,
+        tier: completion.tier,
+        timestamp: event.timestamp
+      });
+      
       // Only record the first completion of each tier
       if (completionTimes[completion.tier] === null) {
         completionTimes[completion.tier] = event.timestamp;
@@ -420,6 +434,7 @@ export function detectSupportItemCompletion(
     }
   }
   
+  console.log('[DEBUG] Final completion times:', completionTimes);
   return completionTimes;
 }
 

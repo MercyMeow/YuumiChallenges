@@ -120,7 +120,17 @@ export function filterEventsForParticipant(
   // Convert 0-indexed participantId to 1-indexed for Riot API
   const riotParticipantId = participantId + 1;
   
-  return events.filter(event => event.participantId === riotParticipantId);
+  console.log('[DEBUG] filterEventsForParticipant:', {
+    selectedPlayerId: participantId,
+    riotParticipantId,
+    totalEvents: events.length,
+    sampleParticipantIds: events.slice(0, 10).map(e => e.participantId)
+  });
+  
+  const filtered = events.filter(event => event.participantId === riotParticipantId);
+  console.log('[DEBUG] Filtered events for participant:', filtered.length);
+  
+  return filtered;
 }
 
 /**
