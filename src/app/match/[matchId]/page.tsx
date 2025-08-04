@@ -13,11 +13,11 @@ import { ChampionIcon } from '@/components/ui/datadragon-image';
 import { ItemSlots } from '@/components/match-history/item-slots';
 import { SummonerSpells } from '@/components/match-history/summoner-spells';
 import { RuneTreeDisplay, RuneIcon } from '@/components/ui/rune-display';
+import { TimelineEventItem } from '@/components/match-history/timeline-event-item';
 import { getGameModeDisplayName, getGameModeCategoryColor } from '@/lib/utils/game-modes';
 import { formatDistanceToNow } from 'date-fns';
 import { 
   Clock, 
-  Trophy, 
   Target,
   Gamepad2,
   Loader2,
@@ -1003,43 +1003,14 @@ export default function MatchDetailsPage() {
                               </Badge>
                             </div>
                             <div className="space-y-2">
-                              {importantEvents.map((event: any, eventIndex: number) => {
-                                const participant = matchData.info.participants.find(p => 
-                                  p.puuid === matchData.metadata.participants[event.killerId - 1]
-                                );
-                                const victim = matchData.info.participants.find(p => 
-                                  p.puuid === matchData.metadata.participants[event.victimId - 1]
-                                );
-
-                                return (
-                                  <div key={eventIndex} className="flex items-center gap-2 text-sm">
-                                    {event.type === 'CHAMPION_KILL' && (
-                                      <>
-                                        <Swords className="h-4 w-4 text-red-400" />
-                                        <span className="text-white">
-                                          {participant?.riotIdGameName || 'Unknown'} killed {victim?.riotIdGameName || 'Unknown'}
-                                        </span>
-                                      </>
-                                    )}
-                                    {event.type === 'ELITE_MONSTER_KILL' && (
-                                      <>
-                                        <Trophy className="h-4 w-4 text-purple-400" />
-                                        <span className="text-white">
-                                          {participant?.riotIdGameName || 'Unknown'} killed {event.monsterType}
-                                        </span>
-                                      </>
-                                    )}
-                                    {event.type === 'BUILDING_KILL' && (
-                                      <>
-                                        <Target className="h-4 w-4 text-yellow-400" />
-                                        <span className="text-white">
-                                          {event.teamId === 100 ? 'Blue' : 'Red'} team destroyed {event.buildingType}
-                                        </span>
-                                      </>
-                                    )}
-                                  </div>
-                                );
-                              })}
+                              {importantEvents.map((event: any, eventIndex: number) => (
+                                <TimelineEventItem
+                                  key={eventIndex}
+                                  event={event}
+                                  participants={matchData.info.participants}
+                                  participantPuuids={matchData.metadata.participants}
+                                />
+                              ))}
                             </div>
                           </div>
                         );
