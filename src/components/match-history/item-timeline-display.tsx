@@ -318,8 +318,8 @@ export function ItemTimelineDisplay({
     return stats;
   }, [playerTimeline, trackTimelineMetrics, trackMemoryUsage]);
 
-  // Extra runtime diagnostics for Items view
-  if (process.env.NODE_ENV !== 'production') {
+  // Runtime diagnostics for Items view (enabled in all environments)
+  {
     const safeEvents = Array.isArray(playerTimeline?.events)
       ? playerTimeline?.events
       : [];
@@ -331,10 +331,13 @@ export function ItemTimelineDisplay({
         typeof e.type !== 'string'
     );
     if (invalid) {
-      console.error(
-        '[ItemTimelineDisplay] Found invalid event entry:',
-        invalid
-      );
+      try {
+        // eslint-disable-next-line no-console
+        console.error('[ItemTimelineDisplay] Found invalid event entry:', {
+          event: invalid,
+          participantId: playerTimeline?.participantId,
+        });
+      } catch {}
     }
   }
 
@@ -417,37 +420,36 @@ export function ItemTimelineDisplay({
 
       <CardContent>
         <ScrollArea className="pr-4" style={{ height: maxHeight }}>
-          {/* Dev-only diagnostics to catch invalid element types (React error #185) */}
-          {process.env.NODE_ENV !== 'production' && (
-            <div className="hidden" aria-hidden="true">
-              <pre className="text-[10px] leading-3">
-                {(() => {
-                  const hasEvents =
-                    !!playerTimeline?.events &&
-                    playerTimeline.events.length > 0;
-                  const sample = hasEvents
-                    ? playerTimeline!.events![0]
-                    : undefined;
-                  return JSON.stringify(
-                    {
-                      hasEvents,
-                      grouped: !!config.groupByTimeInterval,
-                      processedGroups: processedEvents?.length ?? 0,
-                      sampleEvent: sample
-                        ? {
-                            type: sample.type,
-                            itemId: sample.itemId,
-                            ts: sample.timestamp,
-                          }
-                        : null,
-                    },
-                    null,
-                    0
-                  );
-                })()}
-              </pre>
-            </div>
-          )}
+          {/* Inline diagnostics (always rendered but hidden visually) */}
+          <div className="hidden" aria-hidden="true">
+            <pre className="text-[10px] leading-3">
+              {(() => {
+                const hasEvents =
+                  !!playerTimeline?.events && playerTimeline.events.length > 0;
+                const sample = hasEvents
+                  ? playerTimeline!.events![0]
+                  : undefined;
+                return JSON.stringify(
+                  {
+                    hasEvents,
+                    grouped: !!config.groupByTimeInterval,
+                    processedGroups: Array.isArray(processedEvents)
+                      ? processedEvents.length
+                      : 0,
+                    sampleEvent: sample
+                      ? {
+                          type: sample.type,
+                          itemId: sample.itemId,
+                          ts: sample.timestamp,
+                        }
+                      : null,
+                  },
+                  null,
+                  0
+                );
+              })()}
+            </pre>
+          </div>
 
           {config.groupByTimeInterval && Array.isArray(processedEvents) ? (
             // Grouped display
