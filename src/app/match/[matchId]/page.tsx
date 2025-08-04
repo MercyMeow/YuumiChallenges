@@ -215,6 +215,302 @@ interface MatchDetailsData {
   };
 }
 
+// Move PlayerCard component outside to prevent hook rule violations
+const PlayerCard = memo(
+  ({ 
+    participant, 
+    teamColor, 
+    teamTotals, 
+    matchData, 
+    selectedPlayer, 
+    comparePlayer, 
+    setSelectedPlayer, 
+    setComparePlayer,
+    getKDAColor,
+    formatNumber
+  }: {
+    participant: any;
+    teamColor: string;
+    teamTotals: any;
+    matchData: any;
+    selectedPlayer: number | null;
+    comparePlayer: number | null;
+    setSelectedPlayer: (index: number | null) => void;
+    setComparePlayer: (index: number | null) => void;
+    getKDAColor: (kills: number, deaths: number, assists: number) => string;
+    formatNumber: (num: number) => string;
+  }) => {
+    const isSelected = selectedPlayer === matchData.info.participants.indexOf(participant);
+    const isComparing = comparePlayer === matchData.info.participants.indexOf(participant);
+    const playerIndex = matchData.info.participants.indexOf(participant);
+
+    const items = [
+      participant.item0,
+      participant.item1,
+      participant.item2,
+      participant.item3,
+      participant.item4,
+      participant.item5,
+      participant.item6,
+    ];
+
+    const kda =
+      participant.deaths > 0
+        ? (
+            (participant.kills + participant.assists) /
+            participant.deaths
+          ).toFixed(2)
+        : (participant.kills + participant.assists).toFixed(0);
+
+    const killParticipation =
+      teamTotals.kills > 0
+        ? Math.round(
+            ((participant.kills + participant.assists) / teamTotals.kills) *
+              100
+          )
+        : 0;
+
+    return (
+      <div
+        className={cn(
+          'cursor-pointer rounded-lg border p-4 transition-all',
+          teamColor === 'blue'
+            ? 'border-blue-500/20 bg-blue-500/5'
+            : 'border-red-500/20 bg-red-500/5',
+          isSelected && 'ring-2 ring-purple-500',
+          isComparing && 'ring-2 ring-yellow-500',
+          'hover:bg-opacity-40'
+        )}
+        onClick={() => {
+          if (isSelected) {
+            setSelectedPlayer(null);
+          } else {
+            setSelectedPlayer(playerIndex);
+          }
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <ChampionIcon championId={participant.championName} size="lg" />
+              <div className="absolute -bottom-1 -right-1 rounded-full bg-black/80 px-1.5 text-xs font-bold text-white">
+                {participant.champLevel}
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center gap-2 font-medium text-white">
+                {participant.riotIdGameName && participant.riotIdTagline
+                  ? `${participant.riotIdGameName}#${participant.riotIdTagline}`
+                  : participant.summonerName}
+                {participant.firstBloodKill && (
+                  <Badge className="bg-red-500/20 text-xs text-red-400">
+                    First Blood
+                  </Badge>
+                )}
+                {participant.largestMultiKill >= 5 && (
+                  <Badge className="bg-purple-500/20 text-xs text-purple-400">
+                    Penta Kill
+                  </Badge>
+                )}
+              </div>
+              <div className="text-sm text-white/60">
+                {participant.championName} • {participant.individualPosition}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-6">
+            {/* KDA & Stats */}
+            <div className="text-center">
+              <div
+                className={`text-lg font-bold ${getKDAColor(participant.kills, participant.deaths, participant.assists)}`}
+              >
+                {participant.kills}/{participant.deaths}/{participant.assists}
+              </div>
+              <div className="text-xs text-white/60">
+                {kda} KDA • {killParticipation}% KP
+              </div>
+            </div>
+
+            {/* Damage */}
+            <div className="text-center">
+              <div className="font-semibold text-orange-400">
+                {formatNumber(participant.totalDamageDealtToChampions)}
+              </div>
+              <div className="text-xs text-white/60">Damage</div>
+              <Progress
+                value={
+                  teamTotals.damage > 0
+                    ? (participant.totalDamageDealtToChampions /
+                        teamTotals.damage) *
+                      100
+                    : 0
+                }
+                className="mt-1 h-1 w-16"
+              />
+              {/* DPM + Team Share */}
+              <div className="mt-1 flex items-center justify-center gap-2">
+                <Badge className="text-xxs border-orange-500/30 bg-orange-500/10 text-orange-300">
+                  DPM{' '}
+                  {Math.round(
+                    participant.challenges?.damagePerMinute ??
+                      participant.totalDamageDealtToChampions /
+                        Math.max(1, matchData.info.gameDuration / 60)
+                  )}
+                </Badge>
+                <Badge className="text-xxs border-blue-500/30 bg-blue-500/10 text-blue-300">
+                  {teamTotals.damage > 0
+                    ? Math.round(
+                        (participant.totalDamageDealtToChampions /
+                          teamTotals.damage) *
+                          100
+                      )
+                    : participant.challenges?.teamDamagePercentage
+                      ? Math.round(
+                          participant.challenges.teamDamagePercentage * 100
+                        )
+                      : 0}
+                  %
+                </Badge>
+              </div>
+            </div>
+
+            {/* Gold */}
+            <div className="text-center">
+              <div className="font-semibold text-yellow-400">
+                {formatNumber(participant.goldEarned)}
+              </div>
+              <div className="text-xs text-white/60">Gold</div>
+              <Progress
+                value={
+                  teamTotals.gold > 0
+                    ? (participant.goldEarned / teamTotals.gold) * 100
+                    : 0
+                }
+                className="mt-1 h-1 w-16"
+              />
+              <div className="mt-1">
+                <Badge className="text-xxs border-yellow-500/30 bg-yellow-500/10 text-yellow-300">
+                  {Math.round(
+                    participant.goldEarned /
+                      Math.max(1, matchData.info.gameDuration / 60)
+                  )}{' '}
+                  gpm
+                </Badge>
+              </div>
+            </div>
+
+            {/* CS */}
+            <div className="text-center">
+              <div className="font-semibold text-purple-400">
+                {participant.totalMinionsKilled +
+                  participant.neutralMinionsKilled}
+              </div>
+              <div className="text-xs text-white/60">
+                CS (
+                {(
+                  (participant.totalMinionsKilled +
+                    participant.neutralMinionsKilled) /
+                  (matchData.info.gameDuration / 60)
+                ).toFixed(1)}
+                /m)
+              </div>
+            </div>
+
+            {/* Vision */}
+            <div className="text-center">
+              <div className="font-semibold text-pink-400">
+                {participant.visionScore}
+              </div>
+              <div className="text-xs text-white/60">Vision</div>
+              <div className="mt-1 flex items-center justify-center gap-2">
+                <Badge className="text-xxs border-pink-500/30 bg-pink-500/10 text-pink-300">
+                  {(
+                    participant.visionScore /
+                    Math.max(1, matchData.info.gameDuration / 60)
+                  ).toFixed(1)}
+                  /m
+                </Badge>
+                {typeof participant.visionWardsBoughtInGame === 'number' && (
+                  <Badge className="text-xxs border-purple-500/30 bg-purple-500/10 text-purple-300">
+                    {participant.visionWardsBoughtInGame} pinks
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Items */}
+            <ItemSlots items={items} size="sm" />
+
+            {/* Summoner Spells */}
+            <SummonerSpells
+              spell1Id={participant.summoner1Id}
+              spell2Id={participant.summoner2Id}
+              size="xs"
+            />
+
+            {/* Keystone Rune */}
+            {participant.perks?.styles?.[0]?.selections?.[0] && (
+              <div className="flex flex-col items-center gap-1">
+                <RuneIcon
+                  runeId={participant.perks.styles[0].selections[0].perk}
+                  size="sm"
+                  variant="keystone"
+                />
+                <div className="text-xs text-purple-400">Keystone</div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-2">
+              {!isComparing && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setComparePlayer(playerIndex);
+                  }}
+                  className="text-xs"
+                >
+                  <GitCompare className="h-3 w-3" />
+                </Button>
+              )}
+              {isComparing && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setComparePlayer(null);
+                  }}
+                  className="text-xs"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison to prevent unnecessary re-renders
+    return (
+      prevProps.participant.puuid === nextProps.participant.puuid &&
+      prevProps.teamColor === nextProps.teamColor &&
+      prevProps.teamTotals.damage === nextProps.teamTotals.damage &&
+      prevProps.teamTotals.gold === nextProps.teamTotals.gold &&
+      prevProps.teamTotals.kills === nextProps.teamTotals.kills &&
+      prevProps.selectedPlayer === nextProps.selectedPlayer &&
+      prevProps.comparePlayer === nextProps.comparePlayer
+    );
+  }
+);
+
+PlayerCard.displayName = 'PlayerCard';
+
 export default function MatchDetailsPage() {
   const params = useParams();
   const matchId = params.matchId as string;
@@ -347,6 +643,23 @@ export default function MatchDetailsPage() {
     return processedTimeline;
   }, [data?.timelineData, selectedPlayer, processTimeline, processedTimeline]);
 
+  // Calculate support item completion times for selected player
+  const supportItemCompletionTimes = useMemo(() => {
+    if (!playerItemTimeline?.playerTimeline?.events || !data?.matchData?.info?.participants || selectedPlayer === null) {
+      return null;
+    }
+
+    const selectedPlayerData = data.matchData.info.participants[selectedPlayer];
+    if (!selectedPlayerData) {
+      return null;
+    }
+
+    return detectSupportItemCompletion(
+      selectedPlayerData,
+      playerItemTimeline.playerTimeline.events
+    );
+  }, [playerItemTimeline, data?.matchData?.info?.participants, selectedPlayer]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
@@ -412,289 +725,6 @@ export default function MatchDetailsPage() {
 
   const comparePlayerData =
     comparePlayer !== null ? matchData.info.participants[comparePlayer] : null;
-
-  // Calculate support item completion times for selected player
-  const supportItemCompletionTimes = useMemo(() => {
-    if (!playerItemTimeline?.playerTimeline?.events || !selectedPlayerData) {
-      return null;
-    }
-
-    return detectSupportItemCompletion(
-      selectedPlayerData,
-      playerItemTimeline.playerTimeline.events
-    );
-  }, [playerItemTimeline, selectedPlayerData]);
-
-  const PlayerCard = memo(
-    ({ participant, teamColor, teamTotals }: any) => {
-      const isSelected =
-        selectedPlayer === matchData.info.participants.indexOf(participant);
-      const isComparing =
-        comparePlayer === matchData.info.participants.indexOf(participant);
-      const playerIndex = matchData.info.participants.indexOf(participant);
-
-      const items = [
-        participant.item0,
-        participant.item1,
-        participant.item2,
-        participant.item3,
-        participant.item4,
-        participant.item5,
-        participant.item6,
-      ];
-
-      const kda =
-        participant.deaths > 0
-          ? (
-              (participant.kills + participant.assists) /
-              participant.deaths
-            ).toFixed(2)
-          : (participant.kills + participant.assists).toFixed(0);
-
-      const killParticipation =
-        teamTotals.kills > 0
-          ? Math.round(
-              ((participant.kills + participant.assists) / teamTotals.kills) *
-                100
-            )
-          : 0;
-
-      return (
-        <div
-          className={cn(
-            'cursor-pointer rounded-lg border p-4 transition-all',
-            teamColor === 'blue'
-              ? 'border-blue-500/20 bg-blue-500/5'
-              : 'border-red-500/20 bg-red-500/5',
-            isSelected && 'ring-2 ring-purple-500',
-            isComparing && 'ring-2 ring-yellow-500',
-            'hover:bg-opacity-40'
-          )}
-          onClick={() => {
-            if (isSelected) {
-              setSelectedPlayer(null);
-            } else {
-              setSelectedPlayer(playerIndex);
-            }
-          }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <ChampionIcon championId={participant.championName} size="lg" />
-                <div className="absolute -bottom-1 -right-1 rounded-full bg-black/80 px-1.5 text-xs font-bold text-white">
-                  {participant.champLevel}
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center gap-2 font-medium text-white">
-                  {participant.riotIdGameName && participant.riotIdTagline
-                    ? `${participant.riotIdGameName}#${participant.riotIdTagline}`
-                    : participant.summonerName}
-                  {participant.firstBloodKill && (
-                    <Badge className="bg-red-500/20 text-xs text-red-400">
-                      First Blood
-                    </Badge>
-                  )}
-                  {participant.largestMultiKill >= 5 && (
-                    <Badge className="bg-purple-500/20 text-xs text-purple-400">
-                      Penta Kill
-                    </Badge>
-                  )}
-                </div>
-                <div className="text-sm text-white/60">
-                  {participant.championName} • {participant.individualPosition}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-6">
-              {/* KDA & Stats */}
-              <div className="text-center">
-                <div
-                  className={`text-lg font-bold ${getKDAColor(participant.kills, participant.deaths, participant.assists)}`}
-                >
-                  {participant.kills}/{participant.deaths}/{participant.assists}
-                </div>
-                <div className="text-xs text-white/60">
-                  {kda} KDA • {killParticipation}% KP
-                </div>
-              </div>
-
-              {/* Damage */}
-              <div className="text-center">
-                <div className="font-semibold text-orange-400">
-                  {formatNumber(participant.totalDamageDealtToChampions)}
-                </div>
-                <div className="text-xs text-white/60">Damage</div>
-                <Progress
-                  value={
-                    teamTotals.damage > 0
-                      ? (participant.totalDamageDealtToChampions /
-                          teamTotals.damage) *
-                        100
-                      : 0
-                  }
-                  className="mt-1 h-1 w-16"
-                />
-                {/* DPM + Team Share */}
-                <div className="mt-1 flex items-center justify-center gap-2">
-                  <Badge className="text-xxs border-orange-500/30 bg-orange-500/10 text-orange-300">
-                    DPM{' '}
-                    {Math.round(
-                      participant.challenges?.damagePerMinute ??
-                        participant.totalDamageDealtToChampions /
-                          Math.max(1, matchData.info.gameDuration / 60)
-                    )}
-                  </Badge>
-                  <Badge className="text-xxs border-blue-500/30 bg-blue-500/10 text-blue-300">
-                    {teamTotals.damage > 0
-                      ? Math.round(
-                          (participant.totalDamageDealtToChampions /
-                            teamTotals.damage) *
-                            100
-                        )
-                      : participant.challenges?.teamDamagePercentage
-                        ? Math.round(
-                            participant.challenges.teamDamagePercentage * 100
-                          )
-                        : 0}
-                    %
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Gold */}
-              <div className="text-center">
-                <div className="font-semibold text-yellow-400">
-                  {formatNumber(participant.goldEarned)}
-                </div>
-                <div className="text-xs text-white/60">Gold</div>
-                <Progress
-                  value={
-                    teamTotals.gold > 0
-                      ? (participant.goldEarned / teamTotals.gold) * 100
-                      : 0
-                  }
-                  className="mt-1 h-1 w-16"
-                />
-                <div className="mt-1">
-                  <Badge className="text-xxs border-yellow-500/30 bg-yellow-500/10 text-yellow-300">
-                    {Math.round(
-                      participant.goldEarned /
-                        Math.max(1, matchData.info.gameDuration / 60)
-                    )}{' '}
-                    gpm
-                  </Badge>
-                </div>
-              </div>
-
-              {/* CS */}
-              <div className="text-center">
-                <div className="font-semibold text-purple-400">
-                  {participant.totalMinionsKilled +
-                    participant.neutralMinionsKilled}
-                </div>
-                <div className="text-xs text-white/60">
-                  CS (
-                  {(
-                    (participant.totalMinionsKilled +
-                      participant.neutralMinionsKilled) /
-                    (matchData.info.gameDuration / 60)
-                  ).toFixed(1)}
-                  /m)
-                </div>
-              </div>
-
-              {/* Vision */}
-              <div className="text-center">
-                <div className="font-semibold text-pink-400">
-                  {participant.visionScore}
-                </div>
-                <div className="text-xs text-white/60">Vision</div>
-                <div className="mt-1 flex items-center justify-center gap-2">
-                  <Badge className="text-xxs border-pink-500/30 bg-pink-500/10 text-pink-300">
-                    {(
-                      participant.visionScore /
-                      Math.max(1, matchData.info.gameDuration / 60)
-                    ).toFixed(1)}
-                    /m
-                  </Badge>
-                  {typeof participant.visionWardsBoughtInGame === 'number' && (
-                    <Badge className="text-xxs border-purple-500/30 bg-purple-500/10 text-purple-300">
-                      {participant.visionWardsBoughtInGame} pinks
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
-              {/* Items */}
-              <ItemSlots items={items} size="sm" />
-
-              {/* Summoner Spells */}
-              <SummonerSpells
-                spell1Id={participant.summoner1Id}
-                spell2Id={participant.summoner2Id}
-                size="xs"
-              />
-
-              {/* Keystone Rune */}
-              {participant.perks?.styles?.[0]?.selections?.[0] && (
-                <div className="flex flex-col items-center gap-1">
-                  <RuneIcon
-                    runeId={participant.perks.styles[0].selections[0].perk}
-                    size="sm"
-                    variant="keystone"
-                  />
-                  <div className="text-xs text-purple-400">Keystone</div>
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex gap-2">
-                {!isComparing && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setComparePlayer(playerIndex);
-                    }}
-                    className="text-xs"
-                  >
-                    <GitCompare className="h-3 w-3" />
-                  </Button>
-                )}
-                {isComparing && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setComparePlayer(null);
-                    }}
-                    className="text-xs"
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    },
-    (prevProps, nextProps) => {
-      // Custom comparison to prevent unnecessary re-renders
-      return (
-        prevProps.participant.puuid === nextProps.participant.puuid &&
-        prevProps.teamColor === nextProps.teamColor &&
-        prevProps.teamTotals.damage === nextProps.teamTotals.damage &&
-        prevProps.teamTotals.gold === nextProps.teamTotals.gold &&
-        prevProps.teamTotals.kills === nextProps.teamTotals.kills
-      );
-    }
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
@@ -831,6 +861,13 @@ export default function MatchDetailsPage() {
                     participant={participant}
                     teamColor="blue"
                     teamTotals={teamTotals.blue}
+                    matchData={matchData}
+                    selectedPlayer={selectedPlayer}
+                    comparePlayer={comparePlayer}
+                    setSelectedPlayer={setSelectedPlayer}
+                    setComparePlayer={setComparePlayer}
+                    getKDAColor={getKDAColor}
+                    formatNumber={formatNumber}
                   />
                 ))}
               </CardContent>
@@ -851,6 +888,13 @@ export default function MatchDetailsPage() {
                     participant={participant}
                     teamColor="red"
                     teamTotals={teamTotals.red}
+                    matchData={matchData}
+                    selectedPlayer={selectedPlayer}
+                    comparePlayer={comparePlayer}
+                    setSelectedPlayer={setSelectedPlayer}
+                    setComparePlayer={setComparePlayer}
+                    getKDAColor={getKDAColor}
+                    formatNumber={formatNumber}
                   />
                 ))}
               </CardContent>
