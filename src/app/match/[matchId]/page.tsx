@@ -626,10 +626,10 @@ export default function MatchDetailsPage() {
     return { blue: blueTotals, red: redTotals };
   }, [data]);
 
-  // Process item timeline for selected player using Web Worker
-  const playerItemTimeline = useMemo(() => {
+  // Effect to process item timeline for selected player using Web Worker
+  useEffect(() => {
     if (!data?.timelineData || selectedPlayer === null) {
-      return null;
+      return;
     }
 
     const rawTimelineData: RawTimelineData = {
@@ -648,14 +648,12 @@ export default function MatchDetailsPage() {
 
     // Trigger async processing
     processTimeline(rawTimelineData, processingOptions);
-
-    return processedTimeline;
-  }, [data?.timelineData, selectedPlayer, processTimeline, processedTimeline]);
+  }, [data?.timelineData, selectedPlayer, processTimeline]);
 
   // Calculate support item completion times for selected player
   const supportItemCompletionTimes = useMemo(() => {
     if (
-      !playerItemTimeline?.playerTimeline?.events ||
+      !processedTimeline?.playerTimeline?.events ||
       !data?.matchData?.info?.participants ||
       selectedPlayer === null
     ) {
@@ -669,9 +667,9 @@ export default function MatchDetailsPage() {
 
     return detectSupportItemCompletion(
       selectedPlayerData,
-      playerItemTimeline.playerTimeline.events
+      processedTimeline.playerTimeline.events
     );
-  }, [playerItemTimeline, data?.matchData?.info?.participants, selectedPlayer]);
+  }, [processedTimeline, data?.matchData?.info?.participants, selectedPlayer]);
 
   if (loading) {
     return (
@@ -1839,9 +1837,9 @@ export default function MatchDetailsPage() {
                           Item timeline requires detailed match timeline data
                         </p>
                       </div>
-                    ) : playerItemTimeline ? (
+                    ) : processedTimeline ? (
                       <ItemTimelineDisplay
-                        playerTimeline={playerItemTimeline.playerTimeline}
+                        playerTimeline={processedTimeline.playerTimeline}
                         config={{
                           showItemIcons: true,
                           showItemNames: true,

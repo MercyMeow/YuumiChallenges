@@ -94,17 +94,31 @@ export function useTimelineProcessor(): UseTimelineProcessorResult {
     timelineData: RawTimelineData,
     options: TimelineProcessingOptions
   ) => {
-    if (isProcessing) return; // Prevent concurrent processing
+    // Create a unique key for this processing request
+    const cacheKey = `${options.selectedPlayerId}-${JSON.stringify(options)}-${timelineData.info.frames.length}`;
     
+    // Check if we're already processing the same request
+    if (isProcessing && processingQueueRef.current.has(cacheKey)) {
+      return; // Same request already in progress
+    }
+    
+    // Clear any existing processed timeline when starting new processing
+    setProcessedTimeline(null);
     setIsProcessing(true);
     setError(null);
     
-    const cacheKey = `${options.selectedPlayerId}-${JSON.stringify(options)}-${timelineData.info.frames.length}`;
-    
     if (workerRef.current) {
       // Use Web Worker
-      const promise = new Promise<ProcessedItemTimeline>((resolve) => {
+      const promise = new Promise<ProcessedItemTimeline>((resolve, reject) => {
         processingQueueRef.current.set(cacheKey, resolve);
+        
+        // Add timeout to prevent infinite processing
+        setTimeout(() => {
+          if (processingQueueRef.current.has(cacheKey)) {
+            processingQueueRef.current.delete(cacheKey);
+            reject(new Error('Processing timeout'));
+          }
+        }, 30000); // 30 second timeout
       });
       
       workerRef.current.postMessage({
@@ -139,6 +153,7 @@ export function useTimelineProcessor(): UseTimelineProcessorResult {
           setIsProcessing(false);
           setError(null);
         } catch (err) {
+          console.error('Timeline processing error:', err);
           setError(err instanceof Error ? err.message : 'Processing failed');
           setIsProcessing(false);
         }
