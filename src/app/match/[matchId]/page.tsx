@@ -20,9 +20,7 @@ import {
   getGameModeDisplayName,
   getGameModeCategoryColor,
 } from '@/lib/utils/game-modes';
-import {
-  createDefaultProcessingOptions,
-} from '@/lib/utils/item-timeline-processor';
+import { createDefaultProcessingOptions } from '@/lib/utils/item-timeline-processor';
 import { formatMatchTime } from '@/lib/utils/time';
 import { detectSupportItemCompletion } from '@/lib/utils/match-timeline-utils';
 import { RawTimelineData } from '@/lib/types/item-timeline';
@@ -145,6 +143,11 @@ interface MatchDetailsData {
         summoner2Id: number;
         summoner1Casts: number;
         summoner2Casts: number;
+        // Ensure these optional ability cast counters exist (API normalization guarantees numbers)
+        spell1Casts?: number;
+        spell2Casts?: number;
+        spell3Casts?: number;
+        spell4Casts?: number;
         individualPosition: string;
         teamPosition: string;
         // Riot exposes tons of rich keys under challenges; keep as bag
@@ -217,17 +220,17 @@ interface MatchDetailsData {
 
 // Move PlayerCard component outside to prevent hook rule violations
 const PlayerCard = memo(
-  ({ 
-    participant, 
-    teamColor, 
-    teamTotals, 
-    matchData, 
-    selectedPlayer, 
-    comparePlayer, 
-    setSelectedPlayer, 
+  ({
+    participant,
+    teamColor,
+    teamTotals,
+    matchData,
+    selectedPlayer,
+    comparePlayer,
+    setSelectedPlayer,
     setComparePlayer,
     getKDAColor,
-    formatNumber
+    formatNumber,
   }: {
     participant: any;
     teamColor: string;
@@ -240,8 +243,10 @@ const PlayerCard = memo(
     getKDAColor: (kills: number, deaths: number, assists: number) => string;
     formatNumber: (num: number) => string;
   }) => {
-    const isSelected = selectedPlayer === matchData.info.participants.indexOf(participant);
-    const isComparing = comparePlayer === matchData.info.participants.indexOf(participant);
+    const isSelected =
+      selectedPlayer === matchData.info.participants.indexOf(participant);
+    const isComparing =
+      comparePlayer === matchData.info.participants.indexOf(participant);
     const playerIndex = matchData.info.participants.indexOf(participant);
 
     const items = [
@@ -265,8 +270,7 @@ const PlayerCard = memo(
     const killParticipation =
       teamTotals.kills > 0
         ? Math.round(
-            ((participant.kills + participant.assists) / teamTotals.kills) *
-              100
+            ((participant.kills + participant.assists) / teamTotals.kills) * 100
           )
         : 0;
 
@@ -521,14 +525,14 @@ export default function MatchDetailsPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
   const [comparePlayer, setComparePlayer] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
+  // Unified timeline sub-view: 'combat' | 'items'
+  const [activeTimelineView, setActiveTimelineView] = useState<
+    'combat' | 'items'
+  >('combat');
 
   // Add timeline processor hook
-  const {
-    processedTimeline,
-    isProcessing,
-    processingTime,
-    processTimeline,
-  } = useTimelineProcessor();
+  const { processedTimeline, isProcessing, processingTime, processTimeline } =
+    useTimelineProcessor();
 
   useEffect(() => {
     if (!matchId) return;
@@ -538,7 +542,12 @@ export default function MatchDetailsPage() {
       setError(null);
 
       try {
-        const response = await fetch(`/api/match-details/${matchId}`);
+        // Allow forcing example data via query param during dev
+        const url = new URL(window.location.href);
+        const useExample = url.searchParams.get('useExample') === '1';
+        const apiUrl = `/api/match-details/${matchId}${useExample ? '?useExample=1' : ''}`;
+
+        const response = await fetch(apiUrl, { cache: 'no-store' });
         const result = await response.json();
 
         if (!response.ok) {
@@ -645,7 +654,11 @@ export default function MatchDetailsPage() {
 
   // Calculate support item completion times for selected player
   const supportItemCompletionTimes = useMemo(() => {
-    if (!playerItemTimeline?.playerTimeline?.events || !data?.matchData?.info?.participants || selectedPlayer === null) {
+    if (
+      !playerItemTimeline?.playerTimeline?.events ||
+      !data?.matchData?.info?.participants ||
+      selectedPlayer === null
+    ) {
       return null;
     }
 
@@ -799,45 +812,38 @@ export default function MatchDetailsPage() {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="border border-white/10 bg-black/20 p-1 backdrop-blur-md">
+          <TabsList className="rounded-xl border border-white/10 bg-gradient-to-r from-white/5 to-white/10 p-1 backdrop-blur-md">
             <TabsTrigger
               value="overview"
-              className="data-[state=active]:bg-white/10"
+              className="rounded-lg data-[state=active]:bg-white/15 data-[state=active]:text-white"
             >
               <Users className="mr-2 h-4 w-4" />
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="details"
-              className="data-[state=active]:bg-white/10"
+              className="rounded-lg data-[state=active]:bg-white/15 data-[state=active]:text-white"
             >
               <BarChart3 className="mr-2 h-4 w-4" />
               Detailed Stats
             </TabsTrigger>
             <TabsTrigger
               value="timeline"
-              className="data-[state=active]:bg-white/10"
+              className="rounded-lg data-[state=active]:bg-white/15 data-[state=active]:text-white"
             >
               <Activity className="mr-2 h-4 w-4" />
               Timeline
             </TabsTrigger>
             <TabsTrigger
-              value="items"
-              className="data-[state=active]:bg-white/10"
-            >
-              <Coins className="mr-2 h-4 w-4" />
-              Item Timeline
-            </TabsTrigger>
-            <TabsTrigger
               value="challenges"
-              className="data-[state=active]:bg-white/10"
+              className="rounded-lg data-[state=active]:bg-white/15 data-[state=active]:text-white"
             >
               <Award className="mr-2 h-4 w-4" />
               Challenges
             </TabsTrigger>
             <TabsTrigger
               value="runes"
-              className="data-[state=active]:bg-white/10"
+              className="rounded-lg data-[state=active]:bg-white/15 data-[state=active]:text-white"
             >
               <Sparkles className="mr-2 h-4 w-4" />
               Runes & Perks
@@ -912,27 +918,23 @@ export default function MatchDetailsPage() {
                 {/* Team Feats (if available) */}
                 <div className="mb-4 flex flex-wrap gap-2">
                   {blueTeamData?.feats &&
-                    Object.entries(blueTeamData.feats).map(
-                      ([feat]: any) => (
-                        <Badge
-                          key={`blue-${feat}`}
-                          className="border-blue-500/30 bg-blue-500/10 text-xs text-blue-300"
-                        >
-                          🔵 {feat.replace(/_/g, ' ').toLowerCase()}
-                        </Badge>
-                      )
-                    )}
+                    Object.entries(blueTeamData.feats).map(([feat]: any) => (
+                      <Badge
+                        key={`blue-${feat}`}
+                        className="border-blue-500/30 bg-blue-500/10 text-xs text-blue-300"
+                      >
+                        🔵 {feat.replace(/_/g, ' ').toLowerCase()}
+                      </Badge>
+                    ))}
                   {redTeamData?.feats &&
-                    Object.entries(redTeamData.feats).map(
-                      ([feat]: any) => (
-                        <Badge
-                          key={`red-${feat}`}
-                          className="border-red-500/30 bg-red-500/10 text-xs text-red-300"
-                        >
-                          🔴 {feat.replace(/_/g, ' ').toLowerCase()}
-                        </Badge>
-                      )
-                    )}
+                    Object.entries(redTeamData.feats).map(([feat]: any) => (
+                      <Badge
+                        key={`red-${feat}`}
+                        className="border-red-500/30 bg-red-500/10 text-xs text-red-300"
+                      >
+                        🔴 {feat.replace(/_/g, ' ').toLowerCase()}
+                      </Badge>
+                    ))}
                 </div>
                 <div className="grid grid-cols-2 gap-8">
                   <div>
@@ -1526,6 +1528,37 @@ export default function MatchDetailsPage() {
                             {selectedPlayerData.summoner2Casts}
                           </span>
                         </div>
+                        {/* Champion Ability Casts */}
+                        <Separator className="my-2" />
+                        <h4 className="text-sm font-semibold text-white/80">
+                          Abilities
+                        </h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex items-center justify-between rounded border border-white/10 bg-white/5 px-3 py-2">
+                            <span className="text-white/60">Q casts</span>
+                            <span className="text-white">
+                              {selectedPlayerData.spell1Casts ?? 0}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between rounded border border-white/10 bg-white/5 px-3 py-2">
+                            <span className="text-white/60">W casts</span>
+                            <span className="text-white">
+                              {selectedPlayerData.spell2Casts ?? 0}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between rounded border border-white/10 bg-white/5 px-3 py-2">
+                            <span className="text-white/60">E casts</span>
+                            <span className="text-white">
+                              {selectedPlayerData.spell3Casts ?? 0}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between rounded border border-white/10 bg-white/5 px-3 py-2">
+                            <span className="text-white/60">R casts</span>
+                            <span className="text-white">
+                              {selectedPlayerData.spell4Casts ?? 0}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1671,11 +1704,11 @@ export default function MatchDetailsPage() {
             )}
           </TabsContent>
 
-          {/* Timeline Tab */}
+          {/* Timeline Tab (Unified: Combat | Items) */}
           <TabsContent value="timeline" className="space-y-6">
-            {timelineData ? (
-              <Card className="border border-white/10 bg-black/20 backdrop-blur-md">
-                <CardHeader>
+            <Card className="border border-white/10 bg-black/20 backdrop-blur-md">
+              <CardHeader>
+                <div className="flex items-center justify-between gap-4">
                   <CardTitle className="flex items-center gap-2 text-white">
                     <Timer className="h-5 w-5" />
                     Match Timeline
@@ -1685,137 +1718,157 @@ export default function MatchDetailsPage() {
                       </Badge>
                     )}
                   </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isProcessing ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Loader2 className="mr-3 h-8 w-8 animate-spin text-white/60" />
-                      <span className="text-white/60">
-                        Processing timeline data...
-                      </span>
-                    </div>
-                  ) : (
-                    <ScrollArea className="h-[600px] pr-4">
-                      <div className="space-y-4">
-                        {timelineData.info.frames.map((frame, frameIndex) => {
-                          const formattedTime = formatMatchTime(frame.timestamp);
-                          const importantEvents = frame.events.filter((e: any) => 
-                            ['CHAMPION_KILL', 'ELITE_MONSTER_KILL', 'BUILDING_KILL', 'DRAGON_SOUL_GIVEN'].includes(e.type)
-                          );
-
-                          if (importantEvents.length === 0) return null;
-
-                          return (
-                            <div key={frameIndex} className="border-l-2 border-white/20 pl-4 ml-2">
-                              <div className="flex items-center gap-2 mb-2">
-                                <div className="w-2 h-2 bg-white rounded-full -ml-[1.25rem]"></div>
-                                <Badge variant="outline" className="text-white/60">
-                                  {formattedTime}
-                                </Badge>
-                              </div>
-                              <div className="space-y-2">
-                                {importantEvents.map((event: any, eventIndex: number) => (
-                                  <TimelineEventItem
-                                    key={eventIndex}
-                                    event={event}
-                                    participants={matchData.info.participants}
-                                    participantPuuids={matchData.metadata.participants}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </ScrollArea>
-                  )}
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="border border-white/10 bg-black/20 backdrop-blur-md">
-                <CardContent className="py-12 text-center">
-                  <Timer className="mx-auto mb-4 h-12 w-12 text-white/40" />
-                  <p className="text-white/60">
-                    Timeline data not available for this match
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          {/* Item Timeline Tab */}
-          <TabsContent value="items" className="space-y-6">
-            {selectedPlayerData && playerItemTimeline ? (
-              <ItemTimelineDisplay
-                playerTimeline={playerItemTimeline.playerTimeline}
-                config={{
-                  showItemIcons: true,
-                  showItemNames: true,
-                  showTimestamps: true,
-                  showEvolutionChains: true,
-                  highlightEvolutions: true,
-                  groupByTimeInterval: false,
-                  compactView: false,
-                }}
-                className="w-full"
-                maxHeight={600}
-              />
-            ) : (
-              <Card className="border border-white/10 bg-black/20 backdrop-blur-md">
-                <CardContent className="py-12 text-center">
-                  <Coins className="mx-auto mb-4 h-12 w-12 text-white/40" />
-                  <div className="space-y-2">
-                    <p className="text-white/60">
-                      {!selectedPlayerData
-                        ? 'Click on a player in the Overview tab to see their item timeline'
-                        : !data?.timelineData
-                          ? 'Timeline data not available for this match'
-                          : 'No item events found for this player'}
-                    </p>
-                    {selectedPlayerData && !data?.timelineData && (
-                      <p className="text-sm text-white/40">
-                        Item timeline requires detailed match timeline data
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Processing Errors Display */}
-            {playerItemTimeline?.errors &&
-              playerItemTimeline.errors.length > 0 && (
-                <Card className="border border-yellow-500/20 bg-yellow-500/10">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-yellow-400">
-                      <AlertCircle className="h-5 w-5" />
-                      Processing Warnings
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {playerItemTimeline.errors
-                        .slice(0, 5)
-                        .map((error, index) => (
-                          <div
-                            key={index}
-                            className="flex items-start gap-2 text-sm text-yellow-300"
-                          >
-                            <div className="mt-2 h-1 w-1 flex-shrink-0 rounded-full bg-yellow-400" />
-                            <span>{error.message}</span>
-                          </div>
-                        ))}
-                      {playerItemTimeline.errors.length > 5 && (
-                        <p className="text-xs text-yellow-400">
-                          +{playerItemTimeline.errors.length - 5} more
-                          warnings...
-                        </p>
+                  {/* Segmented toggle */}
+                  <div className="inline-flex rounded-lg border border-white/10 bg-black/30 p-1">
+                    <button
+                      type="button"
+                      className={cn(
+                        'rounded-md px-3 py-1.5 text-sm transition-colors',
+                        activeTimelineView === 'combat'
+                          ? 'bg-white/15 text-white'
+                          : 'text-white/70 hover:bg-white/10 hover:text-white'
                       )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                      onClick={() => setActiveTimelineView('combat')}
+                    >
+                      Combat
+                    </button>
+                    <button
+                      type="button"
+                      className={cn(
+                        'rounded-md px-3 py-1.5 text-sm transition-colors',
+                        activeTimelineView === 'items'
+                          ? 'bg-white/15 text-white'
+                          : 'text-white/70 hover:bg-white/10 hover:text-white'
+                      )}
+                      onClick={() => setActiveTimelineView('items')}
+                    >
+                      Items
+                    </button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {/* Combat View */}
+                {activeTimelineView === 'combat' && (
+                  <>
+                    {!timelineData ? (
+                      <div className="py-12 text-center">
+                        <Timer className="mx-auto mb-4 h-12 w-12 text-white/40" />
+                        <p className="text-white/60">
+                          Timeline data not available for this match
+                        </p>
+                      </div>
+                    ) : isProcessing ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="mr-3 h-8 w-8 animate-spin text-white/60" />
+                        <span className="text-white/60">
+                          Processing timeline data...
+                        </span>
+                      </div>
+                    ) : (
+                      <ScrollArea className="h-[600px] pr-4">
+                        <div className="space-y-4">
+                          {timelineData.info.frames.map((frame, frameIndex) => {
+                            const formattedTime = formatMatchTime(
+                              frame.timestamp
+                            );
+                            const importantEvents = (frame.events || []).filter(
+                              (e: any) =>
+                                [
+                                  'CHAMPION_KILL',
+                                  'ELITE_MONSTER_KILL',
+                                  'BUILDING_KILL',
+                                  'DRAGON_SOUL_GIVEN',
+                                ].includes(e.type)
+                            );
+                            if (importantEvents.length === 0) return null;
+                            return (
+                              <div
+                                key={frameIndex}
+                                className="ml-2 border-l-2 border-white/20 pl-4"
+                              >
+                                <div className="mb-2 flex items-center gap-2">
+                                  <div className="-ml-[1.25rem] h-2 w-2 rounded-full bg-white"></div>
+                                  <Badge
+                                    variant="outline"
+                                    className="text-white/60"
+                                  >
+                                    {formattedTime}
+                                  </Badge>
+                                </div>
+                                <div className="space-y-2">
+                                  {importantEvents.map(
+                                    (event: any, eventIndex: number) => (
+                                      <TimelineEventItem
+                                        key={eventIndex}
+                                        event={event}
+                                        participants={
+                                          matchData.info.participants
+                                        }
+                                        participantPuuids={
+                                          matchData.metadata.participants
+                                        }
+                                      />
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </ScrollArea>
+                    )}
+                  </>
+                )}
+
+                {/* Items View */}
+                {activeTimelineView === 'items' && (
+                  <>
+                    {!selectedPlayerData ? (
+                      <div className="py-12 text-center">
+                        <Coins className="mx-auto mb-4 h-12 w-12 text-white/40" />
+                        <p className="text-white/60">
+                          Click on a player in the Overview tab to see their
+                          item timeline
+                        </p>
+                      </div>
+                    ) : !data?.timelineData ? (
+                      <div className="py-12 text-center">
+                        <Coins className="mx-auto mb-4 h-12 w-12 text-white/40" />
+                        <p className="text-white/60">
+                          Item timeline requires detailed match timeline data
+                        </p>
+                      </div>
+                    ) : playerItemTimeline ? (
+                      <ItemTimelineDisplay
+                        playerTimeline={playerItemTimeline.playerTimeline}
+                        config={{
+                          showItemIcons: true,
+                          showItemNames: true,
+                          showTimestamps: true,
+                          showEvolutionChains: true,
+                          highlightEvolutions: true,
+                          groupByTimeInterval: false,
+                          compactView: false,
+                        }}
+                        className="w-full"
+                        maxHeight={600}
+                      />
+                    ) : (
+                      <div className="py-12 text-center">
+                        <Loader2 className="mx-auto mb-4 h-10 w-10 animate-spin text-white/60" />
+                        <p className="text-white/60">
+                          Processing item timeline...
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
+
+          {/* Removed separate Item Timeline tab in favor of unified toggle above */}
 
           {/* Challenges Tab */}
           <TabsContent value="challenges" className="space-y-6">
