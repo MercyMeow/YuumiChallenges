@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { memo } from 'react';
 import { ChampionIcon } from '@/components/ui/datadragon-image';
 import { Swords, Trophy, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -33,7 +33,7 @@ interface TimelineEventItemProps {
   className?: string;
 }
 
-export function TimelineEventItem({ 
+const TimelineEventItemComponent = memo(function TimelineEventItem({ 
   event, 
   participants, 
   participantPuuids,
@@ -243,4 +243,20 @@ export function TimelineEventItem({
       }
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison for better performance
+  return (
+    prevProps.event.type === nextProps.event.type &&
+    prevProps.event.timestamp === nextProps.event.timestamp &&
+    prevProps.event.killerId === nextProps.event.killerId &&
+    prevProps.event.victimId === nextProps.event.victimId &&
+    prevProps.event.monsterType === nextProps.event.monsterType &&
+    prevProps.event.buildingType === nextProps.event.buildingType &&
+    prevProps.event.teamId === nextProps.event.teamId &&
+    prevProps.className === nextProps.className &&
+    prevProps.participantPuuids.length === nextProps.participantPuuids.length &&
+    prevProps.participants.length === nextProps.participants.length
+  );
+});
+
+export { TimelineEventItemComponent as TimelineEventItem };
