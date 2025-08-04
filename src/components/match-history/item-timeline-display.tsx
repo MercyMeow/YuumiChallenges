@@ -115,6 +115,32 @@ const ItemEventDisplay = ({
     );
   };
 
+  // Runtime guards to prevent invalid React element creation in dev
+  if (process.env.NODE_ENV !== 'production') {
+    if (
+      !event ||
+      typeof event !== 'object' ||
+      typeof event.type !== 'string' ||
+      typeof event.timestamp !== 'number' ||
+      typeof event.itemId !== 'number'
+    ) {
+      console.error('[ItemEventDisplay] Invalid event prop provided:', {
+        event,
+        reason: 'Missing or invalid type/timestamp/itemId',
+      });
+      return (
+        <div
+          className={cn(
+            'rounded-md border border-red-500/30 bg-red-900/10 p-2 text-xs text-red-300',
+            className
+          )}
+        >
+          Invalid item event encountered
+        </div>
+      );
+    }
+  }
+
   return (
     <div
       className={cn(
@@ -135,9 +161,9 @@ const ItemEventDisplay = ({
         <div className="flex items-center justify-between">
           {/* Event Description */}
           <div className="flex flex-1 items-center gap-2">
-            {config.showItemIcons && (
-              <ItemSlot itemId={event.itemId} size="sm" />
-            )}
+            {config.showItemIcons &&
+              typeof event.itemId === 'number' &&
+              event.itemId >= 0 && <ItemSlot itemId={event.itemId} size="sm" />}
 
             <div className="flex flex-col">
               <span className={cn('font-medium', getEventColor(event.type))}>
@@ -292,7 +318,30 @@ export function ItemTimelineDisplay({
     return stats;
   }, [playerTimeline, trackTimelineMetrics, trackMemoryUsage]);
 
-  if (!playerTimeline?.events?.length) {
+  // Extra runtime diagnostics for Items view
+  if (process.env.NODE_ENV !== 'production') {
+    const safeEvents = Array.isArray(playerTimeline?.events)
+      ? playerTimeline?.events
+      : [];
+    const invalid = safeEvents.find(
+      (e) =>
+        !e ||
+        typeof e.timestamp !== 'number' ||
+        typeof e.itemId !== 'number' ||
+        typeof e.type !== 'string'
+    );
+    if (invalid) {
+      console.error(
+        '[ItemTimelineDisplay] Found invalid event entry:',
+        invalid
+      );
+    }
+  }
+
+  if (
+    !Array.isArray(playerTimeline?.events) ||
+    playerTimeline.events.length === 0
+  ) {
     return (
       <Card
         className={cn(
@@ -400,7 +449,7 @@ export function ItemTimelineDisplay({
             </div>
           )}
 
-          {config.groupByTimeInterval && processedEvents ? (
+          {config.groupByTimeInterval && Array.isArray(processedEvents) ? (
             // Grouped display
             <div className="space-y-6">
               {processedEvents.map((group, index) => {
@@ -423,24 +472,26 @@ export function ItemTimelineDisplay({
           ) : (
             // Sequential display
             <div className="space-y-3">
-              {playerTimeline.events?.map((event, index) => {
-                if (
-                  !event ||
-                  typeof event.timestamp !== 'number' ||
-                  typeof event.itemId !== 'number'
-                ) {
-                  console.warn('Invalid event data:', event);
-                  return null;
-                }
+              {Array.isArray(playerTimeline.events) &&
+                playerTimeline.events.map((event, index) => {
+                  if (
+                    !event ||
+                    typeof event.timestamp !== 'number' ||
+                    typeof event.itemId !== 'number' ||
+                    typeof event.type !== 'string'
+                  ) {
+                    console.warn('Invalid event data:', event);
+                    return null;
+                  }
 
-                return (
-                  <ItemEventDisplay
-                    key={`${event.timestamp}-${event.itemId}-${index}`}
-                    event={event}
-                    config={config}
-                  />
-                );
-              })}
+                  return (
+                    <ItemEventDisplay
+                      key={`${event.timestamp}-${event.itemId}-${index}`}
+                      event={event}
+                      config={config}
+                    />
+                  );
+                })}
             </div>
           )}
         </ScrollArea>
