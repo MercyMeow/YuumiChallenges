@@ -381,8 +381,9 @@ export function getSupportItemChain(itemId: number | null | undefined): number[]
 /**
  * Calculate support item completion time from timeline data
  * 
- * @param playerData - Player data from match
- * @param timelineEvents - Timeline events for the player
+ * @param playerData - Player data from match  
+ * @param timelineEvents - Timeline events (will be filtered for the specific player)
+ * @param participantId - Optional participant ID to filter events (1-indexed, if not provided uses playerData)
  * @returns Object with completion times for different tiers
  * 
  * @example
@@ -392,19 +393,51 @@ export function getSupportItemChain(itemId: number | null | undefined): number[]
  * ```
  */
 export function detectSupportItemCompletion(
-  _playerData: any,
-  timelineEvents: Array<{ itemId: number; timestamp: number; type: string }>
+  playerData: any,
+  timelineEvents: Array<{ itemId: number; timestamp: number; type: string; participantId?: number; [key: string]: any }>,
+  participantId?: number
 ): Record<SupportItemTier, number | null> {
   console.group('🔍 [SUPPORT QUEST DEBUG] detectSupportItemCompletion called');
   
   // 1. LOG INPUT PARAMETERS
+  // Determine the target participant ID
+  const targetParticipantId = participantId || playerData?.participantId;
+  
   console.log('📥 INPUT PARAMETERS:', {
-    playerDataExists: !!_playerData,
-    playerDataKeys: _playerData ? Object.keys(_playerData) : null,
+    playerDataExists: !!playerData,
+    playerDataKeys: playerData ? Object.keys(playerData) : null,
+    playerName: playerData?.riotIdGameName || playerData?.summonerName || 'Unknown',
+    targetParticipantId,
+    providedParticipantId: participantId,
+    playerDataParticipantId: playerData?.participantId,
     timelineEventsLength: timelineEvents?.length || 0,
     timelineEventsType: typeof timelineEvents,
     isArray: Array.isArray(timelineEvents)
   });
+  
+  // Filter events for the specific player if we have participant information
+  let playerEvents = timelineEvents;
+  if (targetParticipantId && timelineEvents.some(e => e.participantId !== undefined)) {
+    const beforeFilterCount = timelineEvents.length;
+    playerEvents = timelineEvents.filter(event => event.participantId === targetParticipantId);
+    console.log('🔍 PARTICIPANT FILTERING:', {
+      targetParticipantId,
+      beforeFilter: beforeFilterCount,
+      afterFilter: playerEvents.length,
+      allParticipantIds: [...new Set(timelineEvents.map(e => e.participantId).filter(id => id != null))],
+      filteredSample: playerEvents.slice(0, 3).map(e => ({
+        type: e.type,
+        itemId: e.itemId,
+        participantId: e.participantId,
+        timestamp: e.timestamp
+      }))
+    });
+  } else {
+    console.log('⚠️ No participant filtering - using all events (may be pre-filtered)')
+  }
+  
+  // Use filtered events for the rest of the function
+  timelineEvents = playerEvents;
   
   if (timelineEvents?.length > 0) {
     console.log('📋 SAMPLE TIMELINE EVENTS (first 5):', 
@@ -465,13 +498,19 @@ export function detectSupportItemCompletion(
   currentWorldAtlasItems.forEach(itemId => {
     const completion = getSupportItemCompletion(itemId);
     const inTimeline = allItemIds.includes(itemId);
+    const eventsForThisItem = timelineEvents.filter(e => e.itemId === itemId);
     console.log(`  Item ${itemId} (${completion.chainName || 'Unknown'}):`, {
       isSupportItem: completion.isSupportItem,
       tier: completion.tier,
       chainType: completion.chainType,
       inTimeline: inTimeline,
-      ...(inTimeline && { 
-        timelineEvents: timelineEvents.filter(e => e.itemId === itemId).length 
+      eventCount: eventsForThisItem.length,
+      ...(eventsForThisItem.length > 0 && { 
+        eventDetails: eventsForThisItem.map(e => ({
+          type: e.type,
+          timestamp: e.timestamp,
+          timeFormatted: formatMillisecondsToTime(e.timestamp)
+        }))
       })
     });
   });
@@ -623,6 +662,93 @@ export function detectSupportItemCompletion(
   }
   
   console.groupEnd();
+  console.groupEnd();
+  
+  return completionTimes;
+}
+
+/**
+ * Detect support item completion from raw timeline data
+ * This function processes raw timeline data directly to avoid pre-filtering issues
+ * 
+ * @param rawTimelineData - Raw timeline data from Riot API
+ * @param participantId - 1-indexed participant ID from Riot API
+ * @returns Object with completion times for different tiers
+ */
+export function detectSupportItemCompletionFromRaw(
+  rawTimelineData: any,
+  participantId: number
+): Record<SupportItemTier, number | null> {
+  console.group('🔍 [RAW TIMELINE] detectSupportItemCompletionFromRaw called');
+  
+  const completionTimes: Record<SupportItemTier, number | null> = {
+    base: null,
+    tier1: null,
+    tier2: null,
+    tier3: null
+  };
+  
+  if (!rawTimelineData?.info?.frames) {
+    console.warn('⚠️ No raw timeline data available');
+    console.groupEnd();
+    return completionTimes;
+  }
+  
+  console.log('📥 RAW TIMELINE PROCESSING:', {
+    participantId,
+    totalFrames: rawTimelineData.info.frames.length,
+    frameInterval: rawTimelineData.info.frameInterval
+  });
+  
+  const allItemPurchases: Array<{ itemId: number; timestamp: number; participantId: number }> = [];
+  
+  // Extract all item purchase events
+  rawTimelineData.info.frames.forEach((frame: any) => {
+    if (frame.events) {
+      frame.events.forEach((event: any) => {
+        if (event.type === 'ITEM_PURCHASED' && 
+            event.participantId === participantId && 
+            event.itemId) {
+          allItemPurchases.push({
+            itemId: event.itemId,
+            timestamp: event.timestamp,
+            participantId: event.participantId
+          });
+        }
+      });
+    }
+  });
+  
+  console.log('🛒 RAW ITEM PURCHASES FOUND:', {
+    totalPurchases: allItemPurchases.length,
+    participantId,
+    itemIds: allItemPurchases.map(p => p.itemId).sort((a, b) => a - b),
+    supportItems: allItemPurchases.filter(p => isSupportItem(p.itemId)),
+    chronological: allItemPurchases
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .slice(0, 10)
+      .map(p => ({
+        itemId: p.itemId,
+        timestamp: p.timestamp,
+        timeFormatted: formatMillisecondsToTime(p.timestamp),
+        isSupportItem: isSupportItem(p.itemId)
+      }))
+  });
+  
+  // Process support item purchases
+  allItemPurchases
+    .filter(purchase => isSupportItem(purchase.itemId))
+    .sort((a, b) => a.timestamp - b.timestamp)
+    .forEach(purchase => {
+      const completion = getSupportItemCompletion(purchase.itemId);
+      
+      if (completion.isSupportItem && completion.tier && completionTimes[completion.tier] === null) {
+        completionTimes[completion.tier] = purchase.timestamp;
+        console.log(`✅ RAW DETECTION - ${completion.tier} completed at ${formatMillisecondsToTime(purchase.timestamp)} with item ${purchase.itemId} (${completion.chainName})`);
+      }
+    });
+  
+  console.log('📋 RAW DETECTION RESULTS:', completionTimes);
   console.groupEnd();
   
   return completionTimes;

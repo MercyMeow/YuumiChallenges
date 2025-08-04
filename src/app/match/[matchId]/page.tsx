@@ -26,7 +26,7 @@ import {
 } from '@/lib/utils/game-modes';
 import { createDefaultProcessingOptions } from '@/lib/utils/item-timeline-processor';
 import { formatMatchTime } from '@/lib/utils/time';
-import { detectSupportItemCompletion } from '@/lib/utils/match-timeline-utils';
+import { detectSupportItemCompletionFromRaw } from '@/lib/utils/match-timeline-utils';
 import { RawTimelineData } from '@/lib/types/item-timeline';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -648,26 +648,19 @@ export default function MatchDetailsPage() {
       return null;
     }
 
-    console.log('✅ All data available for compare player, calling detectSupportItemCompletion:', {
+    console.log('✅ All data available for compare player, calling detectSupportItemCompletionFromRaw:', {
       comparePlayer,
       playerName: player.riotIdGameName || player.summonerName,
       championName: player.championName,
-      eventsLength: processedTimeline.playerTimeline.events.length,
-      playerDataKeys: Object.keys(player)
+      participantId: comparePlayer + 1
     });
 
-    console.warn('⚠️ IMPORTANT NOTE: Using same timeline events as selected player - this may be incorrect!', {
-      selectedPlayerNote: 'Timeline processor runs per selected player',
-      comparePlayerNote: 'Compare player may need separate event processing',
-      eventsAreForPlayer: 'Events are currently for selected player, not compare player'
-    });
+    console.log('✅ Using raw timeline processing for compare player - events properly filtered');
 
-    // Reuse the same events; processor currently runs per selected player,
-    // but detectSupportItemCompletion only needs events and the player's chain mapping.
-    // If per-participant events segmentation is required later, adapt here.
-    const result = detectSupportItemCompletion(
-      player,
-      processedTimeline.playerTimeline.events
+    // Use raw timeline processing to properly filter events for compare player
+    const result = detectSupportItemCompletionFromRaw(
+      data.timelineData,
+      comparePlayer + 1
     );
 
     console.log('📋 useMemo Result for compare player:', {
@@ -829,22 +822,12 @@ export default function MatchDetailsPage() {
       }))
     );
     
-    // Check for support items in the timeline
-    const supportItemIds = [3865, 3866, 3867, 3869, 3870, 3871, 3876, 3877];
-    const supportItemsInEvents = processedTimeline.playerTimeline.events
-      .filter((e: any) => supportItemIds.includes(e.itemId))
-      .map((e: any) => ({
-        itemId: e.itemId,
-        type: e.type,
-        timestamp: e.timestamp,
-        timeFormatted: e.timeFormatted
-      }));
-    
-    console.log('🛡️ Support items found in timeline:', supportItemsInEvents);
+    console.log('✅ Using raw timeline processing for selected player - bypassing pre-processed events');
 
-    const result = detectSupportItemCompletion(
-      selectedPlayerData,
-      processedTimeline.playerTimeline.events
+    // Use raw timeline processing to avoid pre-filtering issues
+    const result = detectSupportItemCompletionFromRaw(
+      data.timelineData,
+      selectedPlayer + 1
     );
 
     console.log('📋 useMemo Result for selected player:', {
