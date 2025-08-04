@@ -6,7 +6,7 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { ProfileHeader } from '@/components/profile/profile-header';
 import { SummonersSection } from '@/components/profile/summoners-section';
 import { PerformanceOverview } from '@/components/profile/performance-overview';
-import { EnhancedMatchHistoryDisplay } from '@/components/match-history';
+import { EnhancedMatchHistoryDisplay } from '@/components/match-history/enhanced-match-history-display';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RefreshProgress, RefreshResult } from '@/components/ui/refresh-status';
 import { AlertCircle, Loader2 } from 'lucide-react';

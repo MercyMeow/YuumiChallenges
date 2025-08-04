@@ -7,7 +7,7 @@ import {
   ChallengesCard, 
   LeagueProfileCard
 } from '@/components/dashboard/dashboard-cards';
-import { EnhancedMatchHistoryDisplay } from '@/components/match-history';
+import { EnhancedMatchHistoryDisplay } from '@/components/match-history/enhanced-match-history-display';
 import { Badge } from '@/components/ui/badge';
 import { RefreshStatus } from '@/lib/types';
 import { Sparkles, Activity, Users, Loader2 } from 'lucide-react';

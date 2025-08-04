@@ -4,7 +4,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ItemSlot } from '@/components/match-history/item-slots';
+import { ItemSlot } from './item-slots';
 import {
   Clock,
   ShoppingCart,
