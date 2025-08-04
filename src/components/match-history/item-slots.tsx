@@ -12,7 +12,7 @@ interface ItemSlotProps {
   className?: string;
 }
 
-function ItemSlot({ itemId, size = 'md', className = '' }: ItemSlotProps) {
+export function ItemSlot({ itemId, size = 'md', className = '' }: ItemSlotProps) {
   const [imageUrl, setImageUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);

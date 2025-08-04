@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { RiotAPI } from '@/lib/apis/riot';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { formatSecondsToTime } from '@/lib/utils/match-timeline-utils';
 
 const riotApi = new RiotAPI(process.env.RIOT_API_KEY || '');
 
@@ -285,7 +286,7 @@ export async function GET(
           gameLength: {
             minutes: Math.floor(matchDetails.info.gameDuration / 60),
             seconds: matchDetails.info.gameDuration % 60,
-            formatted: `${Math.floor(matchDetails.info.gameDuration / 60)}:${String(matchDetails.info.gameDuration % 60).padStart(2, '0')}`
+            formatted: formatSecondsToTime(matchDetails.info.gameDuration)
           }
         }
       };

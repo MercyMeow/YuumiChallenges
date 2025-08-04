@@ -92,3 +92,59 @@ export function getNextAvailableTime(lastAction: Date | string | null | undefine
   const last = new Date(lastAction);
   return new Date(last.getTime() + (cooldownMinutes * 60 * 1000));
 }
+
+// =============================================
+// MATCH TIMELINE TIME FORMATTING
+// =============================================
+
+/**
+ * Convert milliseconds to MM:SS format for match timeline display
+ * Enhanced version with better error handling and performance
+ * 
+ * @param milliseconds - Time in milliseconds
+ * @returns Formatted time string (e.g., "1:05", "65:42")
+ * 
+ * @example
+ * ```typescript
+ * formatMatchTime(65000) // "1:05"
+ * formatMatchTime(125000) // "2:05"
+ * formatMatchTime(-1000) // "0:00"
+ * formatMatchTime(null) // "0:00"
+ * ```
+ */
+export function formatMatchTime(milliseconds: number | null | undefined): string {
+  // Handle edge cases
+  if (milliseconds == null || isNaN(milliseconds) || milliseconds < 0) {
+    return "0:00";
+  }
+  
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Convert seconds to MM:SS format for match timeline display
+ * 
+ * @param seconds - Time in seconds
+ * @returns Formatted time string (e.g., "1:05", "65:42")
+ * 
+ * @example
+ * ```typescript
+ * formatMatchTimeFromSeconds(65) // "1:05"
+ * formatMatchTimeFromSeconds(125) // "2:05"
+ * ```
+ */
+export function formatMatchTimeFromSeconds(seconds: number | null | undefined): string {
+  if (seconds == null || isNaN(seconds) || seconds < 0) {
+    return "0:00";
+  }
+  
+  const totalSeconds = Math.floor(seconds);
+  const minutes = Math.floor(totalSeconds / 60);
+  const remainingSeconds = totalSeconds % 60;
+  
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}

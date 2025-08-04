@@ -8,6 +8,7 @@ export { EnhancedMatchHistoryDisplay } from './enhanced-match-history-display';
 export { MatchCard, MatchCardList } from './match-card';
 export { TeamSection, TeamsComparison } from './team-section';
 export { PlayerRow, PlayersList } from './player-row';
-export { ItemSlots, TrinketSlot } from './item-slots';
+export { ItemSlot, ItemSlots, TrinketSlot } from './item-slots';
 export { SummonerSpells, SummonerSpell } from './summoner-spells';
 export { TimelineEventItem } from './timeline-event-item';
+export { ItemTimelineDisplay, CompactItemTimelineDisplay } from './item-timeline-display';

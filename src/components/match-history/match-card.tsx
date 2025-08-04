@@ -9,6 +9,7 @@ import { SummonerSpells } from './summoner-spells';
 import { MatchData, MatchParticipant } from '@/lib/types';
 import { getGameModeDisplayName, getGameModeCategoryColor } from '@/lib/utils/game-modes';
 import { formatDistanceToNow } from 'date-fns';
+import { formatSecondsToTime } from '@/lib/utils/match-timeline-utils';
 import { 
   Clock, 
   Trophy, 
@@ -52,11 +53,6 @@ export function MatchCard({
       : 'border-l-4 border-l-accessible-red bg-accessible-red/10 border-r border-t border-b border-accessible-red/30';
   };
 
-  const formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
 
   // Helper function to identify if a participant is the current user
   const isCurrentUser = (participant: MatchParticipant) => {
@@ -166,7 +162,7 @@ export function MatchCard({
         className="absolute top-3 left-48 z-10 px-3 py-1 bg-gray-500/20 text-gray-300 border-gray-500/30"
       >
         <Clock className="h-3 w-3 mr-1" />
-        {formatDuration(match.duration)}
+        {formatSecondsToTime(match.duration)}
       </Badge>
 
       {/* Details button - positioned right of duration badge */}

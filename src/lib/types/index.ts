@@ -650,3 +650,6 @@ export const isEnhancedMatchParticipant = (obj: unknown): obj is EnhancedMatchPa
     typeof (obj as EnhancedMatchParticipant).assists === 'number'
   );
 };
+
+// Re-export item timeline types
+export * from './item-timeline';

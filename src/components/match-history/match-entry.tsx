@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { ChampionIcon } from '@/components/ui/datadragon-image';
 import { MatchData } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
+import { formatSecondsToTime } from '@/lib/utils/match-timeline-utils';
 import { Clock, Trophy, Target, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
@@ -31,11 +32,6 @@ export function MatchEntry({ match, compact = false }: MatchEntryProps) {
     return win ? 'border-l-green-500 bg-green-500/5' : 'border-l-red-500 bg-red-500/5';
   };
 
-  const formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
 
   const getGameModeDisplay = (gameMode: string, queueId: number) => {
     // Common queue ID mappings
@@ -102,7 +98,7 @@ export function MatchEntry({ match, compact = false }: MatchEntryProps) {
               <TooltipTrigger>
                 <div className="flex items-center space-x-1 text-white/60">
                   <Clock className="h-4 w-4" />
-                  <span className="text-sm">{formatDuration(match.duration)}</span>
+                  <span className="text-sm">{formatSecondsToTime(match.duration)}</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
