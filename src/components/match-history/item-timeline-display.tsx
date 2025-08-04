@@ -203,13 +203,19 @@ function TimelineEventGroupDisplay({
 
       {/* Group Events */}
       <div className="space-y-2 ml-4 border-l-2 border-white/10 pl-4">
-        {group.events.slice(0, config.maxEventsPerGroup).map((event, index) => (
-          <ItemEventDisplay 
-            key={`${event.timestamp}-${event.itemId}-${index}`}
-            event={event}
-            config={config}
-          />
-        ))}
+        {group.events?.slice(0, config.maxEventsPerGroup).map((event, index) => {
+          if (!event || typeof event.timestamp !== 'number' || typeof event.itemId !== 'number') {
+            console.warn('Invalid event data in group:', event);
+            return null;
+          }
+          return (
+            <ItemEventDisplay 
+              key={`${event.timestamp}-${event.itemId}-${index}`}
+              event={event}
+              config={config}
+            />
+          );
+        })}
         
         {group.events.length > config.maxEventsPerGroup && (
           <div className="text-center py-2">
@@ -244,33 +250,34 @@ export function ItemTimelineDisplay({
   } = usePerformanceMonitor('ItemTimelineDisplay');
 
   const processedEvents = useMemo(() => {
-    if (config.groupByTimeInterval) {
+    if (config.groupByTimeInterval && playerTimeline?.events) {
       return groupEventsByTimeInterval(playerTimeline.events, config.timeInterval);
     }
     return null;
-  }, [playerTimeline.events, config.groupByTimeInterval, config.timeInterval]);
+  }, [playerTimeline?.events, config.groupByTimeInterval, config.timeInterval]);
 
   const timelineStats = useMemo(() => {
+    const events = playerTimeline?.events || [];
     const stats = {
-      totalEvents: playerTimeline.events.length,
-      purchases: playerTimeline.totalPurchases,
-      sales: playerTimeline.totalSales,
-      destructions: playerTimeline.totalDestructions,
-      evolutions: playerTimeline.supportItemEvolutions.length,
-      firstItemTime: playerTimeline.firstItemTimestamp ? 
-        playerTimeline.events.find(e => e.timestamp === playerTimeline.firstItemTimestamp)?.timeFormatted : null,
-      lastItemTime: playerTimeline.finalBuildTimestamp ?
-        playerTimeline.events.find(e => e.timestamp === playerTimeline.finalBuildTimestamp)?.timeFormatted : null
+      totalEvents: events.length,
+      purchases: playerTimeline?.totalPurchases || 0,
+      sales: playerTimeline?.totalSales || 0,
+      destructions: playerTimeline?.totalDestructions || 0,
+      evolutions: playerTimeline?.supportItemEvolutions?.length || 0,
+      firstItemTime: playerTimeline?.firstItemTimestamp ? 
+        events.find(e => e?.timestamp === playerTimeline.firstItemTimestamp)?.timeFormatted : null,
+      lastItemTime: playerTimeline?.finalBuildTimestamp ?
+        events.find(e => e?.timestamp === playerTimeline.finalBuildTimestamp)?.timeFormatted : null
     };
     
     // Track metrics for performance monitoring
     trackTimelineMetrics(stats.totalEvents);
-    trackMemoryUsage(stats.totalEvents, JSON.stringify(playerTimeline).length);
+    trackMemoryUsage(stats.totalEvents, JSON.stringify(playerTimeline || {}).length);
     
     return stats;
   }, [playerTimeline, trackTimelineMetrics, trackMemoryUsage]);
 
-  if (playerTimeline.events.length === 0) {
+  if (!playerTimeline?.events?.length) {
     return (
       <Card className={cn("bg-black/20 backdrop-blur-md border border-white/10", className)}>
         <CardContent className="py-12 text-center">
@@ -346,13 +353,19 @@ export function ItemTimelineDisplay({
           ) : (
             // Sequential display
             <div className="space-y-3">
-              {playerTimeline.events.map((event, index) => (
-                <ItemEventDisplay 
-                  key={`${event.timestamp}-${event.itemId}-${index}`}
-                  event={event}
-                  config={config}
-                />
-              ))}
+              {playerTimeline.events?.map((event, index) => {
+                if (!event || typeof event.timestamp !== 'number' || typeof event.itemId !== 'number') {
+                  console.warn('Invalid event data:', event);
+                  return null;
+                }
+                return (
+                  <ItemEventDisplay 
+                    key={`${event.timestamp}-${event.itemId}-${index}`}
+                    event={event}
+                    config={config}
+                  />
+                );
+              })}
             </div>
           )}
         </ScrollArea>
@@ -386,15 +399,20 @@ export function CompactItemTimelineDisplay({
       </div>
       
       <div className="space-y-1 max-h-48 overflow-y-auto">
-        {playerTimeline.events.slice(0, 10).map((event, index) => (
-          <div key={`compact-${event.timestamp}-${index}`} className="flex items-center gap-2">
-            <ItemSlot itemId={event.itemId} size="sm" />
-            <span className="text-xs text-white/60">{event.timeFormatted}</span>
-            {event.isEvolution && (
-              <Sparkles className="h-3 w-3 text-purple-400" />
-            )}
-          </div>
-        ))}
+        {playerTimeline.events?.slice(0, 10).map((event, index) => {
+          if (!event || typeof event.timestamp !== 'number' || typeof event.itemId !== 'number') {
+            return null;
+          }
+          return (
+            <div key={`compact-${event.timestamp}-${index}`} className="flex items-center gap-2">
+              <ItemSlot itemId={event.itemId} size="sm" />
+              <span className="text-xs text-white/60">{event.timeFormatted || 'N/A'}</span>
+              {event.isEvolution && (
+                <Sparkles className="h-3 w-3 text-purple-400" />
+              )}
+            </div>
+          );
+        })}
         
         {playerTimeline.events.length > 10 && (
           <div className="text-center pt-1">

@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 
 interface RuneIconProps {
   runeId: number;
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'minor28' | 'keystone42';
   showTooltip?: boolean;
   variant?: 'keystone' | 'normal';
   className?: string;
@@ -40,6 +40,9 @@ export function RuneIcon({
     md: { width: 32, height: 32 },
     lg: { width: 40, height: 40 },
     xl: { width: 48, height: 48 },
+    // Riot-like explicit sizes
+    minor28: { width: 28, height: 28 },
+    keystone42: { width: 42, height: 42 },
   };
 
   const { width, height } = sizes[size];
@@ -110,17 +113,20 @@ export function RuneIcon({
       className={cn(
         'cursor-pointer overflow-hidden rounded border transition-colors hover:border-opacity-70',
         variant === 'keystone'
-          ? 'border-purple-500/50 bg-purple-500/10 shadow-sm shadow-purple-500/20 hover:border-purple-400/70'
-          : 'border-gray-500/30 hover:border-gray-400/50',
+          ? 'border-purple-500/60 bg-purple-500/10 shadow-sm shadow-purple-500/20 hover:border-purple-400/70'
+          : 'border-white/10 hover:border-white/20',
+        // circular look like Riot client
+        'rounded-full',
         className
       )}
+      style={{ width, height }}
     >
       <Image
         src={imageUrl}
         alt={rune.name}
         width={width}
         height={height}
-        className="h-full w-full object-cover"
+        className="h-full w-full object-contain"
         onError={() => setHasError(true)}
       />
     </div>
@@ -227,7 +233,7 @@ export function RuneIcon({
 
 interface StatShardIconProps {
   statShardId: number;
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'shard24';
   showTooltip?: boolean;
   className?: string;
 }
@@ -246,34 +252,24 @@ export function StatShardIcon({
     sm: { width: 16, height: 16 },
     md: { width: 20, height: 20 },
     lg: { width: 24, height: 24 },
+    // Riot-like shard size
+    shard24: { width: 24, height: 24 },
   };
 
   const { width, height } = sizes[size];
 
-  // Static stat shard icon based on type (since these don't have individual images)
-  const getStatShardIcon = (shard: StatShard) => {
-    switch (shard.slot) {
-      case 'offense':
-        return '⚔️';
-      case 'flex':
-        return '🛡️';
-      case 'defense':
-        return '❤️';
-      default:
-        return '?';
-    }
-  };
+  // Render a neutral circular token; shards don't have official per-ID icons
 
   const getStatShardColor = (shard: StatShard) => {
     switch (shard.slot) {
       case 'offense':
-        return 'text-orange-400 bg-orange-500/10 border-orange-500/30';
+        return 'bg-orange-500/15 border-orange-500/40';
       case 'flex':
-        return 'text-purple-400 bg-purple-500/10 border-purple-500/30';
+        return 'bg-purple-500/15 border-purple-500/40';
       case 'defense':
-        return 'text-green-400 bg-green-500/10 border-green-500/30';
+        return 'bg-green-500/15 border-green-500/40';
       default:
-        return 'text-gray-400 bg-gray-500/10 border-gray-500/30';
+        return 'bg-gray-500/10 border-gray-500/30';
     }
   };
 
@@ -294,13 +290,15 @@ export function StatShardIcon({
   const content = (
     <div
       className={cn(
-        'flex cursor-pointer items-center justify-center rounded border text-xs font-bold transition-opacity hover:opacity-80',
+        'flex cursor-pointer items-center justify-center rounded-full border transition-opacity hover:opacity-90',
         getStatShardColor(statShard),
         className
       )}
       style={{ width, height }}
+      aria-label={`${statShard.name} shard`}
+      title={statShard.name}
     >
-      {getStatShardIcon(statShard)}
+      <div className="h-[60%] w-[60%] rounded-full bg-white/60" />
     </div>
   );
 
@@ -563,7 +561,7 @@ export function RuneTreeDisplay({
               <div className="flex items-center gap-3">
                 <RuneIcon
                   runeId={primaryStyle.selections[0].perk}
-                  size="xl"
+                  size="keystone42"
                   variant="keystone"
                   className="shrink-0"
                 />
@@ -573,32 +571,13 @@ export function RuneTreeDisplay({
           </div>
 
           {/* Minor runes grid (3 remaining selections) */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             {primaryStyle?.selections.slice(1).map((selection, idx) => (
               <div
                 key={idx}
-                className="flex flex-col items-center gap-1 rounded-md border border-white/5 bg-white/5 p-2"
+                className="flex flex-col items-center gap-1 rounded-md border border-white/10 bg-white/5 p-1.5"
               >
-                <RuneIcon runeId={selection.perk} size="md" />
-                {(selection.var1 > 0 ||
-                  selection.var2 > 0 ||
-                  selection.var3 > 0) && (
-                  <div className="grid grid-cols-3 gap-0.5 text-[10px] leading-none">
-                    {selection.var1 > 0 && (
-                      <span className="text-accessible-green">
-                        +{selection.var1}
-                      </span>
-                    )}
-                    {selection.var2 > 0 && (
-                      <span className="text-accessible-blue">
-                        +{selection.var2}
-                      </span>
-                    )}
-                    {selection.var3 > 0 && (
-                      <span className="text-purple-300">+{selection.var3}</span>
-                    )}
-                  </div>
-                )}
+                <RuneIcon runeId={selection.perk} size="minor28" />
               </div>
             ))}
           </div>
@@ -618,81 +597,28 @@ export function RuneTreeDisplay({
           </div>
 
           {/* Secondary runes (2 picks) */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             {secondaryStyle?.selections.map((selection, index) => (
               <div
                 key={index}
-                className="flex flex-col items-center gap-1 rounded-md border border-white/5 bg-white/5 p-2"
+                className="flex flex-col items-center gap-1 rounded-md border border-white/10 bg-white/5 p-1.5"
               >
-                <RuneIcon runeId={selection.perk} size="md" />
-                {(selection.var1 > 0 ||
-                  selection.var2 > 0 ||
-                  selection.var3 > 0) && (
-                  <div className="grid grid-cols-3 gap-0.5 text-[10px] leading-none">
-                    {selection.var1 > 0 && (
-                      <span className="text-accessible-green">
-                        +{selection.var1}
-                      </span>
-                    )}
-                    {selection.var2 > 0 && (
-                      <span className="text-accessible-blue">
-                        +{selection.var2}
-                      </span>
-                    )}
-                    {selection.var3 > 0 && (
-                      <span className="text-purple-300">+{selection.var3}</span>
-                    )}
-                  </div>
-                )}
+                <RuneIcon runeId={selection.perk} size="minor28" />
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Stat shards side panel */}
-      <div className="rounded-lg border border-yellow-500/20 bg-black/20 p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-sm font-medium text-yellow-300">
-            Stat Shards
-          </span>
-          <span className="text-xxs rounded-md border border-yellow-500/30 bg-yellow-500/10 px-2 py-0.5 text-yellow-300">
-            3 Picks
-          </span>
+      {/* Stat shards compact row */}
+      <div className="rounded-lg border border-yellow-500/20 bg-black/20 p-3">
+        <div className="mb-2 text-sm font-medium text-yellow-300">
+          Stat Shards
         </div>
-
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <StatShardIcon statShardId={perks.statPerks.offense} size="lg" />
-            <div className="leading-tight">
-              <div className="text-xs text-orange-300">Offense</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <StatShardIcon statShardId={perks.statPerks.flex} size="lg" />
-            <div className="leading-tight">
-              <div className="text-xs text-purple-300">Flex</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <StatShardIcon statShardId={perks.statPerks.defense} size="lg" />
-            <div className="leading-tight">
-              <div className="text-xs text-green-300">Defense</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Legend */}
-        <div className="text-xxs mt-4 grid grid-cols-3 gap-2 text-white/60">
-          <div className="rounded border border-orange-500/20 bg-orange-500/5 p-2 text-center">
-            Damage
-          </div>
-          <div className="rounded border border-purple-500/20 bg-purple-500/5 p-2 text-center">
-            Adaptive
-          </div>
-          <div className="rounded border border-green-500/20 bg-green-500/5 p-2 text-center">
-            Defense
-          </div>
+        <div className="flex items-center gap-3">
+          <StatShardIcon statShardId={perks.statPerks.offense} size="shard24" />
+          <StatShardIcon statShardId={perks.statPerks.flex} size="shard24" />
+          <StatShardIcon statShardId={perks.statPerks.defense} size="shard24" />
         </div>
       </div>
     </div>

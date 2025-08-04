@@ -11,7 +11,11 @@ import { Separator } from '@/components/ui/separator';
 import { ChampionIcon } from '@/components/ui/datadragon-image';
 import { ItemSlots } from '@/components/match-history/item-slots';
 import { SummonerSpells } from '@/components/match-history/summoner-spells';
-import { RuneTreeDisplay, RuneIcon } from '@/components/ui/rune-display';
+import {
+  RuneTreeDisplay,
+  RuneIcon,
+  StatShardIcon,
+} from '@/components/ui/rune-display';
 import { ItemTimelineDisplay } from '@/components/match-history/item-timeline-display';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { TimelineEventItem } from '@/components/match-history/timeline-event-item';
@@ -453,15 +457,28 @@ const PlayerCard = memo(
               size="xs"
             />
 
-            {/* Keystone Rune */}
+            {/* Runes compact */}
             {participant.perks?.styles?.[0]?.selections?.[0] && (
-              <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center gap-2">
                 <RuneIcon
                   runeId={participant.perks.styles[0].selections[0].perk}
-                  size="sm"
+                  size="minor28"
                   variant="keystone"
                 />
-                <div className="text-xs text-purple-400">Keystone</div>
+                <div className="flex items-center gap-1">
+                  <StatShardIcon
+                    statShardId={participant.perks.statPerks.offense}
+                    size="shard24"
+                  />
+                  <StatShardIcon
+                    statShardId={participant.perks.statPerks.flex}
+                    size="shard24"
+                  />
+                  <StatShardIcon
+                    statShardId={participant.perks.statPerks.defense}
+                    size="shard24"
+                  />
+                </div>
               </div>
             )}
 
@@ -565,6 +582,30 @@ export default function MatchDetailsPage() {
 
     fetchMatchDetails();
   }, [matchId]);
+
+  // Support quest completion times for compare player (mirror of selected player computation)
+  const compareSupportItemCompletionTimes = useMemo(() => {
+    if (
+      !processedTimeline?.playerTimeline?.events ||
+      !data?.matchData?.info?.participants ||
+      comparePlayer === null
+    ) {
+      return null;
+    }
+
+    const player = data.matchData.info.participants[comparePlayer];
+    if (!player) {
+      return null;
+    }
+
+    // Reuse the same events; processor currently runs per selected player,
+    // but detectSupportItemCompletion only needs events and the player's chain mapping.
+    // If per-participant events segmentation is required later, adapt here.
+    return detectSupportItemCompletion(
+      player,
+      processedTimeline.playerTimeline.events
+    );
+  }, [processedTimeline, data?.matchData?.info?.participants, comparePlayer]);
 
   const formatDuration = (seconds: number) => {
     return formatMatchTime(seconds * 1000); // Convert seconds to milliseconds
@@ -743,6 +784,7 @@ export default function MatchDetailsPage() {
 
   const comparePlayerData =
     comparePlayer !== null ? matchData.info.participants[comparePlayer] : null;
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
@@ -1377,6 +1419,35 @@ export default function MatchDetailsPage() {
                             {selectedPlayerData.wardsKilled}
                           </span>
                         </div>
+
+                        {/* Support Quest Completed (custom stat) */}
+                        <div className="flex justify-between">
+                          <span className="text-white/60">
+                            Support Quest Completed
+                          </span>
+                          {(() => {
+                            const questCompleteMs =
+                              supportItemCompletionTimes?.tier3 ??
+                              supportItemCompletionTimes?.tier2 ??
+                              supportItemCompletionTimes?.tier1 ??
+                              null;
+
+                            return (
+                              <span
+                                className={
+                                  questCompleteMs
+                                    ? 'text-green-300'
+                                    : 'text-white/40'
+                                }
+                              >
+                                {questCompleteMs
+                                  ? formatMatchTime(questCompleteMs)
+                                  : '—'}
+                              </span>
+                            );
+                          })()}
+                        </div>
+
                         <Separator className="my-2" />
                         <div className="flex justify-between">
                           <span className="text-white/60">Turret Kills</span>
@@ -1403,6 +1474,61 @@ export default function MatchDetailsPage() {
                           </span>
                         </div>
                         <Separator className="my-2" />
+
+                        {/* Comparison block for Support Quest Completed when a compare player is selected */}
+                        {comparePlayerData && (
+                          <div className="flex items-center justify-between rounded-md border border-white/10 bg-white/5 p-2">
+                            <span className="text-white/60">
+                              Support Quest Completed (Compare)
+                            </span>
+                            <div className="flex items-center gap-4">
+                              {/* Selected Player value */}
+                              {(() => {
+                                const questSelected =
+                                  supportItemCompletionTimes?.tier3 ??
+                                  supportItemCompletionTimes?.tier2 ??
+                                  supportItemCompletionTimes?.tier1 ??
+                                  null;
+                                return (
+                                  <span
+                                    className={
+                                      questSelected
+                                        ? 'text-green-300'
+                                        : 'text-white/40'
+                                    }
+                                  >
+                                    {questSelected
+                                      ? formatMatchTime(questSelected)
+                                      : '—'}
+                                  </span>
+                                );
+                              })()}
+                              <span className="text-white/30">vs</span>
+                              {/* Compare Player value */}
+                              {(() => {
+                                const questCompare =
+                                  compareSupportItemCompletionTimes?.tier3 ??
+                                  compareSupportItemCompletionTimes?.tier2 ??
+                                  compareSupportItemCompletionTimes?.tier1 ??
+                                  null;
+                                return (
+                                  <span
+                                    className={
+                                      questCompare
+                                        ? 'text-green-300'
+                                        : 'text-white/40'
+                                    }
+                                  >
+                                    {questCompare
+                                      ? formatMatchTime(questCompare)
+                                      : '—'}
+                                  </span>
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        )}
+
                         <div className="flex justify-between">
                           <span className="text-white/60">Time Dead</span>
                           <span className="text-red-400">
@@ -2452,7 +2578,7 @@ export default function MatchDetailsPage() {
                           Item timeline requires detailed match timeline data
                         </p>
                       </div>
-                    ) : processedTimeline ? (
+                    ) : processedTimeline?.playerTimeline ? (
                       <ItemTimelineDisplay
                         playerTimeline={processedTimeline.playerTimeline}
                         config={{

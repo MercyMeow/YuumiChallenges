@@ -367,7 +367,7 @@ export function getSupportItemChain(itemId: number | null | undefined): number[]
   
   // Find all items with the same evolution type
   const chainItems = Object.entries(SUPPORT_ITEM_EVOLUTIONS)
-    .filter(([_, evo]) => evo.evolutionType === evolution.evolutionType)
+    .filter(([, evo]) => evo.evolutionType === evolution.evolutionType)
     .map(([id, evo]) => ({ id: Number(id), stage: evo.stage, fromItemId: evo.fromItemId, toItemId: evo.toItemId }))
     .sort((a, b) => {
       // Sort by dependency chain
