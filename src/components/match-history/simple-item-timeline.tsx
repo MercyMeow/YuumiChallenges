@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -17,8 +17,16 @@ import {
   Sparkles,
   Package,
   AlertCircle,
+  Trophy,
+  Crown,
+  Star,
+  Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { 
+  isFinalSupportItemEvolution
+} from '@/lib/utils/match-timeline-utils';
+import { SUPPORT_EVOLUTIONS } from '@/lib/types/item-timeline-new';
 
 // Component prop interfaces
 interface ItemTimelineProps {
@@ -49,11 +57,82 @@ interface ItemEvent {
   readonly evolutionStage?: 'base' | 'tier1' | 'tier2' | 'tier3';
 }
 
+interface SupportQuestCompletion {
+  readonly tier: 'base' | 'tier1' | 'tier2' | 'tier3';
+  readonly timestamp: number;
+  readonly timeFormatted: string;
+  readonly itemId: number;
+  readonly itemName: string;
+  readonly isQuestComplete: boolean;
+}
+
 interface GroupedEvents {
   readonly timestamp: number;
   readonly timeFormatted: string;
   readonly events: readonly ItemEvent[];
 }
+
+// Support Quest Detection
+const detectSupportQuestCompletions = (events: readonly ItemEvent[]): SupportQuestCompletion[] => {
+  const completions: SupportQuestCompletion[] = [];
+  const seenTiers = new Set<string>();
+  
+  // Process events chronologically to find first completion of each tier
+  const sortedEvents = [...events].sort((a, b) => a.timestamp - b.timestamp);
+  
+  for (const event of sortedEvents) {
+    if (event.type === 'ITEM_PURCHASED' && event.isEvolution && event.evolutionStage) {
+      const tierKey = event.evolutionStage;
+      
+      if (!seenTiers.has(tierKey)) {
+        seenTiers.add(tierKey);
+        const evolution = SUPPORT_EVOLUTIONS[event.itemId];
+        
+        completions.push({
+          tier: event.evolutionStage,
+          timestamp: event.timestamp,
+          timeFormatted: event.timeFormatted,
+          itemId: event.itemId,
+          itemName: evolution?.name || `Item ${event.itemId}`,
+          isQuestComplete: event.evolutionStage === 'tier3'
+        });
+      }
+    }
+  }
+  
+  return completions.sort((a, b) => a.timestamp - b.timestamp);
+};
+
+// Enhanced evolution detection for destruction->purchase sequences
+const detectEvolutionChains = (events: readonly ItemEvent[]): Map<number, ItemEvent[]> => {
+  const evolutionChains = new Map<number, ItemEvent[]>();
+  const sortedEvents = [...events].sort((a, b) => a.timestamp - b.timestamp);
+  
+  for (let i = 0; i < sortedEvents.length - 1; i++) {
+    const currentEvent = sortedEvents[i];
+    const nextEvent = sortedEvents[i + 1];
+    
+    // Look for destruction followed by purchase within 1 second (evolution pattern)
+    if (
+      currentEvent &&
+      nextEvent &&
+      currentEvent.type === 'ITEM_DESTROYED' &&
+      nextEvent.type === 'ITEM_PURCHASED' &&
+      nextEvent.timestamp - currentEvent.timestamp <= 1000 &&
+      currentEvent.isEvolution &&
+      nextEvent.isEvolution
+    ) {
+      // This is an evolution chain
+      const chainKey = Math.floor(currentEvent.timestamp / 1000); // Group by second
+      if (!evolutionChains.has(chainKey)) {
+        evolutionChains.set(chainKey, []);
+      }
+      evolutionChains.get(chainKey)!.push(currentEvent, nextEvent);
+    }
+  }
+  
+  return evolutionChains;
+};
 
 // Utility functions for event processing
 const groupEventsByTime = (events: readonly ItemEvent[]): GroupedEvents[] => {
@@ -134,7 +213,11 @@ const getEventBorderColor = (eventType: string, isEvolution: boolean) => {
   }
 };
 
-const formatEventType = (eventType: string) => {
+const formatEventType = (eventType: string, isEvolutionChain: boolean = false) => {
+  if (isEvolutionChain && eventType === 'ITEM_DESTROYED') {
+    return 'Evolution';
+  }
+  
   switch (eventType) {
     case 'ITEM_PURCHASED':
       return 'Purchased';
@@ -165,13 +248,88 @@ const getEvolutionStageColor = (stage?: string) => {
   }
 };
 
+// Support Quest Completion Component
+interface SupportQuestCompletionProps {
+  completion: SupportQuestCompletion;
+  className?: string;
+}
+
+const SupportQuestCompletionItem = ({ completion, className }: SupportQuestCompletionProps) => {
+  return (
+    <div
+      className={cn(
+        'flex items-center gap-3 rounded-lg p-4',
+        'backdrop-blur-md bg-gradient-to-r border-2',
+        completion.isQuestComplete 
+          ? 'from-yellow-500/20 to-orange-500/20 border-yellow-500/50 animate-pulse'
+          : 'from-purple-500/20 to-blue-500/20 border-purple-500/40',
+        'transition-all duration-300 hover:scale-[1.02]',
+        className
+      )}
+    >
+      {/* Quest icon */}
+      <div className="flex-shrink-0">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-purple-500/30 to-blue-500/30 border border-purple-400/50">
+          {completion.isQuestComplete ? (
+            <Crown className="h-5 w-5 text-yellow-400" />
+          ) : (
+            <Star className="h-5 w-5 text-purple-300" />
+          )}
+        </div>
+      </div>
+
+      {/* Quest content */}
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        {/* Item icon */}
+        <ItemSlot itemId={completion.itemId} size="md" />
+
+        {/* Quest details */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-white">
+              {completion.isQuestComplete ? 'Support Quest Completed!' : `Support Quest ${completion.tier.toUpperCase()}`}
+            </span>
+            {completion.isQuestComplete && (
+              <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
+                <Trophy className="mr-1 h-3 w-3" />
+                QUEST COMPLETE
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-300">
+            <span>{completion.itemName}</span>
+            <Badge 
+              variant="outline" 
+              className={cn(
+                'text-xs',
+                completion.tier === 'tier3' 
+                  ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
+                  : 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+              )}
+            >
+              {completion.tier.toUpperCase()}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Timestamp */}
+        <div className="flex flex-shrink-0 items-center gap-1 text-sm text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          {completion.timeFormatted}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Individual event component
 interface ItemEventItemProps {
   event: ItemEvent;
+  isEvolutionChain?: boolean;
   className?: string | undefined;
 }
 
-const ItemEventItem = ({ event, className }: ItemEventItemProps) => {
+const ItemEventItem = ({ event, isEvolutionChain = false, className }: ItemEventItemProps) => {
   return (
     <div
       className={cn(
@@ -199,8 +357,11 @@ const ItemEventItem = ({ event, className }: ItemEventItemProps) => {
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center gap-2">
             <span className={cn('font-medium', getEventColor(event.type))}>
-              {formatEventType(event.type)}
+              {formatEventType(event.type, isEvolutionChain)}
             </span>
+            {isEvolutionChain && event.type === 'ITEM_DESTROYED' && (
+              <Zap className="h-4 w-4 text-purple-400" />
+            )}
             <ItemNameDisplay itemId={event.itemId} />
             
             {/* Evolution badge */}
@@ -209,11 +370,23 @@ const ItemEventItem = ({ event, className }: ItemEventItemProps) => {
                 variant="outline"
                 className={cn(
                   'text-xs',
-                  getEvolutionStageColor(event.evolutionStage)
+                  getEvolutionStageColor(event.evolutionStage),
+                  isEvolutionChain && 'animate-pulse'
                 )}
               >
                 <Sparkles className="mr-1 h-3 w-3" />
-                Evolution {event.evolutionStage?.toUpperCase() || ''}
+                {isEvolutionChain && event.type === 'ITEM_DESTROYED' 
+                  ? 'Evolution Chain'
+                  : `Evolution ${event.evolutionStage?.toUpperCase() || ''}`
+                }
+              </Badge>
+            )}
+            
+            {/* Final Evolution indicator */}
+            {event.type === 'ITEM_PURCHASED' && isFinalSupportItemEvolution(event.itemId) && (
+              <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30 animate-pulse">
+                <Crown className="mr-1 h-3 w-3" />
+                FINAL EVOLUTION
               </Badge>
             )}
           </div>
@@ -232,13 +405,26 @@ const ItemEventItem = ({ event, className }: ItemEventItemProps) => {
 // Grouped events component
 interface GroupedEventItemProps {
   group: GroupedEvents;
+  evolutionChains?: Map<number, ItemEvent[]>;
   className?: string;
 }
 
-const GroupedEventItem = ({ group, className }: GroupedEventItemProps) => {
+const GroupedEventItem = ({ group, evolutionChains, className }: GroupedEventItemProps) => {
   if (group.events.length === 1 && group.events[0]) {
+    // Check if this event is part of an evolution chain
+    const firstEvent = group.events[0];
+    if (!firstEvent) return null;
+
+    const isEvolutionChain = evolutionChains ? 
+      Array.from(evolutionChains.values()).some(chainEvents => 
+        chainEvents.some(chainEvent => 
+          chainEvent.timestamp === firstEvent.timestamp && 
+          chainEvent.itemId === firstEvent.itemId
+        )
+      ) : false;
+      
     // Single event - render normally
-    return <ItemEventItem event={group.events[0]} className={className} />;
+    return <ItemEventItem event={firstEvent} isEvolutionChain={isEvolutionChain} className={className} />;
   }
 
   // Multiple events at same time - render as a group
@@ -263,44 +449,74 @@ const GroupedEventItem = ({ group, className }: GroupedEventItemProps) => {
 
       {/* Individual events in the group */}
       <div className="space-y-2 ml-8">
-        {group.events.map((event, index) => (
-          <div
-            key={`${event.timestamp}-${event.itemId}-${index}`}
-            className="flex items-center gap-3 rounded-md p-2 bg-black/10 border border-purple-500/10"
-          >
-            {/* Event icon */}
-            <div className="flex-shrink-0">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/30 backdrop-blur-md border border-purple-500/20">
-                {getEventIcon(event.type)}
+        {group.events.map((event, index) => {
+          // Check if this event is part of an evolution chain
+          const isEvolutionChain = evolutionChains ? 
+            Array.from(evolutionChains.values()).some(chainEvents => 
+              chainEvents.some(chainEvent => 
+                chainEvent.timestamp === event.timestamp && 
+                chainEvent.itemId === event.itemId
+              )
+            ) : false;
+            
+          return (
+            <div
+              key={`${event.timestamp}-${event.itemId}-${index}`}
+              className={cn(
+                'flex items-center gap-3 rounded-md p-2 border',
+                'bg-black/10 border-purple-500/10',
+                isEvolutionChain && 'bg-purple-500/10 border-purple-500/20 animate-subtle-pulse'
+              )}
+            >
+              {/* Event icon */}
+              <div className="flex-shrink-0">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/30 backdrop-blur-md border border-purple-500/20">
+                  {getEventIcon(event.type)}
+                </div>
+              </div>
+
+              {/* Item icon */}
+              <ItemSlot itemId={event.itemId} size="sm" />
+
+              {/* Event details */}
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <span className={cn('text-sm font-medium', getEventColor(event.type))}>
+                  {formatEventType(event.type, isEvolutionChain)}
+                </span>
+                {isEvolutionChain && event.type === 'ITEM_DESTROYED' && (
+                  <Zap className="h-3 w-3 text-purple-400" />
+                )}
+                <ItemNameDisplay itemId={event.itemId} className="text-sm" />
+                
+                {/* Evolution badge */}
+                {event.isEvolution && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      'text-xs',
+                      getEvolutionStageColor(event.evolutionStage),
+                      isEvolutionChain && 'animate-pulse'
+                    )}
+                  >
+                    <Sparkles className="mr-1 h-2 w-2" />
+                    {isEvolutionChain && event.type === 'ITEM_DESTROYED' 
+                      ? 'Evolution Chain'
+                      : `Evolution ${event.evolutionStage?.toUpperCase() || ''}`
+                    }
+                  </Badge>
+                )}
+                
+                {/* Final Evolution indicator */}
+                {event.type === 'ITEM_PURCHASED' && isFinalSupportItemEvolution(event.itemId) && (
+                  <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30 text-xs">
+                    <Crown className="mr-1 h-2 w-2" />
+                    FINAL
+                  </Badge>
+                )}
               </div>
             </div>
-
-            {/* Item icon */}
-            <ItemSlot itemId={event.itemId} size="sm" />
-
-            {/* Event details */}
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-              <span className={cn('text-sm font-medium', getEventColor(event.type))}>
-                {formatEventType(event.type)}
-              </span>
-              <ItemNameDisplay itemId={event.itemId} className="text-sm" />
-              
-              {/* Evolution badge */}
-              {event.isEvolution && (
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    'text-xs',
-                    getEvolutionStageColor(event.evolutionStage)
-                  )}
-                >
-                  <Sparkles className="mr-1 h-2 w-2" />
-                  Evolution {event.evolutionStage?.toUpperCase() || ''}
-                </Badge>
-              )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -424,6 +640,19 @@ export function SimpleItemTimeline({
   maxHeight = 600,
 }: ItemTimelineProps) {
   const [showDestroyed, setShowDestroyed] = useState(false);
+  
+  // Calculate support quest completions and evolution chains
+  const questAnalysis = useMemo(() => {
+    if (!timeline?.events) {
+      return { completions: [], evolutionChains: new Map(), hasQuestComplete: false };
+    }
+    
+    const completions = detectSupportQuestCompletions(timeline.events);
+    const evolutionChains = detectEvolutionChains(timeline.events);
+    const hasQuestComplete = completions.some(c => c.isQuestComplete);
+    
+    return { completions, evolutionChains, hasQuestComplete };
+  }, [timeline?.events]);
   // Handle loading state
   if (isLoading) {
     return (
@@ -518,6 +747,41 @@ export function SimpleItemTimeline({
           stats={timeline.stats} 
           participantId={timeline.participantId} 
         />
+        
+        {/* Support Quest Summary */}
+        {questAnalysis.completions.length > 0 && (
+          <div className="mt-3 p-3 rounded-lg backdrop-blur-md bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20">
+            <div className="flex items-center gap-2 mb-2">
+              <Star className="h-4 w-4 text-purple-300" />
+              <span className="text-sm font-medium text-purple-300">Support Quest Progress</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {questAnalysis.completions.map((completion, index) => (
+                <Badge 
+                  key={`quest-${completion.tier}-${index}`}
+                  className={cn(
+                    'text-xs',
+                    completion.isQuestComplete
+                      ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
+                      : 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                  )}
+                >
+                  {completion.isQuestComplete ? (
+                    <>
+                      <Crown className="mr-1 h-3 w-3" />
+                      Quest Complete at {completion.timeFormatted}
+                    </>
+                  ) : (
+                    <>
+                      <Star className="mr-1 h-3 w-3" />
+                      {completion.tier.toUpperCase()} at {completion.timeFormatted}
+                    </>
+                  )}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Controls */}
         <div className="flex items-center gap-2 pt-2">
@@ -540,12 +804,24 @@ export function SimpleItemTimeline({
       <CardContent>
         <ScrollArea className="pr-4" style={{ height: maxHeight }}>
           <div className="space-y-3">
-            {groupedEvents.map((group, index) => (
-              <GroupedEventItem
-                key={`${group.timestamp}-${index}`}
-                group={group}
+            {/* Support Quest Completions */}
+            {questAnalysis.completions.map((completion, index) => (
+              <SupportQuestCompletionItem
+                key={`quest-completion-${completion.tier}-${index}`}
+                completion={completion}
               />
             ))}
+            
+            {/* Regular timeline events */}
+            {groupedEvents.map((group, index) => {
+              return (
+                <GroupedEventItem
+                  key={`${group.timestamp}-${index}`}
+                  group={group}
+                  evolutionChains={questAnalysis.evolutionChains}
+                />
+              );
+            })}
           </div>
         </ScrollArea>
       </CardContent>

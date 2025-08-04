@@ -473,10 +473,18 @@ export function detectSupportItemCompletion(
   const allItemIds = [...new Set(timelineEvents.map(e => e.itemId).filter(id => id != null))];
   console.log('🏷️ ALL UNIQUE ITEM IDs:', allItemIds.sort((a, b) => a - b));
   
+  // **FIX: Track both purchases AND destructions for support items**
   const purchaseEvents = timelineEvents.filter(event => event.type === 'ITEM_PURCHASED');
+  const destructionEvents = timelineEvents.filter(event => event.type === 'ITEM_DESTROYED');
+  
   console.log('🛒 PURCHASE EVENTS:', {
     count: purchaseEvents.length,
     itemIds: purchaseEvents.map(e => e.itemId).sort((a, b) => a - b)
+  });
+  
+  console.log('💥 DESTRUCTION EVENTS:', {
+    count: destructionEvents.length,
+    itemIds: destructionEvents.map(e => e.itemId).sort((a, b) => a - b)
   });
   
   // Log events by type for debugging
@@ -551,68 +559,75 @@ export function detectSupportItemCompletion(
   
   console.groupEnd();
   
-  // 4. LOG TIMELINE PROCESSING
-  console.group('⏱️ TIMELINE PROCESSING');
+  // **FIX: Enhanced timeline processing to handle evolution properly**
+  console.group('⏱️ ENHANCED TIMELINE PROCESSING');
   
-  console.log('🔄 PROCESSING PURCHASE EVENTS:', purchaseEvents.length);
+  // Get all support item related events (purchases, destructions, evolution markers)
+  const supportItemEvents = timelineEvents.filter(event => 
+    isSupportItem(event.itemId) && 
+    (event.type === 'ITEM_PURCHASED' || event.type === 'ITEM_DESTROYED')
+  ).sort((a, b) => a.timestamp - b.timestamp);
   
-  const processedEvents: Array<{
-    event: typeof purchaseEvents[0];
-    completion: SupportItemCompletion;
-    willRecord: boolean;
-    tierAlreadyRecorded: boolean;
-  }> = [];
+  console.log('🛡️ ALL SUPPORT ITEM EVENTS (chronological):', supportItemEvents.length);
   
-  for (const event of purchaseEvents) {
+  // Create evolution tracking map
+  const evolutionTracker = new Map<SupportItemTier, number>();
+  
+  // Process events to detect tier completions
+  for (const event of supportItemEvents) {
     const completion = getSupportItemCompletion(event.itemId);
-    const tierAlreadyRecorded = completion.tier ? (completionTimes[completion.tier] !== null) : false;
-    const willRecord = Boolean(completion.isSupportItem && completion.tier && !tierAlreadyRecorded);
     
-    processedEvents.push({
-      event,
-      completion,
-      willRecord,
-      tierAlreadyRecorded
-    });
+    if (!completion.isSupportItem || !completion.tier) continue;
     
-    console.log(`  📦 Event ${event.itemId} at ${formatMillisecondsToTime(event.timestamp)}:`, {
-      isSupportItem: completion.isSupportItem,
-      tier: completion.tier,
-      chainName: completion.chainName,
-      tierAlreadyRecorded,
-      willRecord: willRecord ? '✅ WILL RECORD' : '❌ WILL NOT RECORD'
-    });
+    const currentTierTime = evolutionTracker.get(completion.tier);
     
-    if (completion.isSupportItem && completion.tier) {
-      console.log('    🛡️ Support item details:', {
-        itemId: event.itemId,
-        tier: completion.tier,
-        chainType: completion.chainType,
-        isFinalEvolution: completion.isFinalEvolution,
-        completionPercentage: completion.completionPercentage,
-        timestamp: event.timestamp,
-        timeFormatted: formatMillisecondsToTime(event.timestamp)
-      });
-      
-      // Only record the first completion of each tier
-      if (completionTimes[completion.tier] === null) {
-        completionTimes[completion.tier] = event.timestamp;
-        console.log(`    ✅ RECORDED ${completion.tier} completion at ${formatMillisecondsToTime(event.timestamp)}`);
+    console.log(`📦 Processing ${event.type} of ${event.itemId} (${completion.chainName}, ${completion.tier}) at ${formatMillisecondsToTime(event.timestamp)}`);
+    
+    // For purchases: this indicates tier completion 
+    if (event.type === 'ITEM_PURCHASED') {
+      if (!currentTierTime || event.timestamp < currentTierTime) {
+        evolutionTracker.set(completion.tier, event.timestamp);
+        console.log(`    ✅ NEW ${completion.tier} completion recorded at ${formatMillisecondsToTime(event.timestamp)}`);
       } else {
-        console.log(`    ⏭️ SKIPPED - ${completion.tier} already recorded at ${formatMillisecondsToTime(completionTimes[completion.tier]!)}`);
+        console.log(`    ⏭️ ${completion.tier} already completed earlier at ${formatMillisecondsToTime(currentTierTime)}`);
       }
-    } else if (!completion.isSupportItem) {
-      console.log('    ❌ Not a support item');
-    } else if (!completion.tier) {
-      console.log('    ❌ No tier information');
+    }
+    
+    // For destructions: check if this indicates evolution to next tier
+    else if (event.type === 'ITEM_DESTROYED') {
+      // Look for immediate purchase of higher tier item
+      const nextEvents = supportItemEvents.filter(e => 
+        e.timestamp >= event.timestamp && 
+        e.timestamp <= event.timestamp + 1000 && // Within 1 second
+        e.type === 'ITEM_PURCHASED'
+      );
+      
+      if (nextEvents.length > 0) {
+        console.log(`    🔄 Destruction at ${formatMillisecondsToTime(event.timestamp)} followed by purchases:`, 
+          nextEvents.map(e => {
+            const nextCompletion = getSupportItemCompletion(e.itemId);
+            return `${e.itemId} (${nextCompletion.chainName}, ${nextCompletion.tier}) at ${formatMillisecondsToTime(e.timestamp)}`;
+          })
+        );
+        
+        // This destruction is part of evolution - the purchase timestamps are more accurate for completion
+      } else {
+        console.log(`    💥 Standalone destruction (no immediate evolution detected)`);
+      }
     }
   }
   
-  console.log('📊 PROCESSING SUMMARY:', {
-    totalPurchaseEvents: purchaseEvents.length,
-    supportItemEvents: processedEvents.filter(p => p.completion.isSupportItem).length,
-    recordedEvents: processedEvents.filter(p => p.willRecord).length,
-    skippedDuplicates: processedEvents.filter(p => p.completion.isSupportItem && p.tierAlreadyRecorded).length
+  // Convert evolution tracker to completion times
+  evolutionTracker.forEach((timestamp, tier) => {
+    if (completionTimes[tier] === null || timestamp < completionTimes[tier]!) {
+      completionTimes[tier] = timestamp;
+    }
+  });
+  
+  console.log('📊 ENHANCED PROCESSING SUMMARY:', {
+    totalSupportItemEvents: supportItemEvents.length,
+    evolutionTrackerEntries: evolutionTracker.size,
+    detectedCompletions: Object.values(completionTimes).filter(t => t !== null).length
   });
   
   console.groupEnd();

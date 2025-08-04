@@ -12,6 +12,11 @@ import { ChampionIcon } from '@/components/ui/datadragon-image';
 import { ItemSlots } from '@/components/match-history/item-slots';
 import { SummonerSpells } from '@/components/match-history/summoner-spells';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   RuneTreeDisplay,
   RuneIcon,
   StatShardIcon,
@@ -310,16 +315,7 @@ const PlayerCard = memo(
                 {participant.riotIdGameName && participant.riotIdTagline
                   ? `${participant.riotIdGameName}#${participant.riotIdTagline}`
                   : participant.summonerName}
-                {participant.firstBloodKill && (
-                  <Badge className="bg-red-500/20 text-xs text-red-400">
-                    First Blood
-                  </Badge>
-                )}
-                {participant.largestMultiKill >= 5 && (
-                  <Badge className="bg-purple-500/20 text-xs text-purple-400">
-                    Penta Kill
-                  </Badge>
-                )}
+                {/* Removed inline badges per new UX: shown via hover tooltips on stats instead */}
               </div>
               <div className="text-sm text-white/60">
                 {participant.championName} • {participant.individualPosition}
@@ -340,73 +336,89 @@ const PlayerCard = memo(
               </div>
             </div>
 
-            {/* Damage */}
-            <div className="text-center">
-              <div className="font-semibold text-orange-400">
-                {formatNumber(participant.totalDamageDealtToChampions)}
-              </div>
-              <div className="text-xs text-white/60">Damage</div>
-              <Progress
-                value={
-                  teamTotals.damage > 0
-                    ? (participant.totalDamageDealtToChampions /
-                        teamTotals.damage) *
-                      100
-                    : 0
-                }
-                className="mt-1 h-1 w-16"
-              />
-              {/* DPM + Team Share */}
-              <div className="mt-1 flex items-center justify-center gap-2">
-                <Badge className="text-xxs border-orange-500/30 bg-orange-500/10 text-orange-300">
-                  DPM{' '}
-                  {Math.round(
-                    participant.challenges?.damagePerMinute ??
-                      participant.totalDamageDealtToChampions /
-                        Math.max(1, matchData.info.gameDuration / 60)
-                  )}
-                </Badge>
-                <Badge className="text-xxs border-blue-500/30 bg-blue-500/10 text-blue-300">
-                  {teamTotals.damage > 0
-                    ? Math.round(
-                        (participant.totalDamageDealtToChampions /
-                          teamTotals.damage) *
+            {/* Damage (hover for DPM and % team damage) */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="cursor-help touch-manipulation text-center">
+                  <div className="font-semibold text-orange-400">
+                    {formatNumber(participant.totalDamageDealtToChampions)}
+                  </div>
+                  <div className="text-xs text-white/60">Damage</div>
+                  <Progress
+                    value={
+                      teamTotals.damage > 0
+                        ? (participant.totalDamageDealtToChampions /
+                            teamTotals.damage) *
                           100
-                      )
-                    : participant.challenges?.teamDamagePercentage
-                      ? Math.round(
-                          participant.challenges.teamDamagePercentage * 100
-                        )
-                      : 0}
-                  %
-                </Badge>
-              </div>
-            </div>
+                        : 0
+                    }
+                    className="mt-1 h-1 w-16"
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="border-orange-500/30 bg-black/85 text-white">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-white/70">DPM</span>
+                    <span className="font-semibold text-orange-300">
+                      {Math.round(
+                        participant.challenges?.damagePerMinute ??
+                          participant.totalDamageDealtToChampions /
+                            Math.max(1, matchData.info.gameDuration / 60)
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-white/70">% Team Damage</span>
+                    <span className="font-semibold text-blue-300">
+                      {teamTotals.damage > 0
+                        ? Math.round(
+                            (participant.totalDamageDealtToChampions /
+                              teamTotals.damage) *
+                              100
+                          )
+                        : participant.challenges?.teamDamagePercentage
+                          ? Math.round(
+                              participant.challenges.teamDamagePercentage * 100
+                            )
+                          : 0}
+                      %
+                    </span>
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
 
-            {/* Gold */}
-            <div className="text-center">
-              <div className="font-semibold text-yellow-400">
-                {formatNumber(participant.goldEarned)}
-              </div>
-              <div className="text-xs text-white/60">Gold</div>
-              <Progress
-                value={
-                  teamTotals.gold > 0
-                    ? (participant.goldEarned / teamTotals.gold) * 100
-                    : 0
-                }
-                className="mt-1 h-1 w-16"
-              />
-              <div className="mt-1">
-                <Badge className="text-xxs border-yellow-500/30 bg-yellow-500/10 text-yellow-300">
-                  {Math.round(
-                    participant.goldEarned /
-                      Math.max(1, matchData.info.gameDuration / 60)
-                  )}{' '}
-                  gpm
-                </Badge>
-              </div>
-            </div>
+            {/* Gold (hover for GPM) */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="cursor-help touch-manipulation text-center">
+                  <div className="font-semibold text-yellow-400">
+                    {formatNumber(participant.goldEarned)}
+                  </div>
+                  <div className="text-xs text-white/60">Gold</div>
+                  <Progress
+                    value={
+                      teamTotals.gold > 0
+                        ? (participant.goldEarned / teamTotals.gold) * 100
+                        : 0
+                    }
+                    className="mt-1 h-1 w-16"
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="border-yellow-500/30 bg-black/85 text-white">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-white/70">GPM</span>
+                  <span className="font-semibold text-yellow-300">
+                    {Math.round(
+                      participant.goldEarned /
+                        Math.max(1, matchData.info.gameDuration / 60)
+                    )}
+                  </span>
+                </div>
+              </TooltipContent>
+            </Tooltip>
 
             {/* CS */}
             <div className="text-center">
@@ -425,36 +437,50 @@ const PlayerCard = memo(
               </div>
             </div>
 
-            {/* Vision */}
-            <div className="text-center">
-              <div className="font-semibold text-pink-400">
-                {participant.visionScore}
-              </div>
-              <div className="text-xs text-white/60">Vision</div>
-              <div className="mt-1 flex items-center justify-center gap-2">
-                <Badge className="text-xxs border-pink-500/30 bg-pink-500/10 text-pink-300">
-                  {(
-                    participant.visionScore /
-                    Math.max(1, matchData.info.gameDuration / 60)
-                  ).toFixed(1)}
-                  /m
-                </Badge>
-                {typeof participant.visionWardsBoughtInGame === 'number' && (
-                  <Badge className="text-xxs border-purple-500/30 bg-purple-500/10 text-purple-300">
-                    {participant.visionWardsBoughtInGame} pinks
-                  </Badge>
-                )}
-              </div>
-            </div>
+            {/* Vision (hover for VPM and Pink wards purchased) */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="cursor-help touch-manipulation text-center">
+                  <div className="font-semibold text-pink-400">
+                    {participant.visionScore}
+                  </div>
+                  <div className="text-xs text-white/60">Vision</div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="border-pink-500/30 bg-black/85 text-white">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-white/70">Vision / min</span>
+                    <span className="font-semibold text-pink-300">
+                      {(
+                        participant.visionScore /
+                        Math.max(1, matchData.info.gameDuration / 60)
+                      ).toFixed(1)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-white/70">
+                      Pink wards (purchased)
+                    </span>
+                    <span className="font-semibold text-purple-300">
+                      {typeof participant.visionWardsBoughtInGame === 'number'
+                        ? participant.visionWardsBoughtInGame
+                        : 0}
+                    </span>
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
 
-            {/* Items */}
-            <ItemSlots items={items} size="sm" />
+            {/* Items - 3x2 grid + right-side trinket, larger slots */}
+            <ItemSlots items={items} size="lg" gridLayout />
 
-            {/* Summoner Spells */}
+            {/* Summoner Spells - vertical, larger */}
             <SummonerSpells
               spell1Id={participant.summoner1Id}
               spell2Id={participant.summoner2Id}
-              size="xs"
+              size="lg"
+              orientation="vertical"
             />
 
             {/* Runes compact */}
@@ -548,8 +574,12 @@ export default function MatchDetailsPage() {
   >('combat');
 
   // Add simple timeline processor hook
-  const { timeline: processedTimeline, isProcessing, error: timelineError, processTimeline } =
-    useSimpleTimelineProcessor();
+  const {
+    timeline: processedTimeline,
+    isProcessing,
+    error: timelineError,
+    processTimeline,
+  } = useSimpleTimelineProcessor();
 
   // Debug logging for component lifecycle
   useEffect(() => {
@@ -575,13 +605,7 @@ export default function MatchDetailsPage() {
       processedTimelineExists: !!processedTimeline,
       isProcessing,
     });
-  }, [
-    selectedPlayer,
-    comparePlayer,
-    data,
-    processedTimeline,
-    isProcessing,
-  ]);
+  }, [selectedPlayer, comparePlayer, data, processedTimeline, isProcessing]);
 
   useEffect(() => {
     if (!matchId) return;
@@ -623,8 +647,7 @@ export default function MatchDetailsPage() {
 
     console.log('📥 useMemo Dependencies (Compare Player):', {
       processedTimelineExists: !!processedTimeline,
-      processedTimelineEventsLength:
-        processedTimeline?.events?.length || 0,
+      processedTimelineEventsLength: processedTimeline?.events?.length || 0,
       dataExists: !!data,
       participantsLength: data?.matchData?.info?.participants?.length || 0,
       comparePlayer,
@@ -639,8 +662,7 @@ export default function MatchDetailsPage() {
       console.warn(
         '⚠️ Early return: Missing required data for compare player',
         {
-          hasProcessedTimelineEvents:
-            !!processedTimeline?.events,
+          hasProcessedTimelineEvents: !!processedTimeline?.events,
           hasParticipants: !!data?.matchData?.info?.participants,
           comparePlayerIsNull: comparePlayer === null,
         }
@@ -776,7 +798,9 @@ export default function MatchDetailsPage() {
       },
     };
 
-    const processingOptions = createDefaultProcessingOptions(selectedPlayer + 1); // Convert to 1-indexed
+    const processingOptions = createDefaultProcessingOptions(
+      selectedPlayer + 1
+    ); // Convert to 1-indexed
 
     // Trigger processing
     processTimeline(rawTimelineData, processingOptions);
@@ -790,8 +814,7 @@ export default function MatchDetailsPage() {
 
     console.log('📥 useMemo Dependencies:', {
       processedTimelineExists: !!processedTimeline,
-      processedTimelineEventsLength:
-        processedTimeline?.events?.length || 0,
+      processedTimelineEventsLength: processedTimeline?.events?.length || 0,
       dataExists: !!data,
       participantsLength: data?.matchData?.info?.participants?.length || 0,
       selectedPlayer,
@@ -837,16 +860,14 @@ export default function MatchDetailsPage() {
     // Log the actual events to check their structure
     console.log(
       '📋 Sample Timeline Events for debugging:',
-      processedTimeline.events
-        .slice(0, 10)
-        .map((event, idx) => ({
-          index: idx,
-          type: event.type,
-          itemId: event.itemId,
-          timestamp: event.timestamp,
-          isEvolution: event.isEvolution,
-          hasAllFields: !!(event.type && event.itemId && event.timestamp),
-        }))
+      processedTimeline.events.slice(0, 10).map((event, idx) => ({
+        index: idx,
+        type: event.type,
+        itemId: event.itemId,
+        timestamp: event.timestamp,
+        isEvolution: event.isEvolution,
+        hasAllFields: !!(event.type && event.itemId && event.timestamp),
+      }))
     );
 
     console.log(
