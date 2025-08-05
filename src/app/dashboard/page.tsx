@@ -1,18 +1,30 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
-import { 
-  ChallengesCard, 
-  LeagueProfileCard
-} from '@/components/dashboard/dashboard-cards';
-// import { EnhancedMatchHistoryDisplay } from '@/components/match-history/enhanced-match-history-display';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshStatus } from '@/lib/types';
 import { Sparkles, Activity, Users, Loader2, Gamepad2 } from 'lucide-react';
 
+// Dynamic imports to avoid SSR issues
+const ChallengesCard = dynamic(
+  () => import('@/components/dashboard/dashboard-cards').then(mod => ({ default: mod.ChallengesCard })),
+  { 
+    ssr: false,
+    loading: () => <div className="h-96 bg-black/20 rounded-lg animate-pulse" />
+  }
+);
+
+const LeagueProfileCard = dynamic(
+  () => import('@/components/dashboard/dashboard-cards').then(mod => ({ default: mod.LeagueProfileCard })),
+  { 
+    ssr: false,
+    loading: () => <div className="h-96 bg-black/20 rounded-lg animate-pulse" />
+  }
+);
 
 interface SummonerData {
   summoner: {
@@ -42,6 +54,7 @@ export default function Dashboard() {
   // const [loadingSummoner, setLoadingSummoner] = useState(true);
 
 
+  // Fetch refresh status function
   const fetchRefreshStatus = async () => {
     try {
       const response = await fetch('/api/summoners/refresh');
@@ -58,6 +71,7 @@ export default function Dashboard() {
     }
   };
 
+  // Fetch summoner data function
   const fetchSummonerData = async (_isInitialLoad = true) => {
     try {
       // if (isInitialLoad) {
@@ -90,6 +104,7 @@ export default function Dashboard() {
     }
   };
 
+  // Check auto-refresh function
   const checkAutoRefresh = async () => {
     if (!refreshStatus?.can_refresh) return;
     
@@ -116,40 +131,40 @@ export default function Dashboard() {
     }
   };
 
-  // @ts-expect-error - Unused but keeping for future functionality
-  const handleManualRefresh = async () => {
-    if (!refreshStatus?.can_manual_refresh || isRefreshing) {
-      return;
-    }
-    
-    try {
-      setIsRefreshing(true);
-      
-      const response = await fetch('/api/summoners/refresh', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ manual: true }),
-      });
-      
-      const result = await response.json();
-      
-      if (response.ok) {
-        if (result.success || result.data?.partial_success) {
-          // Refresh all data after successful manual refresh
-          await fetchSummonerData(false);
-          await fetchRefreshStatus(); // Update refresh status
-        } else {
-          console.error('Refresh failed:', result.message);
-        }
-      } else {
-        console.error('Refresh API error:', response.status, result);
-      }
-    } catch (error) {
-      console.error('Error during manual refresh:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
+  // Manual refresh handler - currently unused but may be needed for future UI components
+  // const handleManualRefresh = async () => {
+  //   if (!refreshStatus?.can_manual_refresh || isRefreshing) {
+  //     return;
+  //   }
+  //   
+  //   try {
+  //     setIsRefreshing(true);
+  //     
+  //     const response = await fetch('/api/summoners/refresh', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ manual: true }),
+  //     });
+  //     
+  //     const result = await response.json();
+  //     
+  //     if (response.ok) {
+  //       if (result.success || result.data?.partial_success) {
+  //         // Refresh all data after successful manual refresh
+  //         await fetchSummonerData(false);
+  //         await fetchRefreshStatus(); // Update refresh status
+  //       } else {
+  //         console.error('Refresh failed:', result.message);
+  //       }
+  //     } else {
+  //       console.error('Refresh API error:', response.status, result);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error during manual refresh:', error);
+  //   } finally {
+  //     setIsRefreshing(false);
+  //   }
+  // };
 
 
   // Initial data loading - removed function dependencies to prevent infinite loop

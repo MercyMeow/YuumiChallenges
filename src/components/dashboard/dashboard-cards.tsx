@@ -83,7 +83,7 @@ const getRankEmblemUrl = (tier: string): string => {
 };
 
 // Tier-specific color schemes for rank badges
-const getTierColorScheme = (tier: string) => {
+function getTierColorScheme(tier: string) {
   const normalizedTier = tier.toUpperCase();
   
   switch (normalizedTier) {
@@ -160,7 +160,7 @@ const getTierColorScheme = (tier: string) => {
         text: 'text-gray-400'
       };
   }
-};
+}
 
 // ProfileIcon component for robust image loading with fallback
 interface ProfileIconProps {
@@ -196,9 +196,10 @@ function ProfileIcon({ profileIconId }: ProfileIconProps) {
     loadImageUrl();
   }, [profileIconId]);
 
-  const handleImageError = () => {
+  // Fix for hoisting issue - use function declaration instead of arrow function
+  function handleImageError() {
     setImageError(true);
-  };
+  }
 
   // If no profile icon ID, loading, or image failed to load, show fallback
   if (
@@ -322,6 +323,48 @@ export function ChallengesCard() {
     }
   };
 
+  const getChallengeCardClasses = (color: string) => {
+    switch (color) {
+      case 'accessible-yellow':
+        return 'rounded-xl border bg-black/20 p-4 backdrop-blur-md border-yellow-500/30 focus-card';
+      case 'accessible-orange':
+        return 'rounded-xl border bg-black/20 p-4 backdrop-blur-md border-orange-500/30 focus-card';
+      case 'accessible-blue':
+        return 'rounded-xl border bg-black/20 p-4 backdrop-blur-md border-blue-500/30 focus-card';
+      case 'accessible-purple':
+      default:
+        return 'rounded-xl border bg-black/20 p-4 backdrop-blur-md border-purple-500/30 focus-card';
+    }
+  };
+
+  const getChallengeIconClasses = (color: string) => {
+    switch (color) {
+      case 'accessible-yellow':
+        return 'p-1.5 bg-yellow-500/20 rounded-lg';
+      case 'accessible-orange':
+        return 'p-1.5 bg-orange-500/20 rounded-lg';
+      case 'accessible-blue':
+        return 'p-1.5 bg-blue-500/20 rounded-lg';
+      case 'accessible-purple':
+      default:
+        return 'p-1.5 bg-purple-500/20 rounded-lg';
+    }
+  };
+
+  const getChallengeTextClasses = (color: string) => {
+    switch (color) {
+      case 'accessible-yellow':
+        return 'text-yellow-400 font-bold';
+      case 'accessible-orange':
+        return 'text-orange-400 font-bold';
+      case 'accessible-blue':
+        return 'text-blue-400 font-bold';
+      case 'accessible-purple':
+      default:
+        return 'text-purple-400 font-bold';
+    }
+  };
+
   if (loading) {
     return <DashboardCardSkeleton />;
   }
@@ -368,7 +411,7 @@ export function ChallengesCard() {
               return (
                 <div
                   key={challenge.id}
-                  className={`rounded-xl border bg-black/20 p-4 backdrop-blur-md border-${color}/30 focus-card`}
+                  className={getChallengeCardClasses(color)}
                   role="listitem"
                   tabIndex={0}
                   aria-labelledby={`challenge-title-${index}`}
@@ -377,7 +420,7 @@ export function ChallengesCard() {
                   <div className="mb-3 flex items-center justify-between text-sm">
                     <div className="flex items-center space-x-2">
                       <div
-                        className={`p-1.5 bg-${color}/20 rounded-lg`}
+                        className={getChallengeIconClasses(color)}
                         aria-hidden="true"
                       >
                         {getChallengeIcon(challenge.type)}
@@ -391,7 +434,7 @@ export function ChallengesCard() {
                       </span>
                     </div>
                     <span
-                      className={`text-${color} font-bold`}
+                      className={getChallengeTextClasses(color)}
                       id={`challenge-progress-${index}`}
                       aria-label={`Progress: ${challenge.progress} out of ${challenge.maxProgress}`}
                     >
@@ -489,6 +532,12 @@ export function LeagueProfileCard({
       }
     }
   };
+
+  // Handle rank emblem image loading errors
+  function handleRankImageError(e: React.SyntheticEvent<HTMLImageElement, Event>) {
+    const target = e.target as HTMLImageElement;
+    target.src = '/images/ranked/unranked.png';
+  }
 
   // Adapt the data structure to match what the UI expects
   const summoner = summonerData?.summoner
@@ -616,11 +665,7 @@ export function LeagueProfileCard({
                       src={getRankEmblemUrl(summoner.soloqRank.tier)}
                       alt={`${summoner.soloqRank.tier} ${summoner.soloqRank.rank_level} emblem`}
                       className="h-24 w-24 object-contain"
-                      onError={(e) => {
-                        console.error(`Failed to load rank emblem for ${summoner.soloqRank?.tier}, falling back to unranked`);
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/images/ranked/unranked.png';
-                      }}
+                      onError={handleRankImageError}
                     />
                   </div>
                   <div className="flex-1 space-y-1 text-center">
@@ -666,11 +711,7 @@ export function LeagueProfileCard({
                       src={getRankEmblemUrl(summoner.flexRank.tier)}
                       alt={`${summoner.flexRank.tier} ${summoner.flexRank.rank_level} emblem`}
                       className="h-24 w-24 object-contain"
-                      onError={(e) => {
-                        console.error(`Failed to load rank emblem for ${summoner.flexRank?.tier}, falling back to unranked`);
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/images/ranked/unranked.png';
-                      }}
+                      onError={handleRankImageError}
                     />
                   </div>
                   <div className="flex-1 space-y-1">
