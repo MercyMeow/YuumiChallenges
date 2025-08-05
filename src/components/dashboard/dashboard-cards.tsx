@@ -196,10 +196,9 @@ function ProfileIcon({ profileIconId }: ProfileIconProps) {
     loadImageUrl();
   }, [profileIconId]);
 
-  // Fix for hoisting issue - use function declaration instead of arrow function
-  function handleImageError() {
+  const handleImageError = () => {
     setImageError(true);
-  }
+  };
 
   // If no profile icon ID, loading, or image failed to load, show fallback
   if (
@@ -244,33 +243,8 @@ function ProfileIcon({ profileIconId }: ProfileIconProps) {
   );
 }
 
-export function ChallengesCard() {
-  const [challenges, setChallenges] = useState<ChallengeProgress[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchActiveChallenges();
-  }, []);
-
-  const fetchActiveChallenges = async () => {
-    try {
-      const response = await fetch('/api/challenges/active');
-      if (response.ok) {
-        const data = await response.json();
-        const challengesData = Array.isArray(data.challenges)
-          ? data.challenges
-          : [];
-        const validChallenges = filterValidChallenges(challengesData);
-        setChallenges(validChallenges);
-      }
-    } catch (error) {
-      console.error('Error fetching active challenges:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getChallengeIcon = (type: string) => {
+// Challenge utility functions - moved outside component to avoid hoisting issues
+const getChallengeIcon = (type: string) => {
     switch (type) {
       case 'kda':
         return (
@@ -297,71 +271,97 @@ export function ChallengesCard() {
     }
   };
 
-  const getChallengeColor = (type: string) => {
-    switch (type) {
-      case 'kda':
-        return 'accessible-yellow';
-      case 'ranked':
-        return 'accessible-orange';
-      case 'mastery':
-        return 'accessible-blue';
-      default:
-        return 'accessible-purple';
-    }
-  };
+const getChallengeColor = (type: string) => {
+  switch (type) {
+    case 'kda':
+      return 'accessible-yellow';
+    case 'ranked':
+      return 'accessible-orange';
+    case 'mastery':
+      return 'accessible-blue';
+    default:
+      return 'accessible-purple';
+  }
+};
 
-  const getChallengeTypeLabel = (type: string) => {
-    switch (type) {
-      case 'kda':
-        return 'KDA Challenge';
-      case 'ranked':
-        return 'Ranked Challenge';
-      case 'mastery':
-        return 'Mastery Challenge';
-      default:
-        return 'Challenge';
-    }
-  };
+const getChallengeTypeLabel = (type: string) => {
+  switch (type) {
+    case 'kda':
+      return 'KDA Challenge';
+    case 'ranked':
+      return 'Ranked Challenge';
+    case 'mastery':
+      return 'Mastery Challenge';
+    default:
+      return 'Challenge';
+  }
+};
 
-  const getChallengeCardClasses = (color: string) => {
-    switch (color) {
-      case 'accessible-yellow':
-        return 'rounded-xl border bg-black/20 p-4 backdrop-blur-md border-yellow-500/30 focus-card';
-      case 'accessible-orange':
-        return 'rounded-xl border bg-black/20 p-4 backdrop-blur-md border-orange-500/30 focus-card';
-      case 'accessible-blue':
-        return 'rounded-xl border bg-black/20 p-4 backdrop-blur-md border-blue-500/30 focus-card';
-      case 'accessible-purple':
-      default:
-        return 'rounded-xl border bg-black/20 p-4 backdrop-blur-md border-purple-500/30 focus-card';
-    }
-  };
+const getChallengeCardClasses = (color: string) => {
+  switch (color) {
+    case 'accessible-yellow':
+      return 'rounded-xl border bg-black/20 p-4 backdrop-blur-md border-yellow-500/30 focus-card';
+    case 'accessible-orange':
+      return 'rounded-xl border bg-black/20 p-4 backdrop-blur-md border-orange-500/30 focus-card';
+    case 'accessible-blue':
+      return 'rounded-xl border bg-black/20 p-4 backdrop-blur-md border-blue-500/30 focus-card';
+    case 'accessible-purple':
+    default:
+      return 'rounded-xl border bg-black/20 p-4 backdrop-blur-md border-purple-500/30 focus-card';
+  }
+};
 
-  const getChallengeIconClasses = (color: string) => {
-    switch (color) {
-      case 'accessible-yellow':
-        return 'p-1.5 bg-yellow-500/20 rounded-lg';
-      case 'accessible-orange':
-        return 'p-1.5 bg-orange-500/20 rounded-lg';
-      case 'accessible-blue':
-        return 'p-1.5 bg-blue-500/20 rounded-lg';
-      case 'accessible-purple':
-      default:
-        return 'p-1.5 bg-purple-500/20 rounded-lg';
-    }
-  };
+const getChallengeIconClasses = (color: string) => {
+  switch (color) {
+    case 'accessible-yellow':
+      return 'p-1.5 bg-yellow-500/20 rounded-lg';
+    case 'accessible-orange':
+      return 'p-1.5 bg-orange-500/20 rounded-lg';
+    case 'accessible-blue':
+      return 'p-1.5 bg-blue-500/20 rounded-lg';
+    case 'accessible-purple':
+    default:
+      return 'p-1.5 bg-purple-500/20 rounded-lg';
+  }
+};
 
-  const getChallengeTextClasses = (color: string) => {
-    switch (color) {
-      case 'accessible-yellow':
-        return 'text-yellow-400 font-bold';
-      case 'accessible-orange':
-        return 'text-orange-400 font-bold';
-      case 'accessible-blue':
-        return 'text-blue-400 font-bold';
-      case 'accessible-purple':
-      default:
-        return 'text-purple-400 font-bold';
+const getChallengeTextClasses = (color: string) => {
+  switch (color) {
+    case 'accessible-yellow':
+      return 'text-yellow-400 font-bold';
+    case 'accessible-orange':
+      return 'text-orange-400 font-bold';
+    case 'accessible-blue':
+      return 'text-blue-400 font-bold';
+    case 'accessible-purple':
+    default:
+      return 'text-purple-400 font-bold';
+  }
+};
+
+export function ChallengesCard() {
+  const [challenges, setChallenges] = useState<ChallengeProgress[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchActiveChallenges();
+  }, []);
+
+  const fetchActiveChallenges = async () => {
+    try {
+      const response = await fetch('/api/challenges/active');
+      if (response.ok) {
+        const data = await response.json();
+        const challengesData = Array.isArray(data.challenges)
+          ? data.challenges
+          : [];
+        const validChallenges = filterValidChallenges(challengesData);
+        setChallenges(validChallenges);
+      }
+    } catch (error) {
+      console.error('Error fetching active challenges:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -534,10 +534,10 @@ export function LeagueProfileCard({
   };
 
   // Handle rank emblem image loading errors
-  function handleRankImageError(e: React.SyntheticEvent<HTMLImageElement, Event>) {
+  const handleRankImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.target as HTMLImageElement;
     target.src = '/images/ranked/unranked.png';
-  }
+  };
 
   // Adapt the data structure to match what the UI expects
   const summoner = summonerData?.summoner
@@ -779,6 +779,42 @@ export function LeagueProfileCard({
   );
 }
 
+// Leaderboard utility functions - moved outside component to avoid hoisting issues
+const getRankIcon = (position: number) => {
+  switch (position) {
+    case 1:
+      return <Crown className="h-4 w-4 text-yellow-900" />;
+    default:
+      return <span className="text-sm font-bold">{position}</span>;
+  }
+};
+
+const getRankStyle = (position: number) => {
+  switch (position) {
+    case 1:
+      return 'bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border-yellow-500/30';
+    case 2:
+      return 'bg-black/20 backdrop-blur-md border-slate-500/20';
+    case 3:
+      return 'bg-black/20 backdrop-blur-md border-orange-500/20';
+    default:
+      return 'bg-black/20 backdrop-blur-md border-gray-500/20';
+  }
+};
+
+const getRankCircleStyle = (position: number) => {
+  switch (position) {
+    case 1:
+      return 'bg-yellow-500';
+    case 2:
+      return 'bg-slate-600 text-slate-300';
+    case 3:
+      return 'bg-orange-500/30 text-orange-400';
+    default:
+      return 'bg-gray-500/30 text-gray-400';
+  }
+};
+
 export function LeaderboardCard() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -827,41 +863,6 @@ export function LeaderboardCard() {
   if (loading) {
     return <DashboardCardSkeleton />;
   }
-
-  const getRankIcon = (position: number) => {
-    switch (position) {
-      case 1:
-        return <Crown className="h-4 w-4 text-yellow-900" />;
-      default:
-        return <span className="text-sm font-bold">{position}</span>;
-    }
-  };
-
-  const getRankStyle = (position: number) => {
-    switch (position) {
-      case 1:
-        return 'bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border-yellow-500/30';
-      case 2:
-        return 'bg-black/20 backdrop-blur-md border-slate-500/20';
-      case 3:
-        return 'bg-black/20 backdrop-blur-md border-orange-500/20';
-      default:
-        return 'bg-black/20 backdrop-blur-md border-gray-500/20';
-    }
-  };
-
-  const getRankCircleStyle = (position: number) => {
-    switch (position) {
-      case 1:
-        return 'bg-yellow-500';
-      case 2:
-        return 'bg-slate-600 text-slate-300';
-      case 3:
-        return 'bg-orange-500/30 text-orange-400';
-      default:
-        return 'bg-gray-500/30 text-gray-400';
-    }
-  };
 
   return (
     <Card className="card-hover h-full border-yellow-500/30 bg-black/20 backdrop-blur-md transition-all duration-300 hover:shadow-lg">
