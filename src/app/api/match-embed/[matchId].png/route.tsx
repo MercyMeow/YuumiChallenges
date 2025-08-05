@@ -4,8 +4,21 @@ import { ImageResponse } from 'next/og';
 // Removed edge runtime due to Turbopack CSS compilation issues
 // export const runtime = 'edge';
 
+function resolveBaseUrl(req: NextRequest): string {
+  const envBase = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (envBase) return envBase.replace(/\/+$/, '');
+
+  // Derive from the incoming request URL as a safe fallback
+  try {
+    const url = new URL(req.url);
+    return `${url.protocol}//${url.host}`.replace(/\/+$/, '');
+  } catch {
+    return 'https://yuumi.quest';
+  }
+}
+
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ matchId: string }> }
 ) {
   try {
@@ -13,39 +26,113 @@ export async function GET(
     const matchIdWithExt = resolvedParams.matchId;
     const matchId = matchIdWithExt.replace('.png', '');
 
+    // Resolve base URL robustly (avoid localhost in production)
+    const baseUrl = resolveBaseUrl(request);
+
     // Fetch match data with timeout handling
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
-    
+
     let response;
     try {
       response = await fetch(`${baseUrl}/api/match-details/${matchId}`, {
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
+          'User-Agent': 'YuumiChallenges-Embed/1.0',
         },
+        cache: 'no-store',
       });
     } catch (error) {
       clearTimeout(timeoutId);
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Match data fetch timeout');
-      }
-      throw new Error('Failed to fetch match data');
+      // Return a minimal fallback image instead of throwing HTML/text
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#0a0a0f',
+              color: 'white',
+              fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 42, fontWeight: 800, marginBottom: 8 }}>
+                Yuumi Challenges
+              </div>
+              <div style={{ fontSize: 22, opacity: 0.8 }}>
+                Match data unavailable • {matchId}
+              </div>
+            </div>
+          </div>
+        ),
+        { width: 1200, height: 630 }
+      );
     } finally {
       clearTimeout(timeoutId);
     }
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch match data: ${response.status}`);
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#0b0b12',
+              color: 'white',
+              fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 40, fontWeight: 800, marginBottom: 10 }}>
+                Match fetch error
+              </div>
+              <div style={{ fontSize: 20, opacity: 0.8 }}>
+                Status {response.status} • {matchId}
+              </div>
+            </div>
+          </div>
+        ),
+        { width: 1200, height: 630 }
+      );
     }
 
     const data = await response.json();
     const matchData = data.matchData;
 
     if (!matchData) {
-      throw new Error('No match data found');
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#0b0b12',
+              color: 'white',
+              fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 42, fontWeight: 800, marginBottom: 8 }}>
+                No match data
+              </div>
+              <div style={{ fontSize: 20, opacity: 0.8 }}>{matchId}</div>
+            </div>
+          </div>
+        ),
+        { width: 1200, height: 630 }
+      );
     }
 
     // Extract match information
@@ -77,7 +164,7 @@ export async function GET(
         best.deaths === 0
           ? best.kills + best.assists
           : (best.kills + best.assists) / best.deaths;
-      
+
       // If KDA is equal, prefer player from winning team
       if (kda === bestKda) {
         return player.win ? player : best;
@@ -87,17 +174,18 @@ export async function GET(
 
     const winner = blueTeamData?.win ? 'BLUE' : 'RED';
     const winnerColor = blueTeamData?.win ? '#3B82F6' : '#EF4444';
-    
+
     // Calculate additional MVP stats
     const mvpTeamKills = mvp.teamId === 100 ? blueKills : redKills;
-    const killParticipation = mvpTeamKills > 0 
-      ? Math.round(((mvp.kills + mvp.assists) / mvpTeamKills) * 100)
-      : 0;
-    
+    const killParticipation =
+      mvpTeamKills > 0
+        ? Math.round(((mvp.kills + mvp.assists) / mvpTeamKills) * 100)
+        : 0;
+
     const mvpDamage = mvp.totalDamageDealtToChampions || 0;
     const mvpVisionScore = mvp.visionScore || 0;
     const mvpKillParticipation = `${killParticipation}%`;
-    
+
     // Calculate team damage percentages
     const mvpTeammates = matchData.info.participants.filter(
       (p: any) => p.teamId === mvp.teamId
@@ -106,19 +194,26 @@ export async function GET(
       (sum: number, p: any) => sum + (p.totalDamageDealtToChampions || 0),
       0
     );
-    const mvpDamagePercent = totalTeamDamage > 0
-      ? Math.round((mvpDamage / totalTeamDamage) * 100)
-      : 0;
-    
+    const mvpDamagePercent =
+      totalTeamDamage > 0 ? Math.round((mvpDamage / totalTeamDamage) * 100) : 0;
+
     // Get KDA ratio
-    const kdaRatio = mvp.deaths === 0 
-      ? 'Perfect' 
-      : ((mvp.kills + mvp.assists) / mvp.deaths).toFixed(2);
+    const kdaRatio =
+      mvp.deaths === 0
+        ? 'Perfect'
+        : ((mvp.kills + mvp.assists) / mvp.deaths).toFixed(2);
 
     // Prepare MVP fields for preview card
     const cs = (mvp.totalMinionsKilled || 0) + (mvp.neutralMinionsKilled || 0);
     const gold = mvp.goldEarned || 0;
     const csPerMin = gameDuration > 0 ? (cs / gameDuration).toFixed(1) : '0';
+
+    // Get multi-kill stats for display
+    const pentaKills = mvp.pentaKills || 0;
+    const quadraKills = mvp.quadraKills || 0;
+    const tripleKills = mvp.tripleKills || 0;
+    const doubleKills = mvp.doubleKills || 0;
+    const firstBlood = mvp.firstBloodKill || false;
 
     // Items: get all 6 main items (exclude trinket item6 and 0)
     const allItems = [
@@ -129,18 +224,12 @@ export async function GET(
       mvp.item4,
       mvp.item5,
     ].filter((i: number) => i && i > 0);
-    
-    // Get key stats for display
-    const pentaKills = mvp.pentaKills || 0;
-    const quadraKills = mvp.quadraKills || 0; 
-    const tripleKills = mvp.tripleKills || 0;
-    const doubleKills = mvp.doubleKills || 0;
-    const firstBlood = mvp.firstBloodKill || false;
 
     // Use direct DataDragon URLs to avoid server-side image proxy issues
     const championIconUrl = `https://ddragon.leagueoflegends.com/cdn/14.23.1/img/champion/${mvp.championName}.png`;
-    const itemIconUrls = allItems.map((itemId: number) => 
-      `https://ddragon.leagueoflegends.com/cdn/14.23.1/img/item/${itemId}.png`
+    const itemIconUrls = allItems.map(
+      (itemId: number) =>
+        `https://ddragon.leagueoflegends.com/cdn/14.23.1/img/item/${itemId}.png`
     );
 
     // Helper to render rounded pill
@@ -231,7 +320,7 @@ export async function GET(
             >
               {winner} Victory
             </div>
-            
+
             {/* Champion Icon with glow effect */}
             <div
               style={{
@@ -243,10 +332,11 @@ export async function GET(
                 borderRadius: 20,
                 overflow: 'hidden',
                 border: '3px solid rgba(168,85,247,0.5)',
-                boxShadow: '0 12px 40px rgba(168,85,247,0.4), 0 0 80px rgba(168,85,247,0.2)',
+                boxShadow:
+                  '0 12px 40px rgba(168,85,247,0.4), 0 0 80px rgba(168,85,247,0.2)',
               }}
             >
-              <img 
+              <img
                 src={championIconUrl}
                 alt={`${mvp.championName} champion icon`}
                 width={140}
@@ -254,7 +344,7 @@ export async function GET(
                 style={{ objectFit: 'cover' }}
               />
             </div>
-            
+
             {/* Champion name with gradient text */}
             <div
               style={{
@@ -262,7 +352,8 @@ export async function GET(
                 fontWeight: 900,
                 lineHeight: 1.0,
                 letterSpacing: -2,
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+                background:
+                  'linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
                 backgroundClip: 'text',
                 color: 'transparent',
                 textAlign: 'center',
@@ -272,7 +363,7 @@ export async function GET(
             >
               {mvp.championName}
             </div>
-            
+
             {/* MVP Badge */}
             <div
               style={{
@@ -315,13 +406,14 @@ export async function GET(
                 style={{
                   padding: '6px 14px',
                   borderRadius: 999,
-                  background: kdaRatio === 'Perfect' 
-                    ? 'linear-gradient(135deg, #10B981, #059669)'
-                    : parseFloat(kdaRatio) >= 5 
-                    ? 'linear-gradient(135deg, #F59E0B, #EAB308)'
-                    : parseFloat(kdaRatio) >= 3
-                    ? 'linear-gradient(135deg, #3B82F6, #2563EB)'
-                    : 'rgba(255,255,255,0.1)',
+                  background:
+                    kdaRatio === 'Perfect'
+                      ? 'linear-gradient(135deg, #10B981, #059669)'
+                      : parseFloat(kdaRatio) >= 5
+                        ? 'linear-gradient(135deg, #F59E0B, #EAB308)'
+                        : parseFloat(kdaRatio) >= 3
+                          ? 'linear-gradient(135deg, #3B82F6, #2563EB)'
+                          : 'rgba(255,255,255,0.1)',
                   color: '#fff',
                   fontSize: 18,
                   fontWeight: 700,
@@ -330,7 +422,7 @@ export async function GET(
                 {kdaRatio} KDA
               </div>
             </div>
-            
+
             {/* Level badge */}
             <div
               style={{
@@ -376,7 +468,8 @@ export async function GET(
                 style={{
                   fontSize: 32,
                   fontWeight: 900,
-                  background: 'linear-gradient(135deg, #A855F7, #3B82F6, #10B981)',
+                  background:
+                    'linear-gradient(135deg, #A855F7, #3B82F6, #10B981)',
                   backgroundClip: 'text',
                   color: 'transparent',
                   letterSpacing: -0.5,
@@ -389,7 +482,8 @@ export async function GET(
                   {matchData.info.gameMode}
                 </Pill>
                 <Pill bg="rgba(59,130,246,0.15)" color="#BFDBFE">
-                  {gameDuration}m {Math.floor(matchData.info.gameDuration % 60)}s
+                  {gameDuration}m {Math.floor(matchData.info.gameDuration % 60)}
+                  s
                 </Pill>
               </div>
             </div>
@@ -400,9 +494,10 @@ export async function GET(
                 style={{
                   padding: '4px 8px',
                   borderRadius: 6,
-                  background: mvp.teamId === 100 
-                    ? 'rgba(59,130,246,0.2)' 
-                    : 'rgba(239,68,68,0.2)',
+                  background:
+                    mvp.teamId === 100
+                      ? 'rgba(59,130,246,0.2)'
+                      : 'rgba(239,68,68,0.2)',
                   border: `1px solid ${mvp.teamId === 100 ? 'rgba(59,130,246,0.4)' : 'rgba(239,68,68,0.4)'}`,
                   fontSize: 14,
                   fontWeight: 600,
@@ -417,13 +512,14 @@ export async function GET(
               <div style={{ fontSize: 18, color: '#9CA3AF' }}>
                 {mvp.riotIdTagline ? `#${mvp.riotIdTagline}` : ''}
               </div>
-              {firstBlood && (
+              {!!firstBlood && (
                 <div
                   style={{
                     marginLeft: 'auto',
                     padding: '4px 10px',
                     borderRadius: 6,
-                    background: 'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(239,68,68,0.1))',
+                    background:
+                      'linear-gradient(135deg, rgba(239,68,68,0.2), rgba(239,68,68,0.1))',
                     border: '1px solid rgba(239,68,68,0.4)',
                     color: '#FCA5A5',
                     fontSize: 14,
@@ -456,7 +552,9 @@ export async function GET(
                   gap: 4,
                 }}
               >
-                <div style={{ fontSize: 13, color: '#FCA5A5', fontWeight: 600 }}>
+                <div
+                  style={{ fontSize: 13, color: '#FCA5A5', fontWeight: 600 }}
+                >
                   DAMAGE DEALT
                 </div>
                 <div style={{ fontSize: 24, fontWeight: 800, color: '#fff' }}>
@@ -466,7 +564,7 @@ export async function GET(
                   {mvpDamagePercent}% of team
                 </div>
               </div>
-              
+
               {/* CS and Gold */}
               <div
                 style={{
@@ -479,7 +577,9 @@ export async function GET(
                   gap: 4,
                 }}
               >
-                <div style={{ fontSize: 13, color: '#FDE68A', fontWeight: 600 }}>
+                <div
+                  style={{ fontSize: 13, color: '#FDE68A', fontWeight: 600 }}
+                >
                   ECONOMY
                 </div>
                 <div style={{ fontSize: 24, fontWeight: 800, color: '#fff' }}>
@@ -489,7 +589,7 @@ export async function GET(
                   {cs} CS ({csPerMin}/min)
                 </div>
               </div>
-              
+
               {/* Kill Participation */}
               <div
                 style={{
@@ -502,7 +602,9 @@ export async function GET(
                   gap: 4,
                 }}
               >
-                <div style={{ fontSize: 13, color: '#E9D5FF', fontWeight: 600 }}>
+                <div
+                  style={{ fontSize: 13, color: '#E9D5FF', fontWeight: 600 }}
+                >
                   KILL PARTICIPATION
                 </div>
                 <div style={{ fontSize: 24, fontWeight: 800, color: '#fff' }}>
@@ -515,7 +617,10 @@ export async function GET(
             </div>
 
             {/* Multi-kill indicators */}
-            {(pentaKills > 0 || quadraKills > 0 || tripleKills > 0 || doubleKills > 0) && (
+            {(pentaKills > 0 ||
+              quadraKills > 0 ||
+              tripleKills > 0 ||
+              doubleKills > 0) && (
               <div style={{ display: 'flex', gap: 8, margin: '4px 0' }}>
                 {pentaKills > 0 && (
                   <div
@@ -532,7 +637,7 @@ export async function GET(
                     PENTAKILL
                   </div>
                 )}
-                {quadraKills > 0 && pentaKills === 0 && (
+                {quadraKills > 0 && pentaKills === 0 ? (
                   <div
                     style={{
                       padding: '4px 12px',
@@ -545,23 +650,23 @@ export async function GET(
                   >
                     QUADRA KILL
                   </div>
-                )}
+                ) : null}
                 {tripleKills > 0 && quadraKills === 0 && pentaKills === 0 && (
-                  <div
-                    style={{
-                      padding: '4px 12px',
-                      borderRadius: 999,
-                      background: 'linear-gradient(135deg, #9333EA, #A855F7)',
-                      color: '#fff',
-                      fontSize: 14,
-                      fontWeight: 700,
-                    }}
-                  >
-                    TRIPLE KILL
-                  </div>
-                )}
-              </div>
-            )}
+                    <div
+                      style={{
+                        padding: '4px 12px',
+                        borderRadius: 999,
+                        background: 'linear-gradient(135deg, #9333EA, #A855F7)',
+                        color: '#fff',
+                        fontSize: 14,
+                        fontWeight: 700,
+                      }}
+                    >
+                      TRIPLE KILL
+                    </div>
+                  )}
+                </div>
+              )}
 
             {/* Items showcase */}
             <div
@@ -573,7 +678,14 @@ export async function GET(
                 border: '1px solid rgba(168,85,247,0.2)',
               }}
             >
-              <div style={{ fontSize: 14, color: '#9CA3AF', marginBottom: 10, fontWeight: 600 }}>
+              <div
+                style={{
+                  fontSize: 14,
+                  color: '#9CA3AF',
+                  marginBottom: 10,
+                  fontWeight: 600,
+                }}
+              >
                 BUILD
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
@@ -591,7 +703,7 @@ export async function GET(
                         background: 'rgba(0,0,0,0.5)',
                       }}
                     >
-                      <img 
+                      <img
                         src={url}
                         alt={`Item ${idx + 1}`}
                         width={52}
@@ -629,18 +741,24 @@ export async function GET(
                     border: '1px solid rgba(59,130,246,0.2)',
                   }}
                 >
-                  <div style={{ fontSize: 13, color: '#93C5FD', fontWeight: 600 }}>
+                  <div
+                    style={{ fontSize: 13, color: '#93C5FD', fontWeight: 600 }}
+                  >
                     BLUE
                   </div>
-                  <div style={{ fontSize: 28, fontWeight: 800, color: '#3B82F6' }}>
+                  <div
+                    style={{ fontSize: 28, fontWeight: 800, color: '#3B82F6' }}
+                  >
                     {blueKills}
                   </div>
                 </div>
-                
-                <div style={{ fontSize: 16, color: '#6B7280', fontWeight: 600 }}>
+
+                <div
+                  style={{ fontSize: 16, color: '#6B7280', fontWeight: 600 }}
+                >
                   VS
                 </div>
-                
+
                 <div
                   style={{
                     display: 'flex',
@@ -652,15 +770,19 @@ export async function GET(
                     border: '1px solid rgba(239,68,68,0.2)',
                   }}
                 >
-                  <div style={{ fontSize: 28, fontWeight: 800, color: '#EF4444' }}>
+                  <div
+                    style={{ fontSize: 28, fontWeight: 800, color: '#EF4444' }}
+                  >
                     {redKills}
                   </div>
-                  <div style={{ fontSize: 13, color: '#FCA5A5', fontWeight: 600 }}>
+                  <div
+                    style={{ fontSize: 13, color: '#FCA5A5', fontWeight: 600 }}
+                  >
                     RED
                   </div>
                 </div>
               </div>
-              
+
               <div
                 style={{
                   fontSize: 12,
