@@ -726,6 +726,20 @@ export default function MatchDetailsPage() {
     fetchMatchDetails();
   }, [matchId]);
 
+  // Auto-select Yuumi player if present in the match
+  useEffect(() => {
+    if (!data?.matchData?.info?.participants || selectedPlayer !== null) return;
+    
+    const yuumiIndex = data.matchData.info.participants.findIndex(
+      (participant) => participant.championName?.toLowerCase() === 'yuumi'
+    );
+    
+    if (yuumiIndex !== -1) {
+      console.log('🐱 Auto-selecting Yuumi player at index:', yuumiIndex);
+      setSelectedPlayer(yuumiIndex);
+    }
+  }, [data, selectedPlayer]);
+
   // Support quest completion times for compare player (mirror of selected player computation)
   const compareSupportItemCompletionTimes = useMemo(() => {
     console.group(
@@ -3038,38 +3052,6 @@ export default function MatchDetailsPage() {
             )}
           </TabsContent>
 
-          {/* Runes Tab */}
-          <TabsContent value="runes" className="space-y-6">
-            {selectedPlayerData ? (
-              <Card className="border border-white/10 bg-black/20 backdrop-blur-md">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-white">
-                    <ChampionIcon
-                      championId={selectedPlayerData.championName}
-                      size="md"
-                    />
-                    {selectedPlayerData.riotIdGameName}#
-                    {selectedPlayerData.riotIdTagline} - Runes & Perks
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <RuneTreeDisplay
-                    perks={selectedPlayerData.perks}
-                    className="rounded-lg border border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-blue-600/5 p-6"
-                  />
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="border border-white/10 bg-black/20 backdrop-blur-md">
-                <CardContent className="py-12 text-center">
-                  <Sparkles className="mx-auto mb-4 h-12 w-12 text-white/40" />
-                  <p className="text-white/60">
-                    Click on a player in the Overview tab to see their runes
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
         </Tabs>
       </div>
     </div>

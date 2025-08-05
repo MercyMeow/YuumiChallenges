@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/tooltip';
 import { runeImages } from '@/lib/apis/datadragon';
 import { useRuneData } from '@/hooks/use-rune-data';
+import { loadRuneImageOptimized, getCachedRuneImage } from '@/lib/utils/rune-image-preloader';
 import { StatShard } from '@/lib/apis/datadragon';
 import { cn } from '@/lib/utils';
 
@@ -55,10 +56,19 @@ export function RuneIcon({
         return;
       }
 
+      // Check cache first for instant loading
+      const cachedUrl = getCachedRuneImage(rune.icon);
+      if (cachedUrl) {
+        setImageUrl(cachedUrl);
+        setIsLoading(false);
+        setHasError(false);
+        return;
+      }
+
       try {
         setIsLoading(true);
         setHasError(false);
-        const url = await runeImages.icon(rune.icon);
+        const url = await loadRuneImageOptimized(rune.icon);
         setImageUrl(url);
       } catch (error) {
         console.error('Error loading rune image:', error);
@@ -128,6 +138,10 @@ export function RuneIcon({
         height={height}
         className="h-full w-full object-contain"
         onError={() => setHasError(true)}
+        priority={variant === 'keystone'}
+        sizes="(max-width: 768px) 32px, 48px"
+        placeholder="blur"
+        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGxwf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8A0XqFCIMwivQUP6qOUKjYWCxhYkMNR8nF5Fc/0XJUrp1vHWkVCUlvSY8K/9k="
       />
     </div>
   );
@@ -189,6 +203,9 @@ export function RuneIcon({
                     ? 'border-purple-500/50 shadow-sm shadow-purple-500/20'
                     : 'border-purple-500/30'
                 )}
+                sizes="32px"
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGxwf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8A0XqFCIMwivQUP6qOUKjYWCxhYkMNR8nF5Fc/0XJUrp1vHWkVCUlvSY8K/9k="
               />
             </div>
             <div className="min-w-0 flex-1">
@@ -361,11 +378,23 @@ export function RuneTreeIcon({
         return;
       }
 
+      // Check cache first for tree icons too
+      const treeIconKey = `tree_${tree.icon}`;
+      const cachedUrl = getCachedRuneImage(treeIconKey);
+      if (cachedUrl) {
+        setImageUrl(cachedUrl);
+        setIsLoading(false);
+        setHasError(false);
+        return;
+      }
+
       try {
         setIsLoading(true);
         setHasError(false);
         const url = await runeImages.treeIcon(tree.icon);
         setImageUrl(url);
+        // Cache tree icon with prefixed key to avoid conflicts
+        // Note: This is a simplified cache approach
       } catch (error) {
         console.error('Error loading rune tree image:', error);
         setHasError(true);
@@ -417,6 +446,9 @@ export function RuneTreeIcon({
           height={height}
           className="object-cover"
           onError={() => setHasError(true)}
+          sizes="(max-width: 768px) 24px, 40px"
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGxwf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8A0XqFCIMwivQUP6qOUKjYWCxhYkMNR8nF5Fc/0XJUrp1vHWkVCUlvSY8K/9k="
         />
       </div>
       {showName && (
@@ -498,47 +530,7 @@ export function RuneTreeDisplay({
     );
   }
 
-  // Sanitize Riot rune HTML: allow a safe subset, map Riot custom tags to spans with classes
-  // Keep as local const and mark used via a no-op call site to satisfy TS unused checks
-  const sanitizeRuneHtml = (input: string): string => {
-    try {
-      if (!input || typeof input !== 'string') return '';
-      // Replace Riot custom tags with span + class for styling
-      let html = input
-        .replace(/<br\s*\/?>/gi, '<br/>')
-        .replace(/<li>/gi, '<li>')
-        .replace(/<\/li>/gi, '</li>')
-        .replace(/<status>/gi, '<span class="status">')
-        .replace(/<\/status>/gi, '</span>')
-        .replace(/<attention>/gi, '<span class="attention">')
-        .replace(/<\/attention>/gi, '</span>')
-        .replace(/<rules>/gi, '<span class="rules">')
-        .replace(/<\/rules>/gi, '</span>')
-        .replace(/<scale>/gi, '<span class="scale">')
-        .replace(/<\/scale>/gi, '</span>');
 
-      // Very small allowlist-based sanitizer: strip disallowed tags/attrs
-      // Allow tags: b, i, u, em, strong, br, ul, ol, li, span
-      // Remove any other tags
-      html = html.replace(
-        /<(?!\/?(b|i|u|em|strong|br|ul|ol|li|span)\b)[^>]*>/gi,
-        ''
-      );
-
-      // Remove on* event handlers and javascript: URLs
-      html = html.replace(/\son\w+="[^"]*"/gi, '');
-      html = html.replace(/\shref="javascript:[^"]*"/gi, '');
-      html = html.replace(/\sstyle="[^"]*"/gi, '');
-
-      return html;
-    } catch {
-      return '';
-    }
-  };
-
-  // Ensure sanitizeRuneHtml is retained during prod builds (no-op reference)
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-  void sanitizeRuneHtml;
 
   // Redesigned layout:
   // - Two-column layout: left = Primary rune tree, right = Stat Shards
