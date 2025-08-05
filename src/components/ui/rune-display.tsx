@@ -582,19 +582,34 @@ export function RuneTreeDisplay({
                     <ul className="w-full space-y-1 rounded-md border border-white/10 bg-white/5 p-2 text-[11px] text-white/80">
                       {runeDetailsByRuneId[
                         primaryStyle.selections[0].perk
-                      ]!.slice(0, 6).map((d, i) => (
-                        <li
-                          key={`${d.statType}-${i}`}
-                          className={
-                            (d.value ?? 0) >= 0
-                              ? 'text-green-300'
-                              : 'text-red-300'
-                          }
-                        >
-                          {/* Simple formatting: sign + value + statType (fallback) */}
-                          {`${(d.value ?? 0) > 0 ? '+' : (d.value ?? 0) < 0 ? '−' : ''}${Math.abs(d.value ?? 0)} ${d.statType}`}
-                        </li>
-                      ))}
+                      ]!.slice(0, 6).map((d, i) => {
+                        const v = Number(d.value ?? 0);
+                        const sign = v > 0 ? '+' : v < 0 ? '−' : '';
+                        const abs = Math.abs(v);
+                        const isTime = /time|duration|active/i.test(
+                          d.statType || ''
+                        );
+                        const val = isTime
+                          ? `${abs}s`
+                          : abs % 1 === 0
+                            ? abs.toFixed(0)
+                            : abs.toFixed(1);
+                        const label = (d.statType || '')
+                          .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+                          .replace(/[_\-]+/g, ' ')
+                          .trim()
+                          .replace(/^./, (c) => c.toUpperCase());
+                        return (
+                          <li
+                            key={`${d.statType}-${i}`}
+                            className={
+                              v >= 0 ? 'text-green-300' : 'text-red-300'
+                            }
+                          >
+                            {`${sign}${val} ${label}`}
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 ) : null}
@@ -615,18 +630,34 @@ export function RuneTreeDisplay({
                 {runeDetailsByRuneId?.[selection.perk]?.length ? (
                   <ul className="mt-1 w-full space-y-0.5 rounded-md border border-white/10 bg-black/20 p-1.5 text-[11px] text-white/80">
                     {runeDetailsByRuneId[selection.perk]!.slice(0, 4).map(
-                      (d, i) => (
-                        <li
-                          key={`${selection.perk}-${d.statType}-${i}`}
-                          className={
-                            (d.value ?? 0) >= 0
-                              ? 'text-green-300'
-                              : 'text-red-300'
-                          }
-                        >
-                          {`${(d.value ?? 0) > 0 ? '+' : (d.value ?? 0) < 0 ? '−' : ''}${Math.abs(d.value ?? 0)} ${d.statType}`}
-                        </li>
-                      )
+                      (d, i) => {
+                        const v = Number(d.value ?? 0);
+                        const sign = v > 0 ? '+' : v < 0 ? '−' : '';
+                        const abs = Math.abs(v);
+                        const isTime = /time|duration|active/i.test(
+                          d.statType || ''
+                        );
+                        const val = isTime
+                          ? `${abs}s`
+                          : abs % 1 === 0
+                            ? abs.toFixed(0)
+                            : abs.toFixed(1);
+                        const label = (d.statType || '')
+                          .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+                          .replace(/[_\-]+/g, ' ')
+                          .trim()
+                          .replace(/^./, (c) => c.toUpperCase());
+                        return (
+                          <li
+                            key={`${selection.perk}-${d.statType}-${i}`}
+                            className={
+                              v >= 0 ? 'text-green-300' : 'text-red-300'
+                            }
+                          >
+                            {`${sign}${val} ${label}`}
+                          </li>
+                        );
+                      }
                     )}
                   </ul>
                 ) : null}
@@ -661,18 +692,34 @@ export function RuneTreeDisplay({
                 {runeDetailsByRuneId?.[selection.perk]?.length ? (
                   <ul className="mt-1 w-full space-y-0.5 rounded-md border border-white/10 bg-black/20 p-1.5 text-[11px] text-white/80">
                     {runeDetailsByRuneId[selection.perk]!.slice(0, 4).map(
-                      (d, i) => (
-                        <li
-                          key={`${selection.perk}-${d.statType}-${i}`}
-                          className={
-                            (d.value ?? 0) >= 0
-                              ? 'text-green-300'
-                              : 'text-red-300'
-                          }
-                        >
-                          {`${(d.value ?? 0) > 0 ? '+' : (d.value ?? 0) < 0 ? '−' : ''}${Math.abs(d.value ?? 0)} ${d.statType}`}
-                        </li>
-                      )
+                      (d, i) => {
+                        const v = Number(d.value ?? 0);
+                        const sign = v > 0 ? '+' : v < 0 ? '−' : '';
+                        const abs = Math.abs(v);
+                        const isTime = /time|duration|active/i.test(
+                          d.statType || ''
+                        );
+                        const val = isTime
+                          ? `${abs}s`
+                          : abs % 1 === 0
+                            ? abs.toFixed(0)
+                            : abs.toFixed(1);
+                        const label = (d.statType || '')
+                          .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+                          .replace(/[_\-]+/g, ' ')
+                          .trim()
+                          .replace(/^./, (c) => c.toUpperCase());
+                        return (
+                          <li
+                            key={`${selection.perk}-${d.statType}-${i}`}
+                            className={
+                              v >= 0 ? 'text-green-300' : 'text-red-300'
+                            }
+                          >
+                            {`${sign}${val} ${label}`}
+                          </li>
+                        );
+                      }
                     )}
                   </ul>
                 ) : null}
@@ -682,7 +729,7 @@ export function RuneTreeDisplay({
         </div>
       </div>
 
-      {/* Stat shards compact row */}
+      {/* Stat shards compact row and include inside secondary module as well */}
       <div className="rounded-lg border border-yellow-500/20 bg-black/20 p-3">
         <div className="mb-2 text-sm font-medium text-yellow-300">
           Stat Shards
