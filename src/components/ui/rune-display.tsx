@@ -446,12 +446,18 @@ interface RuneTreeDisplayProps {
   };
   compact?: boolean;
   className?: string;
+  // Optional: map of runeId -> details to show per rune
+  runeDetailsByRuneId?: Record<
+    number,
+    { runeId: number; statType: string; value: number }[]
+  >;
 }
 
 export function RuneTreeDisplay({
   perks,
   compact = false,
   className = '',
+  runeDetailsByRuneId,
 }: RuneTreeDisplayProps) {
   const { getRuneTreeById } = useRuneData();
 
@@ -558,14 +564,40 @@ export function RuneTreeDisplay({
           {/* Keystone row */}
           <div className="mb-4">
             {primaryStyle?.selections?.[0] && (
-              <div className="flex items-center gap-3">
-                <RuneIcon
-                  runeId={primaryStyle.selections[0].perk}
-                  size="keystone42"
-                  variant="keystone"
-                  className="shrink-0"
-                />
-                <div className="text-xs text-purple-300">Keystone</div>
+              <div className="flex items-start gap-3">
+                <div className="flex flex-col items-center gap-1">
+                  <RuneIcon
+                    runeId={primaryStyle.selections[0].perk}
+                    size="keystone42"
+                    variant="keystone"
+                    className="shrink-0"
+                  />
+                  <div className="text-xs text-purple-300">Keystone</div>
+                </div>
+                {/* Rune Details for Keystone */}
+                {runeDetailsByRuneId?.[primaryStyle.selections[0].perk]
+                  ?.length ? (
+                  <div className="flex-1">
+                    {/* Inline lightweight list without importing to avoid circular deps */}
+                    <ul className="w-full space-y-1 rounded-md border border-white/10 bg-white/5 p-2 text-[11px] text-white/80">
+                      {runeDetailsByRuneId[
+                        primaryStyle.selections[0].perk
+                      ]!.slice(0, 6).map((d, i) => (
+                        <li
+                          key={`${d.statType}-${i}`}
+                          className={
+                            (d.value ?? 0) >= 0
+                              ? 'text-green-300'
+                              : 'text-red-300'
+                          }
+                        >
+                          {/* Simple formatting: sign + value + statType (fallback) */}
+                          {`${(d.value ?? 0) > 0 ? '+' : (d.value ?? 0) < 0 ? '−' : ''}${Math.abs(d.value ?? 0)} ${d.statType}`}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
               </div>
             )}
           </div>
@@ -575,9 +607,29 @@ export function RuneTreeDisplay({
             {primaryStyle?.selections.slice(1).map((selection, idx) => (
               <div
                 key={idx}
-                className="flex flex-col items-center gap-1 rounded-md border border-white/10 bg-white/5 p-1.5"
+                className="flex flex-col items-stretch gap-1 rounded-md border border-white/10 bg-white/5 p-1.5"
               >
-                <RuneIcon runeId={selection.perk} size="minor28" />
+                <div className="flex items-center justify-center">
+                  <RuneIcon runeId={selection.perk} size="minor28" />
+                </div>
+                {runeDetailsByRuneId?.[selection.perk]?.length ? (
+                  <ul className="mt-1 w-full space-y-0.5 rounded-md border border-white/10 bg-black/20 p-1.5 text-[11px] text-white/80">
+                    {runeDetailsByRuneId[selection.perk]!.slice(0, 4).map(
+                      (d, i) => (
+                        <li
+                          key={`${selection.perk}-${d.statType}-${i}`}
+                          className={
+                            (d.value ?? 0) >= 0
+                              ? 'text-green-300'
+                              : 'text-red-300'
+                          }
+                        >
+                          {`${(d.value ?? 0) > 0 ? '+' : (d.value ?? 0) < 0 ? '−' : ''}${Math.abs(d.value ?? 0)} ${d.statType}`}
+                        </li>
+                      )
+                    )}
+                  </ul>
+                ) : null}
               </div>
             ))}
           </div>
@@ -601,9 +653,29 @@ export function RuneTreeDisplay({
             {secondaryStyle?.selections.map((selection, index) => (
               <div
                 key={index}
-                className="flex flex-col items-center gap-1 rounded-md border border-white/10 bg-white/5 p-1.5"
+                className="flex flex-col items-stretch gap-1 rounded-md border border-white/10 bg-white/5 p-1.5"
               >
-                <RuneIcon runeId={selection.perk} size="minor28" />
+                <div className="flex items-center justify-center">
+                  <RuneIcon runeId={selection.perk} size="minor28" />
+                </div>
+                {runeDetailsByRuneId?.[selection.perk]?.length ? (
+                  <ul className="mt-1 w-full space-y-0.5 rounded-md border border-white/10 bg-black/20 p-1.5 text-[11px] text-white/80">
+                    {runeDetailsByRuneId[selection.perk]!.slice(0, 4).map(
+                      (d, i) => (
+                        <li
+                          key={`${selection.perk}-${d.statType}-${i}`}
+                          className={
+                            (d.value ?? 0) >= 0
+                              ? 'text-green-300'
+                              : 'text-red-300'
+                          }
+                        >
+                          {`${(d.value ?? 0) > 0 ? '+' : (d.value ?? 0) < 0 ? '−' : ''}${Math.abs(d.value ?? 0)} ${d.statType}`}
+                        </li>
+                      )
+                    )}
+                  </ul>
+                ) : null}
               </div>
             ))}
           </div>

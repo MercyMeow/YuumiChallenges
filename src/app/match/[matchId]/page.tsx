@@ -1316,6 +1316,73 @@ export default function MatchDetailsPage() {
           </TabsContent>
 
           {/* Detailed Stats Tab */}
+          <TabsContent value="runes" className="space-y-6">
+            {selectedPlayerData ? (
+              <Card className="border border-white/10 bg-black/20 backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3 text-white">
+                    <ChampionIcon
+                      championId={selectedPlayerData.championName}
+                      size="md"
+                    />
+                    {selectedPlayerData.riotIdGameName}#
+                    {selectedPlayerData.riotIdTagline} - Runes & Perks
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    // Build rune details map if API provided participant.runes.details
+                    const rawDetails = (selectedPlayerData as any)?.runes
+                      ?.details as
+                      | { runeId: number; statType: string; value: number }[]
+                      | undefined;
+
+                    const byRuneId: Record<
+                      number,
+                      { runeId: number; statType: string; value: number }[]
+                    > = {};
+                    if (Array.isArray(rawDetails)) {
+                      for (const d of rawDetails) {
+                        if (!d || typeof d.runeId !== 'number') continue;
+                        if (!byRuneId[d.runeId]) byRuneId[d.runeId] = [];
+                        const safeDetail = {
+                          runeId: d.runeId,
+                          statType:
+                            typeof (d as any).statType === 'string'
+                              ? (d as any).statType
+                              : String((d as any).statType ?? ''),
+                          value: Number.isFinite((d as any).value)
+                            ? Number((d as any).value)
+                            : Number((d as any).value ?? 0),
+                        };
+                        byRuneId[d.runeId]!.push(safeDetail);
+                      }
+                    }
+
+                    return (
+                      <RuneTreeDisplay
+                        perks={selectedPlayerData.perks}
+                        className="mt-2"
+                        runeDetailsByRuneId={byRuneId}
+                      />
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border border-white/10 bg-black/20 backdrop-blur-md">
+                <CardContent className="py-12 text-center">
+                  <Users className="mx-auto mb-4 h-12 w-12 text-white/40" />
+                  <p className="text-white/60">
+                    Click on a player in the Overview tab to see their runes and
+                    contributions
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Detailed Stats Tab */}
           <TabsContent value="details" className="space-y-6">
             {selectedPlayerData ? (
               <Card className="border border-white/10 bg-black/20 backdrop-blur-md">
