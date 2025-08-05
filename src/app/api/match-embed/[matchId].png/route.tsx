@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { ImageResponse } from 'next/og';
+import { serverSideImageManager } from '@/lib/server-side-images';
 
 export const runtime = 'edge';
 
@@ -94,6 +95,10 @@ export async function GET(
     ].filter((i: number) => i && i > 0);
     const previewItems = allItems.slice(0, 3);
 
+    // Fetch DataDragon images for enhanced visual appeal
+    const championIconUrl = await serverSideImageManager.getChampionIcon(mvp.championName);
+    const itemIconUrls = await serverSideImageManager.getMultipleItemIcons(previewItems);
+
     // Helper to render rounded pill
     const Pill = ({
       children,
@@ -162,6 +167,30 @@ export async function GET(
             >
               {winner} WIN
             </div>
+            
+            {/* Champion Icon */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 80,
+                left: 40,
+                width: 120,
+                height: 120,
+                borderRadius: 16,
+                overflow: 'hidden',
+                border: '3px solid rgba(255,255,255,0.25)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+              }}
+            >
+              <img 
+                src={championIconUrl}
+                alt={`${mvp.championName} champion icon`}
+                width={120}
+                height={120}
+                style={{ objectFit: 'cover' }}
+              />
+            </div>
+            
             <div
               style={{
                 fontSize: 110,
@@ -286,25 +315,27 @@ export async function GET(
               <div style={{ fontSize: 16, color: '#9CA3AF', width: 80 }}>
                 Items
               </div>
-              <div style={{ display: 'flex', gap: 10 }}>
-                {previewItems.length > 0 ? (
-                  previewItems.map((id: number, idx: number) => (
+              <div style={{ display: 'flex', gap: 8 }}>
+                {itemIconUrls.length > 0 ? (
+                  itemIconUrls.map((url: string, idx: number) => (
                     <div
-                      key={`${id}-${idx}`}
+                      key={idx}
                       style={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: 10,
-                        background: 'rgba(0,0,0,0.35)',
-                        border: '1px solid rgba(255,255,255,0.10)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#A3A3A3',
-                        fontSize: 14,
+                        width: 48,
+                        height: 48,
+                        borderRadius: 8,
+                        overflow: 'hidden',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                       }}
                     >
-                      #{id}
+                      <img 
+                        src={url}
+                        alt={`Item ${idx + 1}`}
+                        width={48}
+                        height={48}
+                        style={{ objectFit: 'cover' }}
+                      />
                     </div>
                   ))
                 ) : (
