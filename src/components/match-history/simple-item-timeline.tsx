@@ -294,17 +294,17 @@ const SupportQuestCompletionItem = ({
     <div
       className={cn(
         'flex items-center gap-3 rounded-lg p-4',
-        'border-2 bg-gradient-to-r backdrop-blur-md',
+        // Static, no animation: left accent bar + subtle background
+        'border-2 border-purple-500/30 backdrop-blur-md',
         completion.isQuestComplete
-          ? 'animate-pulse border-yellow-500/50 from-yellow-500/20 to-orange-500/20'
-          : 'border-purple-500/40 from-purple-500/20 to-blue-500/20',
-        'transition-all duration-300 hover:scale-[1.02]',
+          ? 'border-l-4 border-l-yellow-400/70 bg-yellow-500/10'
+          : 'border-l-4 border-l-purple-400/60 bg-purple-500/5',
         className
       )}
     >
       {/* Quest icon */}
       <div className="flex-shrink-0">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-purple-400/50 bg-gradient-to-r from-purple-500/30 to-blue-500/30">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-purple-400/40 bg-black/30">
           {/* Intentionally no decorative icon per spec */}
           <span className="text-xs text-purple-200">Quest</span>
         </div>
@@ -368,13 +368,16 @@ const ItemEventItem = ({
   isEvolutionChain = false,
   className,
 }: ItemEventItemProps) => {
+  const evolutionAccent = event.isEvolution
+    ? 'border-l-2 border-l-purple-400/60 bg-purple-500/5'
+    : '';
   return (
     <div
       className={cn(
         'flex items-center gap-3 rounded-lg p-4',
         'border bg-black/20 backdrop-blur-md',
         getEventBorderColor(event.type, event.isEvolution),
-        event.isEvolution && 'animate-subtle-pulse',
+        evolutionAccent,
         className
       )}
     >
@@ -514,7 +517,7 @@ const GroupedEventItem = ({
                 'flex items-center gap-3 rounded-md border p-2',
                 'border-purple-500/10 bg-black/10',
                 isEvolutionChain &&
-                  'animate-subtle-pulse border-purple-500/20 bg-purple-500/10'
+                  'border-l-2 border-l-purple-400/60 bg-purple-500/5'
               )}
             >
               {/* Event icon */}

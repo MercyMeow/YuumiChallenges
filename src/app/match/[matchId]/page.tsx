@@ -1240,6 +1240,18 @@ export default function MatchDetailsPage() {
                         🔴 {feat.replace(/_/g, ' ').toLowerCase()}
                       </Badge>
                     ))}
+                  {/* Support Quest completion badge for selected player */}
+                  <Badge className="border-purple-500/30 bg-purple-500/10 text-xs text-purple-300">
+                    Support quest completed at{' '}
+                    {(() => {
+                      const questTime =
+                        supportItemCompletionTimes?.tier2 ??
+                        supportItemCompletionTimes?.tier3 ??
+                        supportItemCompletionTimes?.tier1 ??
+                        null;
+                      return questTime ? formatMatchTime(questTime) : '—';
+                    })()}
+                  </Badge>
                 </div>
                 <div className="grid grid-cols-2 gap-8">
                   <div>
@@ -1677,7 +1689,24 @@ export default function MatchDetailsPage() {
                             {selectedPlayerData.wardsKilled}
                           </span>
                         </div>
-                        {/* Removed duplicated Support Quest Completed row per feedback */}
+                        {/* Support Quest Completed - display time with fallback */}
+                        <div className="flex justify-between">
+                          <span className="text-white/60">
+                            Support quest completed
+                          </span>
+                          <span className="text-white">
+                            {(() => {
+                              const questTime =
+                                supportItemCompletionTimes?.tier2 ??
+                                supportItemCompletionTimes?.tier3 ??
+                                supportItemCompletionTimes?.tier1 ??
+                                null;
+                              return questTime
+                                ? formatMatchTime(questTime)
+                                : '—';
+                            })()}
+                          </span>
+                        </div>
 
                         {/* Debug: Show detailed support item progression */}
                         {process.env.NODE_ENV === 'development' &&

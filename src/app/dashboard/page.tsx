@@ -5,9 +5,8 @@ import dynamic from 'next/dynamic';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshStatus } from '@/lib/types';
-import { Sparkles, Activity, Users, Loader2, Gamepad2 } from 'lucide-react';
+import { Sparkles, Activity, Users, Loader2 } from 'lucide-react';
 
 // Dynamic imports to avoid SSR issues
 const ChallengesCard = dynamic(
@@ -20,6 +19,14 @@ const ChallengesCard = dynamic(
 
 const LeagueProfileCard = dynamic(
   () => import('@/components/dashboard/dashboard-cards').then(mod => ({ default: mod.LeagueProfileCard })),
+  { 
+    ssr: false,
+    loading: () => <div className="h-96 bg-black/20 rounded-lg animate-pulse" />
+  }
+);
+
+const MatchHistoryDisplay = dynamic(
+  () => import('@/components/match-history/match-history-display').then(mod => ({ default: mod.MatchHistoryDisplay })),
   { 
     ssr: false,
     loading: () => <div className="h-96 bg-black/20 rounded-lg animate-pulse" />
@@ -72,7 +79,7 @@ export default function Dashboard() {
   };
 
   // Fetch summoner data function
-  const fetchSummonerData = async (_isInitialLoad = true) => {
+  const fetchSummonerData = async () => {
     try {
       // if (isInitialLoad) {
       //   setLoadingSummoner(true);
@@ -121,7 +128,7 @@ export default function Dashboard() {
         const result = await response.json();
         if (result.success) {
           // Refresh summoner data after successful auto-refresh
-          await fetchSummonerData(false);
+          await fetchSummonerData();
         }
       }
     } catch (error) {
@@ -336,7 +343,7 @@ export default function Dashboard() {
                   
                   const result = await response.json();
                   if (response.ok && (result.success || result.data?.partial_success)) {
-                    await fetchSummonerData(false);
+                    await fetchSummonerData();
                     await fetchRefreshStatus();
                   }
                 } catch (error) {
@@ -346,35 +353,40 @@ export default function Dashboard() {
                 }
               }}
               onAccountChange={async () => {
-                await fetchSummonerData(false);
+                await fetchSummonerData();
               }}
             />
             <ChallengesCard />
           </div>
           
-          {/* Enhanced Match History Display */}
-          {summonerData?.summoner && (
-            <Card className="border border-purple-500/20 bg-black/20 backdrop-blur-md">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Gamepad2 className="h-5 w-5" />
-                  Recent Matches
-                </CardTitle>
-                <CardDescription>
-                  Your recent League of Legends match history
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">
-                    Match history temporarily disabled due to technical improvements.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Full match history with detailed stats will be restored soon!
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Match History Display */}
+          {summonerData?.summoner?.puuid && (
+            <MatchHistoryDisplay 
+              summonerId={summonerData.summoner.puuid}
+              onRefresh={async () => {
+                if (!refreshStatus?.can_manual_refresh || isRefreshing) return;
+                
+                try {
+                  setIsRefreshing(true);
+                  const response = await fetch('/api/summoners/refresh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ manual: true }),
+                  });
+                  
+                  const result = await response.json();
+                  if (response.ok && (result.success || result.data?.partial_success)) {
+                    await fetchSummonerData();
+                    await fetchRefreshStatus();
+                  }
+                } catch (error) {
+                  console.error('Error during manual refresh:', error);
+                } finally {
+                  setIsRefreshing(false);
+                }
+              }}
+              isRefreshing={isRefreshing}
+            />
           )}
         </section>
       </main>
