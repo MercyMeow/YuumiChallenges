@@ -729,17 +729,7 @@ export function RuneTreeDisplay({
         </div>
       </div>
 
-      {/* Stat shards compact row and include inside secondary module as well */}
-      <div className="rounded-lg border border-yellow-500/20 bg-black/20 p-3">
-        <div className="mb-2 text-sm font-medium text-yellow-300">
-          Stat Shards
-        </div>
-        <div className="flex items-center gap-3">
-          <StatShardIcon statShardId={perks.statPerks.offense} size="shard24" />
-          <StatShardIcon statShardId={perks.statPerks.flex} size="shard24" />
-          <StatShardIcon statShardId={perks.statPerks.defense} size="shard24" />
-        </div>
-      </div>
+      {/* Stat Shards summary removed to avoid duplicate-looking module; shards are shown inside Secondary */}
     </div>
   );
 }
