@@ -65,8 +65,8 @@ export async function generateMetadata({
     const title = `${winnerColor} ${winner} Victory | ${gameMode} - ${gameDuration}m`;
     const description = `Score: ${blueKills} - ${redKills} | MVP: ${mvp.riotIdGameName || mvp.summonerName} (${mvp.championName}) ${mvp.kills}/${mvp.deaths}/${mvp.assists} | View comprehensive stats, timeline, and player comparisons`;
     
-    // Generate embed image URL (you could create a dynamic image service for this)
-    const embedImageUrl = `${baseUrl}/api/match-embed/${matchId}.png`;
+    // Generate embed image URL using working endpoint that avoids Turbopack issues
+    const embedImageUrl = `${baseUrl}/api/match-embed-working/${matchId}.png`;
     
     return {
       title,

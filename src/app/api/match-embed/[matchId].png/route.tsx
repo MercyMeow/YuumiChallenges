@@ -2,7 +2,8 @@ import { NextRequest } from 'next/server';
 import { ImageResponse } from 'next/og';
 import { serverSideImageManager } from '@/lib/server-side-images';
 
-export const runtime = 'edge';
+// Removed edge runtime due to Turbopack CSS compilation issues
+// export const runtime = 'edge';
 
 export async function GET(
   _request: NextRequest,
@@ -13,12 +14,32 @@ export async function GET(
     const matchIdWithExt = resolvedParams.matchId;
     const matchId = matchIdWithExt.replace('.png', '');
 
-    // Fetch match data
+    // Fetch match data with timeout handling
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/match-details/${matchId}`);
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
+    let response;
+    try {
+      response = await fetch(`${baseUrl}/api/match-details/${matchId}`, {
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Match data fetch timeout');
+      }
+      throw new Error('Failed to fetch match data');
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!response.ok) {
-      throw new Error('Failed to fetch match data');
+      throw new Error(`Failed to fetch match data: ${response.status}`);
     }
 
     const data = await response.json();
@@ -117,9 +138,11 @@ export async function GET(
     const doubleKills = mvp.doubleKills || 0;
     const firstBlood = mvp.firstBloodKill || false;
 
-    // Fetch DataDragon images for enhanced visual appeal
-    const championIconUrl = await serverSideImageManager.getChampionIcon(mvp.championName);
-    const itemIconUrls = await serverSideImageManager.getMultipleItemIcons(allItems);
+    // Use direct DataDragon URLs to avoid server-side image proxy issues
+    const championIconUrl = `https://ddragon.leagueoflegends.com/cdn/14.23.1/img/champion/${mvp.championName}.png`;
+    const itemIconUrls = allItems.map((itemId: number) => 
+      `https://ddragon.leagueoflegends.com/cdn/14.23.1/img/item/${itemId}.png`
+    );
 
     // Helper to render rounded pill
     const Pill = ({
