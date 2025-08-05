@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
 import { ImageResponse } from 'next/og';
-import { serverSideImageManager } from '@/lib/server-side-images';
 
 // Removed edge runtime due to Turbopack CSS compilation issues
 // export const runtime = 'edge';
@@ -30,7 +29,7 @@ export async function GET(
       });
     } catch (error) {
       clearTimeout(timeoutId);
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         throw new Error('Match data fetch timeout');
       }
       throw new Error('Failed to fetch match data');
