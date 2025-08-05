@@ -116,6 +116,7 @@ export default function Dashboard() {
     }
   };
 
+  // @ts-expect-error - Unused but keeping for future functionality
   const handleManualRefresh = async () => {
     if (!refreshStatus?.can_manual_refresh || isRefreshing) {
       return;

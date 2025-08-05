@@ -122,6 +122,7 @@ function computeRuneMetrics(participant: any) {
 }
 
 // Inline lightweight component to render rune metrics next to rune page
+// @ts-expect-error - Unused but keeping for future functionality
 function RuneMetricsPanel({ participant }: { participant: any }) {
   const metrics = computeRuneMetrics(participant);
   const entries = Object.entries(metrics);
