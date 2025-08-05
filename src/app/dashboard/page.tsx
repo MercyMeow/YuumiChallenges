@@ -319,7 +319,36 @@ export default function Dashboard() {
           
           {/* Top Row - Most Important Cards */}
           <div className="grid gap-6 md:grid-cols-2">
-            <LeagueProfileCard />
+            <LeagueProfileCard 
+              summonerData={summonerData}
+              refreshStatus={refreshStatus}
+              isRefreshing={isRefreshing}
+              onRefresh={async () => {
+                if (!refreshStatus?.can_manual_refresh || isRefreshing) return;
+                
+                try {
+                  setIsRefreshing(true);
+                  const response = await fetch('/api/summoners/refresh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ manual: true }),
+                  });
+                  
+                  const result = await response.json();
+                  if (response.ok && (result.success || result.data?.partial_success)) {
+                    await fetchSummonerData(false);
+                    await fetchRefreshStatus();
+                  }
+                } catch (error) {
+                  console.error('Error during manual refresh:', error);
+                } finally {
+                  setIsRefreshing(false);
+                }
+              }}
+              onAccountChange={async () => {
+                await fetchSummonerData(false);
+              }}
+            />
             <ChallengesCard />
           </div>
           
