@@ -106,8 +106,8 @@ export const SUPPORT_EVOLUTIONS: Record<number, SupportEvolution> = {
   3877: { stage: 'tier3', name: 'Bloodsong' },
 } as const;
 
-// Create legacy compatible support item evolutions
-const createLegacySupportEvolutions = () => {
+// Legacy compatibility exports - moved before function to avoid hoisting issues
+export const SUPPORT_ITEM_EVOLUTIONS = (() => {
   const legacy: Record<number, SupportItemEvolution> = {};
   
   for (const [itemIdStr, evolution] of Object.entries(SUPPORT_EVOLUTIONS)) {
@@ -122,10 +122,7 @@ const createLegacySupportEvolutions = () => {
   }
   
   return legacy;
-};
-
-// Legacy compatibility exports
-export const SUPPORT_ITEM_EVOLUTIONS = createLegacySupportEvolutions();
+})();
 
 // Player timeline result - simplified structure
 export interface PlayerTimeline {
