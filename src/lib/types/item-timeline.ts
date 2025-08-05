@@ -88,6 +88,24 @@ export interface SupportItemEvolution {
   readonly evolutionType: string;
 }
 
+// Support item evolution data - simplified mapping
+export interface SupportEvolution {
+  readonly stage: 'base' | 'tier1' | 'tier2' | 'tier3';
+  readonly name: string;
+}
+
+// Support item evolution mapping - Current World Atlas System
+export const SUPPORT_EVOLUTIONS: Record<number, SupportEvolution> = {
+  3865: { stage: 'base', name: 'World Atlas' },
+  3866: { stage: 'tier1', name: 'Runic Compass' },
+  3867: { stage: 'tier2', name: 'Bounty of Worlds' },
+  3869: { stage: 'tier3', name: 'Celestial Opposition' },
+  3870: { stage: 'tier3', name: 'Dream Maker' },
+  3871: { stage: 'tier3', name: "Zaz'Zak's Realmspike" },
+  3876: { stage: 'tier3', name: 'Solstice Sleigh' },
+  3877: { stage: 'tier3', name: 'Bloodsong' },
+} as const;
+
 // Create legacy compatible support item evolutions
 const createLegacySupportEvolutions = () => {
   const legacy: Record<number, SupportItemEvolution> = {};
@@ -108,24 +126,6 @@ const createLegacySupportEvolutions = () => {
 
 // Legacy compatibility exports
 export const SUPPORT_ITEM_EVOLUTIONS = createLegacySupportEvolutions();
-
-// Support item evolution data - simplified mapping
-export interface SupportEvolution {
-  readonly stage: 'base' | 'tier1' | 'tier2' | 'tier3';
-  readonly name: string;
-}
-
-// Support item evolution mapping - Current World Atlas System
-export const SUPPORT_EVOLUTIONS: Record<number, SupportEvolution> = {
-  3865: { stage: 'base', name: 'World Atlas' },
-  3866: { stage: 'tier1', name: 'Runic Compass' },
-  3867: { stage: 'tier2', name: 'Bounty of Worlds' },
-  3869: { stage: 'tier3', name: 'Celestial Opposition' },
-  3870: { stage: 'tier3', name: 'Dream Maker' },
-  3871: { stage: 'tier3', name: "Zaz'Zak's Realmspike" },
-  3876: { stage: 'tier3', name: 'Solstice Sleigh' },
-  3877: { stage: 'tier3', name: 'Bloodsong' },
-} as const;
 
 // Player timeline result - simplified structure
 export interface PlayerTimeline {
