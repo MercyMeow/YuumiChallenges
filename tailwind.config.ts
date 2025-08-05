@@ -91,8 +91,8 @@ const config: Config = {
         xl: "var(--radius-xl)",
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "sans-serif"],
-        mono: ["var(--font-geist-mono)", "monospace"],
+        sans: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+        mono: ["SF Mono", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
       },
       width: {
         "sidebar": "var(--sidebar-width)",
