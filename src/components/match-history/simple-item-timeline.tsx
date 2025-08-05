@@ -14,13 +14,9 @@ import {
   X,
   Trash2,
   ArrowRight,
-  Sparkles,
   Package,
   AlertCircle,
   Trophy,
-  Crown,
-  Star,
-  Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { isFinalSupportItemEvolution } from '@/lib/utils/match-timeline-utils';
@@ -111,23 +107,24 @@ const detectSupportQuestCompletions = (
   return completions.sort((a, b) => a.timestamp - b.timestamp);
 };
 
-
 /**
  * Detect evolution chains in timeline events
  */
-const detectEvolutionChains = (events: readonly ItemEvent[]): Map<number, ItemEvent[]> => {
+const detectEvolutionChains = (
+  events: readonly ItemEvent[]
+): Map<number, ItemEvent[]> => {
   const chains = new Map<number, ItemEvent[]>();
-  
+
   // Group evolution events by item ID
-  const evolutionEvents = events.filter(event => event.isEvolution);
-  
+  const evolutionEvents = events.filter((event) => event.isEvolution);
+
   for (const event of evolutionEvents) {
     if (!chains.has(event.itemId)) {
       chains.set(event.itemId, []);
     }
     chains.get(event.itemId)?.push(event);
   }
-  
+
   return chains;
 };
 
@@ -168,6 +165,7 @@ const filterEvents = (
 /**
  * Tone down colors for icons to improve contrast without glare.
  * Also show item icon before the item name instead of the event name when possible.
+ * Remove any special evolution effects (sparkles/glow). Evolution events will not have animated or standout icons.
  */
 const getEventIcon = (
   event: ItemEvent,
@@ -186,7 +184,7 @@ const getEventIcon = (
     );
   }
 
-  // Fallback to generic type icon with toned-down palette
+  // Fallback to generic type icon with toned-down palette (no evolution-specific icons)
   switch (event.type) {
     case 'ITEM_PURCHASED':
       return <ShoppingCart className="h-4 w-4 text-emerald-300" />;
@@ -220,12 +218,10 @@ const getEventColor = (eventType: string) => {
 };
 
 /**
- * Reduce border contrast for non-evolution events, keep evolution clear but not overpowering.
+ * Unify border contrast; remove special evolution border emphasis to avoid extra effect.
+ * Badge will remain the only differentiation for evolution events.
  */
-const getEventBorderColor = (eventType: string, isEvolution: boolean) => {
-  if (isEvolution) {
-    return 'border-purple-400/30';
-  }
+const getEventBorderColor = (eventType: string, _isEvolution: boolean) => {
   switch (eventType) {
     case 'ITEM_PURCHASED':
       return 'border-emerald-400/15';
@@ -309,11 +305,8 @@ const SupportQuestCompletionItem = ({
       {/* Quest icon */}
       <div className="flex-shrink-0">
         <div className="flex h-10 w-10 items-center justify-center rounded-full border border-purple-400/50 bg-gradient-to-r from-purple-500/30 to-blue-500/30">
-          {completion.isQuestComplete ? (
-            <Crown className="h-5 w-5 text-yellow-400" />
-          ) : (
-            <Star className="h-5 w-5 text-purple-300" />
-          )}
+          {/* Intentionally no decorative icon per spec */}
+          <span className="text-xs text-purple-200">Quest</span>
         </div>
       </div>
 
@@ -403,9 +396,7 @@ const ItemEventItem = ({
             <span className={cn('font-medium', getEventColor(event.type))}>
               {formatEventType(event.type, isEvolutionChain)}
             </span>
-            {isEvolutionChain && event.type === 'ITEM_DESTROYED' && (
-              <Zap className="h-4 w-4 text-purple-400" />
-            )}
+            {/* No additional evolution effect icon per spec */}
             <ItemNameDisplay itemId={event.itemId} />
 
             {/* Evolution badge */}
@@ -418,7 +409,7 @@ const ItemEventItem = ({
                   ''
                 )}
               >
-                <Sparkles className="mr-1 h-3 w-3" />
+                {/* Removed sparkles effect icon per spec */}
                 {isEvolutionChain && event.type === 'ITEM_DESTROYED'
                   ? 'Evolution Chain'
                   : `Evolution ${event.evolutionStage?.toUpperCase() || ''}`}
@@ -429,7 +420,7 @@ const ItemEventItem = ({
             {event.type === 'ITEM_PURCHASED' &&
               isFinalSupportItemEvolution(event.itemId) && (
                 <Badge className="border-yellow-500/30 bg-yellow-500/20 text-yellow-300">
-                  <Crown className="mr-1 h-3 w-3" />
+                  {/* Removed crown effect icon per spec */}
                   FINAL EVOLUTION
                 </Badge>
               )}
@@ -546,9 +537,7 @@ const GroupedEventItem = ({
                 >
                   {formatEventType(event.type, isEvolutionChain)}
                 </span>
-                {isEvolutionChain && event.type === 'ITEM_DESTROYED' && (
-                  <Zap className="h-3 w-3 text-purple-400" />
-                )}
+                {/* No additional evolution effect icon per spec */}
                 <ItemNameDisplay itemId={event.itemId} className="text-sm" />
 
                 {/* Evolution badge */}
@@ -561,7 +550,7 @@ const GroupedEventItem = ({
                       ''
                     )}
                   >
-                    <Sparkles className="mr-1 h-2 w-2" />
+                    {/* Removed sparkles effect icon per spec */}
                     {isEvolutionChain && event.type === 'ITEM_DESTROYED'
                       ? 'Evolution Chain'
                       : `Evolution ${event.evolutionStage?.toUpperCase() || ''}`}
@@ -572,7 +561,7 @@ const GroupedEventItem = ({
                 {event.type === 'ITEM_PURCHASED' &&
                   isFinalSupportItemEvolution(event.itemId) && (
                     <Badge className="border-yellow-500/30 bg-yellow-500/20 text-xs text-yellow-300">
-                      <Crown className="mr-1 h-2 w-2" />
+                      {/* Removed crown effect icon per spec */}
                       FINAL
                     </Badge>
                   )}
@@ -687,7 +676,7 @@ const StatsHeader = ({ stats, participantId }: StatsHeaderProps) => {
 
       {stats.evolutions > 0 && (
         <div className="flex items-center gap-1">
-          <Sparkles className="text-accessible-purple h-4 w-4" />
+          {/* Removed sparkles effect icon per spec */}
           <span className="text-accessible-purple">{stats.evolutions}</span>
           <span className="text-muted-foreground">evolutions</span>
         </div>
@@ -821,7 +810,7 @@ export function SimpleItemTimeline({
         {questAnalysis.completions.length > 0 && (
           <div className="mt-3 rounded-lg border border-purple-500/20 bg-gradient-to-r from-purple-500/10 to-blue-500/10 p-3 backdrop-blur-md">
             <div className="mb-2 flex items-center gap-2">
-              <Star className="h-4 w-4 text-purple-300" />
+              {/* Removed star effect icon per spec */}
               <span className="text-sm font-medium text-purple-300">
                 Support Quest Progress
               </span>
@@ -839,12 +828,12 @@ export function SimpleItemTimeline({
                 >
                   {completion.isQuestComplete ? (
                     <>
-                      <Crown className="mr-1 h-3 w-3" />
+                      {/* Removed crown effect icon per spec */}
                       Quest Complete at {completion.timeFormatted}
                     </>
                   ) : (
                     <>
-                      <Star className="mr-1 h-3 w-3" />
+                      {/* Removed star effect icon per spec */}
                       {completion.tier.toUpperCase()} at{' '}
                       {completion.timeFormatted}
                     </>

@@ -49,12 +49,95 @@ import {
   BarChart3,
   GitCompare,
   X,
-  Sparkles,
-  Crown,
   Timer,
   Coins,
+  // Keep icons used elsewhere in this page (but avoid special effects in UI)
+  Sparkles,
+  Crown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// --- Added: lightweight rune metrics helpers ---
+function computeRuneMetrics(participant: any) {
+  const metrics: Record<string, { label: string; value: string }> = {};
+
+  // Keystone metrics via perks.selections var fields when exposed
+  const primary = participant?.perks?.styles?.find(
+    (s: any) => s.description === 'primaryStyle'
+  );
+  const keystone = primary?.selections?.[0];
+  if (keystone?.perk != null) {
+    const kVar1 = Number.isFinite(keystone.var1) ? keystone.var1 : null;
+    const kVar2 = Number.isFinite(keystone.var2) ? keystone.var2 : null;
+    const kVar3 = Number.isFinite(keystone.var3) ? keystone.var3 : null;
+
+    let detail = '';
+    if (kVar1 != null || kVar2 != null || kVar3 != null) {
+      const parts = [];
+      if (kVar1 != null) parts.push(`v1:${kVar1}`);
+      if (kVar2 != null) parts.push(`v2:${kVar2}`);
+      if (kVar3 != null) parts.push(`v3:${kVar3}`);
+      detail = parts.join(' ');
+    } else {
+      detail = 'n/a';
+    }
+    metrics[`keystone_${keystone.perk}`] = {
+      label: 'Keystone Vars',
+      value: detail,
+    };
+  }
+
+  // Common secondary rune aggregates from participant.challenges when present
+  const c = participant?.challenges || {};
+  const totals = [
+    ['triumphHealing', 'Triumph Heal'],
+    ['cheapShotDamage', 'Cheap Shot Dmg'],
+    ['shieldBashDamage', 'Shield Bash Dmg'],
+    ['scorchDamage', 'Scorch Dmg'],
+    ['lastStandDamage', 'Last Stand Dmg'],
+    ['timeCCingOthers', 'CC Time'],
+    ['totalHealsOnTeammates', 'Heals on Allies'],
+    ['totalDamageShieldedOnTeammates', 'Shields on Allies'],
+  ] as const;
+
+  for (const [key, label] of totals) {
+    const v = c[key as keyof typeof c];
+    if (typeof v === 'number' && isFinite(v)) {
+      const value =
+        key === 'timeCCingOthers' ? `${Math.round(v)} s` : `${Math.round(v)}`;
+      metrics[key] = { label, value };
+    }
+  }
+
+  // Stat shards selected (ids only; display compact)
+  const shards = participant?.perks?.statPerks;
+  if (shards) {
+    metrics['shards'] = {
+      label: 'Shards',
+      value: `O:${shards.offense || 0} F:${shards.flex || 0} D:${shards.defense || 0}`,
+    };
+  }
+
+  return metrics;
+}
+
+// Inline lightweight component to render rune metrics next to rune page
+function RuneMetricsPanel({ participant }: { participant: any }) {
+  const metrics = computeRuneMetrics(participant);
+  const entries = Object.entries(metrics);
+  if (!entries.length) return null;
+
+  return (
+    <div className="mt-2 grid grid-cols-2 gap-2 rounded-md border border-purple-500/20 bg-black/20 p-3 text-xs text-white/90">
+      {entries.map(([key, m]) => (
+        <div key={key} className="flex items-center justify-between gap-2">
+          <span className="text-white/70">{m.label}</span>
+          <span className="font-semibold">{m.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 interface MatchDetailsData {
   matchData: {
@@ -1590,34 +1673,7 @@ export default function MatchDetailsPage() {
                             {selectedPlayerData.wardsKilled}
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-white/60">
-                            Support Quest Completed
-                          </span>
-                          <span
-                            className={(() => {
-                              const questCompleted =
-                                supportItemCompletionTimes?.tier2 ??
-                                supportItemCompletionTimes?.tier3 ??
-                                supportItemCompletionTimes?.tier1 ??
-                                null;
-                              return questCompleted
-                                ? 'text-green-400'
-                                : 'text-white/60';
-                            })()}
-                          >
-                            {(() => {
-                              const questCompleted =
-                                supportItemCompletionTimes?.tier2 ??
-                                supportItemCompletionTimes?.tier3 ??
-                                supportItemCompletionTimes?.tier1 ??
-                                null;
-                              return questCompleted
-                                ? formatMatchTime(questCompleted)
-                                : '—';
-                            })()}
-                          </span>
-                        </div>
+                        {/* Removed duplicated Support Quest Completed row per feedback */}
 
                         {/* Debug: Show detailed support item progression */}
                         {process.env.NODE_ENV === 'development' &&
@@ -1743,50 +1799,7 @@ export default function MatchDetailsPage() {
                       </div>
                     </div>
 
-                    {/* Support Item Progression */}
-                    {supportItemCompletionTimes &&
-                      Object.values(supportItemCompletionTimes).some(
-                        (time) => time !== null
-                      ) && (
-                        <div className="space-y-3">
-                          <h3 className="flex items-center gap-2 text-lg font-semibold text-cyan-400">
-                            <Sparkles className="h-5 w-5" />
-                            Support Item Progression
-                          </h3>
-                          <div className="space-y-2">
-                            {Object.entries(supportItemCompletionTimes).map(
-                              ([tier, timestamp]) => {
-                                if (timestamp === null) return null;
-
-                                const tierNames = {
-                                  base: 'Support Item Started',
-                                  tier1: 'Tier 1 Evolution',
-                                  tier2: 'Quest Completed (Runic Compass→Bounty)',
-                                  tier3: 'Final Evolution',
-                                };
-
-                                return (
-                                  <div
-                                    key={tier}
-                                    className="flex justify-between"
-                                  >
-                                    <span className="text-white/60">
-                                      {
-                                        tierNames[
-                                          tier as keyof typeof tierNames
-                                        ]
-                                      }
-                                    </span>
-                                    <span className="font-medium text-cyan-400">
-                                      {formatMatchTime(timestamp)}
-                                    </span>
-                                  </div>
-                                );
-                              }
-                            )}
-                          </div>
-                        </div>
-                      )}
+                    {/* Removed duplicated Support Item Progression block per feedback */}
 
                     {/* Multikills & Streaks */}
                     <div className="space-y-3">

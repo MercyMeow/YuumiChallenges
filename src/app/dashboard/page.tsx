@@ -6,11 +6,12 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { 
   ChallengesCard, 
   LeagueProfileCard
-} from '@/components/dashboard/dashboard-cards-minimal';
+} from '@/components/dashboard/dashboard-cards';
 // import { EnhancedMatchHistoryDisplay } from '@/components/match-history/enhanced-match-history-display';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshStatus } from '@/lib/types';
-import { Sparkles, Activity, Users, Loader2 } from 'lucide-react';
+import { Sparkles, Activity, Users, Loader2, Gamepad2 } from 'lucide-react';
 
 
 interface SummonerData {
@@ -115,40 +116,39 @@ export default function Dashboard() {
     }
   };
 
-  // Temporarily commented out for debugging
-  // const handleManualRefresh = async () => {
-  //   if (!refreshStatus?.can_manual_refresh || isRefreshing) {
-  //     return;
-  //   }
-  //   
-  //   try {
-  //     setIsRefreshing(true);
-  //     
-  //     const response = await fetch('/api/summoners/refresh', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ manual: true }),
-  //     });
-  //     
-  //     const result = await response.json();
-  //     
-  //     if (response.ok) {
-  //       if (result.success || result.data?.partial_success) {
-  //         // Refresh all data after successful manual refresh
-  //         await fetchSummonerData(false);
-  //         await fetchRefreshStatus(); // Update refresh status
-  //       } else {
-  //         console.error('Refresh failed:', result.message);
-  //       }
-  //     } else {
-  //       console.error('Refresh API error:', response.status, result);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error during manual refresh:', error);
-  //   } finally {
-  //     setIsRefreshing(false);
-  //   }
-  // };
+  const handleManualRefresh = async () => {
+    if (!refreshStatus?.can_manual_refresh || isRefreshing) {
+      return;
+    }
+    
+    try {
+      setIsRefreshing(true);
+      
+      const response = await fetch('/api/summoners/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manual: true }),
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        if (result.success || result.data?.partial_success) {
+          // Refresh all data after successful manual refresh
+          await fetchSummonerData(false);
+          await fetchRefreshStatus(); // Update refresh status
+        } else {
+          console.error('Refresh failed:', result.message);
+        }
+      } else {
+        console.error('Refresh API error:', response.status, result);
+      }
+    } catch (error) {
+      console.error('Error during manual refresh:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
 
   // Initial data loading - removed function dependencies to prevent infinite loop
@@ -308,16 +308,29 @@ export default function Dashboard() {
           </div>
           
           {/* Enhanced Match History Display */}
-          {/* Temporarily commented out to debug circular dependency
           {summonerData?.summoner && (
-            <EnhancedMatchHistoryDisplay
-              summonerId={summonerData.summoner.puuid}
-              currentUserPuuid={summonerData.summoner.puuid}
-              onRefresh={handleManualRefresh}
-              isRefreshing={isRefreshing}
-            />
+            <Card className="border border-purple-500/20 bg-black/20 backdrop-blur-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Gamepad2 className="h-5 w-5" />
+                  Recent Matches
+                </CardTitle>
+                <CardDescription>
+                  Your recent League of Legends match history
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">
+                    Match history temporarily disabled due to technical improvements.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Full match history with detailed stats will be restored soon!
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           )}
-          */}
         </section>
       </main>
     </DashboardLayout>
