@@ -14,13 +14,13 @@ type BestRunesShape = {
   primary: {
     tree: string;
     keystone: { id: number; name: string };
-    slots: { id: number; name: string }[];
+    slots: ReadonlyArray<{ id: number; name: string }>;
   };
   secondary: {
     tree: string;
-    slots: { id: number; name: string }[];
+    slots: ReadonlyArray<{ id: number; name: string }>;
   };
-  shards: { id: number; name: string }[];
+  shards: ReadonlyArray<{ id: number; name: string }>;
 };
 
 type Props = {

@@ -11,7 +11,6 @@ export const Soraka: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch for poke. Resolve secondary Font of Life + Revitalize; Second Wind into double poke.',
   recommendedItems:
-    "Moonstone,  Chemtech Putrifier early; then Ardent/Staff by comp. Redemption strong mid-late.",
+    'Moonstone; then Ardent/Staff by comp. Redemption strong mid-late.',
   earlyItems: ['Forbidden Idol early', 'Control Ward for lane brush'],
 };
-
