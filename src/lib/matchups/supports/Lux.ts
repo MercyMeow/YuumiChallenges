@@ -11,6 +11,7 @@ export const Lux: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch; Resolve secondary Font of Life + Revitalize. Second Wind if both support and ADC poke.',
   recommendedItems:
-    'Moonstone first; Staff if allied AP scalers, Ardent for on-hit ADCs. Redemption mitigates artillery poke.',
+    'Moonstone is often strong;  Staff if allied AP scalers, Ardent for on-hit ADCs. Redemption mitigates artillery poke.',
   earlyItems: ['Forbidden Idol', 'Control Ward to deny brush traps'],
 };
+

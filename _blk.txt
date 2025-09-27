@@ -1,0 +1,20 @@
+                <div className="mt-6 rounded-lg border border-purple-500/20 bg-purple-500/10 p-4">
+                  <h3 className="mb-2 text-lg font-semibold text-purple-300">
+                    Item Build Order
+                  </h3>
+                  <div className="space-y-1 text-sm text-white/80">
+                    <p>
+                      <strong>Early:</strong> Faerie Charm ? Health Potion ?
+                      Oracle Lens ? Dream Maker
+                    </p>
+                    <p>
+                      <strong>Mid:</strong> Boots ? Bandleglass Mirror ?
+                      Moonstone Renewer
+                    </p>
+                    <p>
+                      <strong>Late:</strong> Ardent Censer ? Mikael&apos;s
+                      Blessing ? Situational item
+                    </p>
+                  </div>
+                </div>
+

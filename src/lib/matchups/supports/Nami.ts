@@ -11,6 +11,7 @@ export const Nami: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch. Resolve secondary Font of Life + Revitalize; Second Wind in double poke lanes.',
   recommendedItems:
-    "Moonstone -> Ardent for on-hit ADCs or Staff with AP allies. Putrifier if enemy team has extra sustain.",
+    "Moonstone,  Ardent for on-hit ADCs or Staff with AP allies. Putrifier if enemy team has extra sustain.",
   earlyItems: ['Forbidden Idol', 'Control Ward for river/tri'],
 };
+

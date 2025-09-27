@@ -11,6 +11,6 @@ export const Neeko: SupportMatchup = {
   recommendedRunes:
     'Aery default; Resolve secondary Bone Plating + Revitalize vs hard engage, Font of Life otherwise.',
   recommendedItems:
-    "Moonstone first. Mikael's is situational; Shurelya's good to disengage their engage stack.",
+    "Moonstone is frequently strong; consider it early in extended fights. Mikael's is situational; Shurelya's good to disengage their engage stack.",
   earlyItems: ['Forbidden Idol', 'Control Ward to scout disguises'],
 };

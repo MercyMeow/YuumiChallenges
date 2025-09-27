@@ -12,6 +12,6 @@ export const Maokai: SupportMatchup = {
   recommendedRunes:
     'Aery default; Resolve secondary with Bone Plating + Revitalize vs hard engage or Font of Life in slower lanes.',
   recommendedItems:
-    "Moonstone first. Early Mikael's vs heavy CC comps; Redemption for teamfights. Shurelya's helps disengage his ult.",
+    "Moonstone is a common early choice for sustained fights. Early Mikael's vs heavy CC comps; Redemption for teamfights. Shurelya's helps disengage his ult.",
   earlyItems: ['Forbidden Idol', 'Control Ward for lane brush and river'],
 };

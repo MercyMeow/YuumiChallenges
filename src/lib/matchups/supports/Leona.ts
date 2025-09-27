@@ -11,6 +11,6 @@ export const Leona: SupportMatchup = {
   recommendedRunes:
     'Guardian or Aery; Resolve secondary Bone Plating + Revitalize into all-in lanes.',
   recommendedItems:
-    "Moonstone first. Mikael's early if chain-CC is a threat; Shurelya's to kite out engages. Ardent/Staff by comp.",
+    "Moonstone is commonly strong; pick it early if sustained fights matter. Mikael's when chain-CC is a threat; Shurelya's to kite out engages. Ardent/Staff by comp and ally carry.",
   earlyItems: ['Forbidden Idol', 'Control Ward for river/tri'],
 };

@@ -12,6 +12,6 @@ export const Milio: SupportMatchup = {
   recommendedRunes:
     'Aery primary. Resolve secondary with Font of Life + Revitalize. Consider Bone Plating if paired with burst ADC (Draven/Lucian).',
   recommendedItems:
-    "Moonstone -> Ardent vs AS carries; Staff if your team has AP scalers. Shurelya's helps gap-close through his disengage.",
+    "Moonstone and Ardent are both strong depending on comp (Ardent with AS carries); Staff if your team has AP scalers. Shurelya's helps gap-close through his disengage.",
   earlyItems: ['Forbidden Idol early to sustain poke', 'Control Ward for brush control'],
 };

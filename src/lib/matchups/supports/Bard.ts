@@ -16,6 +16,6 @@ export const Bard: SupportMatchup = {
   recommendedRunes:
     'Aery with Scorch to punish his roam windows. Resolve secondary Bone Plating protects vs meep burst',
   recommendedItems:
-    'Moonstone first. Redemption second extremely effective with Bard disengage kiting',
+  'Moonstone is often strong in extended fights. Redemption is extremely effective with Bard disengage kiting',
   earlyItems: ['Control Ward lane brush deny chime safety'],
 };

@@ -11,6 +11,6 @@ export const Poppy: SupportMatchup = {
   recommendedRunes:
     'Aery default; Resolve secondary Bone Plating + Revitalize vs burst lanes.',
   recommendedItems:
-    "Moonstone -> Ardent/Staff by comp. Mikael's is rarely needed; Redemption later for 5v5s.",
+    "Moonstone, Ardent, or Staff by comp. Mikael's is rarely needed; Redemption later for 5v5s.",
   earlyItems: ['Forbidden Idol', 'Control Ward for lane brush'],
 };

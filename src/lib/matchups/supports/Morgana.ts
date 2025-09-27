@@ -12,6 +12,6 @@ export const Morgana: SupportMatchup = {
   recommendedRunes:
     'Aery default. Resolve secondary with Font of Life + Revitalize; Bone Plating if paired with burst ADCs.',
   recommendedItems:
-    "Moonstone -> Ardent/Staff by comp. Mikael's is premium in this matchup; Redemption later for grouped fights.",
+    "Moonstone, Ardent, or Staff by comp. Mikael's is premium in this matchup; Redemption later for grouped fights.",
   earlyItems: ['Forbidden Idol', 'Control Ward to break brush traps'],
 };

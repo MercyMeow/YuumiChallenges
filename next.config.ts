@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   eslint: {
@@ -24,6 +24,12 @@ const nextConfig: NextConfig = {
         hostname: 'ddragon.leagueoflegends.com',
         port: '',
         pathname: '/cdn/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'raw.githubusercontent.com',
+        port: '',
+        pathname: '/MercyMeow/YuumiChallenges/**',
       },
     ],
   },

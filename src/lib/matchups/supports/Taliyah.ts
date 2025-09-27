@@ -12,9 +12,10 @@ export const Taliyah: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch; Resolve secondary Font of Life + Revitalize. Bone Plating if enemy duo is bursty.',
   recommendedItems:
-    "Moonstone -> Staff if your team has AP scalers; Ardent for on-hit ADCs. Redemption is strong in grouped fights.",
+    "Moonstone,  Staff if your team has AP scalers; Ardent for on-hit ADCs. Redemption is strong in grouped fights.",
   earlyItems: [
-    'Forbidden Idol first when possible',
+    'Forbidden Idol early when possible',
     'Control Ward for river/tri',
   ],
 };
+

@@ -10,7 +10,8 @@ export const Yone: BotLaneSynergy = {
     'Q poke supports to set up his knockups; avoid detaching into CC.',
   ],
   buildAdjustments: [
-    "Shurelya's high value to start fights; Mikael's vs point-and-click CC.",
+    "Shurelya's can be high value to start fights; Mikael's vs point-and-click CC.",
     'Ardent good but not mandatory; prioritize survivability tools if enemy has heavy engage.',
   ],
 };
+

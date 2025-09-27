@@ -11,6 +11,6 @@ export const Heimerdinger: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch for poke; Resolve secondary Font of Life + Revitalize or Second Wind vs double poke.',
   recommendedItems:
-    'Moonstone first; Redemption strong vs AoE poke. Staff if your team has AP scalers; Ardent for on-hit ADCs.',
+    'Moonstone is often strong in extended fights; Redemption strong vs AoE poke. Staff if your team has AP scalers; Ardent for on-hit ADCs.',
   earlyItems: ['Forbidden Idol', 'Control Ward to contest lane brush'],
 };

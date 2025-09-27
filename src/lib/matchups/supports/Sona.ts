@@ -13,6 +13,7 @@ export const Sona: SupportMatchup = {
   recommendedRunes:
     'Aery primary. Resolve secondary with Revitalize + Font of Life for extended trades; swap Bone Plating vs heavy engage duo.',
   recommendedItems:
-    "Moonstone -> Ardent vs on-hit ADCs or Staff vs AP allies. Add Redemption for mid-late skirmishes; Mikael's rarely needed.",
+    "Moonstone,  Ardent vs on-hit ADCs or Staff vs AP allies. Add Redemption for mid-late skirmishes; Mikael's rarely needed.",
   earlyItems: ['Forbidden Idol rush if lane is poke-heavy', 'Control Ward to deny river ganks'],
 };
+

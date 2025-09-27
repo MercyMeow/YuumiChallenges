@@ -11,6 +11,6 @@ export const Pyke: SupportMatchup = {
   recommendedRunes:
     'Guardian or Aery; Resolve secondary Bone Plating + Revitalize. Consider Stopwatch purchase into dive lanes.',
   recommendedItems:
-    "Moonstone first; Mikael's situational. Shurelya's helps your team escape his picks.",
+    "Moonstone is often strong; consider it early in extended skirmishes. Mikael's situational. Shurelya's helps your team escape his picks.",
   earlyItems: ['Control Ward for river/tri', 'Forbidden Idol for sustain'],
 };

@@ -11,6 +11,7 @@ export const Zyra: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch for lane. Resolve secondary Font of Life + Revitalize; Second Wind into double poke.',
   recommendedItems:
-    'Moonstone first; Redemption mitigates AoE. Staff or Ardent depending on ally carries. Putrifier if enemy has heavy sustain.',
+    'Moonstone is often strong;  Redemption mitigates AoE. Staff or Ardent depending on ally carries. Putrifier if enemy has heavy sustain.',
   earlyItems: ['Forbidden Idol', 'Control Ward for river/tri'],
 };
+

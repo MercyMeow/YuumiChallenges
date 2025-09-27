@@ -12,6 +12,7 @@ export const Seraphine: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch to control lane. Resolve secondary with Font of Life + Revitalize for extended trades.',
   recommendedItems:
-    'Moonstone -> Staff if allied AP scalers; Ardent for on-hit ADCs. Redemption is strong in grouped fights.',
+    'Moonstone,  Staff if allied AP scalers; Ardent for on-hit ADCs. Redemption is strong in grouped fights.',
   earlyItems: ['Forbidden Idol early', 'Control Ward for lane brush'],
 };
+

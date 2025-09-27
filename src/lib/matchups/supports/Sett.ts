@@ -11,6 +11,6 @@ export const Sett: SupportMatchup = {
   recommendedRunes:
     'Aery default; Resolve secondary Bone Plating + Revitalize into burst lanes.',
   recommendedItems:
-    "Moonstone -> Ardent/Staff by comp. Shurelya's helps kite away from his engage.",
+    "Moonstone, Ardent, or Staff by comp (choose based on ally damage profile and fight length). Shurelya's helps kite away from his engage.",
   earlyItems: ['Forbidden Idol', 'Control Ward for river/tri'],
 };

@@ -12,6 +12,6 @@ export const Rell: SupportMatchup = {
   recommendedRunes:
     'Guardian or Aery; Resolve secondary with Bone Plating + Revitalize for all-in mitigation.',
   recommendedItems:
-    "Moonstone first for sustain, then Mikael's vs heavy CC. Consider Shurelya's to disengage her ultimate pulls.",
-  earlyItems: ['Forbidden Idol first', 'Control Ward to watch flank angles'],
+    "Moonstone is strong for sustain; consider it early if fights run long. Mikael's vs heavy CC. Consider Shurelya's to disengage her ultimate pulls.",
+  earlyItems: ['Forbidden Idol early', 'Control Ward to watch flank angles'],
 };

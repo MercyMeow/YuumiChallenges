@@ -12,6 +12,7 @@ export const Taric: SupportMatchup = {
   recommendedRunes:
     'Aery default. Resolve secondary with Bone Plating + Revitalize if enemy comp has reliable engage.',
   recommendedItems:
-    "Moonstone first. Add Ardent for on-hit ADCs or Redemption for teamfights. Mikael's is niche - Taric has little hard CC chains.",
+    "Moonstone is often strong. Add Ardent for on-hit ADCs or Redemption for teamfights. Mikael's is niche - Taric has little hard CC chains.",
   earlyItems: ['Forbidden Idol early', 'Control Ward for river/tri'],
 };
+

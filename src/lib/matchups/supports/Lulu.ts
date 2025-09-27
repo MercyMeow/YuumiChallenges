@@ -11,6 +11,7 @@ export const Lulu: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch. Resolve secondary Font of Life + Revitalize; Bone Plating vs burst duos.',
   recommendedItems:
-    "Moonstone -> Ardent for on-hit ADCs; Staff if allied AP scalers. Mikael's is low priority here; Redemption strong later.",
-  earlyItems: ['Forbidden Idol first', 'Control Ward for river/tri'],
+    "Moonstone,  Ardent for on-hit ADCs; Staff if allied AP scalers. Mikael's is low priority here; Redemption strong later.",
+  earlyItems: ['Forbidden Idol early', 'Control Ward for river/tri'],
 };
+

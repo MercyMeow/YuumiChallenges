@@ -11,6 +11,6 @@ export const Karma: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch; Resolve secondary Font of Life + Revitalize. Take Second Wind into double poke lanes.',
   recommendedItems:
-    "Moonstone -> Staff if allied AP scalers; Ardent with on-hit ADCs. Redemption strong in grouped fights.",
+    "Moonstone or Staff if allied AP scalers; Ardent with on-hit ADCs. Redemption strong in grouped fights.",
   earlyItems: ['Forbidden Idol', 'Control Ward for lane brush'],
 };
