@@ -12,6 +12,6 @@ export const Galio: SupportMatchup = {
   recommendedRunes:
     'Aery default; Resolve secondary with Bone Plating + Revitalize vs engage lanes.',
   recommendedItems:
-    "Moonstone first. Consider Shurelya's to disengage or outrun his engage windows. Mikael's situational vs heavy CC.",
+    "Moonstone is frequently strong in sustained skirmishes. Consider Shurelya's to disengage or outrun his engage windows. Mikael's situational vs heavy CC.",
   earlyItems: ['Forbidden Idol early', 'Control Ward for river and tri-brush'],
 };

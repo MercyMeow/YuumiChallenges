@@ -9,5 +9,6 @@ export const Quinn: BotLaneSynergy = {
     'Use R to apply slows on side-lane picks; then swap hosts for mid push.',
     'Q from brush to soften targets in lane; avoid detaching into CC.',
   ],
-  buildAdjustments: ["Shurelya's high value; Mikael's situational; Ardent optional"],
+  buildAdjustments: ["Shurelya's can be high value; Mikael's situational; Ardent optional"],
 };
+

@@ -12,6 +12,6 @@ export const Fiddlesticks: SupportMatchup = {
   recommendedRunes:
     'Aery default. Resolve secondary with Bone Plating + Revitalize or Font of Life if fights are longer.',
   recommendedItems:
-    "Moonstone first. Early Mikael's is high value; Redemption mitigates AoE. Consider Stopwatch for clutch R peel plays.",
+    "Moonstone is often strong in extended fights. Early Mikael's is high value; Redemption mitigates AoE. Consider Stopwatch for clutch R peel plays.",
   earlyItems: ['Control Wards for flanks', 'Forbidden Idol for sustain vs poke'],
 };

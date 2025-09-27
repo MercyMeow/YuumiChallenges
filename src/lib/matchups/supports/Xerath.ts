@@ -12,9 +12,10 @@ export const Xerath: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch for lane control. Resolve secondary (Font of Life + Revitalize); swap Second Wind vs double poke.',
   recommendedItems:
-    "Moonstone -> Staff if team has AP scalers, or Ardent with on-hit ADCs. Redemption helps versus artillery poke comps.",
+    "Moonstone,  Staff if team has AP scalers, or Ardent with on-hit ADCs. Redemption helps versus artillery poke comps.",
   earlyItems: [
-    'Forbidden Idol first when possible',
+    'Forbidden Idol early when possible',
     'Control Ward to secure lane brush',
   ],
 };
+

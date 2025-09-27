@@ -12,6 +12,6 @@ export const TahmKench: SupportMatchup = {
   recommendedRunes:
     'Aery primary; Resolve secondary with Bone Plating + Revitalize into burst lanes, Font of Life otherwise.',
   recommendedItems:
-    "Moonstone first; Ardent vs on-hit ADCs. Shurelya's helps your team kite Tahm's approach.",
+    "Moonstone is commonly strong in extended fights; Ardent vs on-hit ADCs. Shurelya's helps your team kite Tahm's approach.",
   earlyItems: ['Forbidden Idol rush', 'Control Ward to watch river wrap ganks'],
 };

@@ -12,6 +12,7 @@ export const Renata: SupportMatchup = {
   recommendedRunes:
     'Aery default. Resolve secondary Font of Life + Revitalize; Bone Plating if enemy duo has burst.',
   recommendedItems:
-    "Moonstone -> Ardent/Staff by comp. Add Mikael's early if she is landing Q reliably; Redemption later for grouped fights.",
-  earlyItems: ['Forbidden Idol first back when possible', 'Control Ward for bot river'],
+    "Moonstone,  Ardent/Staff by comp. Add Mikael's early if she is landing Q reliably; Redemption later for grouped fights.",
+  earlyItems: ['Forbidden Idol early back when possible', 'Control Ward for bot river'],
 };
+

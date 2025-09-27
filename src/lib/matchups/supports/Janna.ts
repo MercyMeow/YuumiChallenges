@@ -11,6 +11,6 @@ export const Janna: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch. Resolve secondary Font of Life + Revitalize; Bone Plating only vs bursty duos.',
   recommendedItems:
-    "Moonstone -> Ardent with on-hit ADCs or Staff with AP allies. Redemption strong in extended fights.",
-  earlyItems: ['Forbidden Idol first back', 'Control Ward to contest river/tri'],
+    "Moonstone, Ardent with on-hit ADCs, or Staff with AP allies. Redemption strong in extended fights.",
+  earlyItems: ['Forbidden Idol early back', 'Control Ward to contest river/tri'],
 };

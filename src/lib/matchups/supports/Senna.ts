@@ -11,6 +11,7 @@ export const Senna: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch; Resolve secondary Font of Life + Revitalize. Second Wind if ADC + Senna both poke.',
   recommendedItems:
-    'Moonstone -> Ardent for on-hit ADCs; Staff if AP allies. Putrifier if enemy comp has additional sustain.',
-  earlyItems: ['Forbidden Idol first', 'Control Ward for lane brush'],
+    'Moonstone,  Ardent for on-hit ADCs; Staff if AP allies. Putrifier if enemy comp has additional sustain.',
+  earlyItems: ['Forbidden Idol early', 'Control Ward for lane brush'],
 };
+

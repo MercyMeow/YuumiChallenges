@@ -11,6 +11,6 @@ export const Rakan: SupportMatchup = {
   recommendedRunes:
     'Aery default; Resolve secondary Bone Plating + Revitalize vs hard engage duos.',
   recommendedItems:
-    "Moonstone first; Shurelya's helps disengage or chase after his all-in. Mikael's if paired with additional hard CC.",
+    "Moonstone is commonly strong; consider it early for longer fights. Shurelya's helps disengage or chase after his all-in. Mikael's if paired with additional hard CC.",
   earlyItems: ['Forbidden Idol', 'Control Ward for lane brush'],
 };

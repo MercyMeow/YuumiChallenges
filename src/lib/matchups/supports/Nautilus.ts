@@ -11,6 +11,6 @@ export const Nautilus: SupportMatchup = {
   recommendedRunes:
     'Guardian or Aery; Resolve secondary Bone Plating + Revitalize into hard engage lanes.',
   recommendedItems:
-    "Moonstone first. Early Mikael's vs reliable hooks; Shurelya's to disengage his engage chains.",
+    "Moonstone is often strong; consider it early for sustained fights. Early Mikael's vs reliable hooks; Shurelya's to disengage his engage chains.",
   earlyItems: ['Forbidden Idol', 'Control Ward for lane brush'],
 };

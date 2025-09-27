@@ -10,6 +10,7 @@ export const Yasuo: BotLaneSynergy = {
     'Q poke supports between waves to soften targets for his engage; avoid detaching into CC.',
   ],
   buildAdjustments: [
-    "Ardent decent; Shurelya's high value to start fights on his timings. Mikael's vs point-and-click CC.",
+    "Ardent decent; Shurelya's can be high value to start fights on his timings. Mikael's vs point-and-click CC.",
   ],
 };
+

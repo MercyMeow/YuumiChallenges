@@ -12,6 +12,7 @@ export const Velkoz: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch; Resolve secondary with Font of Life + Revitalize. Consider Second Wind in double poke lanes.',
   recommendedItems:
-    "Moonstone first; Staff if your team has AP casters, Ardent for on-hit ADCs. Redemption mitigates his AoE in extended fights.",
+    "Moonstone is often strong;  Staff if your team has AP casters, Ardent for on-hit ADCs. Redemption mitigates his AoE in extended fights.",
   earlyItems: ['Forbidden Idol early', 'Control Ward for river/brush control'],
 };
+

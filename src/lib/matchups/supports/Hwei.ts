@@ -11,6 +11,6 @@ export const Hwei: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch for poke. Resolve secondary with Font of Life + Revitalize or Second Wind vs heavy poke.',
   recommendedItems:
-    "Moonstone -> Staff if allied AP scalers; Ardent with on-hit ADCs. Redemption is strong vs poke comps.",
+    "Moonstone or Staff if allied AP scalers; Ardent with on-hit ADCs. Redemption is strong vs poke comps.",
   earlyItems: ['Forbidden Idol', 'Control Ward for river/brush'],
 };

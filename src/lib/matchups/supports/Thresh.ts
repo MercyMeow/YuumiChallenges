@@ -12,6 +12,6 @@ export const Thresh: SupportMatchup = {
   recommendedRunes:
     'Guardian or Aery; Resolve secondary Bone Plating + Revitalize into hook lanes.',
   recommendedItems:
-    "Moonstone -> Mikael's early if hooks land; Shurelya\'s to disengage chain engages.",
+    "Moonstone is a common sustain choice; consider Mikael's early if hooks reliably land. Shurelya's to disengage chain engages.",
   earlyItems: ['Control Ward for brush', 'Forbidden Idol for sustain'],
 };

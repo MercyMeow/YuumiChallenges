@@ -11,6 +11,6 @@ export const Zilean: SupportMatchup = {
   recommendedRunes:
     'Aery default; Resolve secondary Font of Life + Revitalize. Second Wind if both support and ADC poke heavily.',
   recommendedItems:
-    "Moonstone -> Ardent/Staff by comp. Shurelya's helps you disengage his speed-engage windows.",
+    "Moonstone, Ardent, or Staff by comp (choose based on ally damage profile and fight cadence). Shurelya's helps you disengage his speed-engage windows.",
   earlyItems: ['Forbidden Idol early', 'Control Ward for lane brush'],
 };
