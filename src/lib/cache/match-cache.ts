@@ -5,7 +5,7 @@ interface CacheEntry<T> {
 }
 
 class MatchCache {
-  private cache: Map<string, CacheEntry<any>>;
+  private cache: Map<string, CacheEntry<unknown>>;
   private readonly DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes
   private readonly MAX_ENTRIES = 100; // Maximum cache entries
 
@@ -18,7 +18,7 @@ class MatchCache {
    */
   get<T>(key: string): T | null {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       return null;
     }
@@ -85,7 +85,7 @@ class MatchCache {
    */
   private cleanup(): void {
     const now = Date.now();
-    
+
     // Remove expired entries
     for (const [key, entry] of this.cache.entries()) {
       if (now > entry.expiresAt) {
@@ -95,9 +95,10 @@ class MatchCache {
 
     // If still over limit, remove oldest entries
     if (this.cache.size >= this.MAX_ENTRIES) {
-      const sortedEntries = Array.from(this.cache.entries())
-        .sort((a, b) => a[1].timestamp - b[1].timestamp);
-      
+      const sortedEntries = Array.from(this.cache.entries()).sort(
+        (a, b) => a[1].timestamp - b[1].timestamp
+      );
+
       // Remove oldest 20% of entries
       const entriesToRemove = Math.floor(this.MAX_ENTRIES * 0.2);
       for (let i = 0; i < entriesToRemove && i < sortedEntries.length; i++) {
@@ -164,7 +165,7 @@ export const CACHE_KEYS = {
 // TTL configurations (in milliseconds)
 export const CACHE_TTL = {
   MATCH_DETAILS: 10 * 60 * 1000, // 10 minutes - match data doesn't change
-  MATCH_TIMELINE: 10 * 60 * 1000, // 10 minutes - timeline data doesn't change  
+  MATCH_TIMELINE: 10 * 60 * 1000, // 10 minutes - timeline data doesn't change
   SUMMONER_DATA: 5 * 60 * 1000, // 5 minutes - summoner data might change
   MATCH_HISTORY: 2 * 60 * 1000, // 2 minutes - new matches might appear
 } as const;

@@ -191,19 +191,47 @@ export function RefreshResult({ result, onDismiss }: RefreshResultProps) {
     return 'green';
   };
 
+  const getStatusClasses = (color: string) => {
+    switch (color) {
+      case 'red':
+        return {
+          container: 'p-4 bg-red-500/10 border border-red-500/20 rounded-lg',
+          icon: 'h-5 w-5 text-red-400',
+          text: 'font-medium text-red-400',
+          button: 'text-red-400 hover:text-red-300 text-sm'
+        };
+      case 'yellow':
+        return {
+          container: 'p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg',
+          icon: 'h-5 w-5 text-yellow-400',
+          text: 'font-medium text-yellow-400',
+          button: 'text-yellow-400 hover:text-yellow-300 text-sm'
+        };
+      case 'green':
+      default:
+        return {
+          container: 'p-4 bg-green-500/10 border border-green-500/20 rounded-lg',
+          icon: 'h-5 w-5 text-green-400',
+          text: 'font-medium text-green-400',
+          button: 'text-green-400 hover:text-green-300 text-sm'
+        };
+    }
+  };
+
   const statusColor = getStatusColor();
+  const statusClasses = getStatusClasses(statusColor);
 
   return (
-    <div className={`p-4 bg-${statusColor}-500/10 border border-${statusColor}-500/20 rounded-lg`}>
+    <div className={statusClasses.container}>
       <div className="flex items-start justify-between">
         <div className="flex items-center space-x-2">
           {success ? (
-            <CheckCircle className={`h-5 w-5 text-${statusColor}-400`} />
+            <CheckCircle className={statusClasses.icon} />
           ) : (
-            <RefreshCw className={`h-5 w-5 text-${statusColor}-400`} />
+            <RefreshCw className={statusClasses.icon} />
           )}
           <div className="flex-1">
-            <p className={`font-medium text-${statusColor}-400`}>{message}</p>
+            <p className={statusClasses.text}>{message}</p>
             
             {data && (
               <div className="mt-2 space-y-1">
@@ -245,7 +273,7 @@ export function RefreshResult({ result, onDismiss }: RefreshResultProps) {
         {onDismiss && (
           <button 
             onClick={onDismiss}
-            className={`text-${statusColor}-400 hover:text-${statusColor}-300 text-sm`}
+            className={statusClasses.button}
           >
             ×
           </button>

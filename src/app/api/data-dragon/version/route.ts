@@ -19,13 +19,26 @@ export async function GET() {
     }
     
     // Fetch latest version from Data Dragon API (server-side, no CORS issues)
-    const response = await fetch('https://ddragon.leagueoflegends.com/api/versions.json', {
-      headers: {
-        'User-Agent': 'YuumiChallenges/1.0',
-      },
-      // Add timeout to prevent hanging requests
-      signal: AbortSignal.timeout(10000) // 10 second timeout
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10_000);
+
+    let response: Response;
+
+    try {
+      response = await fetch('https://ddragon.leagueoflegends.com/api/versions.json', {
+        headers: {
+          'User-Agent': 'YuumiChallenges/1.0',
+        },
+        signal: controller.signal,
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Data Dragon version request timed out');
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
     
     if (!response.ok) {
       throw new Error(`Data Dragon API responded with status: ${response.status}`);

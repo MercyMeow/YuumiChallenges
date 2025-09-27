@@ -6,8 +6,20 @@ import {
   CACHE_KEYS,
   CACHE_TTL,
 } from '@/lib/cache/match-cache';
+import {
+  DetailedMatchData,
+  DetailedMatchParticipant,
+  isDetailedMatchData,
+} from '@/lib/types';
 import { readFile } from 'fs/promises';
 import path from 'path';
+
+type TimelinePayload = unknown;
+
+type MatchCacheEntry = {
+  matchData: DetailedMatchData;
+  timelineData: TimelinePayload;
+};
 
 function shouldUseExampleData(req: NextRequest, riotApiKey?: string) {
   const envToggle = process.env.NEXT_PUBLIC_USE_EXAMPLE_DATA === 'true';
@@ -17,31 +29,51 @@ function shouldUseExampleData(req: NextRequest, riotApiKey?: string) {
   return envToggle || noKey || queryToggle;
 }
 
-function normalizeParticipants(matchData: any) {
-  if (
-    matchData?.info?.participants &&
-    Array.isArray(matchData.info.participants)
-  ) {
-    matchData.info.participants = matchData.info.participants.map((p: any) => ({
-      ...p,
-      spell1Casts: typeof p.spell1Casts === 'number' ? p.spell1Casts : 0,
-      spell2Casts: typeof p.spell2Casts === 'number' ? p.spell2Casts : 0,
-      spell3Casts: typeof p.spell3Casts === 'number' ? p.spell3Casts : 0,
-      spell4Casts: typeof p.spell4Casts === 'number' ? p.spell4Casts : 0,
-      summoner1Casts:
-        typeof p.summoner1Casts === 'number' ? p.summoner1Casts : 0,
-      summoner2Casts:
-        typeof p.summoner2Casts === 'number' ? p.summoner2Casts : 0,
-    }));
+function normalizeParticipants(matchData: DetailedMatchData) {
+  const participants = matchData?.info?.participants;
+  if (!participants || !Array.isArray(participants)) {
+    return;
   }
+
+  const normalized = participants.map<DetailedMatchParticipant>(
+    (participant) => ({
+      ...participant,
+      spell1Casts:
+        typeof participant.spell1Casts === 'number'
+          ? participant.spell1Casts
+          : 0,
+      spell2Casts:
+        typeof participant.spell2Casts === 'number'
+          ? participant.spell2Casts
+          : 0,
+      spell3Casts:
+        typeof participant.spell3Casts === 'number'
+          ? participant.spell3Casts
+          : 0,
+      spell4Casts:
+        typeof participant.spell4Casts === 'number'
+          ? participant.spell4Casts
+          : 0,
+      summoner1Casts:
+        typeof participant.summoner1Casts === 'number'
+          ? participant.summoner1Casts
+          : 0,
+      summoner2Casts:
+        typeof participant.summoner2Casts === 'number'
+          ? participant.summoner2Casts
+          : 0,
+    })
+  );
+
+  matchData.info.participants = normalized;
 }
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ matchId: string }> }
+  context: { params: Promise<{ matchId: string }> }
 ) {
   try {
-    const { matchId } = await params;
+    const { matchId } = await context.params;
     const cache = getMatchCache();
 
     if (!matchId) {
@@ -55,9 +87,7 @@ export async function GET(
 
     // Check cache first (works for both example and live)
     const cacheKey = generateCacheKey(CACHE_KEYS.MATCH_DETAILS, matchId);
-    const cachedData = cache.get<{ matchData: any; timelineData: any }>(
-      cacheKey
-    );
+    const cachedData = cache.get<MatchCacheEntry>(cacheKey);
     if (cachedData) {
       return NextResponse.json({
         success: true,
@@ -79,8 +109,15 @@ export async function GET(
           readFile(timelinePath, 'utf-8').catch(() => null),
         ]);
 
-        const matchData = JSON.parse(matchRaw);
-        const timelineData = timelineRaw ? JSON.parse(timelineRaw) : null;
+        const parsedMatch = JSON.parse(matchRaw) as unknown;
+        if (!isDetailedMatchData(parsedMatch)) {
+          throw new Error('Example match data is malformed');
+        }
+
+        const matchData = parsedMatch;
+        const timelineData = timelineRaw
+          ? (JSON.parse(timelineRaw) as TimelinePayload)
+          : null;
 
         // Normalize like live code does
         normalizeParticipants(matchData);
@@ -170,7 +207,12 @@ export async function GET(
 
     try {
       // Fetch match details
-      const matchData = await riotAPI.getMatchDetails(matchId, region);
+      const matchDataRaw = await riotAPI.getMatchDetails(matchId, region);
+      if (!isDetailedMatchData(matchDataRaw)) {
+        throw new Error('Riot API returned unexpected match shape');
+      }
+
+      const matchData = matchDataRaw;
 
       // Normalize participants
       normalizeParticipants(matchData);
@@ -178,7 +220,10 @@ export async function GET(
       // Fetch timeline data as well
       let timelineData = null;
       try {
-        timelineData = await riotAPI.getMatchTimeline(matchId, region);
+        timelineData = (await riotAPI.getMatchTimeline(
+          matchId,
+          region
+        )) as TimelinePayload;
       } catch (timelineError) {
         console.warn('Failed to fetch match timeline:', timelineError);
         // Timeline is optional
@@ -195,11 +240,16 @@ export async function GET(
         matchId,
         cached: false,
       });
-    } catch (riotError: any) {
+    } catch (riotError: unknown) {
       console.error('Error fetching match from Riot API:', riotError);
 
+      const status =
+        typeof riotError === 'object' && riotError && 'status' in riotError
+          ? Number((riotError as { status?: number }).status)
+          : undefined;
+
       // Handle specific Riot API errors
-      if (riotError.status === 404) {
+      if (status === 404) {
         return NextResponse.json(
           {
             error: 'Match not found. Please check the match ID and try again.',
@@ -207,13 +257,13 @@ export async function GET(
           { status: 404 }
         );
       }
-      if (riotError.status === 429) {
+      if (status === 429) {
         return NextResponse.json(
           { error: 'Rate limit exceeded. Please try again later.' },
           { status: 429 }
         );
       }
-      if (riotError.status === 403) {
+      if (status === 403) {
         return NextResponse.json(
           { error: 'API access denied. Invalid API key.' },
           { status: 403 }

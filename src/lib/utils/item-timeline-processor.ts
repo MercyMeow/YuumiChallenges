@@ -1,6 +1,6 @@
 /**
  * Simplified Item Timeline Data Processing
- * 
+ *
  * Clean, reliable data processing with minimal complexity and maximum maintainability.
  */
 
@@ -12,6 +12,8 @@ import {
   ProcessingResult,
   ItemEventType,
   SUPPORT_EVOLUTIONS,
+  ItemTimelineEvent,
+  TimelineEventGroup,
 } from '@/lib/types/item-timeline';
 import { formatMillisecondsToTime } from '@/lib/utils/match-timeline-utils';
 
@@ -32,13 +34,22 @@ function isSupportEvolution(itemId: number): boolean {
 /**
  * Filter and validate raw timeline events for item events only
  */
-function getItemEvents(events: RawTimelineEvent[], participantId: number): RawTimelineEvent[] {
-  const itemEventTypes: ItemEventType[] = ['ITEM_PURCHASED', 'ITEM_SOLD', 'ITEM_DESTROYED', 'ITEM_UNDO'];
-  
-  return events.filter(event => 
-    itemEventTypes.includes(event.type as ItemEventType) &&
-    event.itemId > 0 &&
-    event.participantId === participantId
+function getItemEvents(
+  events: RawTimelineEvent[],
+  participantId: number
+): RawTimelineEvent[] {
+  const itemEventTypes: ItemEventType[] = [
+    'ITEM_PURCHASED',
+    'ITEM_SOLD',
+    'ITEM_DESTROYED',
+    'ITEM_UNDO',
+  ];
+
+  return events.filter(
+    (event) =>
+      itemEventTypes.includes(event.type as ItemEventType) &&
+      event.itemId > 0 &&
+      event.participantId === participantId
   );
 }
 
@@ -47,20 +58,18 @@ function getItemEvents(events: RawTimelineEvent[], participantId: number): RawTi
  */
 function transformEvent(rawEvent: RawTimelineEvent): ItemEvent {
   const isEvolution = isSupportEvolution(rawEvent.itemId);
-  const evolutionStage: 'base' | 'tier1' | 'tier2' | 'tier3' | undefined = isEvolution ? SUPPORT_EVOLUTIONS[rawEvent.itemId]?.stage : undefined;
-  
+  const evolutionStage: 'base' | 'tier1' | 'tier2' | 'tier3' | undefined =
+    isEvolution ? SUPPORT_EVOLUTIONS[rawEvent.itemId]?.stage : undefined;
+
   const event: ItemEvent = {
     type: rawEvent.type as ItemEventType,
     timestamp: rawEvent.timestamp,
     timeFormatted: formatTimestamp(rawEvent.timestamp),
     itemId: rawEvent.itemId,
     isEvolution,
+    ...(evolutionStage ? { evolutionStage } : {}),
   };
-  
-  if (evolutionStage !== undefined) {
-    (event as any).evolutionStage = evolutionStage;
-  }
-  
+
   return event;
 }
 
@@ -69,10 +78,10 @@ function transformEvent(rawEvent: RawTimelineEvent): ItemEvent {
  */
 function calculateStats(events: ItemEvent[]) {
   return {
-    purchases: events.filter(e => e.type === 'ITEM_PURCHASED').length,
-    sales: events.filter(e => e.type === 'ITEM_SOLD').length,
-    destructions: events.filter(e => e.type === 'ITEM_DESTROYED').length,
-    evolutions: events.filter(e => e.isEvolution).length,
+    purchases: events.filter((e) => e.type === 'ITEM_PURCHASED').length,
+    sales: events.filter((e) => e.type === 'ITEM_SOLD').length,
+    destructions: events.filter((e) => e.type === 'ITEM_DESTROYED').length,
+    evolutions: events.filter((e) => e.isEvolution).length,
   };
 }
 
@@ -94,7 +103,7 @@ export function processItemTimeline(
 
     // Collect all events across frames
     const allEvents: RawTimelineEvent[] = [];
-    
+
     for (const frame of timelineData.info.frames) {
       const itemEvents = getItemEvents(frame.events, options.participantId);
       allEvents.push(...itemEvents);
@@ -105,7 +114,7 @@ export function processItemTimeline(
 
     // Filter out undo events if not requested
     if (!options.includeUndoEvents) {
-      events = events.filter(event => event.type !== 'ITEM_UNDO');
+      events = events.filter((event) => event.type !== 'ITEM_UNDO');
     }
 
     // Sort by timestamp
@@ -159,34 +168,42 @@ export function processPlayerItemTimeline(
       totalFrames: 0,
       matchDuration: 0,
       processingOptions: options,
-      errors: [{ type: 'MISSING_ITEM_DATA' as const, message: result.error || 'Unknown error' }],
+      errors: [
+        {
+          type: 'MISSING_ITEM_DATA' as const,
+          message: result.error || 'Unknown error',
+        },
+      ],
     };
   }
 
   // Transform new format to legacy format for compatibility
   const { data } = result;
-  const evolutionEvents = data.events.filter(e => e.isEvolution);
-  
+  const evolutionEvents = data.events.filter((e) => e.isEvolution);
+
   return {
     playerTimeline: {
       playerId: options.selectedPlayerId,
       participantId: data.participantId,
-      events: data.events.map(event => ({
+      events: data.events.map((event) => ({
         type: event.type,
         timestamp: event.timestamp,
         timeFormatted: event.timeFormatted,
         participantId: data.participantId,
         itemId: event.itemId,
         isEvolution: event.isEvolution,
-        evolutionChain: event.isEvolution && event.evolutionStage ? {
-          stage: event.evolutionStage,
-          chainName: SUPPORT_EVOLUTIONS[event.itemId]?.name || 'Unknown',
-        } : undefined,
+        evolutionChain:
+          event.isEvolution && event.evolutionStage
+            ? {
+                stage: event.evolutionStage,
+                chainName: SUPPORT_EVOLUTIONS[event.itemId]?.name || 'Unknown',
+              }
+            : undefined,
       })),
       totalPurchases: data.stats.purchases,
       totalSales: data.stats.sales,
       totalDestructions: 0, // Not tracked in simplified version
-      supportItemEvolutions: evolutionEvents.map(event => ({
+      supportItemEvolutions: evolutionEvents.map((event) => ({
         type: event.type,
         timestamp: event.timestamp,
         timeFormatted: event.timeFormatted,
@@ -196,7 +213,9 @@ export function processPlayerItemTimeline(
       })),
     },
     totalFrames: timelineData.info.frames.length,
-    matchDuration: timelineData.info.frames[timelineData.info.frames.length - 1]?.timestamp || 0,
+    matchDuration:
+      timelineData.info.frames[timelineData.info.frames.length - 1]
+        ?.timestamp || 0,
     processingOptions: options,
     errors: [],
   };
@@ -220,7 +239,7 @@ export function createDefaultProcessingOptions(selectedPlayerId: number) {
     includeUndoEvents: false,
     groupConsecutiveEvents: true,
     detectEvolutions: true,
-    timeFormat: 'MM:SS' as const
+    timeFormat: 'MM:SS' as const,
   };
 }
 
@@ -234,31 +253,41 @@ export function createDefaultDisplayConfig() {
     timeInterval: 1,
     maxEventsPerGroup: 10,
     highlightEvolutions: true,
-    compactView: false
+    compactView: false,
   };
 }
 
-export function groupEventsByTimeInterval(events: any[], intervalMinutes: number = 1) {
+export function groupEventsByTimeInterval(
+  events: ItemTimelineEvent[],
+  intervalMinutes: number = 1
+): TimelineEventGroup[] {
   // Simplified grouping for backward compatibility
   if (events.length === 0) return [];
-  
+
   const intervalMs = intervalMinutes * 60 * 1000;
-  const groups: any[] = [];
-  
-  let currentGroup: any[] = [];
+  const groups: TimelineEventGroup[] = [];
+
+  let currentGroup: ItemTimelineEvent[] = [];
   let currentIntervalStart = events[0]?.timestamp || 0;
-  
+
+  const pushGroup = (
+    groupEvents: ItemTimelineEvent[],
+    intervalStart: number
+  ) => {
+    groups.push({
+      timeInterval: `${formatTimestamp(intervalStart)}-${formatTimestamp(intervalStart + intervalMs)}`,
+      startTimestamp: intervalStart,
+      endTimestamp: intervalStart + intervalMs,
+      events: groupEvents,
+      eventCount: groupEvents.length,
+      hasEvolutions: groupEvents.some((e) => e.isEvolution),
+    });
+  };
+
   for (const event of events) {
     if (event.timestamp - currentIntervalStart >= intervalMs) {
       if (currentGroup.length > 0) {
-        groups.push({
-          timeInterval: `${formatTimestamp(currentIntervalStart)}-${formatTimestamp(currentIntervalStart + intervalMs)}`,
-          startTimestamp: currentIntervalStart,
-          endTimestamp: currentIntervalStart + intervalMs,
-          events: currentGroup,
-          eventCount: currentGroup.length,
-          hasEvolutions: currentGroup.some(e => e.isEvolution)
-        });
+        pushGroup(currentGroup, currentIntervalStart);
       }
       currentGroup = [event];
       currentIntervalStart = event.timestamp;
@@ -266,18 +295,11 @@ export function groupEventsByTimeInterval(events: any[], intervalMinutes: number
       currentGroup.push(event);
     }
   }
-  
+
   // Add final group
   if (currentGroup.length > 0) {
-    groups.push({
-      timeInterval: `${formatTimestamp(currentIntervalStart)}-${formatTimestamp(currentIntervalStart + intervalMs)}`,
-      startTimestamp: currentIntervalStart,
-      endTimestamp: currentIntervalStart + intervalMs,
-      events: currentGroup,
-      eventCount: currentGroup.length,
-      hasEvolutions: currentGroup.some(e => e.isEvolution)
-    });
+    pushGroup(currentGroup, currentIntervalStart);
   }
-  
+
   return groups;
 }

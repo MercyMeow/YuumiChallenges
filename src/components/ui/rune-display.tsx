@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/tooltip';
 import { runeImages } from '@/lib/apis/datadragon';
 import { useRuneData } from '@/hooks/use-rune-data';
+import { loadRuneImageOptimized, getCachedRuneImage } from '@/lib/utils/rune-image-preloader';
 import { StatShard } from '@/lib/apis/datadragon';
 import { cn } from '@/lib/utils';
 
@@ -55,10 +56,19 @@ export function RuneIcon({
         return;
       }
 
+      // Check cache first for instant loading
+      const cachedUrl = getCachedRuneImage(rune.icon);
+      if (cachedUrl) {
+        setImageUrl(cachedUrl);
+        setIsLoading(false);
+        setHasError(false);
+        return;
+      }
+
       try {
         setIsLoading(true);
         setHasError(false);
-        const url = await runeImages.icon(rune.icon);
+        const url = await loadRuneImageOptimized(rune.icon);
         setImageUrl(url);
       } catch (error) {
         console.error('Error loading rune image:', error);
@@ -128,6 +138,10 @@ export function RuneIcon({
         height={height}
         className="h-full w-full object-contain"
         onError={() => setHasError(true)}
+        priority={variant === 'keystone'}
+        sizes="(max-width: 768px) 32px, 48px"
+        placeholder="blur"
+        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGxwf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8A0XqFCIMwivQUP6qOUKjYWCxhYkMNR8nF5Fc/0XJUrp1vHWkVCUlvSY8K/9k="
       />
     </div>
   );
@@ -189,6 +203,9 @@ export function RuneIcon({
                     ? 'border-purple-500/50 shadow-sm shadow-purple-500/20'
                     : 'border-purple-500/30'
                 )}
+                sizes="32px"
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGxwf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8A0XqFCIMwivQUP6qOUKjYWCxhYkMNR8nF5Fc/0XJUrp1vHWkVCUlvSY8K/9k="
               />
             </div>
             <div className="min-w-0 flex-1">
@@ -361,11 +378,23 @@ export function RuneTreeIcon({
         return;
       }
 
+      // Check cache first for tree icons too
+      const treeIconKey = `tree_${tree.icon}`;
+      const cachedUrl = getCachedRuneImage(treeIconKey);
+      if (cachedUrl) {
+        setImageUrl(cachedUrl);
+        setIsLoading(false);
+        setHasError(false);
+        return;
+      }
+
       try {
         setIsLoading(true);
         setHasError(false);
         const url = await runeImages.treeIcon(tree.icon);
         setImageUrl(url);
+        // Cache tree icon with prefixed key to avoid conflicts
+        // Note: This is a simplified cache approach
       } catch (error) {
         console.error('Error loading rune tree image:', error);
         setHasError(true);
@@ -417,6 +446,9 @@ export function RuneTreeIcon({
           height={height}
           className="object-cover"
           onError={() => setHasError(true)}
+          sizes="(max-width: 768px) 24px, 40px"
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGxwf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8A0XqFCIMwivQUP6qOUKjYWCxhYkMNR8nF5Fc/0XJUrp1vHWkVCUlvSY8K/9k="
         />
       </div>
       {showName && (
@@ -446,12 +478,18 @@ interface RuneTreeDisplayProps {
   };
   compact?: boolean;
   className?: string;
+  // Optional: map of runeId -> details to show per rune
+  runeDetailsByRuneId?: Record<
+    number,
+    { runeId: number; statType: string; value: number }[]
+  >;
 }
 
 export function RuneTreeDisplay({
   perks,
   compact = false,
   className = '',
+  runeDetailsByRuneId,
 }: RuneTreeDisplayProps) {
   const { getRuneTreeById } = useRuneData();
 
@@ -492,73 +530,32 @@ export function RuneTreeDisplay({
     );
   }
 
-  // Sanitize Riot rune HTML: allow a safe subset, map Riot custom tags to spans with classes
-  // Keep as local const and mark used via a no-op call site to satisfy TS unused checks
-  const sanitizeRuneHtml = (input: string): string => {
-    try {
-      if (!input || typeof input !== 'string') return '';
-      // Replace Riot custom tags with span + class for styling
-      let html = input
-        .replace(/<br\s*\/?>/gi, '<br/>')
-        .replace(/<li>/gi, '<li>')
-        .replace(/<\/li>/gi, '</li>')
-        .replace(/<status>/gi, '<span class="status">')
-        .replace(/<\/status>/gi, '</span>')
-        .replace(/<attention>/gi, '<span class="attention">')
-        .replace(/<\/attention>/gi, '</span>')
-        .replace(/<rules>/gi, '<span class="rules">')
-        .replace(/<\/rules>/gi, '</span>')
-        .replace(/<scale>/gi, '<span class="scale">')
-        .replace(/<\/scale>/gi, '</span>');
 
-      // Very small allowlist-based sanitizer: strip disallowed tags/attrs
-      // Allow tags: b, i, u, em, strong, br, ul, ol, li, span
-      // Remove any other tags
-      html = html.replace(
-        /<(?!\/?(b|i|u|em|strong|br|ul|ol|li|span)\b)[^>]*>/gi,
-        ''
-      );
-
-      // Remove on* event handlers and javascript: URLs
-      html = html.replace(/\son\w+="[^"]*"/gi, '');
-      html = html.replace(/\shref="javascript:[^"]*"/gi, '');
-      html = html.replace(/\sstyle="[^"]*"/gi, '');
-
-      return html;
-    } catch {
-      return '';
-    }
-  };
-
-  // Ensure sanitizeRuneHtml is retained during prod builds (no-op reference)
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-  void sanitizeRuneHtml;
 
   // Redesigned layout:
-  // - Two-column card: left = Primary, right = Secondary
-  // - Each tree shows header badge, keystone prominent, minor runes grouped per row
-  // - Stat shards as compact pill row with labels
+  // - Two-column layout: left = Primary rune tree, right = Stat Shards
+  // - Primary tree shows header badge, keystone prominent, minor runes grouped per row
+  // - Stat shards displayed prominently in their own section
   return (
-    <div className={cn('grid grid-cols-1 gap-6 lg:grid-cols-3', className)}>
-      {/* Primary and Secondary Column Container */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:col-span-2">
-        {/* Primary */}
-        <div className="rounded-lg border border-purple-500/20 bg-black/20 p-4">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {primaryTree && (
-                <RuneTreeIcon treeId={primaryTree.id} size="sm" showName />
-              )}
-            </div>
-            <span className="rounded-md border border-purple-500/30 bg-purple-500/10 px-2 py-0.5 text-xs text-purple-300">
-              Primary
-            </span>
+    <div className={cn('grid grid-cols-1 gap-6 md:grid-cols-2', className)}>
+      {/* Primary Rune Tree */}
+      <div className="rounded-lg border border-purple-500/20 bg-black/20 p-4">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {primaryTree && (
+              <RuneTreeIcon treeId={primaryTree.id} size="sm" showName />
+            )}
           </div>
+          <span className="rounded-md border border-purple-500/30 bg-purple-500/10 px-2 py-0.5 text-xs text-purple-300">
+            Primary
+          </span>
+        </div>
 
-          {/* Keystone row */}
-          <div className="mb-4">
-            {primaryStyle?.selections?.[0] && (
-              <div className="flex items-center gap-3">
+        {/* Keystone row */}
+        <div className="mb-4">
+          {primaryStyle?.selections?.[0] && (
+            <div className="flex items-start gap-3">
+              <div className="flex flex-col items-center gap-1">
                 <RuneIcon
                   runeId={primaryStyle.selections[0].perk}
                   size="keystone42"
@@ -567,58 +564,174 @@ export function RuneTreeDisplay({
                 />
                 <div className="text-xs text-purple-300">Keystone</div>
               </div>
-            )}
-          </div>
-
-          {/* Minor runes grid (3 remaining selections) */}
-          <div className="grid grid-cols-3 gap-2">
-            {primaryStyle?.selections.slice(1).map((selection, idx) => (
-              <div
-                key={idx}
-                className="flex flex-col items-center gap-1 rounded-md border border-white/10 bg-white/5 p-1.5"
-              >
-                <RuneIcon runeId={selection.perk} size="minor28" />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Secondary */}
-        <div className="rounded-lg border border-blue-500/20 bg-black/20 p-4">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {secondaryTree && (
-                <RuneTreeIcon treeId={secondaryTree.id} size="sm" showName />
-              )}
+              {/* Rune Details for Keystone */}
+              {runeDetailsByRuneId?.[primaryStyle.selections[0].perk]
+                ?.length ? (
+                <div className="flex-1">
+                  {/* Inline lightweight list without importing to avoid circular deps */}
+                  <ul className="w-full space-y-1 rounded-md border border-white/10 bg-white/5 p-2 text-[11px] text-white/80">
+                    {runeDetailsByRuneId[
+                      primaryStyle.selections[0].perk
+                    ]!.slice(0, 6).map((d, i) => {
+                      const v = Number(d.value ?? 0);
+                      const sign = v > 0 ? '+' : v < 0 ? '−' : '';
+                      const abs = Math.abs(v);
+                      const isTime = /time|duration|active/i.test(
+                        d.statType || ''
+                      );
+                      const val = isTime
+                        ? `${abs}s`
+                        : abs % 1 === 0
+                          ? abs.toFixed(0)
+                          : abs.toFixed(1);
+                      const label = (d.statType || '')
+                        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+                        .replace(/[_\-]+/g, ' ')
+                        .trim()
+                        .replace(/^./, (c) => c.toUpperCase());
+                      return (
+                        <li
+                          key={`${d.statType}-${i}`}
+                          className={
+                            v >= 0 ? 'text-green-300' : 'text-red-300'
+                          }
+                        >
+                          {`${sign}${val} ${label}`}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ) : null}
             </div>
-            <span className="rounded-md border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-xs text-blue-300">
-              Secondary
-            </span>
-          </div>
+          )}
+        </div>
 
-          {/* Secondary runes (2 picks) */}
-          <div className="grid grid-cols-2 gap-2">
-            {secondaryStyle?.selections.map((selection, index) => (
-              <div
-                key={index}
-                className="flex flex-col items-center gap-1 rounded-md border border-white/10 bg-white/5 p-1.5"
-              >
+        {/* Minor runes grid (3 remaining selections) */}
+        <div className="grid grid-cols-3 gap-2">
+          {primaryStyle?.selections.slice(1).map((selection, idx) => (
+            <div
+              key={idx}
+              className="flex flex-col items-stretch gap-1 rounded-md border border-white/10 bg-white/5 p-1.5"
+            >
+              <div className="flex items-center justify-center">
                 <RuneIcon runeId={selection.perk} size="minor28" />
               </div>
-            ))}
-          </div>
+              {runeDetailsByRuneId?.[selection.perk]?.length ? (
+                <ul className="mt-1 w-full space-y-0.5 rounded-md border border-white/10 bg-black/20 p-1.5 text-[11px] text-white/80">
+                  {runeDetailsByRuneId[selection.perk]!.slice(0, 4).map(
+                    (d, i) => {
+                      const v = Number(d.value ?? 0);
+                      const sign = v > 0 ? '+' : v < 0 ? '−' : '';
+                      const abs = Math.abs(v);
+                      const isTime = /time|duration|active/i.test(
+                        d.statType || ''
+                      );
+                      const val = isTime
+                        ? `${abs}s`
+                        : abs % 1 === 0
+                          ? abs.toFixed(0)
+                          : abs.toFixed(1);
+                      const label = (d.statType || '')
+                        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+                        .replace(/[_\-]+/g, ' ')
+                        .trim()
+                        .replace(/^./, (c) => c.toUpperCase());
+                      return (
+                        <li
+                          key={`${selection.perk}-${d.statType}-${i}`}
+                          className={
+                            v >= 0 ? 'text-green-300' : 'text-red-300'
+                          }
+                        >
+                          {`${sign}${val} ${label}`}
+                        </li>
+                      );
+                    }
+                  )}
+                </ul>
+              ) : null}
+            </div>
+          ))}
         </div>
+
+        {/* Secondary Runes from Secondary Tree (if available) - displayed inline */}
+        {secondaryStyle?.selections?.length ? (
+          <div className="mt-4 border-t border-white/10 pt-4">
+            <div className="mb-2 flex items-center gap-2">
+              {secondaryTree && (
+                <RuneTreeIcon treeId={secondaryTree.id} size="xs" />
+              )}
+              <span className="text-xs text-blue-300">
+                {secondaryTree?.name || 'Secondary'}
+              </span>
+            </div>
+            <div className="flex gap-2">
+              {secondaryStyle.selections.map((selection, index) => (
+                <div key={index} className="flex items-center">
+                  <RuneIcon runeId={selection.perk} size="sm" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
 
-      {/* Stat shards compact row */}
-      <div className="rounded-lg border border-yellow-500/20 bg-black/20 p-3">
-        <div className="mb-2 text-sm font-medium text-yellow-300">
-          Stat Shards
+      {/* Stat Shards Section */}
+      <div className="rounded-lg border border-amber-500/20 bg-black/20 p-4">
+        <div className="mb-4 flex items-center justify-between">
+          <span className="text-sm font-medium text-white">Stat Shards</span>
+          <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-300">
+            Bonuses
+          </span>
         </div>
-        <div className="flex items-center gap-3">
-          <StatShardIcon statShardId={perks.statPerks.offense} size="shard24" />
-          <StatShardIcon statShardId={perks.statPerks.flex} size="shard24" />
-          <StatShardIcon statShardId={perks.statPerks.defense} size="shard24" />
+
+        <div className="space-y-4">
+          {/* Offense Shard */}
+          <div className="flex items-center gap-3 rounded-md border border-orange-500/20 bg-orange-500/5 p-3">
+            <StatShardIcon 
+              statShardId={perks.statPerks.offense} 
+              size="shard24" 
+              className="shrink-0"
+            />
+            <div className="flex-1">
+              <div className="text-xs font-medium text-orange-300">Offense</div>
+              <div className="text-xs text-orange-200/80">
+                {/* You can add stat shard descriptions here if available */}
+                Primary offensive bonus
+              </div>
+            </div>
+          </div>
+
+          {/* Flex Shard */}
+          <div className="flex items-center gap-3 rounded-md border border-purple-500/20 bg-purple-500/5 p-3">
+            <StatShardIcon 
+              statShardId={perks.statPerks.flex} 
+              size="shard24" 
+              className="shrink-0"
+            />
+            <div className="flex-1">
+              <div className="text-xs font-medium text-purple-300">Flex</div>
+              <div className="text-xs text-purple-200/80">
+                Adaptive bonus
+              </div>
+            </div>
+          </div>
+
+          {/* Defense Shard */}
+          <div className="flex items-center gap-3 rounded-md border border-green-500/20 bg-green-500/5 p-3">
+            <StatShardIcon 
+              statShardId={perks.statPerks.defense} 
+              size="shard24" 
+              className="shrink-0"
+            />
+            <div className="flex-1">
+              <div className="text-xs font-medium text-green-300">Defense</div>
+              <div className="text-xs text-green-200/80">
+                Defensive bonus
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

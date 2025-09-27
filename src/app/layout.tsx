@@ -1,29 +1,25 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { AuthProvider } from "@/components/auth/session-provider";
-import { ThemeProvider } from "@/contexts/theme-context";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import type { Metadata } from 'next';
+import './globals.css';
+import { ThemeProvider } from '@/contexts/theme-context';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export const metadata: Metadata = {
-  title: "Yuum.Ai Dashboard",
-  description: "Challenge tracking dashboard for League of Legends Yuumi Mains Discord community",
-  keywords: ["League of Legends", "Yuumi", "Discord", "Challenges", "Gaming"],
-  authors: [{ name: "Yuumi Mains Community" }],
+  title: 'Yuumi Guide',
+  description:
+    'An up-to-date, expert-crafted Yuumi support guide for LoL: runes, items, skill order, matchups, synergies, and macro.',
+  keywords: [
+    'League of Legends',
+    'Yuumi',
+    'Support',
+    'Guide',
+    'Runes',
+    'Items',
+  ],
+  authors: [{ name: 'Yuumi Mains Community' }],
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
   },
 };
 
@@ -59,14 +55,8 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}
-      >
-        <ThemeProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </ThemeProvider>
+      <body className="dark antialiased">
+        <ThemeProvider>{children}</ThemeProvider>
         <SpeedInsights />
       </body>
     </html>

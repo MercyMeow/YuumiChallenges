@@ -2,8 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { summonerSpellImages } from '@/lib/apis/datadragon';
+import { useSummonerSpells } from '@/hooks/use-summoner-spells';
 
 // Summoner spell mapping by ID
 export const SUMMONER_SPELLS = {
@@ -22,7 +27,11 @@ export const SUMMONER_SPELLS = {
   32: { id: 32, name: 'Mark', key: 'SummonerSnowball' },
   39: { id: 39, name: 'Mark', key: 'SummonerSnowURFSnowball_Mark' },
   54: { id: 54, name: 'Placeholder', key: 'Summoner_UltBookPlaceholder' },
-  55: { id: 55, name: 'Placeholder and Attack-Smite', key: 'Summoner_UltBookSmitePlaceholder' },
+  55: {
+    id: 55,
+    name: 'Placeholder and Attack-Smite',
+    key: 'Summoner_UltBookSmitePlaceholder',
+  },
 } as const;
 
 interface SummonerSpellProps {
@@ -31,7 +40,12 @@ interface SummonerSpellProps {
   className?: string;
 }
 
-export function SummonerSpell({ spellId, size = 'md', className = '' }: SummonerSpellProps) {
+export function SummonerSpell({
+  spellId,
+  size = 'md',
+  className = '',
+}: SummonerSpellProps) {
+  const { byNumericId } = useSummonerSpells();
   const [imageUrl, setImageUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -45,7 +59,9 @@ export function SummonerSpell({ spellId, size = 'md', className = '' }: Summoner
   };
 
   const { width, height } = sizes[size];
-  const spell = SUMMONER_SPELLS[spellId as keyof typeof SUMMONER_SPELLS];
+  const staticSpell = SUMMONER_SPELLS[spellId as keyof typeof SUMMONER_SPELLS];
+  const ddragonSpell = byNumericId[spellId];
+  const spell = ddragonSpell || staticSpell;
 
   useEffect(() => {
     const loadSpellImage = async () => {
@@ -58,7 +74,9 @@ export function SummonerSpell({ spellId, size = 'md', className = '' }: Summoner
       try {
         setIsLoading(true);
         setHasError(false);
-        const url = await summonerSpellImages.icon(spell.key);
+        const url = await summonerSpellImages.icon(
+          typeof spell.id === 'string' ? spell.id : spell.key
+        );
         setImageUrl(url);
       } catch (error) {
         console.error('Error loading summoner spell image:', error);
@@ -73,8 +91,8 @@ export function SummonerSpell({ spellId, size = 'md', className = '' }: Summoner
 
   if (isLoading) {
     return (
-      <div 
-        className={`bg-black/30 border border-gray-600/30 rounded animate-pulse ${className}`}
+      <div
+        className={`animate-pulse rounded border border-gray-600/30 bg-black/30 ${className}`}
         style={{ width, height }}
       />
     );
@@ -82,11 +100,11 @@ export function SummonerSpell({ spellId, size = 'md', className = '' }: Summoner
 
   if (hasError || !imageUrl || !spell) {
     return (
-      <div 
-        className={`bg-red-900/20 border border-red-500/30 rounded flex items-center justify-center ${className}`}
+      <div
+        className={`flex items-center justify-center rounded border border-red-500/30 bg-red-900/20 ${className}`}
         style={{ width, height }}
       >
-        <span className="text-red-400 text-xs">?</span>
+        <span className="text-xs text-red-400">?</span>
       </div>
     );
   }
@@ -94,7 +112,9 @@ export function SummonerSpell({ spellId, size = 'md', className = '' }: Summoner
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className={`border border-gray-500/30 rounded overflow-hidden hover:border-gray-400/50 transition-colors ${className}`}>
+        <div
+          className={`overflow-hidden rounded border border-gray-500/30 transition-colors hover:border-gray-400/50 ${className}`}
+        >
           <Image
             src={imageUrl}
             alt={spell.name}
@@ -105,18 +125,27 @@ export function SummonerSpell({ spellId, size = 'md', className = '' }: Summoner
           />
         </div>
       </TooltipTrigger>
-      <TooltipContent className="max-w-80 p-4 backdrop-blur-md bg-black/85 border-purple-500/30 shadow-lg shadow-purple-500/20">
-        <div className="flex items-center gap-3">
+      <TooltipContent className="max-w-96 border-purple-500/30 bg-black/85 p-4 shadow-lg shadow-purple-500/20 backdrop-blur-md">
+        <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
             <Image
               src={imageUrl}
               alt={spell.name}
-              width={24}
-              height={24}
+              width={28}
+              height={28}
               className="rounded border border-purple-500/30"
             />
           </div>
-          <div className="font-semibold text-white text-base">{spell.name}</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-base font-semibold leading-tight text-white">
+              {spell.name}
+            </div>
+            {ddragonSpell?.description && (
+              <div className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-white/90">
+                {ddragonSpell.description.replace(/<[^>]+>/g, '')}
+              </div>
+            )}
+          </div>
         </div>
       </TooltipContent>
     </Tooltip>
@@ -131,20 +160,19 @@ interface SummonerSpellsProps {
   orientation?: 'horizontal' | 'vertical';
 }
 
-export function SummonerSpells({ 
-  spell1Id, 
-  spell2Id, 
-  size = 'md', 
+export function SummonerSpells({
+  spell1Id,
+  spell2Id,
+  size = 'md',
   className = '',
-  orientation = 'horizontal'
+  orientation = 'horizontal',
 }: SummonerSpellsProps) {
   const flexDirection = orientation === 'vertical' ? 'flex-col' : 'flex-row';
   const gap = orientation === 'vertical' ? 'gap-1' : 'gap-1';
-  
+
   // Enhanced vertical layout for match card display
-  const verticalContainerClasses = orientation === 'vertical' 
-    ? 'w-8 justify-center items-center' 
-    : '';
+  const verticalContainerClasses =
+    orientation === 'vertical' ? 'w-8 justify-center items-center' : '';
 
   // Validate that both spell IDs are valid before rendering
   if (!isValidSummonerSpell(spell1Id) || !isValidSummonerSpell(spell2Id)) {
@@ -152,7 +180,9 @@ export function SummonerSpells({
   }
 
   return (
-    <div className={`flex ${flexDirection} ${gap} ${verticalContainerClasses} ${className}`}>
+    <div
+      className={`flex ${flexDirection} ${gap} ${verticalContainerClasses} ${className}`}
+    >
       <SummonerSpell spellId={spell1Id} size={size} />
       <SummonerSpell spellId={spell2Id} size={size} />
     </div>

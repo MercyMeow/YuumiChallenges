@@ -61,7 +61,7 @@ export interface UserChallenge {
   updated_at: Date;
 }
 
-export type ChallengeType = 
+export type ChallengeType =
   | 'kda'
   | 'winstreak'
   | 'champion_mastery'
@@ -113,23 +113,132 @@ export interface MatchData {
 }
 
 // Enhanced types for detailed match data
+export interface ParticipantPerkStyleSelection {
+  perk: number;
+  var1: number;
+  var2: number;
+  var3: number;
+}
+
+export interface ParticipantPerkStyle {
+  description: string;
+  style: number;
+  selections: ParticipantPerkStyleSelection[];
+}
+
+export interface ParticipantPerkStats {
+  offense: number;
+  flex: number;
+  defense: number;
+}
+
+export interface ParticipantPerks {
+  styles?: ParticipantPerkStyle[];
+  statPerks?: ParticipantPerkStats;
+}
+
+export type ParticipantChallenges = Record<string, number | null | undefined>;
+
 export interface DetailedMatchParticipant {
+  // Identity
   puuid: string;
   summonerName: string;
+  riotIdGameName?: string;
+  riotIdTagline?: string;
+
+  // Champion
   championName: string;
   championId: number;
+  champLevel: number;
+  level?: number;
+  teamId: number;
+  individualPosition: string;
+  teamPosition: string;
+
+  // Performance
   kills: number;
   deaths: number;
   assists: number;
-  level: number;
-  goldEarned: number;
-  totalMinionsKilled: number;
-  visionScore: number;
-  teamId: number;
   win: boolean;
-  items: number[]; // Array of 7 item IDs (6 items + trinket)
+  goldEarned: number;
+  goldSpent: number;
+  totalMinionsKilled: number;
+  neutralMinionsKilled: number;
+  totalAllyJungleMinionsKilled: number;
+  totalEnemyJungleMinionsKilled: number;
+  visionScore: number;
+  visionWardsBoughtInGame: number;
+  detectorWardsPlaced: number;
+  wardsPlaced: number;
+  wardsKilled: number;
+  totalDamageDealt: number;
+  totalDamageDealtToChampions: number;
+  totalDamageTaken: number;
+  magicDamageDealt: number;
+  physicalDamageDealt: number;
+  trueDamageDealt: number;
+  magicDamageDealtToChampions: number;
+  physicalDamageDealtToChampions: number;
+  trueDamageDealtToChampions: number;
+  magicDamageTaken: number;
+  physicalDamageTaken: number;
+  trueDamageTaken: number;
+  damageSelfMitigated: number;
+  totalHeal: number;
+  totalHealsOnTeammates: number;
+  totalUnitsHealed: number;
+  totalDamageShieldedOnTeammates: number;
+  timeCCingOthers: number;
+  totalTimeCCDealt: number;
+  totalTimeSpentDead: number;
+  longestTimeSpentLiving: number;
+  firstBloodKill: boolean;
+  firstBloodAssist: boolean;
+  firstTowerKill: boolean;
+  firstTowerAssist: boolean;
+  turretKills: number;
+  turretTakedowns: number;
+  inhibitorKills: number;
+  inhibitorTakedowns: number;
+  baronKills: number;
+  dragonKills: number;
+  doubleKills: number;
+  tripleKills: number;
+  quadraKills: number;
+  pentaKills: number;
+  largestKillingSpree: number;
+  largestMultiKill: number;
+  largestCriticalStrike: number;
+  damageDealtToObjectives?: number;
+  damageDealtToTurrets?: number;
+  bountyLevel?: number;
+  killingSprees?: number;
+  timePlayed?: number;
+
+  // Items & spells
+  items: number[];
+  item0: number;
+  item1: number;
+  item2: number;
+  item3: number;
+  item4: number;
+  item5: number;
+  item6: number;
+  itemsPurchased: number;
+  consumablesPurchased: number;
   summoner1Id: number;
   summoner2Id: number;
+  summoner1Casts: number;
+  summoner2Casts: number;
+  spell1Casts?: number;
+  spell2Casts?: number;
+  spell3Casts?: number;
+  spell4Casts?: number;
+
+  // Misc
+  profileIcon?: number;
+  perks?: ParticipantPerks;
+  challenges?: ParticipantChallenges;
 }
 
 export interface DetailedMatchTeam {
@@ -264,16 +373,6 @@ export interface LeaderboardData {
   totalUsers: number;
 }
 
-export interface CommunityStats {
-  totalMembers: number;
-  activeMembers: number;
-  onlineMembers: number;
-  activeChallenges: number;
-  challengesCompleted: number;
-  totalGamesTracked: number;
-  gamesToday: number;
-}
-
 export interface TeamObjective {
   first: boolean;
   kills: number;
@@ -337,14 +436,16 @@ export const isLeaderboardUser = (obj: unknown): obj is LeaderboardUser => {
 };
 
 // Utility types for better type safety
-export type ApiResponse<T> = {
-  success: true;
-  data: T;
-} | {
-  success: false;
-  error: string;
-  message?: string;
-};
+export type ApiResponse<T> =
+  | {
+      success: true;
+      data: T;
+    }
+  | {
+      success: false;
+      error: string;
+      message?: string;
+    };
 
 export type Nullable<T> = T | null;
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
@@ -354,25 +455,9 @@ export type SummonerId = string & { readonly brand: unique symbol };
 export type MatchId = string & { readonly brand: unique symbol };
 export type ChampionId = string & { readonly brand: unique symbol };
 
-// Additional type guards for better runtime safety
-export const isCommunityStats = (obj: unknown): obj is CommunityStats => {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    'totalMembers' in obj &&
-    'activeMembers' in obj &&
-    'onlineMembers' in obj &&
-    'activeChallenges' in obj &&
-    'challengesCompleted' in obj &&
-    'totalGamesTracked' in obj &&
-    'gamesToday' in obj &&
-    typeof (obj as CommunityStats).totalMembers === 'number' &&
-    typeof (obj as CommunityStats).activeMembers === 'number' &&
-    typeof (obj as CommunityStats).onlineMembers === 'number'
-  );
-};
-
-export const isDetailedMatchTeam = (obj: unknown): obj is SafeDetailedMatchTeam => {
+export const isDetailedMatchTeam = (
+  obj: unknown
+): obj is SafeDetailedMatchTeam => {
   return (
     typeof obj === 'object' &&
     obj !== null &&
@@ -380,14 +465,17 @@ export const isDetailedMatchTeam = (obj: unknown): obj is SafeDetailedMatchTeam 
     'win' in obj &&
     'bans' in obj &&
     'objectives' in obj &&
-    ((obj as SafeDetailedMatchTeam).teamId === 100 || (obj as SafeDetailedMatchTeam).teamId === 200) &&
+    ((obj as SafeDetailedMatchTeam).teamId === 100 ||
+      (obj as SafeDetailedMatchTeam).teamId === 200) &&
     typeof (obj as SafeDetailedMatchTeam).win === 'boolean' &&
     Array.isArray((obj as SafeDetailedMatchTeam).bans) &&
     typeof (obj as SafeDetailedMatchTeam).objectives === 'object'
   );
 };
 
-export const isDetailedMatchParticipant = (obj: unknown): obj is DetailedMatchParticipant => {
+export const isDetailedMatchParticipant = (
+  obj: unknown
+): obj is DetailedMatchParticipant => {
   return (
     typeof obj === 'object' &&
     obj !== null &&
@@ -405,13 +493,40 @@ export const isDetailedMatchParticipant = (obj: unknown): obj is DetailedMatchPa
   );
 };
 
+export const isDetailedMatchData = (
+  value: unknown
+): value is DetailedMatchData => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const candidate = value as Partial<DetailedMatchData>;
+  if (!candidate.info || !candidate.metadata) {
+    return false;
+  }
+
+  const participants = candidate.info.participants;
+  if (!Array.isArray(participants)) {
+    return false;
+  }
+
+  return participants.every((participant) =>
+    isDetailedMatchParticipant(participant)
+  );
+};
+
 // Utility functions for safe data access
-export const safeArrayAccess = <T>(arr: T[] | undefined | null, index: number): T | null => {
-  return arr && Array.isArray(arr) && index >= 0 && index < arr.length ? (arr[index] ?? null) : null;
+export const safeArrayAccess = <T>(
+  arr: T[] | undefined | null,
+  index: number
+): T | null => {
+  return arr && Array.isArray(arr) && index >= 0 && index < arr.length
+    ? (arr[index] ?? null)
+    : null;
 };
 
 export const safeObjectAccess = <T, K extends keyof T>(
-  obj: T | undefined | null, 
+  obj: T | undefined | null,
   key: K
 ): T[K] | null => {
   return obj && typeof obj === 'object' && key in obj ? obj[key] : null;
@@ -442,20 +557,30 @@ export const safeCalculateWinRate = (wins: number, losses: number): number => {
   return totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
 };
 
-export const safeCalculateKDA = (kills: number, deaths: number, assists: number): number => {
+export const safeCalculateKDA = (
+  kills: number,
+  deaths: number,
+  assists: number
+): number => {
   return deaths > 0 ? Number(((kills + assists) / deaths).toFixed(2)) : 99;
 };
 
 // Type-safe array filtering
-export const filterValidChallenges = (challenges: unknown[]): ChallengeProgress[] => {
+export const filterValidChallenges = (
+  challenges: unknown[]
+): ChallengeProgress[] => {
   return challenges.filter(isChallengeProgress);
 };
 
-export const filterValidLeaderboardUsers = (users: unknown[]): LeaderboardUser[] => {
+export const filterValidLeaderboardUsers = (
+  users: unknown[]
+): LeaderboardUser[] => {
   return users.filter(isLeaderboardUser);
 };
 
-export const filterValidRankedInfo = (rankedInfo: unknown[]): RankedQueueInfo[] => {
+export const filterValidRankedInfo = (
+  rankedInfo: unknown[]
+): RankedQueueInfo[] => {
   return rankedInfo.filter(isRankedQueueInfo);
 };
 
@@ -467,31 +592,31 @@ export interface EnhancedMatchParticipant {
   summonerName: string;
   summonerLevel: number;
   riotIdName: string;
-  
+
   // Champion info
   championId: number;
   championName: string;
   champLevel: number;
   championTransform: number;
-  
+
   // Team info
   teamId: number;
   teamPosition: string;
   individualPosition: string;
-  
+
   // Summoner spells
   spell1Id: number;
   spell2Id: number;
-  
+
   // Items (0-6: items, 6 is trinket)
   items: number[];
-  
+
   // Core stats
   kills: number;
   deaths: number;
   assists: number;
   win: boolean;
-  
+
   // Combat stats
   totalDamageDealtToChampions: number;
   totalDamageDealt: number;
@@ -502,20 +627,20 @@ export interface EnhancedMatchParticipant {
   totalHeal: number;
   totalUnitsHealed: number;
   damageSelfMitigated: number;
-  
+
   // Economy stats
   goldEarned: number;
   goldSpent: number;
   totalMinionsKilled: number;
   neutralMinionsKilled: number;
-  
+
   // Vision stats
   visionScore: number;
   visionWardsBoughtInGame: number;
   wardsPlaced: number;
   wardsKilled: number;
   detectorWardsPlaced: number;
-  
+
   // Objectives
   turretKills: number;
   turretTakedowns: number;
@@ -523,40 +648,43 @@ export interface EnhancedMatchParticipant {
   inhibitorTakedowns: number;
   baronKills: number;
   dragonKills: number;
-  
+
   // CC & utility
   totalTimeCCDealt: number;
   timeCCingOthers: number;
   totalTimeSpentDead: number;
   timePlayed: number;
-  
+
   // Multi-kills
   doubleKills: number;
   tripleKills: number;
   quadraKills: number;
   pentaKills: number;
   unrealKills: number;
-  
+
   // First events
   firstBloodKill: boolean;
   firstBloodAssist: boolean;
   firstTowerKill: boolean;
   firstTowerAssist: boolean;
-  
+
   // Other stats
   bountyLevel: number;
   totalAllyJungleMinionsKilled: number;
   totalEnemyJungleMinionsKilled: number;
   consumablesPurchased: number;
   itemsPurchased: number;
-  
+
   // Challenges and meta
-  challenges: Record<string, any>;
+  challenges: ParticipantChallenges;
   profileIcon: number;
   gameEndedInEarlySurrender: boolean;
   gameEndedInSurrender: boolean;
   eligibleForProgression: boolean;
-  
+
+  // Optional rune data
+  perks?: ParticipantPerks;
+
   // Calculated stats
   kda: number;
   killParticipation: number;
@@ -609,19 +737,19 @@ export interface EnhancedMatchDetailsResponse {
   platformId: string;
   queueId: number;
   tournamentCode?: string;
-  
+
   // Enhanced participants data
   participants: EnhancedMatchParticipant[];
-  
+
   // Team information
   teams: EnhancedMatchTeam[];
-  
+
   // Match metadata
   metadata: {
     dataVersion: string;
     participants: string[];
   };
-  
+
   // Game statistics
   gameStats: MatchGameStats;
 }
@@ -633,7 +761,9 @@ export interface MatchDetailsApiResponse {
 }
 
 // Type guards for enhanced types
-export const isEnhancedMatchParticipant = (obj: unknown): obj is EnhancedMatchParticipant => {
+export const isEnhancedMatchParticipant = (
+  obj: unknown
+): obj is EnhancedMatchParticipant => {
   return (
     typeof obj === 'object' &&
     obj !== null &&
