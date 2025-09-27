@@ -1,6 +1,6 @@
 /**
  * Simplified Item Timeline Processing
- * 
+ *
  * Clean, efficient processing of League of Legends timeline data.
  * Focuses on core functionality without overengineering.
  */
@@ -29,23 +29,23 @@ export function processItemTimeline(
     if (options.participantId < 1 || options.participantId > 10) {
       return {
         success: false,
-        error: `Invalid participant ID: ${options.participantId}. Must be between 1-10.`
+        error: `Invalid participant ID: ${options.participantId}. Must be between 1-10.`,
       };
     }
 
     // Collect all item events for the player
     const allEvents: RawTimelineEvent[] = [];
     for (const frame of timelineData.info.frames) {
-      const itemEvents = getItemEvents(frame.events, options.participantId);  
+      const itemEvents = getItemEvents(frame.events, options.participantId);
       allEvents.push(...itemEvents);
     }
 
     // Transform events
     let events = allEvents.map(transformEvent);
-    
+
     // Filter undo events if requested
     if (!options.includeUndoEvents) {
-      events = events.filter(event => event.type !== 'ITEM_UNDO');
+      events = events.filter((event) => event.type !== 'ITEM_UNDO');
     }
 
     // Sort chronologically
@@ -55,64 +55,68 @@ export function processItemTimeline(
     const timeline: PlayerTimeline = {
       participantId: options.participantId,
       events,
-      stats: calculateStats(events)
+      stats: calculateStats(events),
     };
 
     return { success: true, data: timeline };
-
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Processing failed'
+      error: error instanceof Error ? error.message : 'Processing failed',
     };
   }
 }
 
 // ==================== EVENT FILTERING ====================
 
-function getItemEvents(events: readonly RawTimelineEvent[], participantId: number): RawTimelineEvent[] {
-  const itemEventTypes: readonly ItemEventType[] = ['ITEM_PURCHASED', 'ITEM_SOLD', 'ITEM_DESTROYED', 'ITEM_UNDO'];
-  
-  return events.filter(event =>
-    event.participantId === participantId &&
-    itemEventTypes.includes(event.type as ItemEventType) &&
-    typeof event.itemId === 'number' &&
-    event.itemId > 0
+function getItemEvents(
+  events: readonly RawTimelineEvent[],
+  participantId: number
+): RawTimelineEvent[] {
+  const itemEventTypes: readonly ItemEventType[] = [
+    'ITEM_PURCHASED',
+    'ITEM_SOLD',
+    'ITEM_DESTROYED',
+    'ITEM_UNDO',
+  ];
+
+  return events.filter(
+    (event) =>
+      event.participantId === participantId &&
+      itemEventTypes.includes(event.type as ItemEventType) &&
+      typeof event.itemId === 'number' &&
+      event.itemId > 0
   );
 }
 
 // ==================== EVENT TRANSFORMATION ====================
 
 function transformEvent(rawEvent: RawTimelineEvent): ItemEvent {
-  const itemId = rawEvent.itemId!;
+  if (typeof rawEvent.itemId !== 'number') {
+    throw new Error('Timeline event is missing an itemId');
+  }
+
+  const itemId = rawEvent.itemId;
   const isEvolution = isSupportEvolution(itemId);
-  
-  const baseEvent: ItemEvent = {
+  const stage = isEvolution ? getEvolutionStage(itemId) : undefined;
+
+  return {
     type: rawEvent.type as ItemEventType,
     timestamp: rawEvent.timestamp,
     timeFormatted: formatTimestamp(rawEvent.timestamp),
     itemId,
-    isEvolution
+    isEvolution,
+    ...(stage ? { evolutionStage: stage } : {}),
   };
-
-  // Only add evolutionStage if it exists
-  if (isEvolution) {
-    const stage = getEvolutionStage(itemId);
-    if (stage) {
-      (baseEvent as any).evolutionStage = stage;
-    }
-  }
-
-  return baseEvent;
 }
 
 // ==================== STATISTICS ====================
 
 function calculateStats(events: readonly ItemEvent[]) {
-  const purchases = events.filter(e => e.type === 'ITEM_PURCHASED').length;
-  const sales = events.filter(e => e.type === 'ITEM_SOLD').length;
-  const destructions = events.filter(e => e.type === 'ITEM_DESTROYED').length;
-  const evolutions = events.filter(e => e.isEvolution).length;
+  const purchases = events.filter((e) => e.type === 'ITEM_PURCHASED').length;
+  const sales = events.filter((e) => e.type === 'ITEM_SOLD').length;
+  const destructions = events.filter((e) => e.type === 'ITEM_DESTROYED').length;
+  const evolutions = events.filter((e) => e.isEvolution).length;
 
   return { purchases, sales, destructions, evolutions };
 }
@@ -121,7 +125,7 @@ function calculateStats(events: readonly ItemEvent[]) {
 
 // Maintain compatibility with existing components
 export interface LegacyTimelineProcessingOptions {
-  selectedPlayerId: number;  // 0-indexed
+  selectedPlayerId: number; // 0-indexed
   includeUndoEvents?: boolean;
   groupConsecutiveEvents?: boolean;
   detectEvolutions?: boolean;
@@ -147,7 +151,7 @@ export interface LegacyPlayerItemTimeline {
   totalPurchases: number;
   totalSales: number;
   totalDestructions: number;
-  supportItemEvolutions: any[];
+  supportItemEvolutions: LegacyTimelineEvent[];
   firstItemTimestamp?: number;
   finalBuildTimestamp?: number;
 }
@@ -157,7 +161,13 @@ export interface LegacyProcessedItemTimeline {
   totalFrames: number;
   matchDuration: number;
   processingOptions: LegacyTimelineProcessingOptions;
-  errors: any[];
+  errors: LegacyTimelineError[];
+}
+
+type LegacyTimelineEvent = LegacyPlayerItemTimeline['events'][number];
+
+interface LegacyTimelineError {
+  message: string;
 }
 
 /**
@@ -170,10 +180,12 @@ export function processPlayerItemTimeline(
 ): LegacyProcessedItemTimeline {
   // Convert 0-indexed to 1-indexed participant ID
   const participantId = options.selectedPlayerId + 1;
-  
+
   const processingOptions: ProcessingOptions = {
     participantId,
-    ...(options.includeUndoEvents !== undefined && { includeUndoEvents: options.includeUndoEvents })
+    ...(options.includeUndoEvents !== undefined && {
+      includeUndoEvents: options.includeUndoEvents,
+    }),
   };
 
   const result = processItemTimeline(timelineData, processingOptions);
@@ -181,27 +193,28 @@ export function processPlayerItemTimeline(
   // Transform back to legacy format
   if (result.success && result.data) {
     const { events, stats } = result.data;
-    
-    const legacyEvents = events.map(event => {
-      const legacyEvent: any = {
+
+    const legacyEvents: LegacyTimelineEvent[] = events.map((event) => {
+      const legacyEvent: LegacyTimelineEvent = {
         type: event.type,
         timestamp: event.timestamp,
         timeFormatted: event.timeFormatted,
         participantId: result.data!.participantId,
         itemId: event.itemId,
-        isEvolution: event.isEvolution
+        isEvolution: event.isEvolution,
       };
 
-      // Only add evolutionChain if it's an evolution
       if (event.isEvolution && event.evolutionStage) {
         legacyEvent.evolutionChain = {
           stage: event.evolutionStage,
-          chainName: 'Support Item'
+          chainName: 'Support Item',
         };
       }
 
       return legacyEvent;
     });
+
+    const legacyEvolutions = legacyEvents.filter((event) => event.isEvolution);
 
     const playerTimeline: LegacyPlayerItemTimeline = {
       playerId: options.selectedPlayerId,
@@ -210,16 +223,18 @@ export function processPlayerItemTimeline(
       totalPurchases: stats.purchases,
       totalSales: stats.sales,
       totalDestructions: stats.destructions,
-      supportItemEvolutions: events.filter(e => e.isEvolution),
+      supportItemEvolutions: legacyEvolutions,
     };
 
     // Only add optional timestamps if they exist
-    const firstPurchase = events.find(e => e.type === 'ITEM_PURCHASED');
+    const firstPurchase = events.find((e) => e.type === 'ITEM_PURCHASED');
     if (firstPurchase) {
       playerTimeline.firstItemTimestamp = firstPurchase.timestamp;
     }
 
-    const lastPurchase = events.filter(e => e.type === 'ITEM_PURCHASED').pop();
+    const lastPurchase = events
+      .filter((e) => e.type === 'ITEM_PURCHASED')
+      .pop();
     if (lastPurchase) {
       playerTimeline.finalBuildTimestamp = lastPurchase.timestamp;
     }
@@ -227,9 +242,11 @@ export function processPlayerItemTimeline(
     return {
       playerTimeline,
       totalFrames: timelineData.info.frames.length,
-      matchDuration: timelineData.info.frames[timelineData.info.frames.length - 1]?.timestamp || 0,
+      matchDuration:
+        timelineData.info.frames[timelineData.info.frames.length - 1]
+          ?.timestamp || 0,
       processingOptions: options,
-      errors: []
+      errors: [],
     };
   }
 
@@ -247,15 +264,17 @@ export function processPlayerItemTimeline(
     totalFrames: 0,
     matchDuration: 0,
     processingOptions: options,
-    errors: result.error ? [{ message: result.error }] : []
+    errors: result.error ? [{ message: result.error }] : [],
   };
 }
 
 // ==================== UTILITIES ====================
 
-export function createDefaultProcessingOptions(participantId: number): ProcessingOptions {
+export function createDefaultProcessingOptions(
+  participantId: number
+): ProcessingOptions {
   return {
     participantId,
-    includeUndoEvents: false
+    includeUndoEvents: false,
   };
 }

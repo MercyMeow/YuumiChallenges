@@ -32,7 +32,20 @@ import {
 import { createDefaultProcessingOptions } from '@/lib/utils/item-timeline-processor-new';
 import { formatMatchTime } from '@/lib/utils/time';
 import { detectSupportItemCompletionFromRaw } from '@/lib/utils/match-timeline-utils';
-import { RawTimelineData } from '@/lib/types/item-timeline-new';
+import {
+  RawTimelineData,
+  RawTimelineEvent,
+  RawTimelineFrame,
+} from '@/lib/types/item-timeline-new';
+import {
+  isDetailedMatchData,
+  DetailedMatchData,
+  DetailedMatchParticipant,
+  DetailedMatchTeam,
+  ParticipantChallenges,
+  ParticipantPerks,
+} from '@/lib/types';
+import { logger } from '@/lib/logger';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Clock,
@@ -58,12 +71,15 @@ import {
 import { cn } from '@/lib/utils';
 
 // --- Added: lightweight rune metrics helpers ---
-function computeRuneMetrics(participant: any) {
+function computeRuneMetrics(participant?: DetailedMatchParticipant | null) {
   const metrics: Record<string, { label: string; value: string }> = {};
+  if (!participant) {
+    return metrics;
+  }
 
-  // Keystone metrics via perks.selections var fields when exposed
-  const primary = participant?.perks?.styles?.find(
-    (s: any) => s.description === 'primaryStyle'
+  const perks: ParticipantPerks | undefined = participant.perks;
+  const primary = perks?.styles?.find(
+    (style) => style.description === 'primaryStyle'
   );
   const keystone = primary?.selections?.[0];
   if (keystone?.perk != null) {
@@ -71,24 +87,18 @@ function computeRuneMetrics(participant: any) {
     const kVar2 = Number.isFinite(keystone.var2) ? keystone.var2 : null;
     const kVar3 = Number.isFinite(keystone.var3) ? keystone.var3 : null;
 
-    let detail = '';
-    if (kVar1 != null || kVar2 != null || kVar3 != null) {
-      const parts = [];
-      if (kVar1 != null) parts.push(`v1:${kVar1}`);
-      if (kVar2 != null) parts.push(`v2:${kVar2}`);
-      if (kVar3 != null) parts.push(`v3:${kVar3}`);
-      detail = parts.join(' ');
-    } else {
-      detail = 'n/a';
-    }
+    const keystoneParts: string[] = [];
+    if (kVar1 != null) keystoneParts.push(`v1:${kVar1}`);
+    if (kVar2 != null) keystoneParts.push(`v2:${kVar2}`);
+    if (kVar3 != null) keystoneParts.push(`v3:${kVar3}`);
+
     metrics[`keystone_${keystone.perk}`] = {
       label: 'Keystone Vars',
-      value: detail,
+      value: keystoneParts.length > 0 ? keystoneParts.join(' ') : 'n/a',
     };
   }
 
-  // Common secondary rune aggregates from participant.challenges when present
-  const c = participant?.challenges || {};
+  const challenges: ParticipantChallenges | undefined = participant.challenges;
   const totals = [
     ['triumphHealing', 'Triumph Heal'],
     ['cheapShotDamage', 'Cheap Shot Dmg'],
@@ -100,21 +110,24 @@ function computeRuneMetrics(participant: any) {
     ['totalDamageShieldedOnTeammates', 'Shields on Allies'],
   ] as const;
 
-  for (const [key, label] of totals) {
-    const v = c[key as keyof typeof c];
-    if (typeof v === 'number' && isFinite(v)) {
-      const value =
-        key === 'timeCCingOthers' ? `${Math.round(v)} s` : `${Math.round(v)}`;
-      metrics[key] = { label, value };
+  if (challenges) {
+    for (const [key, label] of totals) {
+      const value = challenges[key];
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        const formatted =
+          key === 'timeCCingOthers'
+            ? `${Math.round(value)} s`
+            : `${Math.round(value)}`;
+        metrics[key] = { label, value: formatted };
+      }
     }
   }
 
-  // Stat shards selected (ids only; display compact)
-  const shards = participant?.perks?.statPerks;
+  const shards = perks?.statPerks;
   if (shards) {
-    metrics['shards'] = {
+    metrics.shards = {
       label: 'Shards',
-      value: `O:${shards.offense || 0} F:${shards.flex || 0} D:${shards.defense || 0}`,
+      value: `O:${shards.offense ?? 0} F:${shards.flex ?? 0} D:${shards.defense ?? 0}`,
     };
   }
 
@@ -123,7 +136,11 @@ function computeRuneMetrics(participant: any) {
 
 // Inline lightweight component to render rune metrics next to rune page
 // Unused component - kept for future functionality
-function RuneMetricsPanel({ participant }: { participant: any }) {
+function RuneMetricsPanel({
+  participant,
+}: {
+  participant?: DetailedMatchParticipant | null;
+}) {
   const metrics = computeRuneMetrics(participant);
   const entries = Object.entries(metrics);
   if (!entries.length) return null;
@@ -143,176 +160,132 @@ function RuneMetricsPanel({ participant }: { participant: any }) {
 // Prevent unused function warning in production build
 void RuneMetricsPanel;
 
-interface MatchDetailsData {
-  matchData: {
-    metadata: {
-      dataVersion: string;
-      matchId: string;
-      participants: string[];
-    };
-    info: {
-      gameId: number;
-      gameCreation: number;
-      gameDuration: number;
-      gameMode: string;
-      gameType: string;
-      queueId: number;
-      mapId: number;
-      participants: Array<{
-        puuid: string;
-        summonerName: string;
-        riotIdGameName?: string;
-        riotIdTagline?: string;
-        championName: string;
-        championId: number;
-        teamId: number;
-        kills: number;
-        deaths: number;
-        assists: number;
-        goldEarned: number;
-        goldSpent: number;
-        totalMinionsKilled: number;
-        neutralMinionsKilled: number;
-        totalAllyJungleMinionsKilled: number;
-        totalEnemyJungleMinionsKilled: number;
-        visionScore: number;
-        visionWardsBoughtInGame: number;
-        detectorWardsPlaced: number;
-        wardsPlaced: number;
-        wardsKilled: number;
-        champLevel: number;
-        totalDamageDealt: number;
-        totalDamageDealtToChampions: number;
-        totalDamageTaken: number;
-        magicDamageDealt: number;
-        physicalDamageDealt: number;
-        trueDamageDealt: number;
-        magicDamageDealtToChampions: number;
-        physicalDamageDealtToChampions: number;
-        trueDamageDealtToChampions: number;
-        magicDamageTaken: number;
-        physicalDamageTaken: number;
-        trueDamageTaken: number;
-        damageSelfMitigated: number;
-        totalHeal: number;
-        totalHealsOnTeammates: number;
-        totalUnitsHealed: number;
-        totalDamageShieldedOnTeammates: number;
-        timeCCingOthers: number;
-        totalTimeCCDealt: number;
-        totalTimeSpentDead: number;
-        longestTimeSpentLiving: number;
-        firstBloodKill: boolean;
-        firstBloodAssist: boolean;
-        firstTowerKill: boolean;
-        firstTowerAssist: boolean;
-        turretKills: number;
-        turretTakedowns: number;
-        inhibitorKills: number;
-        inhibitorTakedowns: number;
-        baronKills: number;
-        dragonKills: number;
-        doubleKills: number;
-        tripleKills: number;
-        quadraKills: number;
-        pentaKills: number;
-        largestKillingSpree: number;
-        largestMultiKill: number;
-        largestCriticalStrike: number;
-        // Additional available fields we will render
-        damageDealtToObjectives?: number;
-        damageDealtToTurrets?: number;
-        bountyLevel?: number;
-        killingSprees?: number;
-        timePlayed?: number;
-        win: boolean;
-        item0: number;
-        item1: number;
-        item2: number;
-        item3: number;
-        item4: number;
-        item5: number;
-        item6: number;
-        itemsPurchased: number;
-        consumablesPurchased: number;
-        summoner1Id: number;
-        summoner2Id: number;
-        summoner1Casts: number;
-        summoner2Casts: number;
-        // Ensure these optional ability cast counters exist (API normalization guarantees numbers)
-        spell1Casts?: number;
-        spell2Casts?: number;
-        spell3Casts?: number;
-        spell4Casts?: number;
-        individualPosition: string;
-        teamPosition: string;
-        // Riot exposes tons of rich keys under challenges; keep as bag
-        challenges: Record<string, any>;
-        perks: {
-          statPerks: {
-            defense: number;
-            flex: number;
-            offense: number;
-          };
-          styles: Array<{
-            description: string;
-            selections: Array<{
-              perk: number;
-              var1: number;
-              var2: number;
-              var3: number;
-            }>;
-            style: number;
-          }>;
-        };
-      }>;
-      teams: Array<{
-        teamId: number;
-        win: boolean;
-        bans: Array<{
-          championId: number;
-          pickTurn: number;
-        }>;
-        objectives: {
-          baron: { first: boolean; kills: number };
-          champion: { first: boolean; kills: number };
-          dragon: { first: boolean; kills: number };
-          inhibitor: { first: boolean; kills: number };
-          riftHerald: { first: boolean; kills: number };
-          tower: { first: boolean; kills: number };
-          // Additional objectives (e.g., atakhan, horde) may exist; allow arbitrary keys
-          [key: string]: { first: boolean; kills: number } | any;
-        };
-        // Optional feats block present in example data
-        feats?: Record<string, { featState: number }>;
-      }>;
-    };
-  };
-  timelineData?: {
-    metadata: any;
-    info: {
-      frameInterval: number;
-      frames: Array<{
-        timestamp: number;
-        events: Array<any>;
-        participantFrames: Record<
-          string,
-          {
-            championStats: any;
-            currentGold: number;
-            totalGold: number;
-            level: number;
-            xp: number;
-            minionsKilled: number;
-            jungleMinionsKilled: number;
-            damageStats: any;
-            position?: { x: number; y: number };
-          }
-        >;
-      }>;
-    };
-  };
+const objectKeys = <T extends Record<string, unknown | undefined>>(obj: T) =>
+  Object.keys(obj) as Array<keyof T>;
+
+type TeamObjectiveExtra = { first: boolean; kills: number };
+
+type ExtendedTeamObjectives = DetailedMatchTeam['objectives'] &
+  Record<string, TeamObjectiveExtra | undefined>;
+
+interface ParticipantRuneDetailLike {
+  runeId?: unknown;
+  statType?: unknown;
+  value?: unknown;
 }
+
+interface ParticipantRunesLike {
+  details?: ParticipantRuneDetailLike[];
+}
+
+type ExtendedMatchParticipant = DetailedMatchParticipant & {
+  runes?: ParticipantRunesLike;
+};
+
+interface ExtendedMatchTeam extends DetailedMatchTeam {
+  objectives: ExtendedTeamObjectives;
+  feats?: Record<string, { featState: number }>;
+}
+
+type ExtendedMatchInfo = DetailedMatchData['info'] & {
+  participants: ExtendedMatchParticipant[];
+  teams: ExtendedMatchTeam[];
+};
+
+type ExtendedMatchData = DetailedMatchData & {
+  info: ExtendedMatchInfo;
+};
+
+interface MatchDetailsSuccessPayload {
+  success: true;
+  matchData: ExtendedMatchData;
+  timelineData: RawTimelineData | null;
+  matchId: string;
+  cached?: boolean;
+  example?: boolean;
+}
+
+const CRITICAL_TIMELINE_EVENT_TYPES: ReadonlySet<string> = new Set([
+  'CHAMPION_KILL',
+  'ELITE_MONSTER_KILL',
+  'BUILDING_KILL',
+  'DRAGON_SOUL_GIVEN',
+] as const);
+
+type MatchDetailsErrorPayload = {
+  success?: false;
+  error?: string;
+};
+
+type MatchDetailsResponse =
+  | MatchDetailsSuccessPayload
+  | MatchDetailsErrorPayload
+  | Record<string, unknown>;
+
+const isRawTimelineData = (value: unknown): value is RawTimelineData => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const info = (value as RawTimelineData).info;
+  return (
+    !!info &&
+    typeof info.frameInterval === 'number' &&
+    Array.isArray(info.frames)
+  );
+};
+
+const isMatchDetailsSuccess = (
+  payload: MatchDetailsResponse
+): payload is MatchDetailsSuccessPayload => {
+  if (
+    typeof payload !== 'object' ||
+    payload === null ||
+    (payload as { success?: boolean }).success !== true
+  ) {
+    return false;
+  }
+
+  const candidate = payload as MatchDetailsSuccessPayload;
+  if (!isDetailedMatchData(candidate.matchData)) {
+    return false;
+  }
+
+  const timeline = candidate.timelineData;
+  return timeline == null || isRawTimelineData(timeline);
+};
+
+type TeamTotals = {
+  damage: number;
+  taken: number;
+  gold: number;
+  kills: number;
+};
+
+type TeamTotalsBySide = {
+  blue: TeamTotals;
+  red: TeamTotals;
+};
+
+const toRawTimelineEvents = (
+  events: Array<Record<string, unknown>> | undefined
+): RawTimelineEvent[] => {
+  if (!events) {
+    return [];
+  }
+
+  return events
+    .filter((event): event is RawTimelineEvent => {
+      if (typeof event !== 'object' || event === null) {
+        return false;
+      }
+      const typed = event as RawTimelineEvent;
+      return (
+        typeof typed.type === 'string' && typeof typed.timestamp === 'number'
+      );
+    })
+    .map((event) => ({ ...event }));
+};
 
 // Move PlayerCard component outside to prevent hook rule violations
 const PlayerCard = memo(
@@ -328,10 +301,10 @@ const PlayerCard = memo(
     getKDAColor,
     formatNumber,
   }: {
-    participant: any;
-    teamColor: string;
-    teamTotals: any;
-    matchData: any;
+    participant: DetailedMatchParticipant;
+    teamColor: 'blue' | 'red';
+    teamTotals: TeamTotals;
+    matchData: ExtendedMatchData;
     selectedPlayer: number | null;
     comparePlayer: number | null;
     setSelectedPlayer: (index: number | null) => void;
@@ -571,29 +544,30 @@ const PlayerCard = memo(
             />
 
             {/* Runes compact */}
-            {participant.perks?.styles?.[0]?.selections?.[0] && (
-              <div className="flex items-center gap-2">
-                <RuneIcon
-                  runeId={participant.perks.styles[0].selections[0].perk}
-                  size="minor28"
-                  variant="keystone"
-                />
-                <div className="flex items-center gap-1">
-                  <StatShardIcon
-                    statShardId={participant.perks.statPerks.offense}
-                    size="shard24"
+            {participant.perks?.styles?.[0]?.selections?.[0] &&
+              participant.perks?.statPerks && (
+                <div className="flex items-center gap-2">
+                  <RuneIcon
+                    runeId={participant.perks.styles[0].selections[0].perk}
+                    size="minor28"
+                    variant="keystone"
                   />
-                  <StatShardIcon
-                    statShardId={participant.perks.statPerks.flex}
-                    size="shard24"
-                  />
-                  <StatShardIcon
-                    statShardId={participant.perks.statPerks.defense}
-                    size="shard24"
-                  />
+                  <div className="flex items-center gap-1">
+                    <StatShardIcon
+                      statShardId={participant.perks.statPerks.offense}
+                      size="shard24"
+                    />
+                    <StatShardIcon
+                      statShardId={participant.perks.statPerks.flex}
+                      size="shard24"
+                    />
+                    <StatShardIcon
+                      statShardId={participant.perks.statPerks.defense}
+                      size="shard24"
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Actions */}
             <div className="flex gap-2">
@@ -649,7 +623,7 @@ export default function MatchDetailsPage() {
   const params = useParams();
   const matchId = params.matchId as string;
 
-  const [data, setData] = useState<MatchDetailsData | null>(null);
+  const [data, setData] = useState<MatchDetailsSuccessPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
@@ -708,13 +682,22 @@ export default function MatchDetailsPage() {
         const apiUrl = `/api/match-details/${matchId}${useExample ? '?useExample=1' : ''}`;
 
         const response = await fetch(apiUrl, { cache: 'no-store' });
-        const result = await response.json();
+        const payload = (await response.json()) as MatchDetailsResponse;
 
-        if (!response.ok) {
-          throw new Error(result.error || 'Failed to fetch match details');
+        if (!response.ok || !isMatchDetailsSuccess(payload)) {
+          const errorMessage =
+            (typeof payload === 'object' && payload && 'error' in payload
+              ? (payload as MatchDetailsErrorPayload).error
+              : undefined) || 'Failed to fetch match details';
+          throw new Error(errorMessage);
         }
 
-        setData(result);
+        const timelineData =
+          payload.timelineData && isRawTimelineData(payload.timelineData)
+            ? payload.timelineData
+            : null;
+
+        setData({ ...payload, timelineData });
       } catch (err) {
         console.error('Error fetching match details:', err);
         setError(err instanceof Error ? err.message : 'Unknown error occurred');
@@ -729,92 +712,16 @@ export default function MatchDetailsPage() {
   // Auto-select Yuumi player if present in the match
   useEffect(() => {
     if (!data?.matchData?.info?.participants || selectedPlayer !== null) return;
-    
+
     const yuumiIndex = data.matchData.info.participants.findIndex(
       (participant) => participant.championName?.toLowerCase() === 'yuumi'
     );
-    
+
     if (yuumiIndex !== -1) {
       console.log('🐱 Auto-selecting Yuumi player at index:', yuumiIndex);
       setSelectedPlayer(yuumiIndex);
     }
   }, [data, selectedPlayer]);
-
-  // Support quest completion times for compare player (mirror of selected player computation)
-  const compareSupportItemCompletionTimes = useMemo(() => {
-    console.group(
-      '🔄 [COMPARE PLAYER USEMEMO] compareSupportItemCompletionTimes calculation'
-    );
-
-    console.log('📥 useMemo Dependencies (Compare Player):', {
-      processedTimelineExists: !!processedTimeline,
-      processedTimelineEventsLength: processedTimeline?.events?.length || 0,
-      dataExists: !!data,
-      participantsLength: data?.matchData?.info?.participants?.length || 0,
-      comparePlayer,
-      comparePlayerType: typeof comparePlayer,
-    });
-
-    if (
-      !processedTimeline?.events ||
-      !data?.matchData?.info?.participants ||
-      comparePlayer === null
-    ) {
-      console.warn(
-        '⚠️ Early return: Missing required data for compare player',
-        {
-          hasProcessedTimelineEvents: !!processedTimeline?.events,
-          hasParticipants: !!data?.matchData?.info?.participants,
-          comparePlayerIsNull: comparePlayer === null,
-        }
-      );
-      console.groupEnd();
-      return null;
-    }
-
-    const player = data.matchData.info.participants[comparePlayer];
-    if (!player) {
-      console.warn('⚠️ Early return: Compare player data not found', {
-        comparePlayer,
-        participantsLength: data.matchData.info.participants.length,
-        availableIndices: data.matchData.info.participants.map(
-          (_, index) => index
-        ),
-      });
-      console.groupEnd();
-      return null;
-    }
-
-    console.log(
-      '✅ All data available for compare player, calling detectSupportItemCompletionFromRaw:',
-      {
-        comparePlayer,
-        playerName: player.riotIdGameName || player.summonerName,
-        championName: player.championName,
-        participantId: comparePlayer + 1,
-      }
-    );
-
-    console.log(
-      '✅ Using raw timeline processing for compare player - events properly filtered'
-    );
-
-    // Use raw timeline processing to properly filter events for compare player
-    const result = detectSupportItemCompletionFromRaw(
-      data.timelineData,
-      comparePlayer + 1
-    );
-
-    console.log('📋 useMemo Result for compare player:', {
-      comparePlayer,
-      result,
-      hasCompletions:
-        result && Object.values(result).some((time) => time !== null),
-    });
-
-    console.groupEnd();
-    return result;
-  }, [processedTimeline, data?.matchData?.info?.participants, comparePlayer]);
 
   const formatDuration = (seconds: number) => {
     return formatMatchTime(seconds * 1000); // Convert seconds to milliseconds
@@ -840,7 +747,7 @@ export default function MatchDetailsPage() {
   };
 
   // Calculate team totals for percentage calculations
-  const teamTotals = useMemo(() => {
+  const teamTotals = useMemo<TeamTotalsBySide>(() => {
     if (!data?.matchData?.info?.participants) {
       return {
         blue: { damage: 0, taken: 0, gold: 0, kills: 0 },
@@ -876,36 +783,40 @@ export default function MatchDetailsPage() {
     return { blue: blueTotals, red: redTotals };
   }, [data]);
 
-  // Effect to process item timeline for selected player
-  useEffect(() => {
-    // Ensure we have timeline frames before attempting to process
+  const rawTimelineData = useMemo<RawTimelineData | null>(() => {
     if (
-      !data?.timelineData ||
-      !data.timelineData.info ||
+      !data?.timelineData?.info ||
       !Array.isArray(data.timelineData.info.frames) ||
-      data.timelineData.info.frames.length === 0 ||
-      selectedPlayer === null
+      data.timelineData.info.frames.length === 0
     ) {
-      return;
+      return null;
     }
 
-    const rawTimelineData: RawTimelineData = {
+    return {
       info: {
         frameInterval: data.timelineData.info.frameInterval,
-        frames: data.timelineData.info.frames.map((frame) => ({
-          timestamp: frame.timestamp,
-          events: frame.events || [],
-        })),
+        frames: data.timelineData.info.frames.map<RawTimelineFrame>(
+          (frame) => ({
+            timestamp: frame.timestamp,
+            events: toRawTimelineEvents(frame.events),
+          })
+        ),
       },
     };
+  }, [data?.timelineData]);
+
+  // Effect to process item timeline for selected player
+  useEffect(() => {
+    if (!rawTimelineData || selectedPlayer === null) {
+      return;
+    }
 
     const processingOptions = createDefaultProcessingOptions(
       selectedPlayer + 1
     ); // Convert to 1-indexed
 
-    // Trigger processing
     processTimeline(rawTimelineData, processingOptions);
-  }, [data?.timelineData, selectedPlayer, processTimeline]);
+  }, [rawTimelineData, selectedPlayer, processTimeline]);
 
   // Calculate support item completion times for selected player
   const supportItemCompletionTimes = useMemo(() => {
@@ -977,7 +888,7 @@ export default function MatchDetailsPage() {
 
     // Use raw timeline processing to avoid pre-filtering issues
     const result = detectSupportItemCompletionFromRaw(
-      data.timelineData,
+      rawTimelineData,
       selectedPlayer + 1
     );
 
@@ -990,7 +901,92 @@ export default function MatchDetailsPage() {
 
     console.groupEnd();
     return result;
-  }, [processedTimeline, data?.matchData?.info?.participants, selectedPlayer]);
+  }, [
+    processedTimeline,
+    data?.matchData?.info?.participants,
+    selectedPlayer,
+    rawTimelineData,
+  ]);
+
+  // Support quest completion times for compare player (mirror of selected player computation)
+  const compareSupportItemCompletionTimes = useMemo(() => {
+    console.group(
+      '🔄 [COMPARE PLAYER USEMEMO] compareSupportItemCompletionTimes calculation'
+    );
+
+    console.log('📥 useMemo Dependencies (Compare Player):', {
+      processedTimelineExists: !!processedTimeline,
+      processedTimelineEventsLength: processedTimeline?.events?.length || 0,
+      dataExists: !!data,
+      participantsLength: data?.matchData?.info?.participants?.length || 0,
+      comparePlayer,
+      comparePlayerType: typeof comparePlayer,
+    });
+
+    if (
+      !processedTimeline?.events ||
+      !data?.matchData?.info?.participants ||
+      comparePlayer === null
+    ) {
+      console.warn(
+        '⚠️ Early return: Missing required data for compare player',
+        {
+          hasProcessedTimelineEvents: !!processedTimeline?.events,
+          hasParticipants: !!data?.matchData?.info?.participants,
+          comparePlayerIsNull: comparePlayer === null,
+        }
+      );
+      console.groupEnd();
+      return null;
+    }
+
+    const player = data.matchData.info.participants[comparePlayer];
+    if (!player) {
+      console.warn('⚠️ Early return: Compare player data not found', {
+        comparePlayer,
+        participantsLength: data.matchData.info.participants.length,
+        availableIndices: data.matchData.info.participants.map(
+          (_, index) => index
+        ),
+      });
+      console.groupEnd();
+      return null;
+    }
+
+    console.log(
+      '✅ All data available for compare player, calling detectSupportItemCompletionFromRaw:',
+      {
+        comparePlayer,
+        playerName: player.riotIdGameName || player.summonerName,
+        championName: player.championName,
+        participantId: comparePlayer + 1,
+      }
+    );
+
+    console.log(
+      '✅ Using raw timeline processing for compare player - events properly filtered'
+    );
+
+    const result = detectSupportItemCompletionFromRaw(
+      rawTimelineData,
+      comparePlayer + 1
+    );
+
+    console.log('📋 useMemo Result for compare player:', {
+      comparePlayer,
+      result,
+      hasCompletions:
+        result && Object.values(result).some((time) => time !== null),
+    });
+
+    console.groupEnd();
+    return result;
+  }, [
+    processedTimeline,
+    data?.matchData?.info?.participants,
+    comparePlayer,
+    rawTimelineData,
+  ]);
 
   if (loading) {
     return (
@@ -1047,8 +1043,12 @@ export default function MatchDetailsPage() {
 
   const blueTeam = matchData.info.participants.filter((p) => p.teamId === 100);
   const redTeam = matchData.info.participants.filter((p) => p.teamId === 200);
-  const blueTeamData = matchData.info.teams.find((t) => t.teamId === 100);
-  const redTeamData = matchData.info.teams.find((t) => t.teamId === 200);
+  const blueTeamData = matchData.info.teams.find(
+    (team): team is ExtendedMatchTeam => team.teamId === 100
+  );
+  const redTeamData = matchData.info.teams.find(
+    (team): team is ExtendedMatchTeam => team.teamId === 200
+  );
 
   const selectedPlayerData =
     selectedPlayer !== null
@@ -1237,23 +1237,29 @@ export default function MatchDetailsPage() {
                 {/* Team Feats (if available) */}
                 <div className="mb-4 flex flex-wrap gap-2">
                   {blueTeamData?.feats &&
-                    Object.entries(blueTeamData.feats).map(([feat]: any) => (
-                      <Badge
-                        key={`blue-${feat}`}
-                        className="border-blue-500/30 bg-blue-500/10 text-xs text-blue-300"
-                      >
-                        🔵 {feat.replace(/_/g, ' ').toLowerCase()}
-                      </Badge>
-                    ))}
+                    objectKeys(blueTeamData.feats).map((featKey) => {
+                      const featName = String(featKey);
+                      return (
+                        <Badge
+                          key={`blue-${featName}`}
+                          className="border-blue-500/30 bg-blue-500/10 text-xs text-blue-300"
+                        >
+                          🔵 {featName.replace(/_/g, ' ').toLowerCase()}
+                        </Badge>
+                      );
+                    })}
                   {redTeamData?.feats &&
-                    Object.entries(redTeamData.feats).map(([feat]: any) => (
-                      <Badge
-                        key={`red-${feat}`}
-                        className="border-red-500/30 bg-red-500/10 text-xs text-red-300"
-                      >
-                        🔴 {feat.replace(/_/g, ' ').toLowerCase()}
-                      </Badge>
-                    ))}
+                    objectKeys(redTeamData.feats).map((featKey) => {
+                      const featName = String(featKey);
+                      return (
+                        <Badge
+                          key={`red-${featName}`}
+                          className="border-red-500/30 bg-red-500/10 text-xs text-red-300"
+                        >
+                          🔴 {featName.replace(/_/g, ' ').toLowerCase()}
+                        </Badge>
+                      );
+                    })}
                   {/* Support Quest completion badge for selected player */}
                   <Badge className="border-purple-500/30 bg-purple-500/10 text-xs text-purple-300">
                     Support quest completed at{' '}
@@ -1263,7 +1269,7 @@ export default function MatchDetailsPage() {
                         supportItemCompletionTimes?.tier3 ??
                         supportItemCompletionTimes?.tier1 ??
                         null;
-                      return questTime ? formatMatchTime(questTime) : '—';
+                      return questTime ? formatMatchTime(questTime) : '-';
                     })()}
                   </Badge>
                 </div>
@@ -1274,26 +1280,27 @@ export default function MatchDetailsPage() {
                     </h4>
                     <div className="grid grid-cols-3 gap-4">
                       {blueTeamData?.objectives &&
-                        Object.entries(blueTeamData.objectives).map(
-                          ([key, obj]: any) => (
+                        objectKeys(blueTeamData.objectives).map((key) => {
+                          const objective = blueTeamData.objectives[key];
+                          return (
                             <div
-                              key={key}
+                              key={String(key)}
                               className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-3 text-center"
                             >
                               <div className="text-2xl font-bold text-white">
-                                {obj?.kills ?? 0}
+                                {objective?.kills ?? 0}
                               </div>
                               <div className="text-xs capitalize text-white/60">
-                                {key}
+                                {String(key)}
                               </div>
-                              {obj?.first && (
+                              {objective?.first && (
                                 <Badge className="mt-1 bg-yellow-500/20 text-xs text-yellow-400">
                                   First
                                 </Badge>
                               )}
                             </div>
-                          )
-                        )}
+                          );
+                        })}
                     </div>
                   </div>
                   <div>
@@ -1302,26 +1309,27 @@ export default function MatchDetailsPage() {
                     </h4>
                     <div className="grid grid-cols-3 gap-4">
                       {redTeamData?.objectives &&
-                        Object.entries(redTeamData.objectives).map(
-                          ([key, obj]: any) => (
+                        objectKeys(redTeamData.objectives).map((key) => {
+                          const objective = redTeamData.objectives[key];
+                          return (
                             <div
-                              key={key}
+                              key={String(key)}
                               className="rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-center"
                             >
                               <div className="text-2xl font-bold text-white">
-                                {obj?.kills ?? 0}
+                                {objective?.kills ?? 0}
                               </div>
                               <div className="text-xs capitalize text-white/60">
-                                {key}
+                                {String(key)}
                               </div>
-                              {obj?.first && (
+                              {objective?.first && (
                                 <Badge className="mt-1 bg-yellow-500/20 text-xs text-yellow-400">
                                   First
                                 </Badge>
                               )}
                             </div>
-                          )
-                        )}
+                          );
+                        })}
                     </div>
                   </div>
                 </div>
@@ -1345,37 +1353,71 @@ export default function MatchDetailsPage() {
                 </CardHeader>
                 <CardContent>
                   {(() => {
-                    // Build rune details map if API provided participant.runes.details
-                    const rawDetails = (selectedPlayerData as any)?.runes
-                      ?.details as
-                      | { runeId: number; statType: string; value: number }[]
-                      | undefined;
+                    const perks = selectedPlayerData.perks;
+                    if (!perks?.styles || !perks.statPerks) {
+                      return (
+                        <div className="rounded border border-purple-500/20 bg-purple-500/10 p-3 text-sm text-purple-200">
+                          Rune information is unavailable for this participant.
+                        </div>
+                      );
+                    }
 
-                    const byRuneId: Record<
-                      number,
-                      { runeId: number; statType: string; value: number }[]
-                    > = {};
+                    const normalizedPerks = {
+                      styles: perks.styles,
+                      statPerks: {
+                        offense: perks.statPerks.offense ?? 0,
+                        flex: perks.statPerks.flex ?? 0,
+                        defense: perks.statPerks.defense ?? 0,
+                      },
+                    };
+
+                    type NormalizedRuneDetail = {
+                      runeId: number;
+                      statType: string;
+                      value: number;
+                    };
+
+                    const rawDetails = selectedPlayerData.runes?.details;
+                    const byRuneId: Record<number, NormalizedRuneDetail[]> = {};
+
                     if (Array.isArray(rawDetails)) {
-                      for (const d of rawDetails) {
-                        if (!d || typeof d.runeId !== 'number') continue;
-                        if (!byRuneId[d.runeId]) byRuneId[d.runeId] = [];
-                        const safeDetail = {
-                          runeId: d.runeId,
-                          statType:
-                            typeof (d as any).statType === 'string'
-                              ? (d as any).statType
-                              : String((d as any).statType ?? ''),
-                          value: Number.isFinite((d as any).value)
-                            ? Number((d as any).value)
-                            : Number((d as any).value ?? 0),
+                      for (const detail of rawDetails) {
+                        if (!detail || typeof detail.runeId !== 'number') {
+                          continue;
+                        }
+
+                        const statType =
+                          typeof detail.statType === 'string'
+                            ? detail.statType
+                            : String(detail.statType ?? '');
+
+                        const rawValue = detail.value;
+                        let value = 0;
+                        if (typeof rawValue === 'number') {
+                          value = Number.isFinite(rawValue) ? rawValue : 0;
+                        } else if (typeof rawValue === 'string') {
+                          const parsed = Number(rawValue);
+                          value = Number.isFinite(parsed) ? parsed : 0;
+                        }
+
+                        const normalizedDetail: NormalizedRuneDetail = {
+                          runeId: detail.runeId,
+                          statType,
+                          value,
                         };
-                        byRuneId[d.runeId]!.push(safeDetail);
+
+                        if (!byRuneId[normalizedDetail.runeId]) {
+                          byRuneId[normalizedDetail.runeId] = [];
+                        }
+                        byRuneId[normalizedDetail.runeId]!.push(
+                          normalizedDetail
+                        );
                       }
                     }
 
                     return (
                       <RuneTreeDisplay
-                        perks={selectedPlayerData.perks}
+                        perks={normalizedPerks}
                         className="mt-2"
                         runeDetailsByRuneId={byRuneId}
                       />
@@ -1784,7 +1826,7 @@ export default function MatchDetailsPage() {
                                 null;
                               return questTime
                                 ? formatMatchTime(questTime)
-                                : '—';
+                                : '-';
                             })()}
                           </span>
                         </div>
@@ -2560,7 +2602,7 @@ export default function MatchDetailsPage() {
                                 null;
                               return questSelected
                                 ? formatMatchTime(questSelected)
-                                : '—';
+                                : '-';
                             })(),
                             value2: (() => {
                               const questCompare =
@@ -2570,7 +2612,7 @@ export default function MatchDetailsPage() {
                                 null;
                               return questCompare
                                 ? formatMatchTime(questCompare)
-                                : '—';
+                                : '-';
                             })(),
                             numValue1: (() => {
                               const questSelected =
@@ -2876,14 +2918,10 @@ export default function MatchDetailsPage() {
                             const formattedTime = formatMatchTime(
                               frame.timestamp
                             );
-                            const importantEvents = (frame.events || []).filter(
-                              (e: any) =>
-                                [
-                                  'CHAMPION_KILL',
-                                  'ELITE_MONSTER_KILL',
-                                  'BUILDING_KILL',
-                                  'DRAGON_SOUL_GIVEN',
-                                ].includes(e.type)
+                            const importantEvents = (frame.events ?? []).filter(
+                              (event) =>
+                                typeof event.type === 'string' &&
+                                CRITICAL_TIMELINE_EVENT_TYPES.has(event.type)
                             );
                             if (importantEvents.length === 0) return null;
                             return (
@@ -2901,52 +2939,44 @@ export default function MatchDetailsPage() {
                                   </Badge>
                                 </div>
                                 <div className="space-y-2">
-                                  {importantEvents.map(
-                                    (event: any, eventIndex: number) => {
-                                      try {
-                                        return (
-                                          <TimelineEventItem
-                                            key={eventIndex}
-                                            event={event}
-                                            participants={
-                                              matchData.info.participants
-                                            }
-                                            participantPuuids={
-                                              matchData.metadata.participants
-                                            }
-                                          />
-                                        );
-                                      } catch (err) {
-                                        try {
-                                          // eslint-disable-next-line no-console
-                                          console.error(
-                                            '[MatchDetailsPage] Combat event render failed:',
-                                            {
-                                              error: String(err),
-                                              stack: (err as any)?.stack,
-                                              frameIndex,
-                                              eventIndex,
-                                              eventPreview: event
-                                                ? {
-                                                    type: event.type,
-                                                    ts: event.timestamp,
-                                                  }
-                                                : null,
-                                            }
-                                          );
-                                        } catch {}
-                                        return (
-                                          <div
-                                            key={`combat-fallback-${frameIndex}-${eventIndex}`}
-                                            className="rounded border border-red-500/20 bg-red-900/10 p-2 text-xs text-red-300"
-                                          >
-                                            Failed to render combat event #
-                                            {eventIndex}
-                                          </div>
-                                        );
-                                      }
+                                  {importantEvents.map((event, eventIndex) => {
+                                    try {
+                                      return (
+                                        <TimelineEventItem
+                                          key={eventIndex}
+                                          event={event}
+                                          participants={
+                                            matchData.info.participants
+                                          }
+                                          participantPuuids={
+                                            matchData.metadata.participants
+                                          }
+                                        />
+                                      );
+                                    } catch (err) {
+                                      logger.error(
+                                        '[MatchDetailsPage] Combat event render failed',
+                                        err,
+                                        {
+                                          frameIndex,
+                                          eventIndex,
+                                          eventPreview: {
+                                            type: event.type,
+                                            ts: event.timestamp,
+                                          },
+                                        }
+                                      );
+                                      return (
+                                        <div
+                                          key={`combat-fallback-${frameIndex}-${eventIndex}`}
+                                          className="rounded border border-red-500/20 bg-red-900/10 p-2 text-xs text-red-300"
+                                        >
+                                          Failed to render combat event #
+                                          {eventIndex}
+                                        </div>
+                                      );
                                     }
-                                  )}
+                                  })}
                                 </div>
                               </div>
                             );
@@ -3051,7 +3081,6 @@ export default function MatchDetailsPage() {
               </Card>
             )}
           </TabsContent>
-
         </Tabs>
       </div>
     </div>

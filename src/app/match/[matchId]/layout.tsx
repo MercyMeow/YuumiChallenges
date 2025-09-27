@@ -1,7 +1,47 @@
 import { Metadata } from 'next';
 import { headers } from 'next/headers';
+import {
+  DetailedMatchData,
+  DetailedMatchParticipant,
+  DetailedMatchTeam,
+} from '@/lib/types';
 
-function resolveBaseUrl(headersList: Headers): string {
+type MatchDetailsSuccessPayload = {
+  success: true;
+  matchData: DetailedMatchData;
+  timelineData: unknown;
+  matchId: string;
+  cached?: boolean;
+  example?: boolean;
+};
+
+type MatchDetailsErrorPayload = {
+  success?: false;
+  error?: string;
+};
+
+type MatchDetailsApiResponse =
+  | MatchDetailsSuccessPayload
+  | MatchDetailsErrorPayload
+  | Record<string, unknown>;
+
+const isMatchDetailsSuccess = (
+  payload: MatchDetailsApiResponse
+): payload is MatchDetailsSuccessPayload => {
+  return (
+    typeof payload === 'object' &&
+    payload !== null &&
+    'success' in payload &&
+    payload.success === true &&
+    'matchData' in payload
+  );
+};
+
+type HeaderGetter = {
+  get(name: string): string | null;
+};
+
+function resolveBaseUrl(headersList: HeaderGetter): string {
   // Primary: explicit production domain
   const envBase = process.env.NEXT_PUBLIC_APP_URL?.trim();
   if (envBase) return envBase.replace(/\/+$/, '');
@@ -66,10 +106,8 @@ export async function generateMetadata({
       };
     }
 
-    const data = await response.json();
-    const matchData = data.matchData;
-
-    if (!matchData) {
+    const data = (await response.json()) as MatchDetailsApiResponse;
+    if (!isMatchDetailsSuccess(data)) {
       return {
         title: 'Match Details - Yuumi Challenges',
         description: 'View detailed League of Legends match statistics',
@@ -90,38 +128,46 @@ export async function generateMetadata({
       };
     }
 
+    const matchData = data.matchData;
+
     // Extract key match information
     const gameDuration = Math.floor(matchData.info.gameDuration / 60);
     const gameMode = matchData.info.gameMode;
-    const blueTeam = matchData.info.participants.filter(
-      (p: any) => p.teamId === 100
-    );
-    const redTeam = matchData.info.participants.filter(
-      (p: any) => p.teamId === 200
-    );
+    const participants = matchData.info
+      .participants as DetailedMatchParticipant[];
+    if (participants.length === 0) {
+      return {
+        title: 'Match Details - Yuumi Challenges',
+        description: 'View detailed League of Legends match statistics',
+      };
+    }
+    const blueTeam = participants.filter((p) => p.teamId === 100);
+    const redTeam = participants.filter((p) => p.teamId === 200);
     const blueTeamData = matchData.info.teams.find(
-      (t: any) => t.teamId === 100
+      (team: DetailedMatchTeam) => team.teamId === 100
     );
 
     // Calculate team KDA
-    const blueKills = blueTeam.reduce(
-      (sum: number, p: any) => sum + p.kills,
-      0
-    );
-    const redKills = redTeam.reduce((sum: number, p: any) => sum + p.kills, 0);
+    const blueKills = blueTeam.reduce((sum, player) => sum + player.kills, 0);
+    const redKills = redTeam.reduce((sum, player) => sum + player.kills, 0);
 
     // Get MVP (highest KDA)
-    const mvp = matchData.info.participants.reduce((best: any, player: any) => {
-      const kda =
-        player.deaths === 0
-          ? player.kills + player.assists
-          : (player.kills + player.assists) / player.deaths;
-      const bestKda =
-        best.deaths === 0
-          ? best.kills + best.assists
-          : (best.kills + best.assists) / best.deaths;
-      return kda > bestKda ? player : best;
-    });
+    const firstParticipant = participants[0]!;
+    const remainingParticipants = participants.slice(1);
+    const mvp = remainingParticipants.reduce<DetailedMatchParticipant>(
+      (best, player) => {
+        const kda =
+          player.deaths === 0
+            ? player.kills + player.assists
+            : (player.kills + player.assists) / player.deaths;
+        const bestKda =
+          best.deaths === 0
+            ? best.kills + best.assists
+            : (best.kills + best.assists) / best.deaths;
+        return kda > bestKda ? player : best;
+      },
+      firstParticipant
+    );
 
     const winner = blueTeamData?.win ? 'Blue Team' : 'Red Team';
     const winnerColor = blueTeamData?.win ? '🔵' : '🔴';

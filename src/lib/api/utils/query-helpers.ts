@@ -1,72 +1,56 @@
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { ApiError } from './error-handler';
 
-export interface QueryResult<T> {
-  data: T | null;
-  error: Error | null;
-}
-
 export async function executeQuery<T>(
-  queryFn: () => Promise<{ data: T | null; error: unknown }>,
-  errorMessage: string = 'Database query failed'
+  queryFn: () => Promise<T | null>,
+  errorMessage: string = 'Query failed'
 ): Promise<T> {
-  const { data, error } = await queryFn();
-  
-  if (error) {
-    console.error('Database error:', error);
-    throw new ApiError(500, errorMessage, 'DATABASE_ERROR', error);
+  try {
+    const result = await queryFn();
+    if (result === null || result === undefined) {
+      throw new ApiError(404, 'Resource not found', 'NOT_FOUND');
+    }
+    return result;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    console.error('Datastore query failed:', error);
+    throw new ApiError(500, errorMessage, 'DATASTORE_ERROR', error);
   }
-  
-  if (!data) {
-    throw new ApiError(404, 'Resource not found', 'NOT_FOUND');
-  }
-  
-  return data;
 }
 
-export async function batchQuery<T, K extends string | number>(
-  table: string,
-  column: string,
-  values: K[],
-  selectColumns: string = '*'
-): Promise<Map<K, T>> {
-  if (values.length === 0) {
-    return new Map();
-  }
-  
-  const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from(table)
-    .select(selectColumns)
-    .in(column, values);
-  
-  if (error) {
-    console.error('Batch query error:', error);
-    throw new ApiError(500, 'Batch query failed', 'BATCH_QUERY_ERROR', error);
-  }
-  
-  const resultMap = new Map<K, T>();
-  if (data && Array.isArray(data)) {
-    data.forEach((item: unknown) => {
-      const record = item as Record<string, unknown>;
-      resultMap.set(record[column] as K, record as T);
-    });
-  }
-  
-  return resultMap;
-}
-
-export function buildConditionalQuery<T extends { in: (column: string, values: unknown[]) => T; eq: (column: string, value: unknown) => T }>(query: T, conditions: Record<string, unknown>): T {
-  let result = query;
-  Object.entries(conditions).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      if (Array.isArray(value)) {
-        result = result.in(key, value);
-      } else {
-        result = result.eq(key, value);
-      }
+export function mapByProperty<
+  T extends Record<string, unknown>,
+  K extends keyof T,
+>(items: T[], property: K): Map<T[K], T> {
+  const result = new Map<T[K], T>();
+  items.forEach((item) => {
+    const key = item[property];
+    if (key !== undefined && key !== null) {
+      result.set(key as T[K], item);
     }
   });
-  
   return result;
+}
+
+export function filterByConditions<T extends Record<string, unknown>>(
+  items: T[],
+  conditions: Partial<{ [K in keyof T]: T[K] | T[K][] }>
+): T[] {
+  return items.filter((item) => {
+    return Object.entries(conditions).every(([key, value]) => {
+      if (value === undefined || value === null) {
+        return true;
+      }
+
+      const recordValue = item[key];
+
+      if (Array.isArray(value)) {
+        return value.includes(recordValue as never);
+      }
+
+      return recordValue === value;
+    });
+  });
 }

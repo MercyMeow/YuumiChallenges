@@ -1,18 +1,25 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { AuthProvider } from "@/components/auth/session-provider";
-import { ThemeProvider } from "@/contexts/theme-context";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import type { Metadata } from 'next';
+import './globals.css';
+import { ThemeProvider } from '@/contexts/theme-context';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export const metadata: Metadata = {
-  title: "Yuum.Ai Dashboard",
-  description: "Challenge tracking dashboard for League of Legends Yuumi Mains Discord community",
-  keywords: ["League of Legends", "Yuumi", "Discord", "Challenges", "Gaming"],
-  authors: [{ name: "Yuumi Mains Community" }],
+  title: 'Yuumi Guide',
+  description:
+    'An up-to-date, expert-crafted Yuumi support guide for LoL: runes, items, skill order, matchups, synergies, and macro.',
+  keywords: [
+    'League of Legends',
+    'Yuumi',
+    'Support',
+    'Guide',
+    'Runes',
+    'Items',
+  ],
+  authors: [{ name: 'Yuumi Mains Community' }],
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
   },
 };
 
@@ -48,14 +55,8 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body
-        className="antialiased dark"
-      >
-        <ThemeProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </ThemeProvider>
+      <body className="dark antialiased">
+        <ThemeProvider>{children}</ThemeProvider>
         <SpeedInsights />
       </body>
     </html>

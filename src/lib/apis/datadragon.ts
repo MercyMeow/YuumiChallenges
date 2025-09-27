@@ -4,7 +4,7 @@
  */
 
 // DataDragon API base URL
-const DATADRAGON_BASE_URL = "https://ddragon.leagueoflegends.com";
+const DATADRAGON_BASE_URL = 'https://ddragon.leagueoflegends.com';
 
 // Cache for storing versions to avoid repeated API calls
 let cachedVersions: string[] | null = null;
@@ -30,6 +30,55 @@ export interface ChampionData {
   };
   tags: string[];
   stats: Record<string, number>;
+  passive?: {
+    name: string;
+    description: string;
+    image: {
+      full: string;
+      sprite: string;
+      group: string;
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+    };
+  };
+  spells?: Array<{
+    id: string;
+    name: string;
+    description: string;
+    tooltip: string;
+    leveltip?: {
+      label: string[];
+      effect: string[];
+    };
+    maxrank: number;
+    cooldown: number[];
+    cooldownBurn: string;
+    cost: number[];
+    costBurn: string;
+    datavalues: Record<string, unknown>;
+    effect: (number | null)[];
+    effectBurn: (string | null)[];
+    vars: Array<Record<string, unknown>>;
+    key: string;
+    summonerLevel: number;
+    modes: string[];
+    costType: string;
+    maxammo: string;
+    range: number | number[];
+    rangeBurn: string;
+    image: {
+      full: string;
+      sprite: string;
+      group: string;
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+    };
+    resource: string;
+  }>;
 }
 
 export interface ItemData {
@@ -106,19 +155,19 @@ export async function getDDragonVersions(): Promise<DDragonVersions> {
     if (!response.ok) {
       throw new Error(`Failed to fetch versions: ${response.status}`);
     }
-    
+
     const versions: string[] = await response.json();
-    const latest = versions[0] || "14.23.1"; // First version is always the latest
-    
+    const latest = versions[0] || '14.23.1'; // First version is always the latest
+
     // Cache the results
     cachedVersions = versions;
     cachedLatestVersion = latest;
-    
+
     return { versions, latest };
   } catch (error) {
-    console.error("Error fetching DataDragon versions:", error);
+    console.error('Error fetching DataDragon versions:', error);
     // Fallback to a reasonable default if the API fails
-    return { versions: ["14.23.1"], latest: "14.23.1" };
+    return { versions: ['14.23.1'], latest: '14.23.1' };
   }
 }
 
@@ -174,7 +223,8 @@ export const abilityImages = {
    */
   passive: async (passiveId: string): Promise<string> => {
     const version = await getLatestVersion();
-    return `${DATADRAGON_BASE_URL}/cdn/${version}/img/passive/${passiveId}.png`;
+    // passiveId is a full filename like "YuumiP2.png"
+    return `${DATADRAGON_BASE_URL}/cdn/${version}/img/passive/${passiveId}`;
   },
 
   /**
@@ -182,7 +232,8 @@ export const abilityImages = {
    */
   spell: async (spellId: string): Promise<string> => {
     const version = await getLatestVersion();
-    return `${DATADRAGON_BASE_URL}/cdn/${version}/img/spell/${spellId}.png`;
+    // spellId is a full filename like "YuumiQ.png"
+    return `${DATADRAGON_BASE_URL}/cdn/${version}/img/spell/${spellId}`;
   },
 };
 
@@ -235,7 +286,7 @@ export const runeImages = {
   icon: async (runeIconPath: string): Promise<string> => {
     return `${DATADRAGON_BASE_URL}/cdn/img/${runeIconPath}`;
   },
-  
+
   /**
    * Gets the rune tree icon URL
    */
@@ -247,20 +298,22 @@ export const runeImages = {
 /**
  * Fetches champion data from DataDragon
  */
-export async function getChampionData(locale: string = "en_US"): Promise<Record<string, ChampionData>> {
+export async function getChampionData(
+  locale: string = 'en_US'
+): Promise<Record<string, ChampionData>> {
   const version = await getLatestVersion();
   const url = `${DATADRAGON_BASE_URL}/cdn/${version}/data/${locale}/champion.json`;
-  
+
   try {
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch champion data: ${response.status}`);
     }
-    
+
     const data = await response.json();
     return data.data;
   } catch (error) {
-    console.error("Error fetching champion data:", error);
+    console.error('Error fetching champion data:', error);
     throw error;
   }
 }
@@ -268,20 +321,23 @@ export async function getChampionData(locale: string = "en_US"): Promise<Record<
 /**
  * Fetches detailed champion data for a specific champion
  */
-export async function getChampionDetails(championId: string, locale: string = "en_US"): Promise<ChampionData> {
+export async function getChampionDetails(
+  championId: string,
+  locale: string = 'en_US'
+): Promise<ChampionData> {
   const version = await getLatestVersion();
   const url = `${DATADRAGON_BASE_URL}/cdn/${version}/data/${locale}/champion/${championId}.json`;
-  
+
   try {
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch champion details: ${response.status}`);
     }
-    
+
     const data = await response.json();
     return data.data[championId];
   } catch (error) {
-    console.error("Error fetching champion details:", error);
+    console.error('Error fetching champion details:', error);
     throw error;
   }
 }
@@ -289,20 +345,22 @@ export async function getChampionDetails(championId: string, locale: string = "e
 /**
  * Fetches item data from DataDragon
  */
-export async function getItemData(locale: string = "en_US"): Promise<Record<string, ItemData>> {
+export async function getItemData(
+  locale: string = 'en_US'
+): Promise<Record<string, ItemData>> {
   const version = await getLatestVersion();
   const url = `${DATADRAGON_BASE_URL}/cdn/${version}/data/${locale}/item.json`;
-  
+
   try {
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch item data: ${response.status}`);
     }
-    
+
     const data = await response.json();
     return data.data;
   } catch (error) {
-    console.error("Error fetching item data:", error);
+    console.error('Error fetching item data:', error);
     throw error;
   }
 }
@@ -310,20 +368,22 @@ export async function getItemData(locale: string = "en_US"): Promise<Record<stri
 /**
  * Fetches rune data from DataDragon
  */
-export async function getRuneData(locale: string = "en_US"): Promise<RuneTree[]> {
+export async function getRuneData(
+  locale: string = 'en_US'
+): Promise<RuneTree[]> {
   const version = await getLatestVersion();
   const url = `${DATADRAGON_BASE_URL}/cdn/${version}/data/${locale}/runesReforged.json`;
-  
+
   try {
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch rune data: ${response.status}`);
     }
-    
+
     const data: RuneTree[] = await response.json();
     return data;
   } catch (error) {
-    console.error("Error fetching rune data:", error);
+    console.error('Error fetching rune data:', error);
     throw error;
   }
 }
@@ -350,7 +410,10 @@ export async function preloadImages(srcs: string[]): Promise<void> {
 /**
  * Gets a champion's image URLs in a convenient object
  */
-export async function getChampionImageUrls(championId: string, skinNum: number = 0) {
+export async function getChampionImageUrls(
+  championId: string,
+  skinNum: number = 0
+) {
   return {
     icon: await championImages.icon(championId),
     splash: championImages.splash(championId, skinNum),
@@ -364,21 +427,21 @@ export async function getChampionImageUrls(championId: string, skinNum: number =
  */
 export const COMMON_CHAMPIONS = {
   // Main champion
-  YUUMI: "Yuumi",
+  YUUMI: 'Yuumi',
   // Popular support champions
-  LULU: "Lulu",
-  NAMI: "Nami",
-  SORAKA: "Soraka",
-  JANNA: "Janna",
-  THRESH: "Thresh",
-  LEONA: "Leona",
-  MORGANA: "Morgana",
+  LULU: 'Lulu',
+  NAMI: 'Nami',
+  SORAKA: 'Soraka',
+  JANNA: 'Janna',
+  THRESH: 'Thresh',
+  LEONA: 'Leona',
+  MORGANA: 'Morgana',
   // Popular ADC champions that work well with Yuumi
-  JINX: "Jinx",
-  EZREAL: "Ezreal",
-  VAYNE: "Vayne",
-  KAISA: "Kaisa",
-  TWITCH: "Twitch",
+  JINX: 'Jinx',
+  EZREAL: 'Ezreal',
+  VAYNE: 'Vayne',
+  KAISA: 'Kaisa',
+  TWITCH: 'Twitch',
 } as const;
 
 /**
@@ -437,21 +500,23 @@ export async function getSupportChampionAssets() {
  * Note: Icon 29 is not selectable, so we exclude it
  */
 export const BASIC_SUMMONER_ICONS = [
-  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-  21, 22, 23, 24, 25, 26, 27, 28,
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+  22, 23, 24, 25, 26, 27, 28,
 ] as const;
 
 /**
  * Selects a random basic summoner icon, excluding the current one
  */
 export function selectRandomIcon(currentIconId: number): number {
-  const availableIcons = BASIC_SUMMONER_ICONS.filter(id => id !== currentIconId);
-  
+  const availableIcons = BASIC_SUMMONER_ICONS.filter(
+    (id) => id !== currentIconId
+  );
+
   if (availableIcons.length === 0) {
     // Fallback if somehow current icon is not in basic icons or array is empty
     return BASIC_SUMMONER_ICONS[0];
   }
-  
+
   const randomIndex = Math.floor(Math.random() * availableIcons.length);
   return availableIcons[randomIndex] || BASIC_SUMMONER_ICONS[0];
 }
@@ -466,7 +531,7 @@ export async function getSummonerIconUrl(iconId: number): Promise<string> {
 /**
  * Default fallback image for when DataDragon images fail to load
  */
-export const FALLBACK_IMAGE = "/images/champion-placeholder.png";
+export const FALLBACK_IMAGE = '/images/champion-placeholder.png';
 
 /**
  * Stat Shard mapping constants
@@ -476,53 +541,53 @@ export const STAT_SHARDS: Record<number, StatShard> = {
   // Offense Slot (First Row)
   5005: {
     id: 5005,
-    name: "Attack Speed",
-    description: "+10% Attack Speed",
-    slot: 'offense'
+    name: 'Attack Speed',
+    description: '+10% Attack Speed',
+    slot: 'offense',
   },
   5008: {
     id: 5008,
-    name: "Adaptive Force",
-    description: "+9 Adaptive Force",
-    slot: 'offense'
+    name: 'Adaptive Force',
+    description: '+9 Adaptive Force',
+    slot: 'offense',
   },
   5007: {
     id: 5007,
-    name: "Ability Haste",
-    description: "+8 Ability Haste",
-    slot: 'offense'
+    name: 'Ability Haste',
+    description: '+8 Ability Haste',
+    slot: 'offense',
   },
-  
+
   // Flex Slot (Second Row) - Note: 5008 appears in multiple slots
   5002: {
     id: 5002,
-    name: "Armor",
-    description: "+10 Armor",
-    slot: 'flex'
+    name: 'Armor',
+    description: '+10 Armor',
+    slot: 'flex',
   },
   5003: {
     id: 5003,
-    name: "Magic Resist",
-    description: "+8 Magic Resist",
-    slot: 'flex'
+    name: 'Magic Resist',
+    description: '+8 Magic Resist',
+    slot: 'flex',
   },
-  
+
   // Defense Slot (Third Row)
   5001: {
     id: 5001,
-    name: "Health",
-    description: "+15-140 Health (based on level)",
-    slot: 'defense'
-  }
+    name: 'Health',
+    description: '+15-140 Health (based on level)',
+    slot: 'defense',
+  },
 };
 
 /**
  * Stat shard options by slot position
  */
 export const STAT_SHARD_SLOTS = {
-  offense: [5005, 5008, 5007], // Attack Speed, Adaptive Force, Ability Haste  
-  flex: [5008, 5002, 5003],    // Adaptive Force, Armor, Magic Resist
-  defense: [5001, 5002, 5003]  // Health, Armor, Magic Resist
+  offense: [5005, 5008, 5007], // Attack Speed, Adaptive Force, Ability Haste
+  flex: [5008, 5002, 5003], // Adaptive Force, Armor, Magic Resist
+  defense: [5001, 5002, 5003], // Health, Armor, Magic Resist
 } as const;
 
 /**
@@ -532,7 +597,10 @@ export const STAT_SHARD_SLOTS = {
 /**
  * Gets a rune by ID from rune tree data
  */
-export function getRuneById(runeTrees: RuneTree[], runeId: number): RuneData | null {
+export function getRuneById(
+  runeTrees: RuneTree[],
+  runeId: number
+): RuneData | null {
   for (const tree of runeTrees) {
     for (const slot of tree.slots) {
       for (const rune of slot.runes) {
@@ -548,8 +616,11 @@ export function getRuneById(runeTrees: RuneTree[], runeId: number): RuneData | n
 /**
  * Gets a rune tree by ID
  */
-export function getRuneTreeById(runeTrees: RuneTree[], treeId: number): RuneTree | null {
-  return runeTrees.find(tree => tree.id === treeId) || null;
+export function getRuneTreeById(
+  runeTrees: RuneTree[],
+  treeId: number
+): RuneTree | null {
+  return runeTrees.find((tree) => tree.id === treeId) || null;
 }
 
 /**
@@ -562,7 +633,11 @@ export function getStatShardById(statShardId: number): StatShard | null {
 /**
  * Gets all runes from a specific tree and slot
  */
-export function getRunesByTreeAndSlot(runeTrees: RuneTree[], treeId: number, slotIndex: number): RuneData[] {
+export function getRunesByTreeAndSlot(
+  runeTrees: RuneTree[],
+  treeId: number,
+  slotIndex: number
+): RuneData[] {
   const tree = getRuneTreeById(runeTrees, treeId);
   if (!tree || !tree.slots[slotIndex]) {
     return [];
@@ -574,54 +649,72 @@ export function getRunesByTreeAndSlot(runeTrees: RuneTree[], treeId: number, slo
  * Gets keystone runes (first slot of each tree)
  */
 export function getKeystoneRunes(runeTrees: RuneTree[]): RuneData[] {
-  return runeTrees.flatMap(tree => 
-    tree.slots[0]?.runes || []
-  );
+  return runeTrees.flatMap((tree) => tree.slots[0]?.runes || []);
 }
 
 /**
  * Validates a rune selection
  */
-export function validateRuneSelection(runeTrees: RuneTree[], selection: RuneSelection): boolean {
+export function validateRuneSelection(
+  runeTrees: RuneTree[],
+  selection: RuneSelection
+): boolean {
   // Check if primary tree exists
   const primaryTree = getRuneTreeById(runeTrees, selection.primaryTree);
   if (!primaryTree) return false;
-  
+
   // Check if secondary tree exists and is different from primary
   const secondaryTree = getRuneTreeById(runeTrees, selection.secondaryTree);
-  if (!secondaryTree || selection.secondaryTree === selection.primaryTree) return false;
-  
+  if (!secondaryTree || selection.secondaryTree === selection.primaryTree)
+    return false;
+
   // Check if all runes exist in their respective trees
-  const primaryRunes = [selection.keystone, selection.slot1, selection.slot2, selection.slot3];
+  const primaryRunes = [
+    selection.keystone,
+    selection.slot1,
+    selection.slot2,
+    selection.slot3,
+  ];
   for (let i = 0; i < primaryRunes.length; i++) {
-    const runesInSlot = getRunesByTreeAndSlot(runeTrees, selection.primaryTree, i);
-    if (!runesInSlot.some(rune => rune.id === primaryRunes[i])) {
+    const runesInSlot = getRunesByTreeAndSlot(
+      runeTrees,
+      selection.primaryTree,
+      i
+    );
+    if (!runesInSlot.some((rune) => rune.id === primaryRunes[i])) {
       return false;
     }
   }
-  
+
   // Check secondary runes (can be from any slot except keystone)
   const secondaryRunes = [selection.secondary1, selection.secondary2];
   for (const secondaryRuneId of secondaryRunes) {
     let found = false;
-    for (let i = 1; i < secondaryTree.slots.length; i++) { // Skip keystone slot
-      const runesInSlot = getRunesByTreeAndSlot(runeTrees, selection.secondaryTree, i);
-      if (runesInSlot.some(rune => rune.id === secondaryRuneId)) {
+    for (let i = 1; i < secondaryTree.slots.length; i++) {
+      // Skip keystone slot
+      const runesInSlot = getRunesByTreeAndSlot(
+        runeTrees,
+        selection.secondaryTree,
+        i
+      );
+      if (runesInSlot.some((rune) => rune.id === secondaryRuneId)) {
         found = true;
         break;
       }
     }
     if (!found) return false;
   }
-  
+
   // Check stat shards
   const [offense, flex, defense] = selection.statShards;
-  if (!(STAT_SHARD_SLOTS.offense as readonly number[]).includes(offense) ||
-      !(STAT_SHARD_SLOTS.flex as readonly number[]).includes(flex) ||
-      !(STAT_SHARD_SLOTS.defense as readonly number[]).includes(defense)) {
+  if (
+    !(STAT_SHARD_SLOTS.offense as readonly number[]).includes(offense) ||
+    !(STAT_SHARD_SLOTS.flex as readonly number[]).includes(flex) ||
+    !(STAT_SHARD_SLOTS.defense as readonly number[]).includes(defense)
+  ) {
     return false;
   }
-  
+
   return true;
 }
 
@@ -635,6 +728,8 @@ export async function getRuneIconUrl(runeIconPath: string): Promise<string> {
 /**
  * Gets rune tree icon URL with convenience function
  */
-export async function getRuneTreeIconUrl(treeIconPath: string): Promise<string> {
+export async function getRuneTreeIconUrl(
+  treeIconPath: string
+): Promise<string> {
   return runeImages.treeIcon(treeIconPath);
 }

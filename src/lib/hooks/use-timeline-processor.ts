@@ -3,9 +3,16 @@
  */
 
 import { useState, useCallback } from 'react';
-import {
-  RawTimelineData,
-} from '@/lib/types/item-timeline';
+import { RawTimelineData } from '@/lib/types/item-timeline';
+
+type LegacyProcessorModule =
+  typeof import('@/lib/utils/item-timeline-processor');
+type LegacyProcessingOptions = Parameters<
+  LegacyProcessorModule['processPlayerItemTimeline']
+>[1];
+type LegacyProcessingResult = ReturnType<
+  LegacyProcessorModule['processPlayerItemTimeline']
+>;
 
 export function useTimelineProcessor() {
   // Use the legacy compatibility function for now
@@ -17,22 +24,20 @@ export function useTimelineProcessor() {
  * @deprecated Use useTimelineProcessor with new types instead
  */
 export function useLegacyTimelineProcessor() {
-  const [processedTimeline, setProcessedTimeline] = useState<any>(null);
+  const [processedTimeline, setProcessedTimeline] =
+    useState<LegacyProcessingResult | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [processingTime, setProcessingTime] = useState(0);
 
   const processTimeline = useCallback(
-    async (
-      timelineData: RawTimelineData,
-      options: { selectedPlayerId: number; includeUndoEvents?: boolean }
-    ) => {
+    async (timelineData: RawTimelineData, options: LegacyProcessingOptions) => {
       if (isProcessing) return;
 
       setIsProcessing(true);
       setError(null);
       setProcessedTimeline(null);
-      
+
       const startTime = performance.now();
 
       setTimeout(async () => {
@@ -41,7 +46,7 @@ export function useLegacyTimelineProcessor() {
             '@/lib/utils/item-timeline-processor'
           );
           const result = processPlayerItemTimeline(timelineData, options);
-          
+
           setProcessedTimeline(result);
           setProcessingTime(performance.now() - startTime);
           setError(null);

@@ -1,13 +1,13 @@
 /**
  * Simplified Item Timeline Types for League of Legends Match Details
- * 
+ *
  * Clean, maintainable TypeScript interfaces with minimal complexity
  * and focus on type safety and ease of use.
  */
 
 // Raw data from Riot API - minimal required structure
 export interface RawTimelineData {
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   info: {
     frameInterval?: number;
     frames: {
@@ -25,7 +25,11 @@ export interface RawTimelineEvent {
 }
 
 // Clean event types
-export type ItemEventType = 'ITEM_PURCHASED' | 'ITEM_SOLD' | 'ITEM_DESTROYED' | 'ITEM_UNDO';
+export type ItemEventType =
+  | 'ITEM_PURCHASED'
+  | 'ITEM_SOLD'
+  | 'ITEM_DESTROYED'
+  | 'ITEM_UNDO';
 
 // Processed item event - simplified structure
 export interface ItemEvent {
@@ -109,18 +113,18 @@ export const SUPPORT_EVOLUTIONS: Record<number, SupportEvolution> = {
 // Legacy compatibility exports - moved before function to avoid hoisting issues
 export const SUPPORT_ITEM_EVOLUTIONS = (() => {
   const legacy: Record<number, SupportItemEvolution> = {};
-  
+
   for (const [itemIdStr, evolution] of Object.entries(SUPPORT_EVOLUTIONS)) {
     const itemId = parseInt(itemIdStr, 10);
     legacy[itemId] = {
       stage: evolution.stage,
       chainName: evolution.name,
       fromItemId: 0, // Simplified - not tracking full chain
-      toItemId: 0,   // Simplified - not tracking full chain  
+      toItemId: 0, // Simplified - not tracking full chain
       evolutionType: 'world_atlas',
     };
   }
-  
+
   return legacy;
 })();
 

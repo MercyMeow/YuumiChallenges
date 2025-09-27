@@ -221,7 +221,7 @@ const getEventColor = (eventType: string) => {
  * Unify border contrast; remove special evolution border emphasis to avoid extra effect.
  * Badge will remain the only differentiation for evolution events.
  */
-const getEventBorderColor = (eventType: string, _isEvolution: boolean) => {
+const getEventBorderColor = (eventType: string) => {
   switch (eventType) {
     case 'ITEM_PURCHASED':
       return 'border-emerald-400/15';
@@ -376,7 +376,7 @@ const ItemEventItem = ({
       className={cn(
         'flex items-center gap-3 rounded-lg p-4',
         'border bg-black/20 backdrop-blur-md',
-        getEventBorderColor(event.type, event.isEvolution),
+        getEventBorderColor(event.type),
         evolutionAccent,
         className
       )}
