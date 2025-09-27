@@ -12,6 +12,6 @@ export const Swain: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch for lane. Resolve secondary with Font of Life + Revitalize; Bone Plating if enemy duo is bursty.',
   recommendedItems:
-    'Moonstone into Chemtech Putrifier early vs his sustain. Mikael’s has high value to break E pull; Redemption later.',
+    'Moonstone. Mikaels has high value to break E pull; Redemption later.',
   earlyItems: ['Forbidden Idol', 'Control Ward; avoid his brush control'],
 };

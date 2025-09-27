@@ -8,7 +8,7 @@ export const Alistar: SupportMatchup = {
     'Do not pre channel Q toward him. He can cancel your passive proc timing by threatening W Q making you detach at a bad time',
     'Punish his level 1 where he usually starts Q and has low threat without combo. Poke with empowered Q curves while he last hits Relic',
     'After he engages wait for Pulverize knock up to end before casting R so your waves layer slows to peel his follow up carry',
-    'If he builds early Spectres Cowl shift to Moonstone plus early Chemtech Putrifier only if enemy sustain warrants it not just Alistar',
+    'If he builds early Spectres Cowl shift to Moonstone only if enemy sustain warrants it not just Alistar',
     'Headbutt puts him on a predictable path. Curve Q behind his retreat path after he uses W on your ADC',
     'Take Second Wind + Bone Plating only if lane has added poke from his ADC. Otherwise Aery + Scorch gives better pressure',
     'Ward raptor entrance early. Alistar mid roams at level 3 are common. Stay attached to a safe wave clearing ally when he leaves lane',

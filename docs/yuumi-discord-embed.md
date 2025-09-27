@@ -32,12 +32,12 @@ Use the payload below to post a rich Discord embed that highlights the Yuumi 15.
       "fields": [
         {
           "name": "Core Path",
-          "value": "• Dawncore → Dream Maker\n• Mikael's Blessing (into CC)\n• Redemption (teamfight sustain)",
+          "value": "• Dawncore → Dream Maker\n• Mikaels Blessing (into CC)\n• Redemption (teamfight sustain)",
           "inline": true
         },
         {
           "name": "Situational Tech",
-          "value": "• Ardent Censer / Staff of Flowing Water\n• Chemtech Putrifier (early anti-heal)\n• Shurelya's, Locket, Knight's Vow, Wardstone",
+          "value": "• Ardent Censer / Staff of Flowing Water\n• Shurelya's, Locket, Knight's Vow, Wardstone",
           "inline": true
         },
         {
@@ -51,7 +51,7 @@ Use the payload below to post a rich Discord embed that highlights the Yuumi 15.
         },
         {
           "name": "Key Notes",
-          "value": "Delay boots unless tempo demands haste. Slot Chemtech Putrifier second into sustain lanes. Align Ardent vs Staff with your carry's damage profile."
+          "value": "Delay boots unless tempo demands haste. Align Ardent vs Staff with your carry's damage profile."
         }
       ],
       "footer": {

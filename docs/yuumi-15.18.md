@@ -12,13 +12,12 @@ Summary
 Core/High-Priority
 - Dawncore
 - Dream Maker
-- Mikael's Blessing (vs. heavy CC)
+- Mikaels Blessing (vs. heavy CC)
 - Redemption (teamfight sustain)
 
 Situational
 - Ardent Censer (AA carry synergy)
 - Staff of Flowing Water (AP carry/poke synergy)
-- Chemtech Putrifier (early if anti-heal needed)
 - Shurelya's Battlesong (engage/speed comps)
 - Locket of the Iron Solari (burst mitigation)
 - Knight's Vow (pocketing single hyper-carry)
@@ -31,7 +30,6 @@ Starters & Income
 
 Notes
 - Yuumi often delays or skips boots because she is attached; only buy when you need haste/timing windows.
-- Consider anti-heal as second if enemy has early sustain (Putrifier).
 - Choose Ardent vs. Staff according to ally carry damage profile.
 
 Implementation

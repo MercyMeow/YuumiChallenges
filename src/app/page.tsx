@@ -22,8 +22,8 @@ import {
 } from '@/lib/matchups/index';
 import { BEST_RUNES, BEST_ITEMS } from '@/lib/builds/yuumi';
 import { yuumiRunePages1518 } from '@/lib/runes/yuumi';
+import RuneTabs from '@/components/RuneTabs';
 import { ItemSlot } from '@/components/match-history/item-slots';
-import { RuneIcon } from '@/components/ui/rune-display';
 // Removed direct tooltip imports (AbilityIcon internally handles tooltips). If needed later, reintroduce.
 import {
   Download,
@@ -85,6 +85,68 @@ const YUUMI_SKINS: YuumiSkin[] = [
     availability: 'Permanent',
     splashart:
       'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Yuumi_0.jpg',
+  },
+  {
+    id: 2,
+    name: 'Battle Principal Yuumi',
+    releaseDate: '2019-05-14',
+    rpPrice: 1350,
+    currency: 'RP',
+    availability: 'Permanent',
+    splashart:
+      'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Yuumi_1.jpg',
+  },
+  {
+    id: 11,
+    name: 'Heartseeker Yuumi',
+    releaseDate: '2020-02-04',
+    rpPrice: 1350,
+    currency: 'RP',
+    availability: 'Legacy',
+    splashart:
+      'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Yuumi_11.jpg',
+    lastInShop: '2021-02-04',
+  },
+  {
+    id: 35,
+    name: 'Yuubee',
+    releaseDate: '2021-02-18',
+    rpPrice: 1350,
+    currency: 'RP',
+    availability: 'Permanent',
+    splashart:
+      'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Yuumi_35.jpg',
+  },
+  {
+    id: 28,
+    name: 'Bewitching Yuumi',
+    releaseDate: '2021-10-21',
+    rpPrice: 1350,
+    currency: 'RP',
+    availability: 'Legacy',
+    splashart:
+      'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Yuumi_28.jpg',
+    lastInShop: '2022-10-21',
+  },
+  {
+    id: 42,
+    name: 'EDG Yuumi',
+    releaseDate: '2021-11-06',
+    currency: 'RP',
+    availability: 'Limited',
+    splashart:
+      'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Yuumi_42.jpg',
+    lastInShop: '2021-11-06',
+  },
+  {
+    id: 55,
+    name: 'Shiba Yuumi',
+    releaseDate: '2023-03-22',
+    rpPrice: 1350,
+    currency: 'RP',
+    availability: 'Permanent',
+    splashart:
+      'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Yuumi_55.jpg',
   },
   {
     id: 49,
@@ -1097,10 +1159,10 @@ export default function YuumiGuide() {
                       are.
                     </p>
                     <p>
-                      <strong>Host priority (lane → late game):</strong> Lane is
-                      usually your ADC unless a jungler/mid roams bot for a
-                      dive. Mid / late you prefer the ally who: 1) is fed, 2)
-                      can safely enter and exit fights, and 3) keeps you in
+                      <strong>Host priority (lane&apos;s late game):</strong>{' '}
+                      Lane is usually your ADC unless a jungler/mid roams bot
+                      for a dive. Mid / late you prefer the ally who: 1) is fed,
+                      2) can safely enter and exit fights, and 3) keeps you in
                       ability range of priority targets. Often this is a mobile
                       skirmisher or your frontliner during objective setups,
                       then you swap to a carry for the actual engage/burst
@@ -1350,10 +1412,9 @@ export default function YuumiGuide() {
                         </div>
                       </div>
                       <p className="text-sm text-white/80">
-                        Adds kill pressure and applies Grievous Wounds.
-                        Preferred at Master+ and in pro to convert Yuumi slows
-                        into picks and secure skirmishes. Swap to Heal in
-                        sustained poke lanes.
+                        Adds kill pressure and applies Grievous Wounds. into
+                        picks and secure skirmishes. Swap to Heal in sustained
+                        poke lanes.
                       </p>
                     </div>
                   </div>
@@ -1415,154 +1476,13 @@ export default function YuumiGuide() {
             <Card className="border-white/10 bg-black/30 backdrop-blur">
               <CardHeader>
                 <CardTitle className="text-white">
-                  Best Runes for Yuumi (48.74% WR, Patch 15.18)
+                  Runes (Patch 15.18)
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-white/90">
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div>
-                    <h3 className="mb-4 text-lg font-semibold text-purple-300">
-                      Primary: Sorcery
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <RuneIcon
-                          runeId={BEST_RUNES.primary.keystone.id}
-                          size="lg"
-                        />
-                        <div>
-                          <div className="font-medium text-white">
-                            {BEST_RUNES.primary.keystone.name}
-                          </div>
-                          <div className="text-sm text-white/70">
-                            Keystone - Heals and shields allies
-                          </div>
-                        </div>
-                      </div>
-                      {BEST_RUNES.primary.slots.map((rune) => (
-                        <div key={rune.id} className="flex items-center gap-3">
-                          <RuneIcon runeId={rune.id} size="md" />
-                          <div>
-                            <div className="text-sm font-medium text-white">
-                              {rune.name}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="mb-4 text-lg font-semibold text-green-300">
-                      Secondary: Resolve
-                    </h3>
-                    <div className="space-y-3">
-                      {BEST_RUNES.secondary.slots.map((rune) => (
-                        <div key={rune.id} className="flex items-center gap-3">
-                          <RuneIcon runeId={rune.id} size="md" />
-                          <div>
-                            <div className="text-sm font-medium text-white">
-                              {rune.name}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <h3 className="mb-4 mt-6 text-lg font-semibold text-blue-300">
-                      Stat Shards
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {BEST_RUNES.shards.map((shard) => (
-                        <Badge
-                          key={shard.id}
-                          variant="outline"
-                          className="border-white/20 text-white/90"
-                        >
-                          {shard.name}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">
-                  <h3 className="mb-2 text-lg font-semibold text-blue-300">
-                    Why These Runes?
-                  </h3>
-                  <div className="space-y-2 text-sm text-white/80">
-                    <p>
-                      <strong>Summon Aery:</strong> Provides healing and
-                      shielding for your team, perfect for an enchanter support.
-                    </p>
-                    <p>
-                      <strong>Manaflow Band:</strong> Helps with mana sustain in
-                      the laning phase when you&apos;re using abilities
-                      frequently.
-                    </p>
-                    <p>
-                      <strong>Transcendence:</strong> Reduces cooldowns as you
-                      level up, making your abilities available more often.
-                    </p>
-                    <p>
-                      <strong>Scorch:</strong> Provides poke damage and helps
-                      with last-hitting in lane.
-                    </p>
-                    <p>
-                      <strong>Resolve tree:</strong> Font of Life and Revitalize
-                      provide additional healing and sustain for your team.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Additional viable rune pages */}
-                <div className="mt-6 rounded-lg border border-white/10 bg-white/5 p-4">
-                  <h3 className="mb-3 text-lg font-semibold text-purple-300">
-                    Other Viable Rune Pages (15.18)
-                  </h3>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    {yuumiRunePages1518.map((page) => (
-                      <div
-                        key={page.name}
-                        className="rounded-lg bg-black/40 p-3"
-                      >
-                        <div className="mb-1 flex items-center justify-between">
-                          <div className="text-sm font-semibold text-white">
-                            {page.name}
-                          </div>
-                          <div className="text-xs text-white/50">
-                            {page.patch}
-                          </div>
-                        </div>
-                        <div className="text-xs text-white/80">
-                          <div>
-                            <span className="text-white/60">Primary:</span>{' '}
-                            {page.primary.tree} — {page.primary.keystone},{' '}
-                            {page.primary.primaries.join(', ')}
-                          </div>
-                          <div>
-                            <span className="text-white/60">Secondary:</span>{' '}
-                            {page.secondary.tree} —{' '}
-                            {page.secondary.runes.join(', ')}
-                          </div>
-                          <div>
-                            <span className="text-white/60">Shards:</span>{' '}
-                            {page.shards.offense} / {page.shards.flex} /{' '}
-                            {page.shards.defense}
-                          </div>
-                          {page.notes ? (
-                            <div className="mt-1 text-white/60">
-                              {page.notes}
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <RuneTabs best={BEST_RUNES} options={yuumiRunePages1518} />
               </CardContent>
             </Card>
-
             {/* Items */}
             <Card className="border-white/10 bg-black/30 backdrop-blur">
               <CardHeader>
@@ -1582,9 +1502,9 @@ export default function YuumiGuide() {
                   <Info className="h-4 w-4" />
                   <AlertDescription className="text-blue-200">
                     <strong>How to import:</strong> Save the downloaded file,
-                    then in League client go to Collection → Items →
-                    Import/Export → Import from file. Select the downloaded JSON
-                    file.
+                    then in League client go to Collection &gt; Items &gt;
+                    Import/Export &gt; Import from file. Select the downloaded
+                    JSON file.
                   </AlertDescription>
                 </Alert>
 
@@ -1803,8 +1723,8 @@ export default function YuumiGuide() {
                               Balance ally synergy vs enemy counters. For
                               example, if your ADC benefits from Mandate but
                               enemy has heavy CC, prioritize cleanses like
-                              Mikael&apos;s. There is no fixed first item; adapt
-                              to the game state.
+                              Mikael&apos;s. There&apos;s no fixed first item;
+                              adapt to the game state.
                             </p>
                           </div>
                           {supportMatchup.earlyItems?.length ? (
