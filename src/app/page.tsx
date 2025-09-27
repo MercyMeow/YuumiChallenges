@@ -1308,7 +1308,7 @@ export default function YuumiGuide() {
               <CardContent className="text-white/90">
                 <div className="rounded-lg bg-gradient-to-r from-green-500/20 to-blue-500/20 p-4">
                   <h3 className="mb-3 text-lg font-semibold text-green-300">
-                    Recommended (Master+ & Pro): Exhaust + Ignite
+                    Recommended
                   </h3>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="rounded-lg bg-white/10 p-4">
@@ -1361,7 +1361,7 @@ export default function YuumiGuide() {
 
                 <div className="mt-4 rounded-lg bg-white/5 p-4">
                   <h4 className="mb-3 font-semibold text-blue-300">
-                    Alternative Options (icons + same styling)
+                    Alternative Options
                   </h4>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="rounded-lg bg-white/10 p-4">
