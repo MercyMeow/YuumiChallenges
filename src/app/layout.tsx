@@ -2,11 +2,36 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/contexts/theme-context';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { yuumiDiscordEmbed } from '@/lib/embeds/yuumi';
+
+const siteUrlFromEnv =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ??
+  'http://localhost:3000';
+
+const primaryEmbed = yuumiDiscordEmbed.embeds[0];
+const shareTitle =
+  primaryEmbed?.title ?? 'Yuumi Guide · Patch 15.18 Quick Reference';
+const shareDescription =
+  primaryEmbed?.description ??
+  'An up-to-date, expert-crafted Yuumi support guide for LoL: runes, items, skill order, matchups, synergies, and macro.';
+const embedColorHex = primaryEmbed?.color
+  ? `#${primaryEmbed.color.toString(16).padStart(6, '0')}`
+  : '#7ac4ff';
+const shareImages: string[] = [
+  primaryEmbed?.image?.url,
+  primaryEmbed?.thumbnail?.url,
+].flatMap((url) => (url ? [url] : []));
+const openGraphImages = shareImages.map((url, index) => ({
+  url,
+  width: index === 0 ? 1280 : 256,
+  height: index === 0 ? 720 : 256,
+  alt: index === 0 ? `${shareTitle} splash art` : `${shareTitle} emblem`,
+}));
 
 export const metadata: Metadata = {
-  title: 'Yuumi Guide',
-  description:
-    'An up-to-date, expert-crafted Yuumi support guide for LoL: runes, items, skill order, matchups, synergies, and macro.',
+  metadataBase: new URL(siteUrlFromEnv),
+  title: shareTitle,
+  description: shareDescription,
   keywords: [
     'League of Legends',
     'Yuumi',
@@ -16,6 +41,25 @@ export const metadata: Metadata = {
     'Items',
   ],
   authors: [{ name: 'Yuumi Mains Community' }],
+  themeColor: embedColorHex,
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: shareTitle,
+    description: shareDescription,
+    url: '/',
+    siteName: 'Yuumi Challenges',
+    type: 'website',
+    locale: 'en_US',
+    images: openGraphImages.length ? openGraphImages : undefined,
+  },
+  twitter: {
+    card: shareImages.length ? 'summary_large_image' : 'summary',
+    title: shareTitle,
+    description: shareDescription,
+    images: shareImages.length ? [shareImages[0]!] : undefined,
+  },
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',

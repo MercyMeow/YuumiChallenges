@@ -41,4 +41,4 @@ Implementation
 
 Discord Embed
 - Use `docs/yuumi-discord-embed.md` for a polished, Yuumi-themed Discord embed payload with buttons linking back to this guide and live stats.
-- The main guide landing page now includes a visual preview with one-click copy for the embed JSON.
+- The landing page now exposes Open Graph/Twitter metadata that mirrors this payload, so Discord auto-renders the Yuumi preview when the site link is shared. Keep the JSON handy if you need to customize a bot announcement.

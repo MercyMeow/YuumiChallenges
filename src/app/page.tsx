@@ -35,11 +35,7 @@ import {
   Palette,
   Play,
   X,
-  Copy,
-  Check,
-  AlertCircle,
 } from 'lucide-react';
-import { yuumiDiscordEmbed } from '@/lib/embeds/yuumi';
 
 // Comprehensive Yuumi Guide for New Players
 // Covers mechanics, items, runes, matchups, and skins
@@ -142,9 +138,6 @@ export default function YuumiGuide() {
   const [selectedADC, setSelectedADC] = useState<string>('');
   const [matchupType, setMatchupType] = useState<'enemy' | 'ally'>('enemy');
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
-  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'error'>(
-    'idle'
-  );
 
   const supportMatchup = isSupportMatchupKey(selectedSupport)
     ? SUPPORT_MATCHUPS[selectedSupport]
@@ -152,55 +145,6 @@ export default function YuumiGuide() {
   const adcMatchup = isAdcMatchupKey(selectedADC)
     ? ADC_MATCHUPS[selectedADC]
     : undefined;
-
-  const primaryEmbed = yuumiDiscordEmbed.embeds[0];
-  const embedColorHex = primaryEmbed?.color
-    ? `#${primaryEmbed.color.toString(16).padStart(6, '0')}`
-    : '#5865f2';
-  const primaryActionRow = yuumiDiscordEmbed.components?.[0];
-  const thumbnailSrc = resolveEmbedAssetSrc(primaryEmbed?.thumbnail?.url);
-  const footerIconSrc = resolveEmbedAssetSrc(primaryEmbed?.footer?.icon_url);
-
-  function resolveEmbedAssetSrc(url?: string) {
-    if (!url) return undefined;
-    const repoPrefix =
-      'https://raw.githubusercontent.com/MercyMeow/YuumiChallenges/dev/public';
-    if (url.startsWith(repoPrefix)) {
-      return url.replace(repoPrefix, '');
-    }
-    return url;
-  }
-
-  const copyEmbedToClipboard = async () => {
-    const payload = JSON.stringify(yuumiDiscordEmbed, null, 2);
-
-    try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(payload);
-      } else {
-        const textarea = document.createElement('textarea');
-        textarea.value = payload;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-      }
-
-      setCopyStatus('copied');
-      setTimeout(() => {
-        setCopyStatus('idle');
-      }, 2500);
-    } catch (error) {
-      console.error('Failed to copy embed payload', error);
-      setCopyStatus('error');
-      setTimeout(() => {
-        setCopyStatus('idle');
-      }, 4000);
-    }
-  };
 
   const downloadItemset = () => {
     const itemset = {
@@ -510,179 +454,6 @@ export default function YuumiGuide() {
                 </div>
               </CardContent>
             </Card>
-
-            {primaryEmbed ? (
-              <Card className="border-purple-400/30 bg-gradient-to-br from-purple-900/40 via-blue-900/20 to-black/60 backdrop-blur">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <Palette className="h-5 w-5 text-purple-200" />
-                    Share the Guide on Discord
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-6 lg:flex-row">
-                  <div className="flex-1">
-                    <div className="rounded-2xl bg-[#313338] p-5 text-[#dbdee1] shadow-[0_18px_48px_rgba(90,45,180,0.35)] ring-1 ring-white/10">
-                      {yuumiDiscordEmbed.content ? (
-                        <p className="mb-4 text-sm italic text-[#b5bac1]">
-                          {yuumiDiscordEmbed.content}
-                        </p>
-                      ) : null}
-                      <div className="relative overflow-hidden rounded-xl border border-white/5 bg-[#2b2d31] p-4">
-                        <div
-                          className="absolute inset-y-0 left-0 w-1"
-                          style={{ backgroundColor: embedColorHex }}
-                        />
-                        <div className="flex flex-col gap-4 pl-4">
-                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                            <div className="space-y-1">
-                              {primaryEmbed.author?.name ? (
-                                <div className="text-xs uppercase tracking-wide text-[#b5bac1]">
-                                  {primaryEmbed.author.name}
-                                </div>
-                              ) : null}
-                              <h3 className="text-lg font-semibold text-white">
-                                {primaryEmbed.title}
-                              </h3>
-                              {primaryEmbed.description ? (
-                                <p className="text-sm leading-6 text-[#dbdee1]">
-                                  {primaryEmbed.description}
-                                </p>
-                              ) : null}
-                            </div>
-                            {thumbnailSrc ? (
-                              <Image
-                                src={thumbnailSrc}
-                                alt={`Thumbnail for ${primaryEmbed.title}`}
-                                width={80}
-                                height={80}
-                                className="h-20 w-20 rounded-lg border border-white/10 object-cover"
-                              />
-                            ) : null}
-                          </div>
-                          {primaryEmbed.fields?.length ? (
-                            <div className="grid gap-3 lg:grid-cols-2">
-                              {primaryEmbed.fields.map((field) => (
-                                <div
-                                  key={field.name}
-                                  className="rounded-lg bg-[#1e1f22] p-3 text-sm text-[#dbdee1]"
-                                >
-                                  <div className="text-xs font-semibold uppercase tracking-wide text-[#b5bac1]">
-                                    {field.name}
-                                  </div>
-                                  <p className="mt-2 whitespace-pre-line text-sm leading-5 text-[#f2f3f5]">
-                                    {field.value}
-                                  </p>
-                                </div>
-                              ))}
-                            </div>
-                          ) : null}
-                          {primaryEmbed.image?.url ? (
-                            <div className="overflow-hidden rounded-xl border border-white/10">
-                              <Image
-                                src={primaryEmbed.image.url}
-                                alt={`Hero art for ${primaryEmbed.title}`}
-                                width={640}
-                                height={360}
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
-                          ) : null}
-                          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#b5bac1]">
-                            {primaryEmbed.footer?.text ? (
-                              <div className="flex items-center gap-2">
-                                {footerIconSrc ? (
-                                  <Image
-                                    src={footerIconSrc}
-                                    alt="Footer icon"
-                                    width={24}
-                                    height={24}
-                                    className="h-6 w-6 rounded-full border border-white/10 object-cover"
-                                  />
-                                ) : null}
-                                <span>{primaryEmbed.footer.text}</span>
-                              </div>
-                            ) : null}
-                            {primaryEmbed.timestamp ? (
-                              <span>
-                                {new Date(
-                                  primaryEmbed.timestamp
-                                ).toLocaleDateString()}
-                              </span>
-                            ) : null}
-                          </div>
-                          {primaryActionRow?.components?.length ? (
-                            <div className="mt-1 flex flex-wrap gap-3">
-                              {primaryActionRow.components.map((component) => (
-                                <span
-                                  key={component.label}
-                                  className="inline-flex items-center gap-2 rounded-md bg-[#5865f2]/80 px-3 py-2 text-sm font-medium text-white shadow-sm shadow-black/40"
-                                >
-                                  {component.emoji?.name ? (
-                                    <span>{component.emoji.name}</span>
-                                  ) : null}
-                                  <span>{component.label}</span>
-                                </span>
-                              ))}
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="w-full space-y-4 rounded-2xl border border-white/10 bg-black/30 p-5 text-white/80 shadow-inner shadow-purple-500/10 lg:w-72">
-                    <p className="text-sm leading-6 text-white/80">
-                      Drop this embed into your Discord announcements channel.
-                      The styling blends Yuumi’s astral palette with clean
-                      typography and quick-action buttons for teams or
-                      communities.
-                    </p>
-                    <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-white/70">
-                      <p>Includes:</p>
-                      <ul className="mt-2 space-y-1">
-                        <li>• Guide and live stats buttons</li>
-                        <li>• Core & situational highlights</li>
-                        <li>• Rune and spell reminders</li>
-                      </ul>
-                    </div>
-                    <Button
-                      onClick={copyEmbedToClipboard}
-                      className="w-full bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 text-white shadow-lg shadow-purple-500/30 hover:from-purple-400 hover:via-blue-400 hover:to-cyan-400"
-                    >
-                      {copyStatus === 'copied' ? (
-                        <>
-                          <Check className="mr-2 h-4 w-4" />
-                          Copied!
-                        </>
-                      ) : copyStatus === 'error' ? (
-                        <>
-                          <AlertCircle className="mr-2 h-4 w-4" />
-                          Copy failed — use docs link
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="mr-2 h-4 w-4" />
-                          Copy Discord Embed JSON
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full border-purple-400/40 text-purple-200 hover:bg-purple-500/10"
-                      asChild
-                    >
-                      <Link
-                        href="https://github.com/MercyMeow/YuumiChallenges/blob/dev/docs/yuumi-discord-embed.md"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        View Embed Instructions
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : null}
-
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <Card className="border-white/10 bg-black/30 backdrop-blur">
                 <CardHeader>
@@ -833,11 +604,9 @@ export default function YuumiGuide() {
                         </div>
                         <div>• Triggers on ability/champion hits</div>
                       </div>
-                      
-                        <strong>Strategy:</strong> Proc your passive safely by
-                        using abilities on minions or from behind your team.
-                        Never proc it while taking damage unless necessary.
-                      
+                      <strong>Strategy:</strong> Proc your passive safely by
+                      using abilities on minions or from behind your team. Never
+                      proc it while taking damage unless necessary.
                     </div>
                   </div>
 
@@ -1916,9 +1685,6 @@ export default function YuumiGuide() {
                     </div>
                   </div>
                 </div>
-
-                
-                
               </CardContent>
             </Card>
           </TabsContent>
