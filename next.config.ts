@@ -23,8 +23,8 @@ const nextConfig: NextConfig = {
       '@radix-ui/react-tooltip',
       'date-fns',
     ],
-    // Enable CSS optimization
-    optimizeCss: true,
+    // Enable CSS optimization (disabled due to critters dependency issue)
+    // optimizeCss: true,
   },
 
   // Image optimization

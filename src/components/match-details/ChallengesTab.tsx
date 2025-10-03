@@ -129,7 +129,7 @@ const ChallengeStatCard = ({
 export function ChallengesTab({
   selectedPlayerData,
 }: {
-  selectedPlayerData?: ExtendedMatchParticipant | null;
+  selectedPlayerData?: ExtendedMatchParticipant | null | undefined;
 }) {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -139,9 +139,11 @@ export function ChallengesTab({
     }
 
     return Object.entries(selectedPlayerData.challenges)
-      .filter(([, value]) => typeof value === 'number' && Number.isFinite(value))
+      .filter(
+        ([, value]) => typeof value === 'number' && Number.isFinite(value)
+      )
       .map(([key, value]) => {
-        const formatted = formatChallengeValue(key, value);
+        const formatted = formatChallengeValue(key, value as number);
         return {
           key,
           label: formatChallengeLabel(key),
@@ -157,12 +159,17 @@ export function ChallengesTab({
       return normalizedEntries;
     }
     const query = searchTerm.toLowerCase();
-    return normalizedEntries.filter((entry) =>
-      entry.label.toLowerCase().includes(query) || entry.key.toLowerCase().includes(query)
+    return normalizedEntries.filter(
+      (entry) =>
+        entry.label.toLowerCase().includes(query) ||
+        entry.key.toLowerCase().includes(query)
     );
   }, [normalizedEntries, searchTerm]);
 
-  const highlightEntries = useMemo(() => filteredEntries.slice(0, 6), [filteredEntries]);
+  const highlightEntries = useMemo(
+    () => filteredEntries.slice(0, 6),
+    [filteredEntries]
+  );
   const highlightKeys = useMemo(
     () => new Set(highlightEntries.map((entry) => entry.key)),
     [highlightEntries]
@@ -179,7 +186,9 @@ export function ChallengesTab({
     }
 
     groups.forEach((entries, groupName) => {
-      const sorted = [...entries].sort((a, b) => a.label.localeCompare(b.label));
+      const sorted = [...entries].sort((a, b) =>
+        a.label.localeCompare(b.label)
+      );
       groups.set(groupName, sorted);
     });
 
@@ -225,13 +234,16 @@ export function ChallengesTab({
   const displayName =
     selectedPlayerData.riotIdGameName && selectedPlayerData.riotIdTagline
       ? `${selectedPlayerData.riotIdGameName}#${selectedPlayerData.riotIdTagline}`
-      : selectedPlayerData.summonerName ?? 'Unknown Summoner';
+      : (selectedPlayerData.summonerName ?? 'Unknown Summoner');
 
   return (
     <Card className="border border-white/10 bg-black/20 backdrop-blur-md">
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center gap-3 text-white">
-          <ChampionIcon championId={selectedPlayerData.championName} size="md" />
+          <ChampionIcon
+            championId={selectedPlayerData.championName}
+            size="md"
+          />
           <span>{displayName}</span>
           <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs uppercase tracking-wide text-white/60">
             {normalizedEntries.length} tracked challenges
@@ -284,7 +296,10 @@ export function ChallengesTab({
             <details
               key={groupName}
               className="group rounded-xl border border-white/10 bg-black/30 px-4 py-3"
-              open={highlightKeys.size > 0 && entries.some((entry) => highlightKeys.has(entry.key))}
+              open={
+                highlightKeys.size > 0 &&
+                entries.some((entry) => highlightKeys.has(entry.key))
+              }
             >
               <summary className="flex cursor-pointer select-none items-center justify-between gap-3 text-sm font-semibold text-white">
                 <span>{groupName}</span>

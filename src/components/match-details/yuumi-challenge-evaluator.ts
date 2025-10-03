@@ -81,7 +81,7 @@ export const CHALLENGE_STATUS_PRIORITY: Record<ChallengeStatus, number> = {
 export interface ChallengeEvidence {
   label: string;
   value: string;
-  accent?: 'positive' | 'negative';
+  accent?: 'positive' | 'negative' | undefined;
 }
 
 export interface EvaluatedChallenge {
@@ -90,14 +90,14 @@ export interface EvaluatedChallenge {
   requirement: string;
   categoryKey: CategoryKey;
   status: ChallengeStatus;
-  note?: string;
+  note?: string | undefined;
   evidence: ChallengeEvidence[];
   manual: boolean;
   meta: {
-    runes?: string[];
-    items?: string[];
-    build?: string;
-    gamemode?: string;
+    runes?: string[] | undefined;
+    items?: string[] | undefined;
+    build?: string | undefined;
+    gamemode?: string | undefined;
   };
 }
 
@@ -136,17 +136,17 @@ interface ComputedContext {
   ccScore: number;
   visionScore: number;
   visionPerMinute: number;
-  teamPosition?: string;
+  teamPosition?: string | undefined;
   enemyByRole: (role: RoleKey) => ExtendedMatchParticipant | undefined;
   runeSelections: Map<number, ParticipantPerkStyleSelection>;
-  keystone?: ParticipantPerkStyleSelection;
-  primaryStyleId?: number;
-  secondaryStyleId?: number;
+  keystone?: ParticipantPerkStyleSelection | undefined;
+  primaryStyleId?: number | undefined;
+  secondaryStyleId?: number | undefined;
   isArena: boolean;
   isUltimateSpellbook: boolean;
   isTft: boolean;
-  gameMode?: string;
-  queueId?: number;
+  gameMode?: string | undefined;
+  queueId?: number | undefined;
 }
 
 const formatNumber = (value: number, digits = 0) =>
@@ -192,8 +192,7 @@ const buildContext = (
   const healing = participant.totalHealsOnTeammates ?? 0;
   const dragonKills =
     participant.dragonKills ?? participant.challenges?.dragonTakedowns ?? 0;
-  const turretDamage =
-    participant.damageDealtToTurrets ?? participant.damageDealtToBuildings ?? 0;
+  const turretDamage = participant.damageDealtToTurrets ?? 0;
   const ccScore =
     participant.challenges?.crowdControlScore ??
     participant.timeCCingOthers ??
@@ -302,7 +301,6 @@ const evaluateDefinition = (
   previous: Map<string, EvaluatedChallenge>
 ): EvaluatedChallenge => {
   const categoryKey = definition.category;
-  const categoryMeta = challengeData.categories[categoryKey];
   const manual =
     manualChallengeNames.has(definition.name) ||
     manualCategoryKeys.has(categoryKey);
@@ -345,7 +343,7 @@ const evaluateDefinition = (
       } else {
         addEvidence(
           'Souls harvested',
-          souls,
+          souls ?? undefined,
           soulsPerMinute >= 0.3 ? 'positive' : undefined
         );
         addEvidence('Souls per minute', formatRate(soulsPerMinute, 2));
@@ -376,11 +374,11 @@ const evaluateDefinition = (
       } else {
         addEvidence(
           'Enemies spotted',
-          enemiesSpotted,
+          enemiesSpotted ?? undefined,
           perMinute >= 0.2 ? 'positive' : undefined
         );
         if (porosSpawned != null) {
-          addEvidence('Poros spawned', porosSpawned);
+          addEvidence('Poros spawned', porosSpawned ?? undefined);
         }
         addEvidence('Spots per minute', formatRate(perMinute, 2));
         addEvidence('Required rate', '≥ 0.20');

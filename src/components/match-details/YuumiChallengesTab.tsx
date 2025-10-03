@@ -94,7 +94,7 @@ const CARD_ACCENTS: Record<ChallengeStatus, string> = {
 };
 
 interface YuumiChallengesTabProps {
-  selectedPlayerData?: ExtendedMatchParticipant | null;
+  selectedPlayerData?: ExtendedMatchParticipant | null | undefined;
   matchData: ExtendedMatchData;
 }
 
