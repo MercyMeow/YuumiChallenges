@@ -219,7 +219,6 @@ export default function MatchDetailsPage() {
               supportItemCompletionTimes={supportItemCompletionTimes}
               formatMatchTime={formatMatchTime}
             />
-
           </TabsContent>
 
           {/* Detailed Stats Tab - Lazy Loaded */}
@@ -238,7 +237,6 @@ export default function MatchDetailsPage() {
                 formatMatchTime={formatMatchTime}
               />
             </Suspense>
-
           </TabsContent>
 
           {/* Runes Tab */}
@@ -284,10 +282,10 @@ export default function MatchDetailsPage() {
               <YuumiChallengesTab
                 selectedPlayerData={selectedPlayerData}
                 matchData={matchData}
+                supportItemCompletionTimes={supportItemCompletionTimes}
               />
             </Suspense>
           </TabsContent>
-
         </Tabs>
       </div>
     </div>

@@ -96,6 +96,10 @@ const CARD_ACCENTS: Record<ChallengeStatus, string> = {
 interface YuumiChallengesTabProps {
   selectedPlayerData?: ExtendedMatchParticipant | null | undefined;
   matchData: ExtendedMatchData;
+  supportItemCompletionTimes?:
+    | import('./types').SupportItemCompletionTimes
+    | null
+    | undefined;
 }
 
 interface StatTileProps {
@@ -305,6 +309,7 @@ const renderCategory = (category: EvaluatedCategory) => {
 export function YuumiChallengesTab({
   selectedPlayerData,
   matchData,
+  supportItemCompletionTimes,
 }: YuumiChallengesTabProps) {
   const evaluation = useMemo(() => {
     if (!selectedPlayerData) {
@@ -314,8 +319,9 @@ export function YuumiChallengesTab({
     return evaluateYuumiChallenges({
       participant: selectedPlayerData,
       matchData,
+      supportItemCompletionTimes,
     });
-  }, [selectedPlayerData, matchData]);
+  }, [selectedPlayerData, matchData, supportItemCompletionTimes]);
 
   if (!selectedPlayerData) {
     return (

@@ -4,7 +4,11 @@ const challengeData = ((
   challengeDataRaw as { default?: typeof challengeDataRaw }
 ).default ??
   (challengeDataRaw as typeof challengeDataRaw)) as typeof challengeDataRaw;
-import { ExtendedMatchData, ExtendedMatchParticipant } from './types';
+import {
+  ExtendedMatchData,
+  ExtendedMatchParticipant,
+  SupportItemCompletionTimes,
+} from './types';
 import { ParticipantPerkStyleSelection } from '@/lib/types';
 
 type CategoryKey = keyof (typeof challengeData)['categories'];
@@ -31,7 +35,6 @@ const manualChallengeNames = new Set<string>([
   'Rainbow Yuumi',
   'Yuumi of All Trades',
   'Victorious Yuumi',
-  'Top Purrcentile',
   'CATaclysm',
   'TFT Yuumi Carry',
 ]);
@@ -147,6 +150,7 @@ interface ComputedContext {
   isTft: boolean;
   gameMode?: string | undefined;
   queueId?: number | undefined;
+  supportItemCompletionTimes?: SupportItemCompletionTimes | null | undefined;
 }
 
 const formatNumber = (value: number, digits = 0) =>
@@ -164,7 +168,8 @@ const slugify = (value: string) =>
 
 const buildContext = (
   participant: ExtendedMatchParticipant,
-  matchData: ExtendedMatchData
+  matchData: ExtendedMatchData,
+  supportItemCompletionTimes?: SupportItemCompletionTimes | null
 ): ComputedContext => {
   const rawDuration =
     typeof participant.timePlayed === 'number' && participant.timePlayed > 0
@@ -292,6 +297,7 @@ const buildContext = (
     isTft,
     gameMode,
     queueId,
+    supportItemCompletionTimes,
   };
 };
 
@@ -830,9 +836,35 @@ const evaluateDefinition = (
       break;
     }
     case 'Top Purrcentile': {
-      status = 'manual';
-      note =
-        'Support quest completion timing not available; confirm finish before 14:00 manually.';
+      // Support quest completion (tier2) represents Runic Compass → Bounty of Worlds evolution
+      const questCompletionTime =
+        ctx.supportItemCompletionTimes?.tier2 ??
+        ctx.supportItemCompletionTimes?.tier3 ??
+        null;
+
+      if (questCompletionTime === null) {
+        status = 'manual';
+        note =
+          'Support quest completion timing not available in this match; confirm manually.';
+      } else {
+        const completionMinutes = questCompletionTime / 1000 / 60;
+        const completionTime = formatRate(completionMinutes, 2);
+
+        addEvidence(
+          'Quest completion time',
+          completionTime + ' min',
+          completionMinutes < 14 ? 'positive' : 'negative'
+        );
+        addEvidence('Required', '< 14:00');
+
+        if (completionMinutes < 14) {
+          status = 'achieved';
+          note = `Quest completed at ${Math.floor(completionMinutes)}:${String(Math.floor((completionMinutes % 1) * 60)).padStart(2, '0')}.`;
+        } else {
+          status = 'not_met';
+          note = `Quest completed at ${Math.floor(completionMinutes)}:${String(Math.floor((completionMinutes % 1) * 60)).padStart(2, '0')}, needed before 14:00.`;
+        }
+      }
       break;
     }
     case 'We Got This': {
@@ -886,11 +918,17 @@ const evaluateDefinition = (
 export const evaluateYuumiChallenges = ({
   participant,
   matchData,
+  supportItemCompletionTimes,
 }: {
   participant: ExtendedMatchParticipant;
   matchData: ExtendedMatchData;
+  supportItemCompletionTimes?: SupportItemCompletionTimes | null | undefined;
 }): EvaluatedCategory[] => {
-  const context = buildContext(participant, matchData);
+  const context = buildContext(
+    participant,
+    matchData,
+    supportItemCompletionTimes
+  );
   const previous = new Map<string, EvaluatedChallenge>();
   const grouped = new Map<CategoryKey, EvaluatedChallenge[]>();
 
