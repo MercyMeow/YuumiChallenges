@@ -14,7 +14,7 @@ export const REGIONS = {
   SG2: 'sg2',
   TH2: 'th2',
   TW2: 'tw2',
-  VN2: 'vn2'
+  VN2: 'vn2',
 } as const;
 
 export const REGION_NAMES = {
@@ -33,14 +33,14 @@ export const REGION_NAMES = {
   [REGIONS.SG2]: 'Singapore',
   [REGIONS.TH2]: 'Thailand',
   [REGIONS.TW2]: 'Taiwan',
-  [REGIONS.VN2]: 'Vietnam'
+  [REGIONS.VN2]: 'Vietnam',
 } as const;
 
 export const ROUTES = {
   AMERICAS: 'americas',
   ASIA: 'asia',
   EUROPE: 'europe',
-  SEA: 'sea'
+  SEA: 'sea',
 } as const;
 
 export const REGION_TO_ROUTE = {
@@ -59,16 +59,17 @@ export const REGION_TO_ROUTE = {
   [REGIONS.SG2]: ROUTES.SEA,
   [REGIONS.TH2]: ROUTES.SEA,
   [REGIONS.TW2]: ROUTES.SEA,
-  [REGIONS.VN2]: ROUTES.SEA
+  [REGIONS.VN2]: ROUTES.SEA,
 } as const;
 
 export const DISCORD_SCOPES = [
   'identify',
   'guilds',
-  'guilds.members.read'
+  'guilds.members.read',
 ] as const;
 
-export const YUUMI_DISCORD_SERVER_ID = process.env.YUUMI_DISCORD_SERVER_ID || '';
+export const YUUMI_DISCORD_SERVER_ID =
+  process.env.YUUMI_DISCORD_SERVER_ID || '';
 
 export const CHALLENGE_TYPES = {
   KDA: 'kda',
@@ -76,5 +77,5 @@ export const CHALLENGE_TYPES = {
   CHAMPION_MASTERY: 'champion_mastery',
   RANKED_CLIMB: 'ranked_climb',
   GAMES_PLAYED: 'games_played',
-  PERFECT_GAME: 'perfect_game'
+  PERFECT_GAME: 'perfect_game',
 } as const;

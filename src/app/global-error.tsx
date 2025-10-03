@@ -11,16 +11,20 @@ export default function GlobalError({
 }) {
   return (
     <MagicalBackground>
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <h1 className="text-6xl font-bold text-landing-text-primary mb-4">500</h1>
-          <h2 className="text-2xl font-semibold text-landing-text-primary mb-6">Something went wrong!</h2>
-          <p className="text-landing-text-secondary mb-8">
+          <h1 className="mb-4 text-6xl font-bold text-landing-text-primary">
+            500
+          </h1>
+          <h2 className="mb-6 text-2xl font-semibold text-landing-text-primary">
+            Something went wrong!
+          </h2>
+          <p className="mb-8 text-landing-text-secondary">
             An unexpected error occurred.
           </p>
           <button
             onClick={() => reset()}
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md bg-yuumi-purple hover:bg-yuumi-purple/90 text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yuumi-purple transition-all duration-300"
+            className="hover:bg-yuumi-purple/90 inline-flex items-center rounded-md border border-transparent bg-yuumi-purple px-6 py-3 text-base font-medium text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yuumi-purple focus:ring-offset-2"
           >
             Try again
           </button>

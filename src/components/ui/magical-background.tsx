@@ -1,13 +1,16 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
 interface MagicalBackgroundProps {
   children?: React.ReactNode;
   className?: string;
 }
 
-export function MagicalBackground({ children, className = "" }: MagicalBackgroundProps) {
+export function MagicalBackground({
+  children,
+  className = '',
+}: MagicalBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -23,13 +26,12 @@ export function MagicalBackground({ children, className = "" }: MagicalBackgroun
   }, []);
 
   return (
-    <div ref={containerRef} className={`min-h-screen w-full relative ${className}`}>
+    <div
+      ref={containerRef}
+      className={`relative min-h-screen w-full ${className}`}
+    >
       {/* Content */}
-      {children && (
-        <div className="relative z-10">
-          {children}
-        </div>
-      )}
+      {children && <div className="relative z-10">{children}</div>}
     </div>
   );
 }
@@ -188,12 +190,12 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       const bgElement = document.createElement('div');
       bgElement.className = 'global-magical-bg';
       document.body.appendChild(bgElement);
-      
+
       // Create aurora effects
       const auroraContainer = document.createElement('div');
       auroraContainer.className = 'magical-aurora';
       document.body.appendChild(auroraContainer);
-      
+
       // Create multiple aurora beams
       for (let i = 0; i < 3; i++) {
         const aurora = document.createElement('div');
@@ -206,12 +208,12 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         `;
         auroraContainer.appendChild(aurora);
       }
-      
+
       // Create constellation stars
       const starsContainer = document.createElement('div');
       starsContainer.className = 'magical-stars';
       document.body.appendChild(starsContainer);
-      
+
       // Create twinkling stars
       for (let i = 0; i < 15; i++) {
         const star = document.createElement('div');
@@ -226,16 +228,16 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         `;
         starsContainer.appendChild(star);
       }
-      
+
       // Create particles container
       const particlesContainer = document.createElement('div');
       particlesContainer.className = 'magical-particles';
       document.body.appendChild(particlesContainer);
-      
+
       // Create enhanced animated particles
       const particleColors = ['purple', 'blue', 'teal', 'pink', 'white'];
       const particleCount = 20;
-      
+
       for (let i = 0; i < particleCount; i++) {
         const particle = document.createElement('div');
         const color = particleColors[i % particleColors.length];
@@ -244,7 +246,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         const startY = Math.random() * 100;
         const duration = Math.random() * 30 + 15; // 15-45s
         const delay = Math.random() * 8; // 0-8s delay
-        
+
         particle.className = `magical-particle particle-${color} animate-subtle-float`;
         particle.style.cssText = `
           width: ${size}px;
@@ -255,10 +257,10 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
           animation-delay: ${delay}s;
           opacity: ${Math.random() * 0.4 + 0.2}; // 0.2-0.6 opacity
         `;
-        
+
         particlesContainer.appendChild(particle);
       }
-      
+
       // Create magical orbs
       for (let i = 0; i < 5; i++) {
         const orb = document.createElement('div');
@@ -267,7 +269,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         const startY = Math.random() * 100;
         const duration = Math.random() * 20 + 15; // 15-35s
         const delay = Math.random() * 10; // 0-10s delay
-        
+
         orb.className = 'magical-orb animate-magical-orb';
         orb.style.cssText = `
           width: ${size}px;
@@ -278,10 +280,10 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
           animation-delay: ${delay}s;
           opacity: ${Math.random() * 0.3 + 0.1}; // 0.1-0.4 opacity
         `;
-        
+
         particlesContainer.appendChild(orb);
       }
-      
+
       // Create sparkle effects
       for (let i = 0; i < 8; i++) {
         const sparkle = document.createElement('div');

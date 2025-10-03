@@ -21,6 +21,8 @@
 - Tailwind classes auto-sorted; keep custom utilities alphabetical.
 - Components PascalCase, hooks prefixed `use`, utilities camelCase, routes kebab-case.
 - Keep files ASCII unless existing content requires otherwise; one responsibility per module.
+- **Always use Next.js `Image` component** instead of `<img>` tags for better performance and optimization.
+- Add explicit `eslint-disable-next-line` comments when intentionally deviating from React hooks exhaustive-deps.
 
 ## Testing Guidelines
 - No unit-test framework yet; focus on lint + type-check gates.
@@ -31,7 +33,15 @@
 - Follow Conventional Commits (`feat:`, `fix:`, `chore:`) as in git history.
 - PRs must link issues (`Closes #123`), describe scope, and include UI captures for `src/app/` changes.
 - Document test steps and env toggles (see `docs/environment-variables.md`); ensure build, lint, and type checks pass.
+- **Before committing:** Run `npm run lint`, `npm run format`, and `npm run type-check` to ensure code quality.
+- Target zero ESLint warnings and zero TypeScript errors.
 
 ## Security & Configuration Tips
 - Never commit secrets; rely on `.env.local` for Riot API keys.
 - Confirm integrations stay within documented scopes; update `docs/` when adding new providers.
+
+## Refactoring & Code Quality
+- See `docs/refactoring-summary.md` for recent refactoring work and architectural decisions.
+- Deprecated functions are marked but retained for backward compatibility until migration is complete.
+- When adding new features, prefer composition over creating large monolithic components (>500 lines).
+- Document complex algorithms and business logic with JSDoc comments.

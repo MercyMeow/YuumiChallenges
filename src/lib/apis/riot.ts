@@ -18,17 +18,17 @@ export class RiotAPI {
 
   private buildUrl(region: string, endpoint: string, useRoute = false) {
     const route = REGION_TO_ROUTE[region as keyof typeof REGION_TO_ROUTE];
-    const baseUrl = useRoute 
+    const baseUrl = useRoute
       ? this.routeBaseUrl.replace('{route}', route)
       : this.baseUrl.replace('{region}', region);
-    
+
     return `${baseUrl}${endpoint}`;
   }
 
   async getSummonerByRiotId(gameName: string, tagLine: string, region: string) {
     const endpoint = `/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`;
     const url = this.buildUrl(region, endpoint, true);
-    
+
     const response = await fetch(url, {
       headers: this.getHeaders(),
     });
@@ -43,7 +43,7 @@ export class RiotAPI {
   async getSummonerByPuuid(puuid: string, region: string) {
     const endpoint = `/lol/summoner/v4/summoners/by-puuid/${puuid}`;
     const url = this.buildUrl(region, endpoint);
-    
+
     const response = await fetch(url, {
       headers: this.getHeaders(),
     });
@@ -58,7 +58,7 @@ export class RiotAPI {
   async getMatchHistory(puuid: string, region: string, count = 20) {
     const endpoint = `/lol/match/v5/matches/by-puuid/${puuid}/ids?count=${count}`;
     const url = this.buildUrl(region, endpoint, true);
-    
+
     const response = await fetch(url, {
       headers: this.getHeaders(),
     });
@@ -73,7 +73,7 @@ export class RiotAPI {
   async getMatchDetails(matchId: string, region: string) {
     const endpoint = `/lol/match/v5/matches/${matchId}`;
     const url = this.buildUrl(region, endpoint, true);
-    
+
     const response = await fetch(url, {
       headers: this.getHeaders(),
     });
@@ -88,7 +88,7 @@ export class RiotAPI {
   async getMatchTimeline(matchId: string, region: string) {
     const endpoint = `/lol/match/v5/matches/${matchId}/timeline`;
     const url = this.buildUrl(region, endpoint, true);
-    
+
     const response = await fetch(url, {
       headers: this.getHeaders(),
     });
@@ -103,7 +103,7 @@ export class RiotAPI {
   async getRankedInfo(summonerId: string, region: string) {
     const endpoint = `/lol/league/v4/entries/by-summoner/${summonerId}`;
     const url = this.buildUrl(region, endpoint);
-    
+
     const response = await fetch(url, {
       headers: this.getHeaders(),
     });
@@ -118,13 +118,15 @@ export class RiotAPI {
   async getRankedInfoByPuuid(puuid: string, region: string) {
     const endpoint = `/lol/league/v4/entries/by-puuid/${puuid}`;
     const url = this.buildUrl(region, endpoint);
-    
+
     const response = await fetch(url, {
       headers: this.getHeaders(),
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch ranked info by PUUID: ${response.statusText}`);
+      throw new Error(
+        `Failed to fetch ranked info by PUUID: ${response.statusText}`
+      );
     }
 
     return response.json();
@@ -139,5 +141,4 @@ export class RiotAPI {
     // Refreshes summoner data to get latest profile icon and other info
     return this.getSummonerByPuuid(puuid, region);
   }
-
 }

@@ -59,15 +59,17 @@ export interface DiscordEmbedPayload {
   components?: DiscordComponentActionRow[];
 }
 
+const exampleMatchId = 'EUW1_7481411158';
+
 export const yuumiDiscordEmbed: DiscordEmbedPayload = {
   content:
-    "_Evercat's patch 15.18 cheatsheet is live—take the lane, hold the zoomies._",
+    'Review your Yuumi games with a timeline-aware, role-specific match breakdown.',
   embeds: [
     {
-      title: 'Yuumi · Patch 15.18 Quick Guide',
+      title: 'Yuumi Match Viewer',
       description:
-        'Dawncore → Dream Maker into utility pivots. Haste, cleanse, sustain—keep your carry enchanted and the enemy muted.',
-      url: 'https://github.com/MercyMeow/YuumiChallenges/blob/dev/docs/yuumi-15.18.md',
+        'Paste any {REGION}_{MATCH_ID} to inspect gold swings, rune usage, support quest timing, and combat moments for both teams.',
+      url: 'https://yuumi.quest',
       color: 0x7ac4ff,
       author: {
         name: 'Yuumi Challenges',
@@ -81,39 +83,21 @@ export const yuumiDiscordEmbed: DiscordEmbedPayload = {
       },
       fields: [
         {
-          name: 'Core Path',
+          name: 'Highlights',
           value:
-            "• Dawncore → Dream Maker\n• Mikael's Blessing (into CC)\n• Redemption (teamfight sustain)",
-          inline: true,
+            '• Lane and team-fight timeline with kill chains\n• Item spikes, quest completion, and rune metrics\n• Team damage, vision, objectives, and dividend breakdowns',
         },
         {
-          name: 'Situational Tech',
+          name: 'Try It',
           value:
-            "• Ardent Censer / Staff of Flowing Water\n• Chemtech Putrifier (early anti-heal)\n• Shurelya's, Locket, Knight's Vow, Wardstone",
-          inline: true,
-        },
-        {
-          name: 'Starter & Economy',
-          value: 'World Atlas → Runic Compass → Bounty of Worlds',
-          inline: true,
-        },
-        {
-          name: 'Runes & Spells',
-          value:
-            'Primary: Summon Aery + Manaflow Band + Transcendence + Gathering Storm.\nSecondary: Biscuit Delivery + Cosmic Insight.\nSpells: Flash + Exhaust (Swap to Ignite if lane kill pressure).',
-        },
-        {
-          name: 'Key Notes',
-          value:
-            "Delay boots unless tempo demands haste. Slot Chemtech Putrifier second into sustain lanes. Align Ardent vs Staff with your carry's damage profile.",
+            'Open yuumi.quest/match/' +
+            exampleMatchId +
+            '?useExample=1 to load the bundled sample payload.',
         },
       ],
       footer: {
-        text: 'Data: Lolalytics 15.18 · Maintained by Yuumi Challenges',
-        icon_url:
-          'https://raw.githubusercontent.com/MercyMeow/YuumiChallenges/dev/public/rule1.gif',
+        text: 'Data: Riot Match/V5 · Maintained by Yuumi Challenges',
       },
-      timestamp: '2025-09-27T00:00:00.000Z',
     },
   ],
   components: [
@@ -123,19 +107,19 @@ export const yuumiDiscordEmbed: DiscordEmbedPayload = {
         {
           type: 2,
           style: 5,
-          label: 'Full Guide',
-          url: 'https://github.com/MercyMeow/YuumiChallenges/blob/dev/docs/yuumi-15.18.md',
+          label: 'Open Match Viewer',
+          url: 'https://yuumi.quest',
           emoji: {
-            name: '📘',
+            name: '🔎',
           },
         },
         {
           type: 2,
           style: 5,
-          label: 'Live Stats',
-          url: 'https://lolalytics.com/lol/yuumi/build/',
+          label: 'Example Match',
+          url: 'https://yuumi.quest/match/' + exampleMatchId + '?useExample=1',
           emoji: {
-            name: '✨',
+            name: '📊',
           },
         },
       ],

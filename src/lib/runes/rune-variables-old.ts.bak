@@ -1,0 +1,975 @@
+/**
+ * Rune Variables Mapping
+ * Maps rune IDs to their var1, var2, var3 meanings
+ * Based on League of Legends API documentation and community research
+ */
+
+export interface RuneVarInfo {
+  var1?: {
+    label: string;
+    format:
+      | 'damage'
+      | 'healing'
+      | 'gold'
+      | 'shielding'
+      | 'time'
+      | 'percent'
+      | 'count'
+      | 'value';
+    description: string;
+  };
+  var2?: {
+    label: string;
+    format:
+      | 'damage'
+      | 'healing'
+      | 'gold'
+      | 'shielding'
+      | 'time'
+      | 'percent'
+      | 'count'
+      | 'value';
+    description: string;
+  };
+  var3?: {
+    label: string;
+    format:
+      | 'damage'
+      | 'healing'
+      | 'gold'
+      | 'shielding'
+      | 'time'
+      | 'percent'
+      | 'count'
+      | 'value';
+    description: string;
+  };
+}
+
+export const RUNE_VARIABLES: Record<number, RuneVarInfo> = {
+  // ============================================
+  // PRECISION TREE (8000)
+  // ============================================
+
+  // Keystones
+  8005: {
+    // Press the Attack
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Total damage dealt by PtA',
+    },
+    var2: {
+      label: "Times Proc'd",
+      format: 'count',
+      description: 'Number of times PtA was activated',
+    },
+    var3: {
+      label: 'Bonus Damage',
+      format: 'damage',
+      description: 'Bonus damage from amplification',
+    },
+  },
+  8008: {
+    // Lethal Tempo
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Damage dealt during Lethal Tempo',
+    },
+    var2: {
+      label: 'Times Active',
+      format: 'count',
+      description: 'Number of times activated',
+    },
+    var3: {
+      label: 'Duration Active',
+      format: 'time',
+      description: 'Total time Lethal Tempo was active',
+    },
+  },
+  8021: {
+    // Fleet Footwork
+    var1: {
+      label: 'Healing',
+      format: 'healing',
+      description: 'Total healing from Fleet Footwork',
+    },
+    var2: {
+      label: "Times Proc'd",
+      format: 'count',
+      description: 'Number of times Fleet Footwork healed',
+    },
+  },
+  8010: {
+    // Conqueror
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Bonus damage dealt by Conqueror',
+    },
+    var2: {
+      label: 'Healing',
+      format: 'healing',
+      description: 'Total healing from Conqueror',
+    },
+    var3: {
+      label: 'Duration Active',
+      format: 'time',
+      description: 'Total time at max stacks',
+    },
+  },
+
+  // Slot 1
+  9101: {
+    // Overheal
+    var1: {
+      label: 'Shielding',
+      format: 'shielding',
+      description: 'Total shield granted by Overheal',
+    },
+    var2: {
+      label: 'Damage Blocked',
+      format: 'damage',
+      description: 'Damage blocked by shield',
+    },
+  },
+  9111: {
+    // Triumph
+    var1: {
+      label: 'Healing',
+      format: 'healing',
+      description: 'Total healing from Triumph',
+    },
+    var2: {
+      label: 'Gold Earned',
+      format: 'gold',
+      description: 'Bonus gold from takedowns',
+    },
+  },
+  8009: {
+    // Presence of Mind
+    var1: {
+      label: 'Mana Restored',
+      format: 'value',
+      description: 'Total mana/energy restored',
+    },
+    var2: {
+      label: "Times Proc'd",
+      format: 'count',
+      description: 'Number of takedown procs',
+    },
+  },
+
+  // Slot 2
+  9104: {
+    // Legend: Alacrity
+    var1: {
+      label: 'Bonus AS',
+      format: 'percent',
+      description: 'Attack speed gained',
+    },
+    var2: {
+      label: 'Stacks',
+      format: 'count',
+      description: 'Legend stacks earned',
+    },
+  },
+  9105: {
+    // Legend: Haste
+    var1: {
+      label: 'Ability Haste',
+      format: 'value',
+      description: 'Ability haste gained',
+    },
+    var2: {
+      label: 'Stacks',
+      format: 'count',
+      description: 'Legend stacks earned',
+    },
+  },
+  9103: {
+    // Legend: Bloodline
+    var1: {
+      label: 'Life Steal',
+      format: 'percent',
+      description: 'Life steal % gained',
+    },
+    var2: {
+      label: 'Healing',
+      format: 'healing',
+      description: 'Total healing from life steal',
+    },
+  },
+
+  // Slot 3
+  8014: {
+    // Coup de Grace
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Bonus damage to low HP enemies',
+    },
+  },
+  8017: {
+    // Cut Down
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Bonus damage to high HP enemies',
+    },
+  },
+  8299: {
+    // Last Stand
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Bonus damage while low HP',
+    },
+  },
+
+  // ============================================
+  // DOMINATION TREE (8100)
+  // ============================================
+
+  // Keystones
+  8112: {
+    // Electrocute
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Total damage from Electrocute',
+    },
+    var2: {
+      label: "Times Proc'd",
+      format: 'count',
+      description: 'Number of times triggered',
+    },
+  },
+  8124: {
+    // Predator
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Damage dealt during Predator',
+    },
+    var2: {
+      label: 'Times Activated',
+      format: 'count',
+      description: 'Number of times used',
+    },
+  },
+  8128: {
+    // Dark Harvest
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Total damage from Dark Harvest',
+    },
+    var2: {
+      label: 'Stacks',
+      format: 'count',
+      description: 'Current Dark Harvest stacks',
+    },
+  },
+  9923: {
+    // Hail of Blades
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Damage during Hail of Blades',
+    },
+    var2: {
+      label: 'Times Activated',
+      format: 'count',
+      description: 'Number of activations',
+    },
+  },
+
+  // Slot 1
+  8126: {
+    // Cheap Shot
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Bonus damage to impaired enemies',
+    },
+  },
+  8139: {
+    // Taste of Blood
+    var1: {
+      label: 'Healing',
+      format: 'healing',
+      description: 'Total healing from Taste of Blood',
+    },
+  },
+  8143: {
+    // Sudden Impact
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Bonus damage after dash/blink',
+    },
+  },
+
+  // Slot 2
+  8136: {
+    // Zombie Ward
+    var1: {
+      label: 'Zombie Wards',
+      format: 'count',
+      description: 'Zombie wards spawned',
+    },
+    var2: {
+      label: 'Bonus AD/AP',
+      format: 'value',
+      description: 'Adaptive force gained',
+    },
+  },
+  8120: {
+    // Ghost Poro
+    var1: {
+      label: 'Ghost Poros',
+      format: 'count',
+      description: 'Ghost poros spawned',
+    },
+    var2: {
+      label: 'Bonus AD/AP',
+      format: 'value',
+      description: 'Adaptive force gained',
+    },
+  },
+  8138: {
+    // Eyeball Collection
+    var1: {
+      label: 'Stacks',
+      format: 'count',
+      description: 'Eyeball stacks collected',
+    },
+    var2: {
+      label: 'Bonus AD/AP',
+      format: 'value',
+      description: 'Adaptive force gained',
+    },
+  },
+
+  // Slot 3
+  8135: {
+    // Treasure Hunter
+    var1: {
+      label: 'Gold Earned',
+      format: 'gold',
+      description: 'Bonus gold from unique takedowns',
+    },
+    var2: {
+      label: 'Stacks',
+      format: 'count',
+      description: 'Unique champion takedowns',
+    },
+  },
+  8134: {
+    // Ingenious Hunter
+    var1: {
+      label: 'Item Haste',
+      format: 'value',
+      description: 'Item haste gained',
+    },
+    var2: {
+      label: 'Stacks',
+      format: 'count',
+      description: 'Unique champion takedowns',
+    },
+  },
+  8105: {
+    // Relentless Hunter
+    var1: {
+      label: 'MS Bonus',
+      format: 'value',
+      description: 'Out-of-combat move speed',
+    },
+    var2: {
+      label: 'Stacks',
+      format: 'count',
+      description: 'Unique champion takedowns',
+    },
+  },
+  8106: {
+    // Ultimate Hunter
+    var1: {
+      label: 'Ability Haste',
+      format: 'value',
+      description: 'Ultimate ability haste gained',
+    },
+    var2: {
+      label: 'Stacks',
+      format: 'count',
+      description: 'Unique champion takedowns',
+    },
+  },
+
+  // ============================================
+  // SORCERY TREE (8200)
+  // ============================================
+
+  // Keystones
+  8214: {
+    // Summon Aery
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Damage dealt by Aery',
+    },
+    var2: {
+      label: 'Shielding',
+      format: 'shielding',
+      description: 'Shielding provided by Aery',
+    },
+    var3: {
+      label: 'Times Sent',
+      format: 'count',
+      description: 'Number of times Aery was sent',
+    },
+  },
+  8229: {
+    // Arcane Comet
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Total damage from Arcane Comet',
+    },
+    var2: {
+      label: 'Times Hit',
+      format: 'count',
+      description: 'Number of times Comet hit',
+    },
+  },
+  8230: {
+    // Phase Rush
+    var1: {
+      label: 'Times Activated',
+      format: 'count',
+      description: 'Number of activations',
+    },
+    var2: {
+      label: 'Duration Active',
+      format: 'time',
+      description: 'Total time Phase Rush was active',
+    },
+  },
+
+  // Slot 1
+  8224: {
+    // Nullifying Orb
+    var1: {
+      label: 'Shielding',
+      format: 'shielding',
+      description: 'Total shield granted',
+    },
+    var2: {
+      label: 'Damage Blocked',
+      format: 'damage',
+      description: 'Magic damage blocked',
+    },
+  },
+  8226: {
+    // Manaflow Band
+    var1: {
+      label: 'Mana Restored',
+      format: 'value',
+      description: 'Total mana restored',
+    },
+    var2: {
+      label: 'Stacks',
+      format: 'count',
+      description: 'Current Manaflow stacks',
+    },
+  },
+  8275: {
+    // Nimbus Cloak
+    var1: {
+      label: 'Times Activated',
+      format: 'count',
+      description: 'Number of activations',
+    },
+    var2: {
+      label: 'Duration Active',
+      format: 'time',
+      description: 'Total time active',
+    },
+  },
+
+  // Slot 2
+  8210: {
+    // Transcendence
+    var1: {
+      label: 'Ability Haste',
+      format: 'value',
+      description: 'Ability haste gained at level 8',
+    },
+    var2: {
+      label: 'CDR Per Kill',
+      format: 'time',
+      description: 'Cooldown reduced per takedown',
+    },
+  },
+  8234: {
+    // Celerity
+    var1: {
+      label: 'Distance',
+      format: 'value',
+      description: 'Extra distance traveled',
+    },
+    var2: {
+      label: 'Bonus Damage',
+      format: 'damage',
+      description: 'Damage from bonus MS',
+    },
+  },
+  8233: {
+    // Absolute Focus
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Bonus damage while high HP',
+    },
+    var2: {
+      label: 'Duration Active',
+      format: 'time',
+      description: 'Time spent at high HP',
+    },
+  },
+
+  // Slot 3
+  8237: {
+    // Scorch
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Total damage from Scorch',
+    },
+  },
+  8232: {
+    // Waterwalking
+    var1: {
+      label: 'Duration Active',
+      format: 'time',
+      description: 'Time spent in river',
+    },
+    var2: {
+      label: 'Bonus MS/AP',
+      format: 'value',
+      description: 'Bonus stats gained',
+    },
+  },
+  8236: {
+    // Gathering Storm
+    var1: {
+      label: 'Bonus AD/AP',
+      format: 'value',
+      description: 'Adaptive force at game end',
+    },
+    var2: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Bonus damage from scaling',
+    },
+  },
+
+  // ============================================
+  // RESOLVE TREE (8400)
+  // ============================================
+
+  // Keystones
+  8437: {
+    // Grasp of the Undying
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Total damage from Grasp',
+    },
+    var2: {
+      label: 'Healing',
+      format: 'healing',
+      description: 'Total healing from Grasp',
+    },
+    var3: {
+      label: 'Bonus HP',
+      format: 'value',
+      description: 'Permanent HP gained',
+    },
+  },
+  8439: {
+    // Aftershock
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Damage from Aftershock burst',
+    },
+    var2: {
+      label: 'Damage Blocked',
+      format: 'damage',
+      description: 'Damage mitigated by resistances',
+    },
+    var3: {
+      label: 'Times Activated',
+      format: 'count',
+      description: 'Number of activations',
+    },
+  },
+  8465: {
+    // Guardian
+    var1: {
+      label: 'Shielding',
+      format: 'shielding',
+      description: 'Total shielding provided',
+    },
+    var2: {
+      label: 'Times Activated',
+      format: 'count',
+      description: 'Number of activations',
+    },
+  },
+
+  // Slot 1
+  8446: {
+    // Demolish
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Bonus damage to structures',
+    },
+    var2: {
+      label: "Times Proc'd",
+      format: 'count',
+      description: 'Number of procs',
+    },
+  },
+  8463: {
+    // Font of Life
+    var1: {
+      label: 'Healing',
+      format: 'healing',
+      description: 'Healing provided to allies',
+    },
+    var2: {
+      label: "Times Proc'd",
+      format: 'count',
+      description: 'Number of marks triggered',
+    },
+  },
+
+  // Slot 2
+  8401: {
+    // Shield Bash
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Bonus damage from shields',
+    },
+    var2: {
+      label: "Times Proc'd",
+      format: 'count',
+      description: 'Number of enhanced attacks',
+    },
+  },
+  8429: {
+    // Conditioning
+    var1: {
+      label: 'Armor Gained',
+      format: 'value',
+      description: 'Bonus armor at 12 min',
+    },
+    var2: {
+      label: 'MR Gained',
+      format: 'value',
+      description: 'Bonus magic resist at 12 min',
+    },
+  },
+  8444: {
+    // Second Wind
+    var1: {
+      label: 'Healing',
+      format: 'healing',
+      description: 'Total healing from Second Wind',
+    },
+  },
+  8473: {
+    // Bone Plating
+    var1: {
+      label: 'Damage Blocked',
+      format: 'damage',
+      description: 'Total damage blocked',
+    },
+    var2: {
+      label: "Times Proc'd",
+      format: 'count',
+      description: 'Number of activations',
+    },
+  },
+
+  // Slot 3
+  8451: {
+    // Overgrowth
+    var1: {
+      label: 'Bonus HP',
+      format: 'value',
+      description: 'Permanent HP gained',
+    },
+    var2: {
+      label: 'Minions Absorbed',
+      format: 'count',
+      description: 'Minions/monsters absorbed',
+    },
+  },
+  8453: {
+    // Revitalize
+    var1: {
+      label: 'Bonus Healing',
+      format: 'healing',
+      description: 'Extra healing provided',
+    },
+    var2: {
+      label: 'Bonus Shielding',
+      format: 'shielding',
+      description: 'Extra shielding provided',
+    },
+  },
+  8242: {
+    // Unflinching
+    var1: {
+      label: 'Tenacity',
+      format: 'percent',
+      description: 'Average tenacity bonus',
+    },
+    var2: {
+      label: 'Slow Resist',
+      format: 'percent',
+      description: 'Average slow resistance',
+    },
+  },
+
+  // ============================================
+  // INSPIRATION TREE (8300)
+  // ============================================
+
+  // Keystones
+  8351: {
+    // Glacial Augment
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Damage from glacial rays',
+    },
+    var2: {
+      label: 'Times Activated',
+      format: 'count',
+      description: 'Number of slows applied',
+    },
+  },
+  8360: {
+    // Unsealed Spellbook
+    var1: {
+      label: 'Swaps',
+      format: 'count',
+      description: 'Number of summoner spell swaps',
+    },
+  },
+  8369: {
+    // First Strike
+    var1: {
+      label: 'Damage Dealt',
+      format: 'damage',
+      description: 'Bonus damage from First Strike',
+    },
+    var2: {
+      label: 'Gold Earned',
+      format: 'gold',
+      description: 'Bonus gold generated',
+    },
+    var3: {
+      label: "Times Proc'd",
+      format: 'count',
+      description: 'Number of activations',
+    },
+  },
+
+  // Slot 1
+  8306: {
+    // Hextech Flashtraption
+    var1: {
+      label: 'Times Used',
+      format: 'count',
+      description: 'Number of hexflashes used',
+    },
+  },
+  8304: {
+    // Magical Footwear
+    var1: {
+      label: 'Gold Saved',
+      format: 'gold',
+      description: 'Gold saved from free boots',
+    },
+    var2: {
+      label: 'Arrival Time',
+      format: 'time',
+      description: 'Time when boots arrived',
+    },
+  },
+  8313: {
+    // Perfect Timing
+    var1: {
+      label: 'Gold Saved',
+      format: 'gold',
+      description: 'Gold saved from free stopwatch',
+    },
+  },
+
+  // Slot 2
+  8321: {
+    // Future's Market
+    var1: {
+      label: 'Gold Borrowed',
+      format: 'gold',
+      description: 'Total gold borrowed',
+    },
+    var2: {
+      label: 'Times Used',
+      format: 'count',
+      description: 'Number of debt purchases',
+    },
+  },
+  8316: {
+    // Minion Dematerializer
+    var1: {
+      label: 'Minions Killed',
+      format: 'count',
+      description: 'Minions dematerialized',
+    },
+    var2: {
+      label: 'Bonus Damage',
+      format: 'damage',
+      description: 'Bonus damage to minion types',
+    },
+  },
+  8345: {
+    // Biscuit Delivery
+    var1: {
+      label: 'Mana Restored',
+      format: 'value',
+      description: 'Mana restored from biscuits',
+    },
+    var2: {
+      label: 'HP Restored',
+      format: 'healing',
+      description: 'HP restored from biscuits',
+    },
+  },
+
+  // Slot 3
+  8347: {
+    // Cosmic Insight
+    var1: {
+      label: 'Item Haste',
+      format: 'value',
+      description: 'Item haste gained',
+    },
+    var2: {
+      label: 'Summoner Haste',
+      format: 'value',
+      description: 'Summoner spell haste gained',
+    },
+  },
+  8410: {
+    // Approach Velocity
+    var1: {
+      label: 'Distance',
+      format: 'value',
+      description: 'Extra distance traveled',
+    },
+    var2: {
+      label: 'Duration Active',
+      format: 'time',
+      description: 'Time with bonus MS',
+    },
+  },
+  8352: {
+    // Time Warp Tonic
+    var1: {
+      label: 'Duration Active',
+      format: 'time',
+      description: 'Time with instant restoration',
+    },
+    var2: {
+      label: 'HP Restored',
+      format: 'healing',
+      description: 'Immediate HP restored',
+    },
+  },
+};
+
+/**
+ * Format a rune variable value based on its type
+ */
+export function formatRuneVarValue(
+  value: number,
+  format:
+    | 'damage'
+    | 'healing'
+    | 'gold'
+    | 'shielding'
+    | 'time'
+    | 'percent'
+    | 'count'
+    | 'value'
+): string {
+  if (!value) return '0';
+
+  switch (format) {
+    case 'damage':
+    case 'healing':
+    case 'shielding':
+      // Large numbers in thousands
+      if (value >= 1000) {
+        return `${(value / 1000).toFixed(1)}k`;
+      }
+      return value.toFixed(0);
+
+    case 'gold':
+      return `${value.toFixed(0)}g`;
+
+    case 'time':
+      // Seconds
+      return `${value.toFixed(0)}s`;
+
+    case 'percent':
+      // Percentage
+      return `${value.toFixed(1)}%`;
+
+    case 'count':
+    case 'value':
+      // Whole numbers
+      return value.toFixed(0);
+
+    default:
+      return value.toFixed(0);
+  }
+}
+
+/**
+ * Get formatted rune variable information
+ */
+export function getRuneVarInfo(
+  runeId: number,
+  varName: 'var1' | 'var2' | 'var3',
+  value: number
+): string | null {
+  const runeInfo = RUNE_VARIABLES[runeId];
+  if (!runeInfo || !runeInfo[varName] || value <= 0) {
+    return null;
+  }
+
+  const varInfo = runeInfo[varName]!;
+  const formattedValue = formatRuneVarValue(value, varInfo.format);
+
+  return `${formattedValue} ${varInfo.label}`;
+}

@@ -9,11 +9,10 @@ const siteUrlFromEnv =
   'http://localhost:3000';
 
 const primaryEmbed = yuumiDiscordEmbed.embeds[0];
-const shareTitle =
-  primaryEmbed?.title ?? 'Yuumi Guide · Patch 15.18 Quick Reference';
+const shareTitle = primaryEmbed?.title ?? 'Yuumi Match Viewer';
 const shareDescription =
   primaryEmbed?.description ??
-  'An up-to-date, expert-crafted Yuumi support guide for LoL: runes, items, skill order, matchups, synergies, and macro.';
+  'Timeline-aware Yuumi match analysis with runes, item spikes, objectives, and combat breakdowns.';
 const embedColorHex = primaryEmbed?.color
   ? `#${primaryEmbed.color.toString(16).padStart(6, '0')}`
   : '#7ac4ff';
@@ -35,10 +34,10 @@ export const metadata: Metadata = {
   keywords: [
     'League of Legends',
     'Yuumi',
-    'Support',
-    'Guide',
-    'Runes',
-    'Items',
+    'Match Viewer',
+    'Match Analysis',
+    'Timeline',
+    'Riot API',
   ],
   authors: [{ name: 'Yuumi Mains Community' }],
   themeColor: embedColorHex,

@@ -1,10 +1,10 @@
-# 🐱 Yuumi Guide & Match Viewer
+# 🐱 Yuumi Match Viewer
 
 <div align="center">
 
-![Yuumi Banner](https://img.shields.io/badge/Yuumi-Guide-FF69B4?style=for-the-badge&logo=riot-games&logoColor=white)
+![Yuumi Banner](https://img.shields.io/badge/Yuumi-Match_Viewer-7ac4ff?style=for-the-badge&logo=riot-games&logoColor=white)
 
-**A clean, modern Yuumi support guide for League of Legends Patch 25.18**
+**Inspect every Yuumi game detail with a single match URL.**
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.5-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://typescriptlang.org/badge)](https://typescriptlang.org/)
@@ -16,122 +16,101 @@
 
 ## ✨ Overview
 
-This is a streamlined web application featuring a comprehensive, code-editable Yuumi support guide for League of Legends Patch 25.18, along with a rule GIF gallery and detailed match viewer. The entire experience runs on static and proxied game data—no database or authentication required.
+Yuumi Match Viewer is a focused Next.js application that renders deep, timeline-aware match breakdowns for League of Legends support mains. Paste any <code>{REGION}_{MATCH_ID}</code> and review objective control, kill chains, rune pacing, support quest progress, and more. A bundled sample payload keeps the experience working offline.
 
-### 🎮 Features
+### 🎮 Highlights
 
-- **🐾 Yuumi Guide** – Up-to-date runes, items, skill order, matchups, and synergies for Patch 25.18
-- **🎯 Rule Gallery** – Browse and share Discord-ready rule GIFs
-- **📊 Match Details** – In-depth match analysis with timeline data using example payloads or the Riot API
-- **🎨 Modern UI** – Clean, responsive design with magical Yuumi-themed styling
+- **📊 Match Details** – Detailed participant panes, rune stats, objectives, and combat summaries
+- **⏱️ Timeline Views** – Swap between combat and item timelines processed on the fly
+- **🧪 Example Data** – Ship-ready mock responses for local development and demos
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - **Node.js** (v18.x or later)
-- **npm** or **yarn**
+- **npm**
 
 ### Installation
 
 1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/yuumi-guide.git
-   cd yuumi-guide
-   ```
+
+        git clone https://github.com/yourusername/yuumi-challenges.git
+        cd yuumi-challenges
 
 2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+
+        npm install
 
 3. **Copy environment template**
-   ```powershell
-   Copy-Item .env.example .env.local
-   ```
+
+        Copy-Item .env.example .env.local
 
 4. **Start the development server**
-   ```bash
-   npm run dev
-   ```
+
+        npm run dev
 
 5. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+
+   Navigate to http://localhost:3000
 
 ## 📁 Project Structure
 
-```
-yuumi-guide/
-├── 📂 src/
-│   ├── 📂 app/                    # Next.js App Router routes
-│   │   ├── 📂 api/               # Server routes (Data Dragon proxy, match details)
-│   │   ├── 📂 gallery/           # Rule GIF gallery
-│   │   ├── 📂 match/             # Match details viewer
-│   │   └── 📄 page.tsx           # Yuumi guide (editable)
-│   ├── 📂 components/            # Reusable React components
-│   └── 📂 lib/                   # Shared utilities & helpers
-├── 📂 public/                    # Static assets (GIFs, images)
-├── 📄 exampleMatchData.json      # Demo match response
-├── 📄 exampleTimelineData.json   # Demo timeline response
-└── 📄 package.json              # Dependencies and scripts
-```
+<pre><code>
+yuumi-match-viewer/
+├── src/
+│   ├── app/                    # Next.js App Router routes
+│   │   ├── api/               # Server routes (Data Dragon proxy, match details)
+│   │   ├── match/             # Match details page
+│   │   └── page.tsx           # Landing page with match-id launcher
+│   ├── components/            # Reusable React components (match details, UI)
+│   └── lib/                   # Shared utilities & helpers
+├── public/                    # Static assets (images, icons)
+├── exampleMatchData.json      # Demo match response
+├── exampleTimelineData.json   # Demo timeline response
+└── package.json               # Dependencies and scripts
+</code></pre>
 
 ## 🎯 Usage
 
-### Editing the Yuumi Guide
-
-The guide is completely code-editable. To update runes, items, matchups, or any content:
-
-1. Open `src/app/page.tsx`
-2. Modify the constants at the top of the file:
-   - `PATCH` – Current patch version
-   - `runes` – Rune configuration
-   - `items` – Item build
-   - `skillOrder` – Ability leveling priority
-   - `toughMatchups` – Hard counter champions
-   - `goodSynergies` – Best ADC/midlaner synergies
-3. Save and the changes will be reflected immediately
-
 ### Viewing Matches
 
-- **Use built-in example data** – Enable `NEXT_PUBLIC_USE_EXAMPLE_DATA=true` in `.env.local`, then visit `/match/NA1_12345`
-- **Live Riot API data** – Set `NEXT_PUBLIC_USE_EXAMPLE_DATA=false`, provide a valid `RIOT_API_KEY`, and open `/match/{REGION}_{MATCH_ID}`
-- Example payloads live in `exampleMatchData.json` and `exampleTimelineData.json` for quick iteration
+- **Live Riot API data** – Set <code>RIOT_API_KEY</code> in <code>.env.local</code>, then open <code>/match/{REGION}_{MATCH_ID}</code>
+- **Bundled example** – Keep <code>NEXT_PUBLIC_USE_EXAMPLE_DATA=true</code> and load <code>/match/EUW1_7481411158?useExample=1</code>
+- Toggle queues, compare players, and inspect rune metrics directly on the page
 
-### Rule Gallery
+### Landing Page Launcher
 
-- Visit `/gallery` to browse the curated rule GIFs from `public/rule*.gif`
-- Click any rule to copy its Discord-friendly link
+The root route <code>/</code> lets you paste a match ID and jump straight into the viewer. It also links to the shipped example payload for quick validation.
 
 ## 🔧 Available Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
+| npm run dev | Start development server |
+| npm run build | Build for production |
+| npm run start | Serve the production build |
+| npm run lint | Run ESLint |
 
 ## ⚙️ Configuration
 
-All runtime configuration lives in `.env.local` (see `.env.example`):
+All runtime configuration lives in <code>.env.local</code> (see <code>.env.example</code>):
 
-- `NEXT_PUBLIC_SITE_URL` – Base URL used for link generation.
-- `NEXT_PUBLIC_USE_EXAMPLE_DATA` – Toggle between static example match data and live Riot API requests.
-- `RIOT_API_KEY` – Required only when pulling live match data via the Riot API route.
+- <code>NEXT_PUBLIC_SITE_URL</code> – Base URL for metadata and Open Graph tags
+- <code>NEXT_PUBLIC_USE_EXAMPLE_DATA</code> – Toggle between static example match data and live Riot API requests
+- <code>NEXT_PUBLIC_EXAMPLE_MATCH_ID</code> – Override the sample match ID used across the UI (optional)
+- <code>RIOT_API_KEY</code> – Required when fetching live match data through the API route
 
 ## 📚 Data Sources
 
-- Yuumi guide constants are curated from Mobalytics, Lolalytics, pro builds, and community consensus for Patch 25.18.
+Match insights are generated from Riot Match/V5 and Timeline/V5 payloads. Example files live in the repository for testing and demos.
 
 ## 🤝 Contributing
 
-To update the guide with new patch data:
-
-1. Research current meta from reliable sources
-2. Update the constants in `src/app/page.tsx`
-3. Test the changes locally
-4. Commit with a descriptive message
+1. Sync or capture new match data
+2. Update UI or processing helpers in <code>src/components/match-details</code> or <code>src/lib</code>
+3. Run <code>npm run lint</code>, <code>npm run format</code>, and <code>npm run type-check</code>
+4. Open a PR following Conventional Commits and link your issue
 
 ## 📄 License
 

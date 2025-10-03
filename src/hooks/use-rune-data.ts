@@ -1,7 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { RuneTree, RuneData, StatShard, getRuneById, getRuneTreeById, getStatShardById, STAT_SHARDS } from '@/lib/apis/datadragon';
+import {
+  RuneTree,
+  RuneData,
+  StatShard,
+  getRuneById,
+  getRuneTreeById,
+  getStatShardById,
+  STAT_SHARDS,
+} from '@/lib/apis/datadragon';
 
 interface RuneDataResponse {
   runes: RuneTree[];
@@ -19,7 +27,7 @@ interface UseRuneDataReturn {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
-  
+
   // Utility functions
   getRuneById: (runeId: number) => RuneData | null;
   getRuneTreeById: (treeId: number) => RuneTree | null;
@@ -37,32 +45,32 @@ export function useRuneData(): UseRuneDataReturn {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await fetch('/api/data-dragon/runes', {
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch rune data: ${response.status}`);
       }
-      
+
       const data: RuneDataResponse = await response.json();
-      
+
       if (data.error && !data.fallback) {
         throw new Error(data.error);
       }
-      
+
       setRuneTrees(data.runes);
-      
+
       // Show warning if using fallback data
       if (data.fallback) {
         console.warn('Using fallback rune data due to API issues:', data.error);
       }
-      
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       console.error('Error fetching rune data:', err);
     } finally {
@@ -88,10 +96,13 @@ export function useRuneData(): UseRuneDataReturn {
   };
 
   const getKeystoneRunesLocal = (): RuneData[] => {
-    return runeTrees.flatMap(tree => tree.slots[0]?.runes || []);
+    return runeTrees.flatMap((tree) => tree.slots[0]?.runes || []);
   };
 
-  const getRunesByTreeAndSlotLocal = (treeId: number, slotIndex: number): RuneData[] => {
+  const getRunesByTreeAndSlotLocal = (
+    treeId: number,
+    slotIndex: number
+  ): RuneData[] => {
     const tree = getRuneTreeByIdLocal(treeId);
     if (!tree || !tree.slots[slotIndex]) {
       return [];
@@ -117,13 +128,13 @@ export function useRuneData(): UseRuneDataReturn {
  */
 export function useRune(runeId: number | null) {
   const { loading, error, getRuneById } = useRuneData();
-  
+
   const rune = runeId ? getRuneById(runeId) : null;
-  
+
   return {
     rune,
     loading,
-    error
+    error,
   };
 }
 
@@ -132,13 +143,13 @@ export function useRune(runeId: number | null) {
  */
 export function useRuneTree(treeId: number | null) {
   const { loading, error, getRuneTreeById } = useRuneData();
-  
+
   const tree = treeId ? getRuneTreeById(treeId) : null;
-  
+
   return {
     tree,
     loading,
-    error
+    error,
   };
 }
 
@@ -147,13 +158,13 @@ export function useRuneTree(treeId: number | null) {
  */
 export function useKeystoneRunes() {
   const { loading, error, getKeystoneRunes } = useRuneData();
-  
+
   const keystones = getKeystoneRunes();
-  
+
   return {
     keystones,
     loading,
-    error
+    error,
   };
 }
 
@@ -165,6 +176,6 @@ export function useStatShards() {
     statShards: STAT_SHARDS,
     loading: false,
     error: null,
-    getStatShardById
+    getStatShardById,
   };
 }

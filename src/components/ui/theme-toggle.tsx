@@ -1,9 +1,9 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { Moon } from "lucide-react"
+import * as React from 'react';
+import { Moon } from 'lucide-react';
 
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/ui/button';
 
 export function ThemeToggle() {
   return (
@@ -11,5 +11,5 @@ export function ThemeToggle() {
       <Moon className="h-[1.2rem] w-[1.2rem]" />
       <span className="sr-only">Dark theme active</span>
     </Button>
-  )
+  );
 }
