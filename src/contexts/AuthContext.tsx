@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
+import { useConvexAvailable } from '@/providers/ConvexProvider';
 
 interface User {
   id: string;
@@ -30,7 +31,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const SESSION_KEY = 'yuumi_guide_session';
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+// Auth provider that uses Convex for authentication
+function AuthProviderWithConvex({ children }: { children: ReactNode }) {
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -75,7 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        isLoading: isLoading || (sessionToken !== null && sessionData === undefined),
+        isLoading:
+          isLoading || (sessionToken !== null && sessionData === undefined),
         isAuthenticated: !!user,
         login,
         logout,
@@ -85,6 +88,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
+}
+
+// Fallback auth provider when Convex is not available
+function AuthProviderFallback({ children }: { children: ReactNode }) {
+  const noopLogin = useCallback(async () => {
+    throw new Error('Authentication not available: Convex is not configured');
+  }, []);
+
+  const noopLogout = useCallback(async () => {
+    // No-op when Convex is not available
+  }, []);
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user: null,
+        isLoading: false,
+        isAuthenticated: false,
+        login: noopLogin,
+        logout: noopLogout,
+        sessionToken: null,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const isConvexAvailable = useConvexAvailable();
+
+  if (!isConvexAvailable) {
+    return <AuthProviderFallback>{children}</AuthProviderFallback>;
+  }
+
+  return <AuthProviderWithConvex>{children}</AuthProviderWithConvex>;
 }
 
 export function useAuth() {
