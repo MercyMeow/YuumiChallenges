@@ -69,7 +69,7 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index('by_priority', ['priority']),
 
-  // Skill order
+  // Skill order (legacy - kept for backwards compatibility)
   guideSkillOrder: defineTable({
     name: v.string(), // e.g., "Standard", "Aggressive"
     description: v.string(),
@@ -78,6 +78,61 @@ export default defineSchema({
     priority: v.number(),
     updatedAt: v.number(),
   }).index('by_priority', ['priority']),
+
+  // Unified builds (combines runes, items, and skill order)
+  guideBuilds: defineTable({
+    name: v.string(), // e.g., "Standard Aery", "Guardian Sustain"
+    description: v.string(),
+    icon: v.string(), // Icon identifier for the build
+    color: v.string(), // Tailwind color class
+    borderColor: v.string(), // Tailwind border color class
+    isRecommended: v.boolean(),
+    isActive: v.boolean(),
+    priority: v.number(), // Display order
+    // Runes configuration
+    runes: v.object({
+      name: v.string(),
+      primaryTree: v.string(),
+      keystone: v.string(),
+      primary: v.array(v.string()), // 3 primary runes after keystone
+      secondaryTree: v.string(),
+      secondary: v.array(v.string()), // 2 secondary runes
+      shards: v.array(v.string()), // 3 stat shards
+    }),
+    // Items configuration
+    items: v.object({
+      starter: v.array(
+        v.object({
+          id: v.number(),
+          name: v.string(),
+          reason: v.string(),
+        })
+      ),
+      core: v.array(
+        v.object({
+          id: v.number(),
+          name: v.string(),
+          reason: v.string(),
+        })
+      ),
+      situational: v.array(
+        v.object({
+          id: v.number(),
+          name: v.string(),
+          reason: v.string(),
+        })
+      ),
+    }),
+    // Skill order configuration
+    skillOrder: v.object({
+      priority: v.string(), // e.g., "E > W > Q"
+      levels: v.array(v.string()), // Array of 18: 'Q', 'W', 'E', 'R'
+      notes: v.string(),
+    }),
+    updatedAt: v.number(),
+  })
+    .index('by_priority', ['priority'])
+    .index('by_active', ['isActive']),
 
   // Matchups
   guideMatchups: defineTable({

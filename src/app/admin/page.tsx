@@ -10,9 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Loader2,
   LogOut,
-  Package,
-  Sparkles,
-  Target,
+  Layers,
   Users,
   Database,
   Settings,
@@ -34,9 +32,7 @@ export default function AdminDashboard() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
 
   // Placeholder counts - replace with Convex queries when connected
-  const itemsCount = 0;
-  const runesCount = 0;
-  const skillOrdersCount = 0;
+  const buildsCount = 0;
   const matchupsCount = 0;
   const scrapeJobs: ScrapeJob[] = [];
 
@@ -65,28 +61,13 @@ export default function AdminDashboard() {
 
   const stats = [
     {
-      title: 'Items',
-      value: itemsCount,
-      icon: Package,
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-500/20',
-      href: '/admin/items',
-    },
-    {
-      title: 'Rune Pages',
-      value: runesCount,
-      icon: Sparkles,
+      title: 'Builds',
+      value: buildsCount,
+      icon: Layers,
       color: 'text-purple-400',
       bgColor: 'bg-purple-500/20',
-      href: '/admin/runes',
-    },
-    {
-      title: 'Skill Orders',
-      value: skillOrdersCount,
-      icon: Target,
-      color: 'text-green-400',
-      bgColor: 'bg-green-500/20',
-      href: '/admin/skills',
+      href: '/admin/builds',
+      description: 'Runes, Items & Skills combined',
     },
     {
       title: 'Matchups',
@@ -95,6 +76,7 @@ export default function AdminDashboard() {
       color: 'text-yellow-400',
       bgColor: 'bg-yellow-500/20',
       href: '/admin/matchups',
+      description: 'Enemy & Ally matchups',
     },
   ];
 
@@ -181,7 +163,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
           {stats.map((stat) => (
             <Link key={stat.title} href={stat.href} className="block">
               <Card className="cursor-pointer border-white/10 bg-black/30 transition-colors hover:bg-black/40">
@@ -192,6 +174,7 @@ export default function AdminDashboard() {
                       <p className="mt-1 text-3xl font-bold text-white">
                         {stat.value}
                       </p>
+                      <p className="mt-1 text-xs text-white/40">{stat.description}</p>
                     </div>
                     <div className={`rounded-lg ${stat.bgColor} p-3`}>
                       <stat.icon className={`h-6 w-6 ${stat.color}`} />

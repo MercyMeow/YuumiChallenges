@@ -214,6 +214,192 @@ export const deleteSkillOrder = mutation({
   },
 });
 
+// ============ UNIFIED BUILDS ============
+
+export const getBuilds = query({
+  args: {},
+  handler: async (ctx) => {
+    const builds = await ctx.db.query('guideBuilds').collect();
+    return builds
+      .filter((b) => b.isActive)
+      .sort((a, b) => a.priority - b.priority);
+  },
+});
+
+export const getAllBuilds = query({
+  args: {},
+  handler: async (ctx) => {
+    const builds = await ctx.db.query('guideBuilds').collect();
+    return builds.sort((a, b) => a.priority - b.priority);
+  },
+});
+
+export const getBuildById = query({
+  args: {
+    id: v.id('guideBuilds'),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.id);
+  },
+});
+
+export const upsertBuild = mutation({
+  args: {
+    sessionToken: v.string(),
+    id: v.optional(v.id('guideBuilds')),
+    name: v.string(),
+    description: v.string(),
+    icon: v.string(),
+    color: v.string(),
+    borderColor: v.string(),
+    isRecommended: v.boolean(),
+    isActive: v.boolean(),
+    priority: v.number(),
+    runes: v.object({
+      name: v.string(),
+      primaryTree: v.string(),
+      keystone: v.string(),
+      primary: v.array(v.string()),
+      secondaryTree: v.string(),
+      secondary: v.array(v.string()),
+      shards: v.array(v.string()),
+    }),
+    items: v.object({
+      starter: v.array(
+        v.object({
+          id: v.number(),
+          name: v.string(),
+          reason: v.string(),
+        })
+      ),
+      core: v.array(
+        v.object({
+          id: v.number(),
+          name: v.string(),
+          reason: v.string(),
+        })
+      ),
+      situational: v.array(
+        v.object({
+          id: v.number(),
+          name: v.string(),
+          reason: v.string(),
+        })
+      ),
+    }),
+    skillOrder: v.object({
+      priority: v.string(),
+      levels: v.array(v.string()),
+      notes: v.string(),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const userId = await verifyAuth(ctx, args.sessionToken);
+    if (!userId) throw new Error('Unauthorized');
+
+    // Validate skill order has 18 levels
+    if (args.skillOrder.levels.length !== 18) {
+      throw new Error('Skill order must have exactly 18 levels');
+    }
+
+    const { sessionToken, id, ...data } = args;
+    const buildData = { ...data, updatedAt: Date.now() };
+
+    if (id) {
+      await ctx.db.patch(id, buildData);
+      return id;
+    } else {
+      return await ctx.db.insert('guideBuilds', buildData);
+    }
+  },
+});
+
+export const deleteBuild = mutation({
+  args: {
+    sessionToken: v.string(),
+    id: v.id('guideBuilds'),
+  },
+  handler: async (ctx, args) => {
+    const userId = await verifyAuth(ctx, args.sessionToken);
+    if (!userId) throw new Error('Unauthorized');
+
+    await ctx.db.delete(args.id);
+    return { success: true };
+  },
+});
+
+export const bulkImportBuilds = mutation({
+  args: {
+    sessionToken: v.string(),
+    builds: v.array(
+      v.object({
+        name: v.string(),
+        description: v.string(),
+        icon: v.string(),
+        color: v.string(),
+        borderColor: v.string(),
+        isRecommended: v.boolean(),
+        isActive: v.boolean(),
+        priority: v.number(),
+        runes: v.object({
+          name: v.string(),
+          primaryTree: v.string(),
+          keystone: v.string(),
+          primary: v.array(v.string()),
+          secondaryTree: v.string(),
+          secondary: v.array(v.string()),
+          shards: v.array(v.string()),
+        }),
+        items: v.object({
+          starter: v.array(
+            v.object({
+              id: v.number(),
+              name: v.string(),
+              reason: v.string(),
+            })
+          ),
+          core: v.array(
+            v.object({
+              id: v.number(),
+              name: v.string(),
+              reason: v.string(),
+            })
+          ),
+          situational: v.array(
+            v.object({
+              id: v.number(),
+              name: v.string(),
+              reason: v.string(),
+            })
+          ),
+        }),
+        skillOrder: v.object({
+          priority: v.string(),
+          levels: v.array(v.string()),
+          notes: v.string(),
+        }),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const userId = await verifyAuth(ctx, args.sessionToken);
+    if (!userId) throw new Error('Unauthorized');
+
+    const ids = [];
+    for (const build of args.builds) {
+      if (build.skillOrder.levels.length !== 18) {
+        throw new Error(`Build "${build.name}" skill order must have exactly 18 levels`);
+      }
+      const id = await ctx.db.insert('guideBuilds', {
+        ...build,
+        updatedAt: Date.now(),
+      });
+      ids.push(id);
+    }
+    return ids;
+  },
+});
+
 // ============ MATCHUPS ============
 
 export const getMatchups = query({
