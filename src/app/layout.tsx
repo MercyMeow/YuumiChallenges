@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { ThemeProvider } from '@/contexts/theme-context';
+import { ClientProviders } from '@/providers/ClientProviders';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { yuumiDiscordEmbed } from '@/lib/embeds/yuumi';
 
@@ -100,7 +100,7 @@ export default function RootLayout({
         />
       </head>
       <body className="dark antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ClientProviders>{children}</ClientProviders>
         <SpeedInsights />
       </body>
     </html>
