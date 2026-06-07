@@ -1,0 +1,28 @@
+src/app/page.tsx
+  s_a61b1407af1082::t_860394692434fb 706,708
+src/app/gallery/page.tsx
+  s_a61b1407af1082::t_86d3e363585111 67-77,86,96-98
+  s_a61b1407af1082::t_9563378b329d17 3
+src/lib/builds/yuumi.ts
+  s_a61b1407af1082::t_87089dd07ace83 17
+  s_a61b1407af1082::t_0e62f0b0cf63b1 60
+src/components/BuildRunes.tsx
+  s_a61b1407af1082::t_e84546cf9924d8 188-203
+  s_a61b1407af1082::t_4123dd507cb33c 14-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "a323c3d8a5e8eedc8e2cc45afcf2deb9acbb78b2",
+  "prompts": {},
+  "sessions": {
+    "s_a61b1407af1082": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ded17b85-5207-4488-b706-48554cbae0d4",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
