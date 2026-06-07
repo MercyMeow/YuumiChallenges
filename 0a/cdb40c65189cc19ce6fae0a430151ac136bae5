@@ -1,0 +1,22 @@
+src/lib/utils/match-timeline-utils.ts
+  s_a4895a28bf9f40::t_294ee8a7964af2 456-525,545-552,950-1018,1031-1037
+src/app/page.tsx
+  s_a4895a28bf9f40::t_b08bc060489b35 36-41,47
+  s_a4895a28bf9f40::t_2b363e4527a1a6 18-21,34-35,42-46,48-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "0acdb40c65189cc19ce6fae0a430151ac136bae5",
+  "prompts": {},
+  "sessions": {
+    "s_a4895a28bf9f40": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "20fdcf37-0317-40c1-811f-7e5fb9e5cbe8",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
