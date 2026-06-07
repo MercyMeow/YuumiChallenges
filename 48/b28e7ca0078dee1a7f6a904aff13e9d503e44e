@@ -1,0 +1,52 @@
+docs/rune-variables.md
+  s_a4895a28bf9f40::t_1d5a4fad2e763e 166
+src/components/match-details/DetailedStatsTab.tsx
+  s_a4895a28bf9f40::t_02f7cd14da0856 37,516-518,1306-1311,1318-1319,1322-1323,1326-1327,1329-1330,1335-1338,1341-1344
+src/app/api/match-details/[matchId]/route.ts
+  s_a4895a28bf9f40::t_1d5a4fad2e763e 62
+  s_a4895a28bf9f40::t_d707136f7bbb90 78-85
+src/components/ui/rune-display.tsx
+  s_03a7a5fb6edd2b::t_fd725e2a6ef55a 202,212
+  s_a4895a28bf9f40::t_435f9315be2842 19
+src/components/match-history/item-slots.tsx
+  s_03a7a5fb6edd2b::t_fd725e2a6ef55a 12,231-233
+README.md
+  s_a4895a28bf9f40::t_b0e2a797edea1e 19,47,82,102
+  s_a4895a28bf9f40::t_a09cd8bc1290e2 44,46,48,113
+  s_a4895a28bf9f40::t_6a6fac8b1e8e07 95
+src/components/ui/datadragon-image.tsx
+  s_03a7a5fb6edd2b::t_fd725e2a6ef55a 17,377-379
+src/app/page.tsx
+  s_a4895a28bf9f40::t_d707136f7bbb90 30-32
+src/lib/utils/match-timeline-utils.ts
+  s_03a7a5fb6edd2b::t_4e2ba5dfb53aeb 19-29,489,516,535,541,560,563,568,573,579,592,597,614,616,619,622,655,673,677-679,686,691-692,702,705,716,735,742,751,755,772,782,792,805,813,816,818,831,833,836,846,854,860,866-867,892-893,897,938,958,978,996,1002-1003
+  s_03a7a5fb6edd2b::t_524898f914ff55 475-477,632-648,884-886
+src/app/layout.tsx
+  s_a4895a28bf9f40::t_76657e454c9a30 1,68-69
+src/lib/utils/sanitize-html.ts
+  s_03a7a5fb6edd2b::t_fd725e2a6ef55a 1-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "48b28e7ca0078dee1a7f6a904aff13e9d503e44e",
+  "prompts": {},
+  "sessions": {
+    "s_03a7a5fb6edd2b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "843111c9-c656-42f8-8db1-e6b2617af6ec",
+        "model": "grok-composer-2.5-fast"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    },
+    "s_a4895a28bf9f40": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "20fdcf37-0317-40c1-811f-7e5fb9e5cbe8",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
