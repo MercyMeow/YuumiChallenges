@@ -71,6 +71,8 @@ export const DISCORD_SCOPES = [
 export const YUUMI_DISCORD_SERVER_ID =
   process.env.YUUMI_DISCORD_SERVER_ID || '';
 
+export const YUUMI_DISCORD_INVITE_URL = 'https://discord.gg/yuumi';
+
 export const CHALLENGE_TYPES = {
   KDA: 'kda',
   WINSTREAK: 'winstreak',

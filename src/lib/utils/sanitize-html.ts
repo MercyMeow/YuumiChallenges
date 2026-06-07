@@ -91,7 +91,7 @@ export function sanitizeRiotHtml(input: string): string {
     let html = input.replace(/<br\s*\/?>/gi, '<br/>');
 
     html = html.replace(
-      new RegExp(`<(${customTagPattern})>`, 'gi'),
+      new RegExp(`<(${customTagPattern})(?:\\s[^>]*)?>`, 'gi'),
       (_match, tag: string) =>
         `<span class="${RIOT_TAG_CLASS_MAP[tag.toLowerCase()]}">`
     );
