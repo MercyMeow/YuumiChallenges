@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AlertTriangle, ExternalLink, Sparkles } from 'lucide-react';
+import { Clock, ExternalLink, Sparkles } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -9,13 +9,36 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useMythicShopRotation } from '@/hooks/use-mythic-shop-rotation';
-import type { MythicShopSection } from '@/lib/mythic-shop/types';
+import { getNextResetForSection } from '@/lib/mythic-shop/reset-schedule';
+import type { MythicShopSectionId } from '@/lib/mythic-shop/types';
+import { MYTHIC_SHOP_TRACKER_URL } from '@/lib/utils/constants';
+
+interface SectionMeta {
+  id: MythicShopSectionId;
+  label: string;
+  contents: string;
+}
+
+// Section contents per Riot's "Shops Update" (cadence drives the countdown).
+const SECTIONS: SectionMeta[] = [
+  {
+    id: 'featured',
+    label: 'Featured',
+    contents: 'New Prestige skins, Nexus Finishers & event titles',
+  },
+  {
+    id: 'biweekly',
+    label: 'Bi-weekly',
+    contents: '12 Mythic & returning Prestige skins',
+  },
+  { id: 'weekly', label: 'Weekly', contents: '8 event & Mythic chromas' },
+  { id: 'daily', label: 'Daily', contents: 'Emotes, icons & ward skins' },
+];
 
 /** Formats a future ISO timestamp as a compact "2d 3h" countdown string. */
 function formatCountdown(targetIso: string | null, nowMs: number): string {
   if (!targetIso) {
-    return 'Ad hoc';
+    return 'Varies by event';
   }
   const diff = new Date(targetIso).getTime() - nowMs;
   if (diff <= 0) {
@@ -31,110 +54,78 @@ function formatCountdown(targetIso: string | null, nowMs: number): string {
   return `${minutes}m`;
 }
 
-function SectionBlock({
-  section,
-  nowMs,
-}: {
-  section: MythicShopSection;
-  nowMs: number;
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-baseline justify-between gap-2">
-        <h3 className="text-sm font-semibold text-foreground">
-          {section.label}
-        </h3>
-        <span className="text-xs text-muted-foreground">
-          Resets in {formatCountdown(section.nextResetAt, nowMs)}
-        </span>
-      </div>
-      <ul className="space-y-1.5">
-        {section.items.map((item) => (
-          <li
-            key={`${section.id}-${item.name}`}
-            className="border-border/50 bg-background/40 flex items-center justify-between gap-3 rounded-md border px-3 py-1.5"
-          >
-            <span className="truncate text-sm text-foreground">
-              {item.name}
-            </span>
-            <span className="bg-primary/10 shrink-0 rounded-full px-2 py-0.5 text-xs font-medium text-primary">
-              {item.cost} ME
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function PanelSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div
-          key={index}
-          className="bg-muted/40 h-10 animate-pulse rounded-md"
-        />
-      ))}
-    </div>
-  );
-}
-
-/** Always-visible panel showing the current Mythic Shop rotation. */
+/**
+ * Always-visible panel showing the Mythic Shop reset countdowns.
+ *
+ * Riot has no public shop API, so we compute the per-section reset timers
+ * locally and link out for the live item list (the in-game client is the
+ * source of truth).
+ */
 export function MythicShopRotationPanel() {
-  const { rotation, isLoading, error } = useMythicShopRotation();
-  const [nowMs, setNowMs] = useState(() => Date.now());
+  // Render the same value on server and first client paint to avoid hydration
+  // mismatches, then start ticking once mounted.
+  const [nowMs, setNowMs] = useState<number | null>(null);
 
-  // Refresh countdowns once a minute; precise to-the-second is unnecessary.
   useEffect(() => {
+    setNowMs(Date.now());
     const interval = setInterval(() => setNowMs(Date.now()), 60_000);
     return () => clearInterval(interval);
   }, []);
 
+  const now = nowMs === null ? new Date() : new Date(nowMs);
+  const referenceMs = nowMs ?? now.getTime();
+
   return (
     <Card className="bg-card/60 text-left backdrop-blur">
       <CardHeader>
-        <div className="flex items-center justify-between gap-2">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <Sparkles className="h-5 w-5 text-primary" />
-            Mythic Shop Rotation
-          </CardTitle>
-          {rotation?.source && (
-            <a
-              href={rotation.source.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Source
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          )}
-        </div>
+        <CardTitle className="flex items-center gap-2 text-xl">
+          <Sparkles className="h-5 w-5 text-primary" />
+          Mythic Shop Resets
+        </CardTitle>
         <CardDescription>
-          Current items available for Mythic Essence in the League client.
+          When each Mythic Shop category next rotates (00:00 UTC).
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {isLoading && !rotation && <PanelSkeleton />}
+        <ul className="space-y-2">
+          {SECTIONS.map((section) => {
+            const nextReset = getNextResetForSection(section.id, now);
+            return (
+              <li
+                key={section.id}
+                className="border-border/50 bg-background/40 flex items-center justify-between gap-3 rounded-md border px-3 py-2"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-foreground">
+                    {section.label}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {section.contents}
+                  </p>
+                </div>
+                <span className="bg-primary/10 flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-primary">
+                  <Clock className="h-3 w-3" />
+                  {nowMs === null
+                    ? '—'
+                    : formatCountdown(nextReset, referenceMs)}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
 
-        {!isLoading && !rotation && (
-          <p className="text-sm text-muted-foreground">
-            {error ?? 'Rotation data is currently unavailable.'}
-          </p>
-        )}
-
-        {rotation?.stale && (
-          <p className="flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
-            <AlertTriangle className="h-4 w-4 shrink-0" />
-            Showing the last known rotation; the live source could not be
-            reached. The in-game client is always the source of truth.
-          </p>
-        )}
-
-        {rotation?.sections.map((section) => (
-          <SectionBlock key={section.id} section={section} nowMs={nowMs} />
-        ))}
+        <a
+          href={MYTHIC_SHOP_TRACKER_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
+          View current items
+          <ExternalLink className="h-3 w-3" />
+        </a>
+        <p className="text-muted-foreground/70 text-center text-[11px]">
+          The in-game client (Loot tab) is the source of truth.
+        </p>
       </CardContent>
     </Card>
   );
