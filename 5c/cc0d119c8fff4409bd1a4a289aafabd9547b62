@@ -1,0 +1,41 @@
+src/app/api/data-dragon/summoner-spells/route.ts
+  s_a61b1407af1082::t_7f286b80b175aa 28,30
+src/components/BuildRunes.tsx
+  s_a61b1407af1082::t_104dc8a8e854a1 1-155
+src/components/mythic-shop/MythicShopResetBanner.tsx
+  s_a61b1407af1082::t_a6c792fb4586a4 14,16-19,25,42,44-45,47,62-65,67-68,72-74,88,90,93-94
+src/app/layout.tsx
+  s_a61b1407af1082::t_49a87f32a036e8 6
+  s_a61b1407af1082::t_59b5ee14c10d08 106
+src/app/match/page.tsx
+  s_a61b1407af1082::t_661e149ccd3bff 68-69
+src/lib/builds/yuumi.ts
+  s_a61b1407af1082::t_9d5de108faca0f 1,19,31-36,39,41-42,48,52,55,78,128-129,132-134,137-144,149-151,154,158-167,174,179,194-196
+src/app/page.tsx
+  s_a61b1407af1082::t_d0a81b7ca71e26 630-634
+  s_a61b1407af1082::t_ac8d408e25f924 645-649
+  s_a61b1407af1082::t_9ded2ae102f999 15
+  s_a61b1407af1082::t_7aedf9e6a46eab 613
+  s_a61b1407af1082::t_9d5de108faca0f 33,70-71,82-83,88-109,115-116,132-146,152-173,179-180,196-202,205-211,216-237,264-266,292-295,299-302,306-309,314-316,329-336,342-351,371-374,385-392,402-408,444-446,448-453,462-469,475-477,497-502,506-517,519-522,558-560,563-565,577-579,583-585,590-592,595-598,625-627,640-642,655-657,679-682,686-691,698-700,702-710,713-718,734-736,755-757,765-767,780-790,792-796,801-803,806-812,820-825,834-836,844-846,854-856,869-878,880-884,889-891,894-900,908-913,922-924,937-940
+  s_a61b1407af1082::t_ff6054022ba058 660-664
+src/app/gallery/page.tsx
+  s_a61b1407af1082::t_9d5de108faca0f 1-130
+src/lib/runes/yuumi.ts
+  s_a61b1407af1082::t_9d5de108faca0f 6,30,49,68,87,102-103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "5ccc0d119c8fff4409bd1a4a289aafabd9547b62",
+  "prompts": {},
+  "sessions": {
+    "s_a61b1407af1082": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ded17b85-5207-4488-b706-48554cbae0d4",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
