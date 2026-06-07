@@ -146,8 +146,9 @@ export function ItemSlot({
       .replace(
         /<font color="#([^"]+)"[^>]*>([^<]*)<\/font>/gi,
         (_, color, text) => {
-          // Preserve original color for special formatting
-          return `<span style="color: #${color}">${text}</span>`;
+          const hex = `#${color}`.toLowerCase();
+          // sanitizeRiotHtml allows only safe hex color styles on spans
+          return `<span style="color: ${hex}">${text}</span>`;
         }
       )
       // Color damage/AD stats
