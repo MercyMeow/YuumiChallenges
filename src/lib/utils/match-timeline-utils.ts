@@ -453,6 +453,76 @@ function hasNumericItemId(
   return typeof event.itemId === 'number';
 }
 
+function detectSupportItemCompletionQuiet(
+  playerData: SupportPlayerInfo | null | undefined,
+  timelineEvents: ReadonlyArray<SupportTimelineEvent>,
+  participantId?: number
+): SupportItemCompletionTimes {
+  const playerParticipantId =
+    typeof playerData?.participantId === 'number'
+      ? playerData.participantId
+      : undefined;
+  const targetParticipantId =
+    typeof participantId === 'number' ? participantId : playerParticipantId;
+  const eventsInitial = Array.isArray(timelineEvents) ? timelineEvents : [];
+  const eventsForProcessing =
+    targetParticipantId !== undefined &&
+    eventsInitial.some((event) => typeof event.participantId === 'number')
+      ? eventsInitial.filter(
+          (event) => event.participantId === targetParticipantId
+        )
+      : eventsInitial;
+
+  const completionTimes = createEmptyCompletionTimes();
+  if (eventsForProcessing.length === 0) {
+    return completionTimes;
+  }
+
+  const supportItemEvents = eventsForProcessing
+    .filter(hasNumericItemId)
+    .filter(
+      (event) =>
+        isSupportItem(event.itemId) &&
+        (event.type === 'ITEM_PURCHASED' || event.type === 'ITEM_DESTROYED')
+    )
+    .sort((a, b) => a.timestamp - b.timestamp);
+
+  const evolutionTracker = new Map<SupportItemTier, number>();
+  let runicCompassDestructionTime: number | null = null;
+
+  for (const event of supportItemEvents) {
+    const completion = getSupportItemCompletion(event.itemId);
+    if (!completion.isSupportItem || !completion.tier) {
+      continue;
+    }
+
+    const currentTierTime = evolutionTracker.get(completion.tier);
+    if (event.type === 'ITEM_DESTROYED' && event.itemId === 3866) {
+      runicCompassDestructionTime = event.timestamp;
+    }
+
+    if (
+      event.type === 'ITEM_PURCHASED' &&
+      (!currentTierTime || event.timestamp < currentTierTime)
+    ) {
+      evolutionTracker.set(completion.tier, event.timestamp);
+    }
+  }
+
+  if (runicCompassDestructionTime !== null) {
+    evolutionTracker.set('tier2', runicCompassDestructionTime);
+  }
+
+  evolutionTracker.forEach((timestamp, tier) => {
+    const currentValue = completionTimes[tier];
+    if (currentValue === null || timestamp < currentValue) {
+      completionTimes[tier] = timestamp;
+    }
+  });
+
+  return completionTimes;
+}
+
 /**
  * Calculate support item completion time from timeline data
  *
@@ -472,6 +542,14 @@ export function detectSupportItemCompletion(
   timelineEvents: ReadonlyArray<SupportTimelineEvent>,
   participantId?: number
 ): SupportItemCompletionTimes {
+  if (!TIMELINE_DEBUG_ENABLED) {
+    return detectSupportItemCompletionQuiet(
+      playerData,
+      timelineEvents,
+      participantId
+    );
+  }
+
   timelineDebug.group(
     '🔍 [SUPPORT QUEST DEBUG] detectSupportItemCompletion called'
   );
@@ -869,6 +947,75 @@ export function detectSupportItemCompletion(
   return completionTimes;
 }
 
+function detectSupportItemCompletionFromRawQuiet(
+  rawTimelineData: RawTimelineData | null | undefined,
+  participantId: number
+): SupportItemCompletionTimes {
+  const completionTimes = createEmptyCompletionTimes();
+  const frames = rawTimelineData?.info?.frames;
+
+  if (!Array.isArray(frames) || frames.length === 0) {
+    return completionTimes;
+  }
+
+  interface TimelineItemEventSummary {
+    readonly itemId: number;
+    readonly timestamp: number;
+    readonly participantId: number;
+  }
+
+  const allItemPurchases: TimelineItemEventSummary[] = [];
+  const allItemDestructions: TimelineItemEventSummary[] = [];
+
+  frames.forEach((frame: RawTimelineFrame) => {
+    const events = Array.isArray(frame.events) ? frame.events : [];
+    events.forEach((event: RawTimelineEvent) => {
+      if (
+        event.participantId !== participantId ||
+        typeof event.itemId !== 'number'
+      ) {
+        return;
+      }
+
+      const record: TimelineItemEventSummary = {
+        itemId: event.itemId,
+        timestamp: event.timestamp,
+        participantId: event.participantId ?? participantId,
+      };
+
+      if (event.type === 'ITEM_PURCHASED') {
+        allItemPurchases.push(record);
+      } else if (event.type === 'ITEM_DESTROYED') {
+        allItemDestructions.push(record);
+      }
+    });
+  });
+
+  const runicCompassDestruction = allItemDestructions.find(
+    (destruction) => destruction.itemId === 3866
+  );
+  if (runicCompassDestruction) {
+    completionTimes.tier2 = runicCompassDestruction.timestamp;
+  }
+
+  [...allItemPurchases]
+    .filter((purchase) => isSupportItem(purchase.itemId))
+    .sort((a, b) => a.timestamp - b.timestamp)
+    .forEach((purchase) => {
+      const completion = getSupportItemCompletion(purchase.itemId);
+
+      if (
+        completion.isSupportItem &&
+        completion.tier &&
+        completionTimes[completion.tier] === null
+      ) {
+        completionTimes[completion.tier] = purchase.timestamp;
+      }
+    });
+
+  return completionTimes;
+}
+
 /**
  * Detect support item completion from raw timeline data
  * This function processes raw timeline data directly to avoid pre-filtering issues
@@ -881,6 +1028,13 @@ export function detectSupportItemCompletionFromRaw(
   rawTimelineData: RawTimelineData | null | undefined,
   participantId: number
 ): SupportItemCompletionTimes {
+  if (!TIMELINE_DEBUG_ENABLED) {
+    return detectSupportItemCompletionFromRawQuiet(
+      rawTimelineData,
+      participantId
+    );
+  }
+
   timelineDebug.group(
     '🔍 [RAW TIMELINE] detectSupportItemCompletionFromRaw called'
   );

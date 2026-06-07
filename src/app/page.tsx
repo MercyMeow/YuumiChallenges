@@ -15,6 +15,10 @@ import { REGIONS, REGION_NAMES } from '@/lib/utils/constants';
 
 type RegionValue = (typeof REGIONS)[keyof typeof REGIONS];
 
+const VALID_REGION_PREFIXES = new Set(
+  Object.values(REGIONS).map((regionValue) => regionValue.toUpperCase())
+);
+
 export default function MatchLandingPage() {
   const router = useRouter();
   const [region, setRegion] = useState<RegionValue>(REGIONS.EUW1);
@@ -27,10 +31,27 @@ export default function MatchLandingPage() {
       return;
     }
 
-    const fullMatchId = /^[A-Za-z0-9]+_\d+$/.test(normalized)
-      ? normalized.toUpperCase()
-      : `${region.toUpperCase()}_${normalized}`;
-    router.push('/match/' + encodeURIComponent(fullMatchId));
+    const fullMatchIdMatch = normalized.match(/^([A-Za-z0-9]+)_(\d+)$/);
+    if (fullMatchIdMatch) {
+      const [, rawRegion, rawMatchNumber] = fullMatchIdMatch;
+      if (!rawRegion || !rawMatchNumber) {
+        return;
+      }
+
+      const normalizedRegion = rawRegion.toUpperCase();
+      if (!VALID_REGION_PREFIXES.has(normalizedRegion)) {
+        return;
+      }
+
+      router.push(
+        '/match/' + encodeURIComponent(`${normalizedRegion}_${rawMatchNumber}`)
+      );
+      return;
+    }
+
+    router.push(
+      '/match/' + encodeURIComponent(`${region.toUpperCase()}_${normalized}`)
+    );
   };
 
   return (
