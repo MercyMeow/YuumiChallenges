@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
@@ -64,6 +64,17 @@ function GifCard({ rule, isCopied, onCopyLink }: GifCardProps) {
 
 export default function GalleryPage() {
   const [copiedRule, setCopiedRule] = useState<number | null>(null);
+  const copyResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Show the "Copied!" indicator for the given rule, resetting any pending
+  // timer so rapid clicks on different rules don't clear it prematurely.
+  const showCopied = (rule: number) => {
+    setCopiedRule(rule);
+    if (copyResetTimer.current) {
+      clearTimeout(copyResetTimer.current);
+    }
+    copyResetTimer.current = setTimeout(() => setCopiedRule(null), 2000);
+  };
 
   const handleCopyLink = async (rule: number) => {
     const base =
@@ -72,8 +83,7 @@ export default function GalleryPage() {
 
     try {
       await navigator.clipboard.writeText(shortUrl);
-      setCopiedRule(rule);
-      setTimeout(() => setCopiedRule(null), 2000);
+      showCopied(rule);
     } catch {
       // Fallback for browsers without async clipboard support.
       const textArea = document.createElement('textarea');
@@ -83,9 +93,9 @@ export default function GalleryPage() {
       document.body.appendChild(textArea);
       textArea.select();
       try {
-        document.execCommand('copy');
-        setCopiedRule(rule);
-        setTimeout(() => setCopiedRule(null), 2000);
+        if (document.execCommand('copy')) {
+          showCopied(rule);
+        }
       } finally {
         document.body.removeChild(textArea);
       }

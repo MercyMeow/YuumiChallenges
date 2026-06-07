@@ -11,6 +11,43 @@ import { useRuneData } from '@/hooks/use-rune-data';
 
 const DDRAGON_IMG_BASE = 'https://ddragon.leagueoflegends.com/cdn/img';
 
+// Stat shards aren't part of the rune tree JSON, so map their identifiers to
+// the Data Dragon stat-mod icons (and readable labels) directly.
+const STAT_SHARDS: Record<string, { name: string; icon: string }> = {
+  AdaptiveForce: {
+    name: 'Adaptive Force',
+    icon: 'perk-images/StatMods/StatModsAdaptiveForceIcon.png',
+  },
+  AbilityHaste: {
+    name: 'Ability Haste',
+    icon: 'perk-images/StatMods/StatModsCDRScalingIcon.png',
+  },
+  AttackSpeed: {
+    name: 'Attack Speed',
+    icon: 'perk-images/StatMods/StatModsAttackSpeedIcon.png',
+  },
+  HealthScaling: {
+    name: 'Health (scaling)',
+    icon: 'perk-images/StatMods/StatModsHealthScalingIcon.png',
+  },
+  Health: {
+    name: 'Health',
+    icon: 'perk-images/StatMods/StatModsHealthPlusIcon.png',
+  },
+  Armor: {
+    name: 'Armor',
+    icon: 'perk-images/StatMods/StatModsArmorIcon.png',
+  },
+  MagicRes: {
+    name: 'Magic Resist',
+    icon: 'perk-images/StatMods/StatModsMagicResIcon.png',
+  },
+  Tenacity: {
+    name: 'Tenacity',
+    icon: 'perk-images/StatMods/StatModsTenacityIcon.png',
+  },
+};
+
 // Shape mirrors the `runes` field of a guide Build (see src/app/page.tsx).
 interface BuildRunesData {
   name: string;
@@ -148,6 +185,22 @@ export function BuildRunes({ runes }: { runes: BuildRunesData }) {
               ))}
             </div>
           </div>
+
+          {runes.shards.length > 0 && (
+            <div>
+              <div className="mb-2 text-white/60">Shards</div>
+              <div className="flex flex-wrap items-center gap-2 pl-1">
+                {runes.shards.map((key, i) => (
+                  <RuneIcon
+                    key={`${key}-${i}`}
+                    entry={STAT_SHARDS[key]}
+                    fallbackLabel={key}
+                    size={24}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

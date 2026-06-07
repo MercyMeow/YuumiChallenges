@@ -703,9 +703,9 @@ export default function YuumiGuide() {
                         ...currentBuild.items.starter,
                         ...currentBuild.items.core,
                         ...currentBuild.items.situational,
-                      ].map((item) => (
+                      ].map((item, i) => (
                         <div
-                          key={item.id}
+                          key={`${item.id}-${i}`}
                           className="flex items-start gap-2 rounded bg-white/5 p-2"
                         >
                           <ItemSlot itemId={item.id} size="sm" />

@@ -14,7 +14,7 @@ export type ChampionBuildData = {
   notes?: string[];
 };
 
-export const yuumiBuild1518: ChampionBuildData = {
+export const yuumiBuild1611: ChampionBuildData = {
   champion: 'Yuumi',
   patch: '16.11',
   sources: [
@@ -57,7 +57,7 @@ export const yuumiBuild1518: ChampionBuildData = {
   ],
 };
 
-export default yuumiBuild1518;
+export default yuumiBuild1611;
 
 // Back-compat exports used by the guide Build tab
 // BEST_RUNES and BEST_ITEMS mirror the shapes consumed in src/app/page.tsx
