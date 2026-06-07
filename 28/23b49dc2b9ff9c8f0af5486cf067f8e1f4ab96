@@ -1,0 +1,24 @@
+src/app/page.tsx
+  s_71b74162b60196::t_21aa26f63c7a93 87,92,101,109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "2823b49dc2b9ff9c8f0af5486cf067f8e1f4ab96",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_71b74162b60196": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "cded18cc-65b5-49c3-ab2d-166d9082a5b5",
+        "model": "composer-2.5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
