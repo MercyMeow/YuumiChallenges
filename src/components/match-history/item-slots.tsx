@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/tooltip';
 import { itemImages } from '@/lib/apis/datadragon';
 import { useItem } from '@/hooks/use-item-data';
+import { sanitizeRiotHtml } from '@/lib/utils/sanitize-html';
 
 interface ItemSlotProps {
   itemId: number;
@@ -227,7 +228,9 @@ export function ItemSlot({
             return (
               <div
                 key={index}
-                dangerouslySetInnerHTML={{ __html: line.trim() }}
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeRiotHtml(line.trim()),
+                }}
                 className="leading-relaxed"
               />
             );

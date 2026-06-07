@@ -34,9 +34,7 @@ export function DetailedStatsTab({
   formatNumber,
   formatMatchTime,
 }: DetailedStatsTabProps) {
-  const formatDurationFromSeconds = (
-    seconds?: number | null
-  ): string => {
+  const formatDurationFromSeconds = (seconds?: number | null): string => {
     if (seconds == null || Number.isNaN(seconds) || seconds <= 0) {
       return '—';
     }
@@ -515,7 +513,9 @@ export function DetailedStatsTab({
                   <div className="flex justify-between">
                     <span className="text-white/60">Heals on Teammates</span>
                     <span className="text-teal-200">
-                      {formatNumber(selectedPlayerData.totalHealsOnTeammates ?? 0)}
+                      {formatNumber(
+                        selectedPlayerData.totalHealsOnTeammates ?? 0
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -1303,31 +1303,45 @@ export function DetailedStatsTab({
                     },
                     {
                       label: 'Units Healed',
-                      value1: (selectedPlayerData.totalUnitsHealed ?? 0).toString(),
-                      value2: (comparePlayerData.totalUnitsHealed ?? 0).toString(),
+                      value1: (
+                        selectedPlayerData.totalUnitsHealed ?? 0
+                      ).toString(),
+                      value2: (
+                        comparePlayerData.totalUnitsHealed ?? 0
+                      ).toString(),
                       numValue1: selectedPlayerData.totalUnitsHealed ?? 0,
                       numValue2: comparePlayerData.totalUnitsHealed ?? 0,
                     },
                     {
                       label: 'Effective Heal & Shielding',
                       value1: formatNumber(
-                        selectedPlayerData.challenges?.effectiveHealAndShielding ?? 0
+                        selectedPlayerData.challenges
+                          ?.effectiveHealAndShielding ?? 0
                       ),
                       value2: formatNumber(
-                        comparePlayerData.challenges?.effectiveHealAndShielding ?? 0
+                        comparePlayerData.challenges
+                          ?.effectiveHealAndShielding ?? 0
                       ),
                       numValue1:
-                        selectedPlayerData.challenges?.effectiveHealAndShielding ?? 0,
+                        selectedPlayerData.challenges
+                          ?.effectiveHealAndShielding ?? 0,
                       numValue2:
-                        comparePlayerData.challenges?.effectiveHealAndShielding ?? 0,
+                        comparePlayerData.challenges
+                          ?.effectiveHealAndShielding ?? 0,
                     },
                     {
                       label: 'Time CCing Others',
                       value1: formatMatchTime(
-                        Math.max(0, (selectedPlayerData.timeCCingOthers ?? 0) * 1000)
+                        Math.max(
+                          0,
+                          (selectedPlayerData.timeCCingOthers ?? 0) * 1000
+                        )
                       ),
                       value2: formatMatchTime(
-                        Math.max(0, (comparePlayerData.timeCCingOthers ?? 0) * 1000)
+                        Math.max(
+                          0,
+                          (comparePlayerData.timeCCingOthers ?? 0) * 1000
+                        )
                       ),
                       numValue1: selectedPlayerData.timeCCingOthers ?? 0,
                       numValue2: comparePlayerData.timeCCingOthers ?? 0,
@@ -1518,4 +1532,3 @@ export function DetailedStatsTab({
     </>
   );
 }
-

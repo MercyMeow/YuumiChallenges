@@ -16,6 +16,7 @@ import {
 import { StatShard } from '@/lib/apis/datadragon';
 import { cn } from '@/lib/utils';
 import { getAllRuneVarInfos } from '@/lib/runes/rune-variables';
+import { sanitizeRiotHtml } from '@/lib/utils/sanitize-html';
 
 interface RuneIconProps {
   runeId: number;
@@ -154,40 +155,6 @@ export function RuneIcon({
     return content;
   }
 
-  // Sanitize Riot rune HTML: allow a safe subset, map Riot custom tags to spans with classes
-  function sanitizeRuneHtml(input: string): string {
-    try {
-      if (!input || typeof input !== 'string') return '';
-      // Replace Riot custom tags with span + class for styling
-      let html = input
-        .replace(/<br\s*\/?>/gi, '<br/>')
-        .replace(/<status>/gi, '<span class="status">')
-        .replace(/<\/status>/gi, '</span>')
-        .replace(/<attention>/gi, '<span class="attention">')
-        .replace(/<\/attention>/gi, '</span>')
-        .replace(/<rules>/gi, '<span class="rules">')
-        .replace(/<\/rules>/gi, '</span>')
-        .replace(/<scale>/gi, '<span class="scale">')
-        .replace(/<\/scale>/gi, '</span>');
-
-      // Very small allowlist-based sanitizer: strip disallowed tags/attrs
-      // Allow tags: b, i, u, em, strong, br, ul, ol, li, span
-      html = html.replace(
-        /<(?!\/?(b|i|u|em|strong|br|ul|ol|li|span)\b)[^>]*>/gi,
-        ''
-      );
-
-      // Remove on* event handlers, javascript: URLs, and inline styles
-      html = html.replace(/\son\w+="[^"]*"/gi, '');
-      html = html.replace(/\shref="javascript:[^"]*"/gi, '');
-      html = html.replace(/\sstyle="[^"]*"/gi, '');
-
-      return html;
-    } catch {
-      return '';
-    }
-  }
-
   return (
     <Tooltip>
       <TooltipTrigger asChild>{content}</TooltipTrigger>
@@ -232,7 +199,7 @@ export function RuneIcon({
             <div
               className="prose prose-invert prose-sm max-w-none border-t border-purple-500/20 pt-3 leading-relaxed text-blue-300 [&_.attention]:text-red-300 [&_.rules]:mt-1 [&_.rules]:block [&_.rules]:text-white/80 [&_.scale]:text-yellow-300 [&_.status]:text-purple-300"
               dangerouslySetInnerHTML={{
-                __html: sanitizeRuneHtml(rune.shortDesc),
+                __html: sanitizeRiotHtml(rune.shortDesc),
               }}
             />
           )}
@@ -242,7 +209,7 @@ export function RuneIcon({
             <div
               className="prose prose-invert prose-xs max-w-none border-t border-purple-500/10 pt-2 leading-relaxed text-gray-300 [&_.attention]:text-red-300 [&_.rules]:mt-1 [&_.rules]:block [&_.rules]:text-white/80 [&_.scale]:text-yellow-300 [&_.status]:text-purple-300"
               dangerouslySetInnerHTML={{
-                __html: sanitizeRuneHtml(rune.longDesc),
+                __html: sanitizeRiotHtml(rune.longDesc),
               }}
             />
           )}

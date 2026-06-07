@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/contexts/theme-context';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -40,7 +40,6 @@ export const metadata: Metadata = {
     'Riot API',
   ],
   authors: [{ name: 'Yuumi Mains Community' }],
-  themeColor: embedColorHex,
   alternates: {
     canonical: '/',
   },
@@ -64,6 +63,10 @@ export const metadata: Metadata = {
     shortcut: '/favicon.ico',
     apple: '/favicon.ico',
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: embedColorHex,
 };
 
 export default function RootLayout({

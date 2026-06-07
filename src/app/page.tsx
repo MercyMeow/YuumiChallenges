@@ -4,9 +4,20 @@ import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { REGIONS, REGION_NAMES } from '@/lib/utils/constants';
+
+type RegionValue = (typeof REGIONS)[keyof typeof REGIONS];
 
 export default function MatchLandingPage() {
   const router = useRouter();
+  const [region, setRegion] = useState<RegionValue>(REGIONS.EUW1);
   const [matchId, setMatchId] = useState('');
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -16,7 +27,10 @@ export default function MatchLandingPage() {
       return;
     }
 
-    router.push('/match/' + encodeURIComponent(normalized));
+    const fullMatchId = /^[A-Za-z0-9]+_\d+$/.test(normalized)
+      ? normalized.toUpperCase()
+      : `${region.toUpperCase()}_${normalized}`;
+    router.push('/match/' + encodeURIComponent(fullMatchId));
   };
 
   return (
@@ -26,19 +40,36 @@ export default function MatchLandingPage() {
           Yuumi Match Viewer
         </h1>
         <p className="mx-auto max-w-md text-sm text-muted-foreground sm:text-base">
-          Paste any ranked match ID to explore matchups, timelines, gold swings,
+          Enter any ranked match ID to explore matchups, timelines, gold swings,
           and Yuumi-specific insights without leaving the browser.
         </p>
         <form onSubmit={handleSubmit} className="space-y-3">
-          <Input
-            value={matchId}
-            onChange={(event) => setMatchId(event.target.value)}
-            placeholder="e.g. EUW1_7481411158"
-            aria-label="Match identifier"
-            className="text-center"
-            spellCheck={false}
-            autoComplete="off"
-          />
+          <div className="flex gap-2">
+            <Select
+              value={region}
+              onValueChange={(value) => setRegion(value as RegionValue)}
+            >
+              <SelectTrigger className="w-44 shrink-0">
+                <SelectValue placeholder="Select region" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(REGIONS).map(([key, value]) => (
+                  <SelectItem key={key} value={value}>
+                    {REGION_NAMES[value]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              value={matchId}
+              onChange={(event) => setMatchId(event.target.value)}
+              placeholder="Match ID (e.g. 7481411158)"
+              aria-label="Match identifier"
+              className="flex-1"
+              spellCheck={false}
+              autoComplete="off"
+            />
+          </div>
           <Button type="submit" className="w-full">
             View Match Details
           </Button>

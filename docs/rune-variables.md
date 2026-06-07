@@ -163,7 +163,7 @@ Rune variable meanings were compiled from:
 - Riot Games API Documentation
 - Community Dragon data mining project
 - In-game testing and verification
-- Real match data from exampleMatchData.json
+- Real Match-V5 payload samples
 
 ## Display Components
 

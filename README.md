@@ -16,13 +16,12 @@
 
 ## ✨ Overview
 
-Yuumi Match Viewer is a focused Next.js application that renders deep, timeline-aware match breakdowns for League of Legends support mains. Paste any <code>{REGION}_{MATCH_ID}</code> and review objective control, kill chains, rune pacing, support quest progress, and more. A bundled sample payload keeps the experience working offline.
+Yuumi Match Viewer is a focused Next.js application that renders deep, timeline-aware match breakdowns for League of Legends support mains. Paste any <code>{REGION}_{MATCH_ID}</code> and review objective control, kill chains, rune pacing, support quest progress, and more.
 
 ### 🎮 Highlights
 
 - **📊 Match Details** – Detailed participant panes, rune stats, objectives, and combat summaries
 - **⏱️ Timeline Views** – Swap between combat and item timelines processed on the fly
-- **🧪 Example Data** – Ship-ready mock responses for local development and demos
 
 ## 🚀 Quick Start
 
@@ -42,9 +41,11 @@ Yuumi Match Viewer is a focused Next.js application that renders deep, timeline-
 
         npm install
 
-3. **Copy environment template**
+3. **Create local environment**
 
-        Copy-Item .env.example .env.local
+        New-Item .env.local -ItemType File
+
+   Add RIOT_API_KEY before fetching live match data.
 
 4. **Start the development server**
 
@@ -66,8 +67,6 @@ yuumi-match-viewer/
 │   ├── components/            # Reusable React components (match details, UI)
 │   └── lib/                   # Shared utilities & helpers
 ├── public/                    # Static assets (images, icons)
-├── exampleMatchData.json      # Demo match response
-├── exampleTimelineData.json   # Demo timeline response
 └── package.json               # Dependencies and scripts
 </code></pre>
 
@@ -76,12 +75,11 @@ yuumi-match-viewer/
 ### Viewing Matches
 
 - **Live Riot API data** – Set <code>RIOT_API_KEY</code> in <code>.env.local</code>, then open <code>/match/{REGION}_{MATCH_ID}</code>
-- **Bundled example** – Keep <code>NEXT_PUBLIC_USE_EXAMPLE_DATA=true</code> and load <code>/match/EUW1_7481411158?useExample=1</code>
 - Toggle queues, compare players, and inspect rune metrics directly on the page
 
 ### Landing Page Launcher
 
-The root route <code>/</code> lets you paste a match ID and jump straight into the viewer. It also links to the shipped example payload for quick validation.
+The root route <code>/</code> lets you choose a region, enter a numeric match ID, and jump straight into the viewer. You can also paste a full <code>{REGION}_{MATCH_ID}</code> value.
 
 ## 🔧 Available Scripts
 
@@ -94,16 +92,14 @@ The root route <code>/</code> lets you paste a match ID and jump straight into t
 
 ## ⚙️ Configuration
 
-All runtime configuration lives in <code>.env.local</code> (see <code>.env.example</code>):
+All runtime configuration lives in <code>.env.local</code>:
 
 - <code>NEXT_PUBLIC_SITE_URL</code> – Base URL for metadata and Open Graph tags
-- <code>NEXT_PUBLIC_USE_EXAMPLE_DATA</code> – Toggle between static example match data and live Riot API requests
-- <code>NEXT_PUBLIC_EXAMPLE_MATCH_ID</code> – Override the sample match ID used across the UI (optional)
 - <code>RIOT_API_KEY</code> – Required when fetching live match data through the API route
 
 ## 📚 Data Sources
 
-Match insights are generated from Riot Match/V5 and Timeline/V5 payloads. Example files live in the repository for testing and demos.
+Match insights are generated from Riot Match/V5 and Timeline/V5 payloads.
 
 ## 🤝 Contributing
 
@@ -114,7 +110,7 @@ Match insights are generated from Riot Match/V5 and Timeline/V5 payloads. Exampl
 
 ## 📄 License
 
-This project is licensed under the **MIT License**.
+License details have not been published yet.
 
 ---
 

@@ -11,8 +11,6 @@ import {
   DetailedMatchParticipant,
   isDetailedMatchData,
 } from '@/lib/types';
-import { readFile } from 'fs/promises';
-import path from 'path';
 
 type TimelinePayload = unknown;
 
@@ -20,14 +18,6 @@ type MatchCacheEntry = {
   matchData: DetailedMatchData;
   timelineData: TimelinePayload;
 };
-
-function shouldUseExampleData(req: NextRequest, riotApiKey?: string) {
-  const envToggle = process.env.NEXT_PUBLIC_USE_EXAMPLE_DATA === 'true';
-  const noKey = !riotApiKey;
-  const url = new URL(req.url);
-  const queryToggle = url.searchParams.get('useExample') === '1';
-  return envToggle || noKey || queryToggle;
-}
 
 function normalizeParticipants(matchData: DetailedMatchData) {
   const participants = matchData?.info?.participants;
@@ -69,7 +59,7 @@ function normalizeParticipants(matchData: DetailedMatchData) {
 }
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   context: { params: Promise<{ matchId: string }> }
 ) {
   try {
@@ -85,7 +75,14 @@ export async function GET(
 
     const riotApiKey = process.env.RIOT_API_KEY;
 
-    // Check cache first (works for both example and live)
+    if (!riotApiKey) {
+      return NextResponse.json(
+        { error: 'Riot API key not configured' },
+        { status: 500 }
+      );
+    }
+
+    // Check cache first
     const cacheKey = generateCacheKey(CACHE_KEYS.MATCH_DETAILS, matchId);
     const cachedData = cache.get<MatchCacheEntry>(cacheKey);
     if (cachedData) {
@@ -95,58 +92,6 @@ export async function GET(
         matchId,
         cached: true,
       });
-    }
-
-    // If example mode, read from root JSON files and return
-    if (shouldUseExampleData(request, riotApiKey)) {
-      try {
-        const rootDir = process.cwd();
-        const matchPath = path.join(rootDir, 'exampleMatchData.json');
-        const timelinePath = path.join(rootDir, 'exampleTimelineData.json');
-
-        const [matchRaw, timelineRaw] = await Promise.all([
-          readFile(matchPath, 'utf-8'),
-          readFile(timelinePath, 'utf-8').catch(() => null),
-        ]);
-
-        const parsedMatch = JSON.parse(matchRaw) as unknown;
-        if (!isDetailedMatchData(parsedMatch)) {
-          throw new Error('Example match data is malformed');
-        }
-
-        const matchData = parsedMatch;
-        const timelineData = timelineRaw
-          ? (JSON.parse(timelineRaw) as TimelinePayload)
-          : null;
-
-        // Normalize like live code does
-        normalizeParticipants(matchData);
-
-        const dataToCache = { matchData, timelineData };
-        cache.set(cacheKey, dataToCache, CACHE_TTL.MATCH_DETAILS);
-
-        return NextResponse.json({
-          success: true,
-          ...dataToCache,
-          matchId: matchData?.metadata?.matchId ?? matchId,
-          cached: false,
-          example: true,
-        });
-      } catch (fileErr) {
-        console.error('Failed to read example data files:', fileErr);
-        return NextResponse.json(
-          { error: 'Failed to load example data files' },
-          { status: 500 }
-        );
-      }
-    }
-
-    // Live mode requires API key
-    if (!riotApiKey) {
-      return NextResponse.json(
-        { error: 'Riot API key not configured' },
-        { status: 500 }
-      );
     }
 
     // Extract region from match ID (format: REGION_MATCHID)

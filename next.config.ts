@@ -1,9 +1,6 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: false,
   },
@@ -15,7 +12,6 @@ const nextConfig: NextConfig = {
     // Optimize package imports for better tree-shaking
     optimizePackageImports: [
       'lucide-react',
-      '@radix-ui/react-icons',
       '@radix-ui/react-avatar',
       '@radix-ui/react-dialog',
       '@radix-ui/react-dropdown-menu',
