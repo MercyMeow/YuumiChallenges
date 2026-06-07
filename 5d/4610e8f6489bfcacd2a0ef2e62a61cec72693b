@@ -1,0 +1,19 @@
+src/components/match-history/item-slots.tsx
+  s_34e7dd0dec1192::t_39332dd232ad5c 149-151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "5d4610e8f6489bfcacd2a0ef2e62a61cec72693b",
+  "prompts": {},
+  "sessions": {
+    "s_34e7dd0dec1192": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0cfaafb9-a010-4717-af88-887ba3785829",
+        "model": "grok-composer-2.5-fast"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
