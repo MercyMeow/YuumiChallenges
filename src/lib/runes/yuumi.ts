@@ -3,7 +3,7 @@ import type { RunePage } from './types';
 export const yuumiRunePages1518: RunePage[] = [
   {
     name: 'Aery + Resolve (Standard)',
-    patch: '15.18',
+    patch: '16.11',
     primary: {
       tree: 'Sorcery',
       keystone: 'Summon Aery',
@@ -27,7 +27,7 @@ export const yuumiRunePages1518: RunePage[] = [
   },
   {
     name: 'Aery + Resolve (Sustain)',
-    patch: '15.18',
+    patch: '16.11',
     primary: {
       tree: 'Sorcery',
       keystone: 'Summon Aery',
@@ -46,7 +46,7 @@ export const yuumiRunePages1518: RunePage[] = [
   },
   {
     name: 'Aery + Inspiration (Utility)',
-    patch: '15.18',
+    patch: '16.11',
     primary: {
       tree: 'Sorcery',
       keystone: 'Summon Aery',
@@ -65,7 +65,7 @@ export const yuumiRunePages1518: RunePage[] = [
   },
   {
     name: 'Guardian + Sorcery (Peel)',
-    patch: '15.18',
+    patch: '16.11',
     primary: {
       tree: 'Resolve',
       keystone: 'Guardian',
@@ -84,7 +84,7 @@ export const yuumiRunePages1518: RunePage[] = [
   },
   {
     name: 'Aery + Domination (Niche CDR/Ult)',
-    patch: '15.18',
+    patch: '16.11',
     primary: {
       tree: 'Sorcery',
       keystone: 'Summon Aery',
@@ -99,9 +99,9 @@ export const yuumiRunePages1518: RunePage[] = [
       flex: 'Adaptive Force',
       defense: 'Health',
     },
-    notes: 'Less common; Ultimate Hunter for more frequent R windows if your comp relies on it.',
+    notes:
+      'Less common; Ultimate Hunter for more frequent R windows if your comp relies on it.',
   },
 ];
 
 export default yuumiRunePages1518;
-

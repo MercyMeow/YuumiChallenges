@@ -3,6 +3,7 @@ import './globals.css';
 import { ClientProviders } from '@/providers/ClientProviders';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { yuumiDiscordEmbed } from '@/lib/embeds/yuumi';
+import { MythicShopResetBanner } from '@/components/mythic-shop/MythicShopResetBanner';
 
 const siteUrlFromEnv =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ??
@@ -102,6 +103,7 @@ export default function RootLayout({
         />
       </head>
       <body className="dark antialiased">
+        <MythicShopResetBanner />
         <ClientProviders>{children}</ClientProviders>
         <SpeedInsights />
       </body>

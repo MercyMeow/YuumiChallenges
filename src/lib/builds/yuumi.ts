@@ -1,4 +1,4 @@
-// Yuumi build data for patch 15.18
+// Yuumi build data for patch 16.11
 // Source emphasis: Lolalytics. Cross-checked with OP.GG, Mobalytics where applicable.
 // Note: Item identifiers are provided as canonical names; map these to your app's item ID/icon system.
 
@@ -14,9 +14,9 @@ export type ChampionBuildData = {
   notes?: string[];
 };
 
-export const yuumiBuild1518: ChampionBuildData = {
+export const yuumiBuild1611: ChampionBuildData = {
   champion: 'Yuumi',
-  patch: '15.18',
+  patch: '16.11',
   sources: [
     'https://lolalytics.com/lol/yuumi/build/',
     'https://lolalytics.com/lol/yuumi/build/?tier=1trick',
@@ -28,30 +28,36 @@ export const yuumiBuild1518: ChampionBuildData = {
     'Bounty of Worlds',
     'Spellthief base (if applicable)',
   ],
-  core: ['Dawncore', 'Dream Maker', "Mikael's Blessing", 'Redemption'],
+  core: [
+    'Dream Maker',
+    'Moonstone Renewer',
+    'Ardent Censer',
+    "Mikael's Blessing",
+  ],
   boots: ['Ionian Boots of Lucidity'],
   situational: [
-    'Ardent Censer',
+    'Dawncore',
     'Staff of Flowing Water',
+    'Imperial Mandate',
+    'Redemption',
     "Shurelya's Battlesong",
     'Locket of the Iron Solari',
     "Knight's Vow",
     'Vigilant Wardstone',
     "Mejai's Soulstealer",
-    // niche or comp-dependent picks occasionally surfaced
-    'Imperial Mandate',
+    'Echoes of Helia',
   ],
   notes: [
     'Rush support income; prioritize Forbidden Idol and Kindlegem components early.',
-    'Dawncore into Dream Maker is the most common backbone in 15.18.',
+    'Dream Maker into Moonstone Renewer is the most common backbone in 16.11.',
     "Buy Ionian Boots when you actually need CDR and can afford leaving host; it's often skipped.",
     "Pick Mikael's vs heavy CC, Ardent/Staff for synergy with carry damage profile.",
-    "Shurelya's for engage/speed comps; Locket for burst mitigation; Knight's Vow when pocketing a single hyper-carry.",
+    "Dawncore and Imperial Mandate are the highest-winrate late picks; Shurelya's for engage, Locket for burst mitigation, Knight's Vow when pocketing a single hyper-carry.",
     'Vigilant Wardstone as late-game utility slot; Mejai for snowball if stacks are stable.',
   ],
 };
 
-export default yuumiBuild1518;
+export default yuumiBuild1611;
 
 // Back-compat exports used by the guide Build tab
 // BEST_RUNES and BEST_ITEMS mirror the shapes consumed in src/app/page.tsx
@@ -69,7 +75,7 @@ export const BEST_RUNES = {
   secondary: {
     tree: 'Resolve',
     slots: [
-      { id: 8473, name: 'Bone Plating' },
+      { id: 8463, name: 'Font of Life' },
       { id: 8453, name: 'Revitalize' },
     ],
   },
@@ -117,36 +123,47 @@ export const BEST_ITEMS = {
   ],
   core: [
     {
-      id: 226621,
-      name: 'Dawncore',
-      reason: 'Top-performing mythic backbone for Yuumi in 15.18.',
-    },
-    {
       id: 3870,
       name: 'Dream Maker',
-      reason: 'Highly synergistic with shielding/healing windows.',
+      reason:
+        'Support quest backbone; synergistic with shielding/healing windows.',
     },
     {
-      id: 223222,
+      id: 6617,
+      name: 'Moonstone Renewer',
+      reason: 'Top second item; chain heals/shields across the team in fights.',
+    },
+    {
+      id: 3504,
+      name: 'Ardent Censer',
+      reason: 'AA carry synergy; amplifies heals/shields into on-hit damage.',
+    },
+    {
+      id: 3222,
       name: "Mikael's Blessing",
-      reason: 'Pick early vs. heavy CC to protect your host.',
-    },
-    {
-      id: 223107,
-      name: 'Redemption',
-      reason: 'Teamfight sustain and map impact from range.',
+      reason: 'Pick vs. heavy CC to cleanse and protect your host.',
     },
   ],
   situational: [
     {
-      id: 223504,
-      name: 'Ardent Censer',
-      reason: 'AA carry synergy; amplifies heals/shields into on-hit.',
+      id: 6621,
+      name: 'Dawncore',
+      reason: 'Highest-winrate late pick; scales total heal/shield power.',
     },
     {
-      id: 226616,
+      id: 6616,
       name: 'Staff of Flowing Water',
       reason: 'AP carry synergy; gives AP + haste after shielding/healing.',
+    },
+    {
+      id: 4005,
+      name: 'Imperial Mandate',
+      reason: 'Q slow procs the mark; strong damage/utility on poke comps.',
+    },
+    {
+      id: 3107,
+      name: 'Redemption',
+      reason: 'Teamfight sustain and map impact from range.',
     },
     {
       id: 2065,
@@ -154,12 +171,12 @@ export const BEST_ITEMS = {
       reason: 'Engage/speed comps; enables rotations and picks.',
     },
     {
-      id: 223190,
+      id: 3190,
       name: 'Locket of the Iron Solari',
       reason: 'Burst mitigation vs. AoE threats and assassins.',
     },
     {
-      id: 223109,
+      id: 3109,
       name: "Knight's Vow",
       reason: 'Pocket a single hyper-carry; damage redirection utility.',
     },
@@ -174,14 +191,9 @@ export const BEST_ITEMS = {
       reason: 'Snowball option when stacks are stable and deaths are rare.',
     },
     {
-      id: 224005,
-      name: 'Imperial Mandate',
-      reason: 'Niche; Q slow can proc, but generally lower prio in 15.18.',
-    },
-    {
-      id: 223158,
-      name: 'Ionian Boots of Lucidity',
-      reason: 'Common boots if purchased; often delayed or skipped.',
+      id: 6620,
+      name: 'Echoes of Helia',
+      reason: 'Sustain-focused alternative when you want extra healing tempo.',
     },
   ],
 } as const;
