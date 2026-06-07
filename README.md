@@ -1,146 +1,236 @@
-# 🐱 Yuumi Guide & Match Viewer
+# 🐱 Yuumi Challenges
 
 <div align="center">
 
-![Yuumi Banner](https://img.shields.io/badge/Yuumi-Guide-FF69B4?style=for-the-badge&logo=riot-games&logoColor=white)
+**Timeline-aware League of Legends match analysis, built for Yuumi mains.**
 
-**A clean, modern Yuumi support guide for League of Legends Patch 25.18**
+Paste any `{REGION}_{MATCH_ID}` and explore objectives, kill chains, rune
+pacing, support-item timing, and Yuumi-specific challenge progress.
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.3.5-black?style=flat-square&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://typescriptlang.org/badge)](https://typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-15.5.18-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-7ac4ff?style=flat-square)](LICENSE)
+
+[Live site](https://yuumi.quest) · [Discord](https://discord.gg/yuumi) · [Repository](https://github.com/MercyMeow/YuumiChallenges)
 
 </div>
 
 ---
 
-## ✨ Overview
+## Overview
 
-This is a streamlined web application featuring a comprehensive, code-editable Yuumi support guide for League of Legends Patch 25.18, along with a rule GIF gallery and detailed match viewer. The entire experience runs on static and proxied game data—no database or authentication required.
+Yuumi Challenges is a Next.js App Router application that turns Riot
+Match-V5 and Timeline-V5 payloads into deep, role-aware match breakdowns.
+It is purpose-built for League of Legends support mains, with a dedicated
+tab for tracking community **Yuumi Challenges** alongside standard match
+analytics.
 
-### 🎮 Features
+```mermaid
+flowchart LR
+  subgraph landing [Home]
+    MatchLauncher[Match ID launcher]
+    MythicPanel[Mythic Shop panel]
+  end
+  subgraph viewer [Match viewer]
+    Tabs["6 tabs: overview, stats, runes, timeline, challenges, yuumi"]
+  end
+  subgraph api [Next.js API routes]
+    MatchAPI["/api/match-details"]
+    DDProxy[Data Dragon proxies]
+  end
+  subgraph external [External data]
+    Riot[Riot Match and Timeline V5]
+    Wiki[League Wiki Fandom API]
+  end
+  MatchLauncher --> MatchAPI
+  Tabs --> MatchAPI
+  MatchAPI --> Riot
+  MatchAPI --> DDProxy
+  MythicPanel --> Wiki
+```
 
-- **🐾 Yuumi Guide** – Up-to-date runes, items, skill order, matchups, and synergies for Patch 25.18
-- **🎯 Rule Gallery** – Browse and share Discord-ready rule GIFs
-- **📊 Match Details** – In-depth match analysis with timeline data using example payloads or the Riot API
-- **🎨 Modern UI** – Clean, responsive design with magical Yuumi-themed styling
+## Features
 
-## 🚀 Quick Start
+### Match viewer (`/match/{REGION}_{MATCH_ID}`)
+
+- **Overview** – team rosters, objective control, and support-item
+  completion timing.
+- **Detailed Stats** – side-by-side player comparison with damage, vision,
+  and gold metrics.
+- **Runes** – rune pages with derived variable metrics (see
+  [`docs/rune-variables.md`](docs/rune-variables.md)).
+- **Timeline** – swap between combat and item timelines, processed on the
+  fly.
+- **Challenges** – Riot in-game challenge progress for the match.
+- **Yuumi Challenges** – community challenge evaluation powered by
+  [`data/yuumi-challenges.json`](data/yuumi-challenges.json) and
+  [`yuumi-challenge-evaluator.ts`](src/components/match-details/yuumi-challenge-evaluator.ts).
+
+### Home utilities
+
+- Region picker + match-ID launcher with full `{REGION}_{MATCH_ID}`
+  validation.
+- **Mythic Shop rotation** panel with locally computed UTC reset timers
+  (see [`docs/mythic-shop-rotation.md`](docs/mythic-shop-rotation.md)).
+
+### Developer experience
+
+- Turbopack dev server and lazy-loaded heavy tabs for fast initial load.
+- In-memory match cache in
+  [`api/match-details`](src/app/api/match-details/[matchId]/route.ts).
+- Optional **example mode** (`?useExample=1` or
+  `NEXT_PUBLIC_USE_EXAMPLE_DATA=true`) for running without a Riot key, when
+  local example payload files are present.
+
+## Quick start
 
 ### Prerequisites
 
-- **Node.js** (v18.x or later)
-- **npm** or **yarn**
+- **Node.js** 18+ (20 LTS recommended)
+- **npm**
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/yuumi-guide.git
-   cd yuumi-guide
-   ```
+1. Clone the repository:
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Copy environment template**
-   ```powershell
-   Copy-Item .env.example .env.local
-   ```
-
-4. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-
-5. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
-
-## 📁 Project Structure
-
-```
-yuumi-guide/
-├── 📂 src/
-│   ├── 📂 app/                    # Next.js App Router routes
-│   │   ├── 📂 api/               # Server routes (Data Dragon proxy, match details)
-│   │   ├── 📂 gallery/           # Rule GIF gallery
-│   │   ├── 📂 match/             # Match details viewer
-│   │   └── 📄 page.tsx           # Yuumi guide (editable)
-│   ├── 📂 components/            # Reusable React components
-│   └── 📂 lib/                   # Shared utilities & helpers
-├── 📂 public/                    # Static assets (GIFs, images)
-├── 📄 exampleMatchData.json      # Demo match response
-├── 📄 exampleTimelineData.json   # Demo timeline response
-└── 📄 package.json              # Dependencies and scripts
+```bash
+git clone https://github.com/MercyMeow/YuumiChallenges.git
+cd YuumiChallenges
 ```
 
-## 🎯 Usage
+2. Install dependencies:
 
-### Editing the Yuumi Guide
+```bash
+npm install
+```
 
-The guide is completely code-editable. To update runes, items, matchups, or any content:
+3. Create your local environment file:
 
-1. Open `src/app/page.tsx`
-2. Modify the constants at the top of the file:
-   - `PATCH` – Current patch version
-   - `runes` – Rune configuration
-   - `items` – Item build
-   - `skillOrder` – Ability leveling priority
-   - `toughMatchups` – Hard counter champions
-   - `goodSynergies` – Best ADC/midlaner synergies
-3. Save and the changes will be reflected immediately
+```bash
+# macOS/Linux
+touch .env.local
 
-### Viewing Matches
+# Windows PowerShell
+New-Item .env.local -ItemType File
+```
 
-- **Use built-in example data** – Enable `NEXT_PUBLIC_USE_EXAMPLE_DATA=true` in `.env.local`, then visit `/match/NA1_12345`
-- **Live Riot API data** – Set `NEXT_PUBLIC_USE_EXAMPLE_DATA=false`, provide a valid `RIOT_API_KEY`, and open `/match/{REGION}_{MATCH_ID}`
-- Example payloads live in `exampleMatchData.json` and `exampleTimelineData.json` for quick iteration
+Add a `RIOT_API_KEY` to fetch live match data (see
+[Configuration](#configuration)).
 
-### Rule Gallery
+4. Start the development server:
 
-- Visit `/gallery` to browse the curated rule GIFs from `public/rule*.gif`
-- Click any rule to copy its Discord-friendly link
+```bash
+npm run dev
+```
 
-## 🔧 Available Scripts
+5. Open [http://localhost:3000](http://localhost:3000).
+
+## Configuration
+
+Runtime configuration lives in `.env.local`:
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `RIOT_API_KEY` | For live data | Server-side Riot API access ([match-details route](src/app/api/match-details/[matchId]/route.ts)). |
+| `NEXT_PUBLIC_SITE_URL` / `NEXT_PUBLIC_APP_URL` | Production | Canonical and Open Graph URLs ([`layout.tsx`](src/app/layout.tsx)). |
+| `NEXT_PUBLIC_USE_EXAMPLE_DATA` | Optional | Force the bundled example payload instead of live data. |
+| `YUUMI_DISCORD_SERVER_ID` | Optional | Discord guild integrations ([`src/lib/apis/discord.ts`](src/lib/apis/discord.ts)). |
+| `NEXT_PUBLIC_TIMELINE_DEBUG` / `NEXT_PUBLIC_RUNE_DEBUG` | Optional | Verbose dev diagnostics (set to `1`). |
+
+> Without a `RIOT_API_KEY`, live match fetches return an error. Example
+> mode requires local `exampleMatchData.json` / `exampleTimelineData.json`
+> files (gitignored, not shipped in the repo).
+
+Grab a development key from the
+[Riot Developer Portal](https://developer.riotgames.com/).
+
+## Usage
+
+- **Landing page** (`/`) – pick a region and enter a numeric match ID, or
+  paste a full `EUW1_7481411158`-style ID.
+- **Direct URL** – navigate to `/match/EUW1_7481411158`.
+- **Example match** – append `?useExample=1` (for example
+  `/match/EUW1_7481411158?useExample=1`) to load the sample payload when
+  example files are available locally.
+
+## Project structure
+
+```text
+YuumiChallenges/
+├── src/
+│   ├── app/                 # App Router routes, layouts, globals.css
+│   │   ├── api/             # Data Dragon proxies + match-details route
+│   │   └── match/           # Match viewer route
+│   ├── components/          # UI, match-details tabs, mythic-shop panel
+│   ├── hooks/               # Data + selection hooks (use-match-data, ...)
+│   ├── contexts/            # Theme provider
+│   └── lib/                 # Riot/Data Dragon clients, runes, utils, types
+├── data/                    # Yuumi challenge definitions
+├── docs/                    # Architecture and feature notes
+├── public/                  # Static assets
+└── package.json
+```
+
+## Tech stack
+
+- [Next.js 15](https://nextjs.org/) App Router with Turbopack
+- [React 19](https://react.dev/) + [TypeScript 5](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/) with
+  [shadcn/ui](https://ui.shadcn.com/) (New York style, see
+  [`components.json`](components.json)) and [Radix UI](https://www.radix-ui.com/)
+- [Lucide](https://lucide.dev/) icons, [Zod](https://zod.dev/) validation,
+  and [Vercel Speed Insights](https://vercel.com/docs/speed-insights)
+
+## Available scripts
 
 | Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
+| --- | --- |
+| `npm run dev` | Start the Turbopack dev server |
+| `npm run build` | Production build |
+| `npm start` | Serve the production build |
+| `npm run lint` / `npm run lint:fix` | Run ESLint (and auto-fix) |
+| `npm run format` / `npm run format:check` | Prettier write / check |
+| `npm run type-check` | TypeScript diagnostics, no emit |
 
-## ⚙️ Configuration
+## Contributing
 
-All runtime configuration lives in `.env.local` (see `.env.example`):
+Contributions are welcome. Before opening a PR:
 
-- `NEXT_PUBLIC_SITE_URL` – Base URL used for link generation.
-- `NEXT_PUBLIC_USE_EXAMPLE_DATA` – Toggle between static example match data and live Riot API requests.
-- `RIOT_API_KEY` – Required only when pulling live match data via the Riot API route.
+1. Follow Conventional Commits (`feat:`, `fix:`, `chore:`).
+2. Run `npm run lint`, `npm run format`, `npm run type-check`, and
+   `npm run build`.
+3. Link related issues (`Closes #123`) and include UI captures for
+   `src/app/` changes.
 
-## 📚 Data Sources
+See [`AGENTS.md`](AGENTS.md) for coding standards and [`docs/`](docs/) for
+rune and mythic-shop internals.
 
-- Yuumi guide constants are curated from Mobalytics, Lolalytics, pro builds, and community consensus for Patch 25.18.
+## Data sources
 
-## 🤝 Contributing
+- **Riot Games** – Match-V5, Timeline-V5, and Data Dragon via server-side
+  API routes.
+- **League Wiki (Fandom)** – community-maintained Mythic Shop rotation
+  reference (Riot exposes no public API for it).
 
-To update the guide with new patch data:
+## Disclaimer
 
-1. Research current meta from reliable sources
-2. Update the constants in `src/app/page.tsx`
-3. Test the changes locally
-4. Commit with a descriptive message
+Yuumi Challenges is an unofficial, community project and is **not endorsed
+by or affiliated with Riot Games**. League of Legends and all related
+assets are trademarks or registered trademarks of Riot Games, Inc. Use of
+the Riot API must comply with the
+[Riot API Terms of Service](https://developer.riotgames.com/) and
+developer policies.
 
-## 📄 License
+## License
 
-This project is licensed under the **MIT License**.
+Released under the [MIT License](LICENSE).
 
 ---
 
 <div align="center">
 
-**Made with 💜 for Yuumi mains everywhere**
+Made with 💜 for Yuumi mains everywhere. [Join the Discord](https://discord.gg/yuumi).
 
 </div>

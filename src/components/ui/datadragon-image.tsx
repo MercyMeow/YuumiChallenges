@@ -14,6 +14,7 @@ import {
   FALLBACK_IMAGE,
 } from '@/lib/apis/datadragon';
 import type { ChampionData } from '@/lib/apis/datadragon';
+import { sanitizeRiotHtml } from '@/lib/utils/sanitize-html';
 
 interface DataDragonImageProps {
   championId: string;
@@ -373,7 +374,9 @@ export function AbilityIcon({
           </div>
           <div
             className="text-sm text-white/90"
-            dangerouslySetInnerHTML={{ __html: abilityData.description }}
+            dangerouslySetInnerHTML={{
+              __html: sanitizeRiotHtml(abilityData.description),
+            }}
           />
           {(abilityData.cooldownBurn || abilityData.costBurn) && (
             <div className="flex gap-4 text-xs text-white/70">

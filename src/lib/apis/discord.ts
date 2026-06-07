@@ -11,7 +11,7 @@ export class DiscordAPI {
   private getHeaders(useUserToken = false, userToken?: string) {
     const token = useUserToken && userToken ? userToken : this.botToken;
     const authType = useUserToken ? 'Bearer' : 'Bot';
-    
+
     return {
       Authorization: `${authType} ${token}`,
       'Content-Type': 'application/json',
@@ -31,9 +31,12 @@ export class DiscordAPI {
   }
 
   async getGuildMember(userId: string, guildId = YUUMI_DISCORD_SERVER_ID) {
-    const response = await fetch(`${this.baseUrl}/guilds/${guildId}/members/${userId}`, {
-      headers: this.getHeaders(),
-    });
+    const response = await fetch(
+      `${this.baseUrl}/guilds/${guildId}/members/${userId}`,
+      {
+        headers: this.getHeaders(),
+      }
+    );
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -90,7 +93,10 @@ export class DiscordAPI {
     return response.json();
   }
 
-  async checkUserOwnershipAndMembership(userId: string, guildId = YUUMI_DISCORD_SERVER_ID) {
+  async checkUserOwnershipAndMembership(
+    userId: string,
+    guildId = YUUMI_DISCORD_SERVER_ID
+  ) {
     try {
       // Check if user is a member
       const member = await this.getGuildMember(userId, guildId);
@@ -99,17 +105,24 @@ export class DiscordAPI {
       // Get guild info to check ownership
       const guild = await this.getGuild(guildId);
       const isOwner = guild.owner_id === userId;
-      
+
       // Get role names for display purposes only
       const roles = await this.getGuildRoles(guildId);
-      const memberRoles = member.roles.map((roleId: string) => 
-        roles.find((role: { id: string; name: string; permissions: string }) => role.id === roleId)
-      ).filter(Boolean);
+      const memberRoles = member.roles
+        .map((roleId: string) =>
+          roles.find(
+            (role: { id: string; name: string; permissions: string }) =>
+              role.id === roleId
+          )
+        )
+        .filter(Boolean);
 
       return {
         isMember: true,
         isOwner,
-        roleNames: memberRoles.map((role: { id: string; name: string; permissions: string }) => role.name)
+        roleNames: memberRoles.map(
+          (role: { id: string; name: string; permissions: string }) => role.name
+        ),
       };
     } catch (error) {
       console.error('Error checking user ownership and membership:', error);
@@ -123,7 +136,7 @@ export class DiscordAPI {
       const defaultAvatarNum = parseInt(userId.slice(-1)) % 5;
       return `https://cdn.discordapp.com/embed/avatars/${defaultAvatarNum}.png`;
     }
-    
+
     const format = avatarHash.startsWith('a_') ? 'gif' : 'png';
     return `https://cdn.discordapp.com/avatars/${userId}/${avatarHash}.${format}?size=256`;
   }

@@ -16,11 +16,11 @@ export function createSuccessResponse<T>(
     success: true,
     data,
   };
-  
+
   if (message) {
     response.message = message;
   }
-  
+
   return NextResponse.json(response, { status });
 }
 
@@ -32,7 +32,7 @@ export function createErrorResponse(
     success: false,
     error,
   };
-  
+
   return NextResponse.json(response, { status });
 }
 

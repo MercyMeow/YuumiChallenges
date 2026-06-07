@@ -1,0 +1,828 @@
+[
+  {
+    "id": 8369,
+    "name": "First Strike",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Damage Dealt",
+        "format": "damage"
+      },
+      {
+        "var": "var2",
+        "label": "Gold Gained",
+        "format": "gold"
+      }
+    ]
+  },
+  {
+    "id": 8446,
+    "name": "Demolish",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Bonus Damage",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8126,
+    "name": "Cheap Shot",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total damage",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8410,
+    "name": "Approach Velocity",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Time Spent Hasted",
+        "format": "time"
+      }
+    ]
+  },
+  {
+    "id": 8232,
+    "name": "Waterwalking",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total time active",
+        "format": "time"
+      },
+      {
+        "var": "var2",
+        "label": "",
+        "format": null
+      }
+    ]
+  },
+  {
+    "id": 8299,
+    "name": "Last Stand",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Bonus Damage",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8112,
+    "name": "Electrocute",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Damage Dealt",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8234,
+    "name": "Celerity",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Extra Distance Travelled",
+        "format": "value"
+      }
+    ]
+  },
+  {
+    "id": 8453,
+    "name": "Revitalize",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Bonus Healing",
+        "format": "healing"
+      },
+      {
+        "var": "var2",
+        "label": "Bonus Shielding",
+        "format": "shielding"
+      }
+    ]
+  },
+  {
+    "id": 8360,
+    "name": "Unsealed Spellbook",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Summoner Spells swapped",
+        "format": "count"
+      }
+    ]
+  },
+  {
+    "id": 8128,
+    "name": "Dark Harvest",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Damage Dealt",
+        "format": "damage"
+      },
+      {
+        "var": "var2",
+        "label": "Total Souls Harvested",
+        "format": "count"
+      }
+    ]
+  },
+  {
+    "id": 8473,
+    "name": "Bone Plating",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Damage Blocked",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8214,
+    "name": "Summon Aery",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Damage Dealt",
+        "format": "damage"
+      },
+      {
+        "var": "var2",
+        "label": "Damage Shielded",
+        "format": "shielding"
+      }
+    ]
+  },
+  {
+    "id": 8237,
+    "name": "Scorch",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Bonus Damage",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8139,
+    "name": "Taste of Blood",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Healing",
+        "format": "healing"
+      }
+    ]
+  },
+  {
+    "id": 9101,
+    "name": "Absorb Life",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Healing",
+        "format": "healing"
+      }
+    ]
+  },
+  {
+    "id": 8008,
+    "name": "Lethal Tempo",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Max Attack Speed Uptime",
+        "format": "time"
+      },
+      {
+        "var": "var2",
+        "label": "Damage Dealt",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8010,
+    "name": "Conqueror",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total healing",
+        "format": "healing"
+      }
+    ]
+  },
+  {
+    "id": 9105,
+    "name": "Legend: Haste",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Time Completed",
+        "format": "time"
+      },
+      {
+        "var": "var2",
+        "label": "",
+        "format": null
+      }
+    ]
+  },
+  {
+    "id": 8106,
+    "name": "Ultimate Hunter",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Stacks",
+        "format": "count"
+      },
+      {
+        "var": "var2",
+        "label": "Ultimate Haste",
+        "format": "cdr"
+      }
+    ]
+  },
+  {
+    "id": 8017,
+    "name": "Cut Down",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Bonus Damage",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8224,
+    "name": "Axiom Arcanist",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Ultimate Cooldown Reduced",
+        "format": "cdr"
+      },
+      {
+        "var": "var2",
+        "label": "Bonus Ultimate Damage/Healing/Shielding To Champions",
+        "format": "shielding"
+      }
+    ]
+  },
+  {
+    "id": 8210,
+    "name": "Transcendence",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Seconds refunded",
+        "format": "time"
+      }
+    ]
+  },
+  {
+    "id": 8005,
+    "name": "Press the Attack",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Damage",
+        "format": "damage"
+      },
+      {
+        "var": "var2",
+        "label": "Bonus Damage",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8352,
+    "name": "Time Warp Tonic",
+    "labels": [
+      null,
+      {
+        "var": "var2",
+        "label": "Instant health restored",
+        "format": "healing"
+      }
+    ]
+  },
+  {
+    "id": 8135,
+    "name": "Treasure Hunter",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Gold Collected",
+        "format": "gold"
+      },
+      {
+        "var": "var2",
+        "label": "Total Stacks",
+        "format": "count"
+      }
+    ]
+  },
+  {
+    "id": 8120,
+    "name": "Ghost Poro",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Enemies Spotted",
+        "format": "count"
+      },
+      null,
+      {
+        "var": "var3",
+        "label": "Ghost Poros Spawned",
+        "format": "count"
+      }
+    ]
+  },
+  {
+    "id": 8134,
+    "name": "Ingenious Hunter",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Item Activations (Including Trinkets)",
+        "format": "count"
+      },
+      {
+        "var": "var2",
+        "label": "Total Stacks",
+        "format": "count"
+      }
+    ]
+  },
+  {
+    "id": 8351,
+    "name": "Glacial Augment",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Duration Enemy Champs Slowed",
+        "format": "time"
+      },
+      {
+        "var": "var2",
+        "label": "Damage Reduced",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8242,
+    "name": "Unflinching",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Seconds in combat with bonus resistances",
+        "format": "time"
+      }
+    ]
+  },
+  {
+    "id": 8401,
+    "name": "Shield Bash",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Damage",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 9111,
+    "name": "Triumph",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Health Restored",
+        "format": "healing"
+      },
+      {
+        "var": "var2",
+        "label": "Total bonus gold granted",
+        "format": "gold"
+      }
+    ]
+  },
+  {
+    "id": 8105,
+    "name": "Relentless Hunter",
+    "labels": [
+      null,
+      {
+        "var": "var2",
+        "label": "Total Stacks",
+        "format": "count"
+      }
+    ]
+  },
+  {
+    "id": 8275,
+    "name": "Nimbus Cloak",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Times activated",
+        "format": "time"
+      }
+    ]
+  },
+  {
+    "id": 8439,
+    "name": "Aftershock",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Damage Dealt",
+        "format": "damage"
+      },
+      {
+        "var": "var2",
+        "label": "Total Damage Mitigated",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8014,
+    "name": "Coup de Grace",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Bonus Damage",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8021,
+    "name": "Fleet Footwork",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Healing",
+        "format": "healing"
+      }
+    ]
+  },
+  {
+    "id": 8226,
+    "name": "Manaflow Band",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total bonus mana",
+        "format": "value"
+      },
+      {
+        "var": "var2",
+        "label": "Total mana restored",
+        "format": "value"
+      }
+    ]
+  },
+  {
+    "id": 8451,
+    "name": "Overgrowth",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Bonus Max Health",
+        "format": "healing"
+      }
+    ]
+  },
+  {
+    "id": 8313,
+    "name": "Triple Tonic",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Items Gained",
+        "format": "count"
+      }
+    ]
+  },
+  {
+    "id": 9103,
+    "name": "Legend: Bloodline",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Time Completed",
+        "format": "time"
+      },
+      {
+        "var": "var2",
+        "label": "",
+        "format": null
+      }
+    ]
+  },
+  {
+    "id": 8230,
+    "name": "Stormraider's Surge",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total activations",
+        "format": "count"
+      }
+    ]
+  },
+  {
+    "id": 8463,
+    "name": "Font of Life",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Ally Healing",
+        "format": "healing"
+      }
+    ]
+  },
+  {
+    "id": 8304,
+    "name": "Magical Footwear",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Boots Arrival Time",
+        "format": "time"
+      },
+      {
+        "var": "var2",
+        "label": "",
+        "format": null
+      }
+    ]
+  },
+  {
+    "id": 8236,
+    "name": "Gathering Storm",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Bonus AD/AP",
+        "format": "value"
+      }
+    ]
+  },
+  {
+    "id": 8009,
+    "name": "Presence of Mind",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Resource Restored",
+        "format": "value"
+      }
+    ]
+  },
+  {
+    "id": 9104,
+    "name": "Legend: Alacrity",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Time Completed",
+        "format": "time"
+      },
+      {
+        "var": "var2",
+        "label": "",
+        "format": null
+      }
+    ]
+  },
+  {
+    "id": 8306,
+    "name": "Hextech Flashtraption",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Times Hexflashed",
+        "format": "time"
+      }
+    ]
+  },
+  {
+    "id": 8465,
+    "name": "Guardian",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Shield Strength",
+        "format": "shielding"
+      }
+    ]
+  },
+  {
+    "id": 8138,
+    "name": "Eyeball Collection",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Bonus AD/AP",
+        "format": "value"
+      }
+    ]
+  },
+  {
+    "id": 8143,
+    "name": "Sudden Impact",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Bonus Damage",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8345,
+    "name": "Biscuit Delivery",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Biscuits Received",
+        "format": "count"
+      },
+      null,
+      {
+        "var": "var3",
+        "label": "Total Healing",
+        "format": "healing"
+      }
+    ]
+  },
+  {
+    "id": 8444,
+    "name": "Second Wind",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Healing",
+        "format": "healing"
+      }
+    ]
+  },
+  {
+    "id": 8437,
+    "name": "Grasp of the Undying",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total damage",
+        "format": "damage"
+      },
+      {
+        "var": "var2",
+        "label": "Total Healing",
+        "format": "healing"
+      }
+    ]
+  },
+  {
+    "id": 9923,
+    "name": "Hail of Blades",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Attacks made with extra Attack Speed",
+        "format": "value"
+      },
+      {
+        "var": "var2",
+        "label": "Damage Dealt",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8429,
+    "name": "Conditioning",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Percent of game active",
+        "format": "value"
+      },
+      {
+        "var": "var2",
+        "label": "Total Bonus Armor",
+        "format": "value"
+      },
+      {
+        "var": "var3",
+        "label": "Total Bonus Magic Resist",
+        "format": "value"
+      }
+    ]
+  },
+  {
+    "id": 8124,
+    "name": "Predator",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Damage to Champions",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8233,
+    "name": "Absolute Focus",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total time active",
+        "format": "time"
+      },
+      {
+        "var": "var2",
+        "label": "",
+        "format": null
+      }
+    ]
+  },
+  {
+    "id": 8136,
+    "name": "Zombie Ward",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Wards spawned",
+        "format": "count"
+      },
+      {
+        "var": "var2",
+        "label": "Adaptive Force Gained",
+        "format": "value"
+      }
+    ]
+  },
+  {
+    "id": 8347,
+    "name": "Cosmic Insight",
+    "labels": []
+  },
+  {
+    "id": 8316,
+    "name": "Jack Of All Trades",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Bonus stats gained",
+        "format": "value"
+      }
+    ]
+  },
+  {
+    "id": 8229,
+    "name": "Arcane Comet",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Total Damage Dealt",
+        "format": "damage"
+      }
+    ]
+  },
+  {
+    "id": 8321,
+    "name": "Cash Back",
+    "labels": [
+      {
+        "var": "var1",
+        "label": "Gold Gained",
+        "format": "gold"
+      }
+    ]
+  }
+]

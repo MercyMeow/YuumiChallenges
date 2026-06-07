@@ -16,6 +16,17 @@ import {
   RawTimelineFrame,
 } from '@/lib/types/item-timeline-new';
 
+const TIMELINE_DEBUG_ENABLED = process.env.NEXT_PUBLIC_TIMELINE_DEBUG === '1';
+const timelineDebug: Pick<Console, 'group' | 'groupEnd' | 'log' | 'warn'> =
+  TIMELINE_DEBUG_ENABLED
+    ? console
+    : {
+        group: () => undefined,
+        groupEnd: () => undefined,
+        log: () => undefined,
+        warn: () => undefined,
+      };
+
 // =============================================
 // TIME FORMATTING UTILITIES
 // =============================================
@@ -461,7 +472,11 @@ export function detectSupportItemCompletion(
   timelineEvents: ReadonlyArray<SupportTimelineEvent>,
   participantId?: number
 ): SupportItemCompletionTimes {
-  console.group('🔍 [SUPPORT QUEST DEBUG] detectSupportItemCompletion called');
+  if (TIMELINE_DEBUG_ENABLED) {
+    timelineDebug.group(
+      '🔍 [SUPPORT QUEST DEBUG] detectSupportItemCompletion called'
+    );
+  }
 
   const playerParticipantId =
     typeof playerData?.participantId === 'number'
@@ -473,22 +488,24 @@ export function detectSupportItemCompletion(
     ? [...timelineEvents]
     : [];
 
-  console.log('📥 INPUT PARAMETERS:', {
-    playerDataExists: Boolean(playerData),
-    playerDataKeys: playerData
-      ? Object.keys(playerData as Record<string, unknown>)
-      : null,
-    playerName:
-      (playerData?.riotIdGameName as string | undefined) ||
-      (playerData?.summonerName as string | undefined) ||
-      'Unknown',
-    targetParticipantId,
-    providedParticipantId: participantId,
-    playerDataParticipantId: playerParticipantId,
-    timelineEventsLength: eventsInitial.length,
-    timelineEventsType: typeof timelineEvents,
-    isArray: Array.isArray(timelineEvents),
-  });
+  if (TIMELINE_DEBUG_ENABLED) {
+    timelineDebug.log('📥 INPUT PARAMETERS:', {
+      playerDataExists: Boolean(playerData),
+      playerDataKeys: playerData
+        ? Object.keys(playerData as Record<string, unknown>)
+        : null,
+      playerName:
+        (playerData?.riotIdGameName as string | undefined) ||
+        (playerData?.summonerName as string | undefined) ||
+        'Unknown',
+      targetParticipantId,
+      providedParticipantId: participantId,
+      playerDataParticipantId: playerParticipantId,
+      timelineEventsLength: eventsInitial.length,
+      timelineEventsType: typeof timelineEvents,
+      isArray: Array.isArray(timelineEvents),
+    });
+  }
 
   let eventsForProcessing = eventsInitial;
 
@@ -500,193 +517,213 @@ export function detectSupportItemCompletion(
     eventsForProcessing = eventsInitial.filter(
       (event) => event.participantId === targetParticipantId
     );
-    console.log('🔍 PARTICIPANT FILTERING:', {
-      targetParticipantId,
-      beforeFilter: beforeFilterCount,
-      afterFilter: eventsForProcessing.length,
-      allParticipantIds: [
-        ...new Set(
-          eventsInitial
-            .map((event) => event.participantId)
-            .filter((id): id is number => typeof id === 'number')
-        ),
-      ],
-      filteredSample: eventsForProcessing.slice(0, 3).map((event) => ({
-        type: event.type,
-        itemId: event.itemId ?? null,
-        participantId: event.participantId ?? null,
-        timestamp: event.timestamp,
-      })),
-    });
+    if (TIMELINE_DEBUG_ENABLED) {
+      timelineDebug.log('🔍 PARTICIPANT FILTERING:', {
+        targetParticipantId,
+        beforeFilter: beforeFilterCount,
+        afterFilter: eventsForProcessing.length,
+        allParticipantIds: [
+          ...new Set(
+            eventsInitial
+              .map((event) => event.participantId)
+              .filter((id): id is number => typeof id === 'number')
+          ),
+        ],
+        filteredSample: eventsForProcessing.slice(0, 3).map((event) => ({
+          type: event.type,
+          itemId: event.itemId ?? null,
+          participantId: event.participantId ?? null,
+          timestamp: event.timestamp,
+        })),
+      });
+    }
   } else {
-    console.log(
-      '⚠️ No participant filtering - using all events (may be pre-filtered)'
-    );
+    if (TIMELINE_DEBUG_ENABLED) {
+      timelineDebug.log(
+        '⚠️ No participant filtering - using all events (may be pre-filtered)'
+      );
+    }
   }
 
   if (eventsForProcessing.length > 0) {
-    console.log(
-      '📋 SAMPLE TIMELINE EVENTS (first 5):',
-      eventsForProcessing.slice(0, 5).map((event, index) => ({
-        index,
-        type: event.type,
-        itemId: event.itemId ?? null,
-        timestamp: event.timestamp,
-        timeFormatted: formatMillisecondsToTime(event.timestamp),
-        hasRequiredFields:
-          typeof event.type === 'string' &&
-          typeof event.itemId === 'number' &&
-          typeof event.timestamp === 'number',
-      }))
-    );
+    if (TIMELINE_DEBUG_ENABLED) {
+      timelineDebug.log(
+        '📋 SAMPLE TIMELINE EVENTS (first 5):',
+        eventsForProcessing.slice(0, 5).map((event, index) => ({
+          index,
+          type: event.type,
+          itemId: event.itemId ?? null,
+          timestamp: event.timestamp,
+          timeFormatted: formatMillisecondsToTime(event.timestamp),
+          hasRequiredFields:
+            typeof event.type === 'string' &&
+            typeof event.itemId === 'number' &&
+            typeof event.timestamp === 'number',
+        }))
+      );
+    }
   }
 
   const completionTimes = createEmptyCompletionTimes();
 
   if (eventsForProcessing.length === 0) {
-    console.warn(
-      '⚠️ No timeline events provided - returning empty completion times'
-    );
-    console.groupEnd();
+    if (TIMELINE_DEBUG_ENABLED) {
+      timelineDebug.warn(
+        '⚠️ No timeline events provided - returning empty completion times'
+      );
+    }
+    if (TIMELINE_DEBUG_ENABLED) {
+      timelineDebug.groupEnd();
+    }
     return completionTimes;
   }
 
-  // 2. LOG ITEM FILTERING - Check what item IDs are found
-  console.group('🔎 ITEM FILTERING ANALYSIS');
-
-  const allEventTypes = [
-    ...new Set(eventsForProcessing.map((event) => event.type)),
-  ];
-  console.log('📊 ALL EVENT TYPES:', allEventTypes);
-
   const eventsWithItemId = eventsForProcessing.filter(hasNumericItemId);
-  const allItemIds = [
-    ...new Set(eventsWithItemId.map((event) => event.itemId)),
-  ];
-  console.log(
-    '🏷️ ALL UNIQUE ITEM IDs:',
-    [...allItemIds].sort((a, b) => a - b)
-  );
 
-  // **FIX: Track both purchases AND destructions for support items**
-  const purchaseEvents = eventsWithItemId.filter(
-    (event) => event.type === 'ITEM_PURCHASED'
-  );
-  const destructionEvents = eventsWithItemId.filter(
-    (event) => event.type === 'ITEM_DESTROYED'
-  );
+  if (TIMELINE_DEBUG_ENABLED) {
+    // 2. LOG ITEM FILTERING - Check what item IDs are found
+    timelineDebug.group('🔎 ITEM FILTERING ANALYSIS');
 
-  console.log('🛒 PURCHASE EVENTS:', {
-    count: purchaseEvents.length,
-    itemIds: purchaseEvents.map((event) => event.itemId).sort((a, b) => a - b),
-  });
+    const allEventTypes = [
+      ...new Set(eventsForProcessing.map((event) => event.type)),
+    ];
+    timelineDebug.log('📊 ALL EVENT TYPES:', allEventTypes);
 
-  console.log('💥 DESTRUCTION EVENTS:', {
-    count: destructionEvents.length,
-    itemIds: destructionEvents
-      .map((event) => event.itemId)
-      .sort((a, b) => a - b),
-  });
-
-  // Log events by type for debugging
-  const eventsByType = allEventTypes.reduce<Record<string, number>>(
-    (acc, type) => {
-      acc[type] = eventsForProcessing.filter(
-        (event) => event.type === type
-      ).length;
-      return acc;
-    },
-    {}
-  );
-  console.log('📈 EVENTS BY TYPE:', eventsByType);
-
-  console.groupEnd();
-
-  // 3. LOG SUPPORT ITEM DETECTION
-  console.group('🛡️ SUPPORT ITEM DETECTION');
-
-  // Test current World Atlas support items
-  console.log('🌍 TESTING CURRENT WORLD ATLAS ITEMS:');
-  const currentWorldAtlasItems = [
-    3865, 3866, 3867, 3869, 3870, 3871, 3876, 3877,
-  ];
-  currentWorldAtlasItems.forEach((itemId) => {
-    const completion = getSupportItemCompletion(itemId);
-    const inTimeline = allItemIds.includes(itemId);
-    const eventsForThisItem = eventsWithItemId.filter(
-      (event) => event.itemId === itemId
+    const allItemIds = [
+      ...new Set(eventsWithItemId.map((event) => event.itemId)),
+    ];
+    timelineDebug.log(
+      '🏷️ ALL UNIQUE ITEM IDs:',
+      [...allItemIds].sort((a, b) => a - b)
     );
-    console.log(`  Item ${itemId} (${completion.chainName || 'Unknown'}):`, {
-      isSupportItem: completion.isSupportItem,
-      tier: completion.tier,
-      chainType: completion.chainType,
-      inTimeline,
-      eventCount: eventsForThisItem.length,
-      ...(eventsForThisItem.length > 0 && {
-        eventDetails: eventsForThisItem.map((event) => ({
+
+    // **FIX: Track both purchases AND destructions for support items**
+    const purchaseEvents = eventsWithItemId.filter(
+      (event) => event.type === 'ITEM_PURCHASED'
+    );
+    const destructionEvents = eventsWithItemId.filter(
+      (event) => event.type === 'ITEM_DESTROYED'
+    );
+
+    timelineDebug.log('🛒 PURCHASE EVENTS:', {
+      count: purchaseEvents.length,
+      itemIds: purchaseEvents
+        .map((event) => event.itemId)
+        .sort((a, b) => a - b),
+    });
+
+    timelineDebug.log('💥 DESTRUCTION EVENTS:', {
+      count: destructionEvents.length,
+      itemIds: destructionEvents
+        .map((event) => event.itemId)
+        .sort((a, b) => a - b),
+    });
+
+    // Log events by type for debugging
+    const eventsByType = allEventTypes.reduce<Record<string, number>>(
+      (acc, type) => {
+        acc[type] = eventsForProcessing.filter(
+          (event) => event.type === type
+        ).length;
+        return acc;
+      },
+      {}
+    );
+    timelineDebug.log('📈 EVENTS BY TYPE:', eventsByType);
+
+    timelineDebug.groupEnd();
+
+    // 3. LOG SUPPORT ITEM DETECTION
+    timelineDebug.group('🛡️ SUPPORT ITEM DETECTION');
+
+    // Test current World Atlas support items
+    timelineDebug.log('🌍 TESTING CURRENT WORLD ATLAS ITEMS:');
+    const currentWorldAtlasItems = [
+      3865, 3866, 3867, 3869, 3870, 3871, 3876, 3877,
+    ];
+    currentWorldAtlasItems.forEach((itemId) => {
+      const completion = getSupportItemCompletion(itemId);
+      const inTimeline = allItemIds.includes(itemId);
+      const eventsForThisItem = eventsWithItemId.filter(
+        (event) => event.itemId === itemId
+      );
+      timelineDebug.log(
+        `  Item ${itemId} (${completion.chainName || 'Unknown'}):`,
+        {
+          isSupportItem: completion.isSupportItem,
+          tier: completion.tier,
+          chainType: completion.chainType,
+          inTimeline,
+          eventCount: eventsForThisItem.length,
+          ...(eventsForThisItem.length > 0 && {
+            eventDetails: eventsForThisItem.map((event) => ({
+              type: event.type,
+              timestamp: event.timestamp,
+              timeFormatted: formatMillisecondsToTime(event.timestamp),
+            })),
+          }),
+        }
+      );
+    });
+
+    // Check which items in timeline are support items
+    const supportItemsInTimeline = allItemIds.filter((itemId) =>
+      isSupportItem(itemId)
+    );
+    timelineDebug.log(
+      '✅ SUPPORT ITEMS FOUND IN TIMELINE:',
+      supportItemsInTimeline.map((itemId) => {
+        const completion = getSupportItemCompletion(itemId);
+        const eventCount = eventsWithItemId.filter(
+          (event) => event.itemId === itemId
+        ).length;
+        return {
+          itemId,
+          tier: completion.tier,
+          chainName: completion.chainName,
+          chainType: completion.chainType,
+          eventCount,
+        };
+      })
+    );
+
+    if (supportItemsInTimeline.length === 0) {
+      timelineDebug.warn('⚠️ NO SUPPORT ITEMS FOUND IN TIMELINE');
+    }
+
+    // Test if the support item lookup is working correctly
+    timelineDebug.log('🔍 SUPPORT ITEM LOOKUP TEST:');
+    timelineDebug.log('  SUPPORT_ITEM_LOOKUP size:', SUPPORT_ITEM_LOOKUP.size);
+    timelineDebug.log(
+      '  Known support items:',
+      Array.from(SUPPORT_ITEM_LOOKUP).sort((a, b) => a - b)
+    );
+
+    // Test specific item from the match data (3871 - Zaz'Zak's Realmspike)
+    if (allItemIds.includes(3871)) {
+      timelineDebug.log("🎯 SPECIFIC TEST - Item 3871 (Zaz'Zak's Realmspike):");
+      const item3871Completion = getSupportItemCompletion(3871);
+      const item3871Events = eventsWithItemId.filter(
+        (event) => event.itemId === 3871
+      );
+      timelineDebug.log('  Completion data:', item3871Completion);
+      timelineDebug.log(
+        '  Timeline events:',
+        item3871Events.map((event) => ({
           type: event.type,
           timestamp: event.timestamp,
           timeFormatted: formatMillisecondsToTime(event.timestamp),
-        })),
-      }),
-    });
-  });
+        }))
+      );
+    }
 
-  // Check which items in timeline are support items
-  const supportItemsInTimeline = allItemIds.filter((itemId) =>
-    isSupportItem(itemId)
-  );
-  console.log(
-    '✅ SUPPORT ITEMS FOUND IN TIMELINE:',
-    supportItemsInTimeline.map((itemId) => {
-      const completion = getSupportItemCompletion(itemId);
-      const eventCount = eventsWithItemId.filter(
-        (event) => event.itemId === itemId
-      ).length;
-      return {
-        itemId,
-        tier: completion.tier,
-        chainName: completion.chainName,
-        chainType: completion.chainType,
-        eventCount,
-      };
-    })
-  );
-
-  if (supportItemsInTimeline.length === 0) {
-    console.warn('⚠️ NO SUPPORT ITEMS FOUND IN TIMELINE');
+    timelineDebug.groupEnd();
   }
-
-  // Test if the support item lookup is working correctly
-  console.log('🔍 SUPPORT ITEM LOOKUP TEST:');
-  console.log('  SUPPORT_ITEM_LOOKUP size:', SUPPORT_ITEM_LOOKUP.size);
-  console.log(
-    '  Known support items:',
-    Array.from(SUPPORT_ITEM_LOOKUP).sort((a, b) => a - b)
-  );
-
-  // Test specific item from the match data (3871 - Zaz'Zak's Realmspike)
-  if (allItemIds.includes(3871)) {
-    console.log("🎯 SPECIFIC TEST - Item 3871 (Zaz'Zak's Realmspike):");
-    const item3871Completion = getSupportItemCompletion(3871);
-    const item3871Events = eventsWithItemId.filter(
-      (event) => event.itemId === 3871
-    );
-    console.log('  Completion data:', item3871Completion);
-    console.log(
-      '  Timeline events:',
-      item3871Events.map((event) => ({
-        type: event.type,
-        timestamp: event.timestamp,
-        timeFormatted: formatMillisecondsToTime(event.timestamp),
-      }))
-    );
-  }
-
-  console.groupEnd();
 
   // **FIX: Enhanced timeline processing to handle evolution properly**
-  console.group('⏱️ ENHANCED TIMELINE PROCESSING');
+  if (TIMELINE_DEBUG_ENABLED) {
+    timelineDebug.group('⏱️ ENHANCED TIMELINE PROCESSING');
+  }
 
   // Get all support item related events (purchases, destructions, evolution markers)
   const supportItemEvents = eventsWithItemId
@@ -697,10 +734,12 @@ export function detectSupportItemCompletion(
     )
     .sort((a, b) => a.timestamp - b.timestamp);
 
-  console.log(
-    '🛡️ ALL SUPPORT ITEM EVENTS (chronological):',
-    supportItemEvents.length
-  );
+  if (TIMELINE_DEBUG_ENABLED) {
+    timelineDebug.log(
+      '🛡️ ALL SUPPORT ITEM EVENTS (chronological):',
+      supportItemEvents.length
+    );
+  }
 
   // Create evolution tracking map
   const evolutionTracker = new Map<SupportItemTier, number>();
@@ -716,34 +755,42 @@ export function detectSupportItemCompletion(
 
     const currentTierTime = evolutionTracker.get(completion.tier);
 
-    console.log(
-      `📦 Processing ${event.type} of ${event.itemId} (${completion.chainName}, ${completion.tier}) at ${formatMillisecondsToTime(event.timestamp)}`
-    );
+    if (TIMELINE_DEBUG_ENABLED) {
+      timelineDebug.log(
+        `📦 Processing ${event.type} of ${event.itemId} (${completion.chainName}, ${completion.tier}) at ${formatMillisecondsToTime(event.timestamp)}`
+      );
+    }
 
     // **SPECIAL CASE: Runic Compass (3866) destruction indicates quest completion**
     if (event.type === 'ITEM_DESTROYED' && event.itemId === 3866) {
       runicCompassDestructionTime = event.timestamp;
-      console.log(
-        `    🏆 QUEST COMPLETION DETECTED: Runic Compass destroyed at ${formatMillisecondsToTime(event.timestamp)}`
-      );
+      if (TIMELINE_DEBUG_ENABLED) {
+        timelineDebug.log(
+          `    🏆 QUEST COMPLETION DETECTED: Runic Compass destroyed at ${formatMillisecondsToTime(event.timestamp)}`
+        );
+      }
     }
 
     // For purchases: this indicates tier completion
     if (event.type === 'ITEM_PURCHASED') {
       if (!currentTierTime || event.timestamp < currentTierTime) {
         evolutionTracker.set(completion.tier, event.timestamp);
-        console.log(
-          `    ✅ NEW ${completion.tier} completion recorded at ${formatMillisecondsToTime(event.timestamp)}`
-        );
+        if (TIMELINE_DEBUG_ENABLED) {
+          timelineDebug.log(
+            `    ✅ NEW ${completion.tier} completion recorded at ${formatMillisecondsToTime(event.timestamp)}`
+          );
+        }
       } else {
-        console.log(
-          `    ⏭️ ${completion.tier} already completed earlier at ${formatMillisecondsToTime(currentTierTime)}`
-        );
+        if (TIMELINE_DEBUG_ENABLED) {
+          timelineDebug.log(
+            `    ⏭️ ${completion.tier} already completed earlier at ${formatMillisecondsToTime(currentTierTime)}`
+          );
+        }
       }
     }
 
     // For destructions: check if this indicates evolution to next tier
-    else if (event.type === 'ITEM_DESTROYED') {
+    else if (TIMELINE_DEBUG_ENABLED && event.type === 'ITEM_DESTROYED') {
       // Look for immediate purchase of higher tier item
       const nextEvents = supportItemEvents.filter(
         (nextEvent) =>
@@ -753,19 +800,23 @@ export function detectSupportItemCompletion(
       );
 
       if (nextEvents.length > 0) {
-        console.log(
-          `    🔄 Destruction at ${formatMillisecondsToTime(event.timestamp)} followed by purchases:`,
-          nextEvents.map((nextEvent) => {
-            const nextCompletion = getSupportItemCompletion(nextEvent.itemId);
-            return `${nextEvent.itemId} (${nextCompletion.chainName}, ${nextCompletion.tier}) at ${formatMillisecondsToTime(nextEvent.timestamp)}`;
-          })
-        );
+        if (TIMELINE_DEBUG_ENABLED) {
+          timelineDebug.log(
+            `    🔄 Destruction at ${formatMillisecondsToTime(event.timestamp)} followed by purchases:`,
+            nextEvents.map((nextEvent) => {
+              const nextCompletion = getSupportItemCompletion(nextEvent.itemId);
+              return `${nextEvent.itemId} (${nextCompletion.chainName}, ${nextCompletion.tier}) at ${formatMillisecondsToTime(nextEvent.timestamp)}`;
+            })
+          );
+        }
 
         // This destruction is part of evolution - the purchase timestamps are more accurate for completion
       } else {
-        console.log(
-          `    💥 Standalone destruction (no immediate evolution detected)`
-        );
+        if (TIMELINE_DEBUG_ENABLED) {
+          timelineDebug.log(
+            `    💥 Standalone destruction (no immediate evolution detected)`
+          );
+        }
       }
     }
   }
@@ -773,9 +824,11 @@ export function detectSupportItemCompletion(
   // **ENHANCED: If we detected Runic Compass destruction, use it as the primary tier2 completion time**
   if (runicCompassDestructionTime !== null) {
     evolutionTracker.set('tier2', runicCompassDestructionTime);
-    console.log(
-      `🎯 OVERRIDING tier2 completion with Runic Compass destruction time: ${formatMillisecondsToTime(runicCompassDestructionTime)}`
-    );
+    if (TIMELINE_DEBUG_ENABLED) {
+      timelineDebug.log(
+        `🎯 OVERRIDING tier2 completion with Runic Compass destruction time: ${formatMillisecondsToTime(runicCompassDestructionTime)}`
+      );
+    }
   }
 
   // Convert evolution tracker to completion times
@@ -786,69 +839,71 @@ export function detectSupportItemCompletion(
     }
   });
 
-  console.log('📊 ENHANCED PROCESSING SUMMARY:', {
-    totalSupportItemEvents: supportItemEvents.length,
-    evolutionTrackerEntries: evolutionTracker.size,
-    detectedCompletions: Object.values(completionTimes).filter(
-      (t) => t !== null
-    ).length,
-  });
-
-  console.groupEnd();
-
-  // 5. LOG FINAL RESULT
-  console.group('🎯 FINAL RESULTS');
-
-  console.log('📋 COMPLETION TIMES:', completionTimes);
-
-  const completedTiers = (
-    Object.entries(completionTimes) as Array<[SupportItemTier, number | null]>
-  )
-    .filter(([, timestamp]) => timestamp !== null)
-    .map(([tier, timestamp]) => ({
-      tier,
-      timestamp: timestamp as number,
-      timeFormatted: formatMillisecondsToTime(timestamp as number),
-    }));
-
-  if (completedTiers.length > 0) {
-    console.log('✅ COMPLETED TIERS:');
-    completedTiers.forEach(({ tier, timestamp, timeFormatted }) => {
-      console.log(`  ${tier}: ${timeFormatted} (${timestamp}ms)`);
+  if (TIMELINE_DEBUG_ENABLED) {
+    timelineDebug.log('📊 ENHANCED PROCESSING SUMMARY:', {
+      totalSupportItemEvents: supportItemEvents.length,
+      evolutionTrackerEntries: evolutionTracker.size,
+      detectedCompletions: Object.values(completionTimes).filter(
+        (t) => t !== null
+      ).length,
     });
-  } else {
-    console.warn('⚠️ NO SUPPORT QUEST COMPLETIONS DETECTED');
+
+    timelineDebug.groupEnd();
+
+    // 5. LOG FINAL RESULT
+    timelineDebug.group('🎯 FINAL RESULTS');
+
+    timelineDebug.log('📋 COMPLETION TIMES:', completionTimes);
+
+    const completedTiers = (
+      Object.entries(completionTimes) as Array<[SupportItemTier, number | null]>
+    )
+      .filter(([, timestamp]) => timestamp !== null)
+      .map(([tier, timestamp]) => ({
+        tier,
+        timestamp: timestamp as number,
+        timeFormatted: formatMillisecondsToTime(timestamp as number),
+      }));
+
+    if (completedTiers.length > 0) {
+      timelineDebug.log('✅ COMPLETED TIERS:');
+      completedTiers.forEach(({ tier, timestamp, timeFormatted }) => {
+        timelineDebug.log(`  ${tier}: ${timeFormatted} (${timestamp}ms)`);
+      });
+    } else {
+      timelineDebug.warn('⚠️ NO SUPPORT QUEST COMPLETIONS DETECTED');
+    }
+
+    const uncompletedTiers = (
+      Object.entries(completionTimes) as Array<[SupportItemTier, number | null]>
+    )
+      .filter(([, timestamp]) => timestamp === null)
+      .map(([tier]) => tier);
+
+    if (uncompletedTiers.length > 0) {
+      timelineDebug.log('❌ UNCOMPLETED TIERS:', uncompletedTiers);
+    }
+
+    // Log completion progression
+    const progression = [...completedTiers].sort(
+      (a, b) => a.timestamp - b.timestamp
+    );
+    if (progression.length > 1) {
+      timelineDebug.log('📈 PROGRESSION TIMELINE:');
+      progression.forEach((tier, index) => {
+        const nextTier = progression[index + 1];
+        const timeBetween = nextTier
+          ? formatMillisecondsToTime(nextTier.timestamp - tier.timestamp)
+          : 'N/A';
+        timelineDebug.log(
+          `  ${index + 1}. ${tier.tier} at ${tier.timeFormatted} ${nextTier ? `(+${timeBetween} to next)` : '(final)'}`
+        );
+      });
+    }
+
+    timelineDebug.groupEnd();
+    timelineDebug.groupEnd();
   }
-
-  const uncompletedTiers = (
-    Object.entries(completionTimes) as Array<[SupportItemTier, number | null]>
-  )
-    .filter(([, timestamp]) => timestamp === null)
-    .map(([tier]) => tier);
-
-  if (uncompletedTiers.length > 0) {
-    console.log('❌ UNCOMPLETED TIERS:', uncompletedTiers);
-  }
-
-  // Log completion progression
-  const progression = [...completedTiers].sort(
-    (a, b) => a.timestamp - b.timestamp
-  );
-  if (progression.length > 1) {
-    console.log('📈 PROGRESSION TIMELINE:');
-    progression.forEach((tier, index) => {
-      const nextTier = progression[index + 1];
-      const timeBetween = nextTier
-        ? formatMillisecondsToTime(nextTier.timestamp - tier.timestamp)
-        : 'N/A';
-      console.log(
-        `  ${index + 1}. ${tier.tier} at ${tier.timeFormatted} ${nextTier ? `(+${timeBetween} to next)` : '(final)'}`
-      );
-    });
-  }
-
-  console.groupEnd();
-  console.groupEnd();
 
   return completionTimes;
 }
@@ -865,22 +920,32 @@ export function detectSupportItemCompletionFromRaw(
   rawTimelineData: RawTimelineData | null | undefined,
   participantId: number
 ): SupportItemCompletionTimes {
-  console.group('🔍 [RAW TIMELINE] detectSupportItemCompletionFromRaw called');
+  if (TIMELINE_DEBUG_ENABLED) {
+    timelineDebug.group(
+      '🔍 [RAW TIMELINE] detectSupportItemCompletionFromRaw called'
+    );
+  }
 
   const completionTimes = createEmptyCompletionTimes();
   const frames = rawTimelineData?.info?.frames;
 
   if (!Array.isArray(frames) || frames.length === 0) {
-    console.warn('⚠️ No raw timeline data available');
-    console.groupEnd();
+    if (TIMELINE_DEBUG_ENABLED) {
+      timelineDebug.warn('⚠️ No raw timeline data available');
+    }
+    if (TIMELINE_DEBUG_ENABLED) {
+      timelineDebug.groupEnd();
+    }
     return completionTimes;
   }
 
-  console.log('📥 RAW TIMELINE PROCESSING:', {
-    participantId,
-    totalFrames: frames.length,
-    frameInterval: rawTimelineData?.info?.frameInterval,
-  });
+  if (TIMELINE_DEBUG_ENABLED) {
+    timelineDebug.log('📥 RAW TIMELINE PROCESSING:', {
+      participantId,
+      totalFrames: frames.length,
+      frameInterval: rawTimelineData?.info?.frameInterval,
+    });
+  }
 
   interface TimelineItemEventSummary {
     readonly itemId: number;
@@ -917,39 +982,43 @@ export function detectSupportItemCompletionFromRaw(
     });
   });
 
-  console.log('🛒 RAW ITEM PURCHASES FOUND:', {
-    totalPurchases: allItemPurchases.length,
-    participantId,
-    itemIds: allItemPurchases
-      .map((purchase) => purchase.itemId)
-      .sort((a, b) => a - b),
-    supportItems: allItemPurchases.filter((purchase) =>
-      isSupportItem(purchase.itemId)
-    ),
-    chronological: [...allItemPurchases]
-      .sort((a, b) => a.timestamp - b.timestamp)
-      .slice(0, 10)
-      .map((purchase) => ({
-        itemId: purchase.itemId,
-        timestamp: purchase.timestamp,
-        timeFormatted: formatMillisecondsToTime(purchase.timestamp),
-        isSupportItem: isSupportItem(purchase.itemId),
-      })),
-  });
+  if (TIMELINE_DEBUG_ENABLED) {
+    timelineDebug.log('🛒 RAW ITEM PURCHASES FOUND:', {
+      totalPurchases: allItemPurchases.length,
+      participantId,
+      itemIds: allItemPurchases
+        .map((purchase) => purchase.itemId)
+        .sort((a, b) => a - b),
+      supportItems: allItemPurchases.filter((purchase) =>
+        isSupportItem(purchase.itemId)
+      ),
+      chronological: [...allItemPurchases]
+        .sort((a, b) => a.timestamp - b.timestamp)
+        .slice(0, 10)
+        .map((purchase) => ({
+          itemId: purchase.itemId,
+          timestamp: purchase.timestamp,
+          timeFormatted: formatMillisecondsToTime(purchase.timestamp),
+          isSupportItem: isSupportItem(purchase.itemId),
+        })),
+    });
+  }
 
-  console.log('💥 RAW ITEM DESTRUCTIONS FOUND:', {
-    totalDestructions: allItemDestructions.length,
-    participantId,
-    itemIds: allItemDestructions
-      .map((destruction) => destruction.itemId)
-      .sort((a, b) => a - b),
-    supportItems: allItemDestructions.filter((destruction) =>
-      isSupportItem(destruction.itemId)
-    ),
-    runicCompassDestruction: allItemDestructions.find(
-      (destruction) => destruction.itemId === 3866
-    ),
-  });
+  if (TIMELINE_DEBUG_ENABLED) {
+    timelineDebug.log('💥 RAW ITEM DESTRUCTIONS FOUND:', {
+      totalDestructions: allItemDestructions.length,
+      participantId,
+      itemIds: allItemDestructions
+        .map((destruction) => destruction.itemId)
+        .sort((a, b) => a - b),
+      supportItems: allItemDestructions.filter((destruction) =>
+        isSupportItem(destruction.itemId)
+      ),
+      runicCompassDestruction: allItemDestructions.find(
+        (destruction) => destruction.itemId === 3866
+      ),
+    });
+  }
 
   // **ENHANCED: Check for Runic Compass (3866) destruction first**
   const runicCompassDestruction = allItemDestructions.find(
@@ -957,9 +1026,11 @@ export function detectSupportItemCompletionFromRaw(
   );
   if (runicCompassDestruction) {
     completionTimes.tier2 = runicCompassDestruction.timestamp;
-    console.log(
-      `🏆 RAW QUEST COMPLETION - Runic Compass destroyed at ${formatMillisecondsToTime(runicCompassDestruction.timestamp)}`
-    );
+    if (TIMELINE_DEBUG_ENABLED) {
+      timelineDebug.log(
+        `🏆 RAW QUEST COMPLETION - Runic Compass destroyed at ${formatMillisecondsToTime(runicCompassDestruction.timestamp)}`
+      );
+    }
   }
 
   // Process support item purchases
@@ -975,14 +1046,20 @@ export function detectSupportItemCompletionFromRaw(
         completionTimes[completion.tier] === null
       ) {
         completionTimes[completion.tier] = purchase.timestamp;
-        console.log(
-          `✅ RAW DETECTION - ${completion.tier} completed at ${formatMillisecondsToTime(purchase.timestamp)} with item ${purchase.itemId} (${completion.chainName})`
-        );
+        if (TIMELINE_DEBUG_ENABLED) {
+          timelineDebug.log(
+            `✅ RAW DETECTION - ${completion.tier} completed at ${formatMillisecondsToTime(purchase.timestamp)} with item ${purchase.itemId} (${completion.chainName})`
+          );
+        }
       }
     });
 
-  console.log('📋 RAW DETECTION RESULTS:', completionTimes);
-  console.groupEnd();
+  if (TIMELINE_DEBUG_ENABLED) {
+    timelineDebug.log('📋 RAW DETECTION RESULTS:', completionTimes);
+  }
+  if (TIMELINE_DEBUG_ENABLED) {
+    timelineDebug.groupEnd();
+  }
 
   return completionTimes;
 }

@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/tooltip';
 import { itemImages } from '@/lib/apis/datadragon';
 import { useItem } from '@/hooks/use-item-data';
+import { sanitizeRiotHtml } from '@/lib/utils/sanitize-html';
 
 interface ItemSlotProps {
   itemId: number;
@@ -145,8 +146,9 @@ export function ItemSlot({
       .replace(
         /<font color="#([^"]+)"[^>]*>([^<]*)<\/font>/gi,
         (_, color, text) => {
-          // Preserve original color for special formatting
-          return `<span style="color: #${color}">${text}</span>`;
+          const hex = `#${color}`.toLowerCase();
+          // sanitizeRiotHtml allows only safe hex color styles on spans
+          return `<span style="color: ${hex}">${text}</span>`;
         }
       )
       // Color damage/AD stats
@@ -227,7 +229,9 @@ export function ItemSlot({
             return (
               <div
                 key={index}
-                dangerouslySetInnerHTML={{ __html: line.trim() }}
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeRiotHtml(line.trim()),
+                }}
                 className="leading-relaxed"
               />
             );

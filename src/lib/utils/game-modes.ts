@@ -20,14 +20,14 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   420: {
     id: 420,
     name: 'Ranked Solo/Duo',
-    description: 'Summoner\'s Rift (5v5 Ranked Solo/Duo)',
+    description: "Summoner's Rift (5v5 Ranked Solo/Duo)",
     category: 'ranked',
     isRanked: true,
   },
   440: {
     id: 440,
     name: 'Ranked Flex',
-    description: 'Summoner\'s Rift (5v5 Ranked Flex)',
+    description: "Summoner's Rift (5v5 Ranked Flex)",
     category: 'ranked',
     isRanked: true,
   },
@@ -36,21 +36,21 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   400: {
     id: 400,
     name: 'Normal Draft',
-    description: 'Summoner\'s Rift (5v5 Draft Pick)',
+    description: "Summoner's Rift (5v5 Draft Pick)",
     category: 'normal',
     isRanked: false,
   },
   430: {
     id: 430,
     name: 'Normal Blind',
-    description: 'Summoner\'s Rift (5v5 Blind Pick)',
+    description: "Summoner's Rift (5v5 Blind Pick)",
     category: 'normal',
     isRanked: false,
   },
   490: {
     id: 490,
     name: 'Normal Draft',
-    description: 'Summoner\'s Rift (5v5 Draft Pick)',
+    description: "Summoner's Rift (5v5 Draft Pick)",
     category: 'normal',
     isRanked: false,
   },
@@ -63,26 +63,26 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
     category: 'aram',
     isRanked: false,
   },
-  
+
   // Rotating Game Modes
   900: {
     id: 900,
     name: 'URF',
-    description: 'Summoner\'s Rift (Ultra Rapid Fire)',
+    description: "Summoner's Rift (Ultra Rapid Fire)",
     category: 'rotating',
     isRanked: false,
   },
   1010: {
     id: 1010,
     name: 'Snow URF',
-    description: 'Summoner\'s Rift (Snow Battle ARURF)',
+    description: "Summoner's Rift (Snow Battle ARURF)",
     category: 'rotating',
     isRanked: false,
   },
   1020: {
     id: 1020,
     name: 'One for All',
-    description: 'Summoner\'s Rift (One for All)',
+    description: "Summoner's Rift (One for All)",
     category: 'rotating',
     isRanked: false,
   },
@@ -96,14 +96,14 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   1400: {
     id: 1400,
     name: 'Ultimate Spellbook',
-    description: 'Summoner\'s Rift (Ultimate Spellbook)',
+    description: "Summoner's Rift (Ultimate Spellbook)",
     category: 'rotating',
     isRanked: false,
   },
   1900: {
     id: 1900,
     name: 'URF',
-    description: 'Summoner\'s Rift (Pick URF)',
+    description: "Summoner's Rift (Pick URF)",
     category: 'rotating',
     isRanked: false,
   },
@@ -128,7 +128,7 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   2: {
     id: 2,
     name: 'Normal Blind',
-    description: 'Summoner\'s Rift (5v5 Blind Pick) - Legacy',
+    description: "Summoner's Rift (5v5 Blind Pick) - Legacy",
     category: 'normal',
     isRanked: false,
   },
@@ -149,7 +149,7 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   14: {
     id: 14,
     name: 'Normal Draft',
-    description: 'Summoner\'s Rift (5v5 Draft) - Legacy',
+    description: "Summoner's Rift (5v5 Draft) - Legacy",
     category: 'normal',
     isRanked: false,
   },
@@ -177,21 +177,21 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   31: {
     id: 31,
     name: 'Co-op vs AI Intro',
-    description: 'Summoner\'s Rift (Co-op vs AI Intro)',
+    description: "Summoner's Rift (Co-op vs AI Intro)",
     category: 'normal',
     isRanked: false,
   },
   32: {
     id: 32,
     name: 'Co-op vs AI Beginner',
-    description: 'Summoner\'s Rift (Co-op vs AI Beginner)',
+    description: "Summoner's Rift (Co-op vs AI Beginner)",
     category: 'normal',
     isRanked: false,
   },
   33: {
     id: 33,
     name: 'Co-op vs AI Intermediate',
-    description: 'Summoner\'s Rift (Co-op vs AI Intermediate)',
+    description: "Summoner's Rift (Co-op vs AI Intermediate)",
     category: 'normal',
     isRanked: false,
   },
@@ -205,7 +205,7 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   42: {
     id: 42,
     name: 'Ranked Team 5v5',
-    description: 'Summoner\'s Rift (5v5 Ranked Team) - Legacy',
+    description: "Summoner's Rift (5v5 Ranked Team) - Legacy",
     category: 'ranked',
     isRanked: true,
   },
@@ -219,7 +219,7 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   61: {
     id: 61,
     name: 'Team Builder',
-    description: 'Summoner\'s Rift (5v5 Team Builder) - Legacy',
+    description: "Summoner's Rift (5v5 Team Builder) - Legacy",
     category: 'normal',
     isRanked: false,
   },
@@ -233,7 +233,7 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   70: {
     id: 70,
     name: 'One for All',
-    description: 'Summoner\'s Rift (One for All) - Legacy',
+    description: "Summoner's Rift (One for All) - Legacy",
     category: 'rotating',
     isRanked: false,
   },
@@ -254,14 +254,14 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   75: {
     id: 75,
     name: 'Hexakill',
-    description: 'Summoner\'s Rift (6v6 Hexakill) - Legacy',
+    description: "Summoner's Rift (6v6 Hexakill) - Legacy",
     category: 'rotating',
     isRanked: false,
   },
   76: {
     id: 76,
     name: 'URF',
-    description: 'Summoner\'s Rift (Ultra Rapid Fire) - Legacy',
+    description: "Summoner's Rift (Ultra Rapid Fire) - Legacy",
     category: 'rotating',
     isRanked: false,
   },
@@ -275,28 +275,28 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   83: {
     id: 83,
     name: 'Co-op vs AI URF',
-    description: 'Summoner\'s Rift (Co-op vs AI Ultra Rapid Fire) - Legacy',
+    description: "Summoner's Rift (Co-op vs AI Ultra Rapid Fire) - Legacy",
     category: 'rotating',
     isRanked: false,
   },
   91: {
     id: 91,
     name: 'Doom Bots Rank 1',
-    description: 'Summoner\'s Rift (Doom Bots Voting) - Legacy',
+    description: "Summoner's Rift (Doom Bots Voting) - Legacy",
     category: 'rotating',
     isRanked: false,
   },
   92: {
     id: 92,
     name: 'Doom Bots Rank 2',
-    description: 'Summoner\'s Rift (Doom Bots Standard) - Legacy',
+    description: "Summoner's Rift (Doom Bots Standard) - Legacy",
     category: 'rotating',
     isRanked: false,
   },
   93: {
     id: 93,
     name: 'Doom Bots Rank 5',
-    description: 'Summoner\'s Rift (Doom Bots Intense) - Legacy',
+    description: "Summoner's Rift (Doom Bots Intense) - Legacy",
     category: 'rotating',
     isRanked: false,
   },
@@ -317,7 +317,7 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   100: {
     id: 100,
     name: 'ARAM',
-    description: 'Butcher\'s Bridge (5v5 ARAM) - Legacy',
+    description: "Butcher's Bridge (5v5 ARAM) - Legacy",
     category: 'aram',
     isRanked: false,
   },
@@ -331,14 +331,14 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   310: {
     id: 310,
     name: 'Nemesis Draft',
-    description: 'Summoner\'s Rift (Nemesis Draft) - Legacy',
+    description: "Summoner's Rift (Nemesis Draft) - Legacy",
     category: 'rotating',
     isRanked: false,
   },
   313: {
     id: 313,
     name: 'Black Market Brawlers',
-    description: 'Summoner\'s Rift (Black Market Brawlers) - Legacy',
+    description: "Summoner's Rift (Black Market Brawlers) - Legacy",
     category: 'rotating',
     isRanked: false,
   },
@@ -352,28 +352,28 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   318: {
     id: 318,
     name: 'ARURF',
-    description: 'Summoner\'s Rift (All Random URF) - Legacy',
+    description: "Summoner's Rift (All Random URF) - Legacy",
     category: 'rotating',
     isRanked: false,
   },
   325: {
     id: 325,
     name: 'All Random',
-    description: 'Summoner\'s Rift (All Random) - Legacy',
+    description: "Summoner's Rift (All Random) - Legacy",
     category: 'rotating',
     isRanked: false,
   },
   410: {
     id: 410,
     name: 'Ranked Solo',
-    description: 'Summoner\'s Rift (5v5 Ranked Dynamic Queue) - Legacy',
+    description: "Summoner's Rift (5v5 Ranked Dynamic Queue) - Legacy",
     category: 'ranked',
     isRanked: true,
   },
   700: {
     id: 700,
     name: 'Clash',
-    description: 'Summoner\'s Rift (Clash)',
+    description: "Summoner's Rift (Clash)",
     category: 'tournament',
     isRanked: false,
   },
@@ -401,21 +401,21 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   830: {
     id: 830,
     name: 'Co-op vs AI Intro',
-    description: 'Summoner\'s Rift (Co-op vs AI Intro Bot)',
+    description: "Summoner's Rift (Co-op vs AI Intro Bot)",
     category: 'normal',
     isRanked: false,
   },
   840: {
     id: 840,
     name: 'Co-op vs AI Beginner',
-    description: 'Summoner\'s Rift (Co-op vs AI Beginner Bot)',
+    description: "Summoner's Rift (Co-op vs AI Beginner Bot)",
     category: 'normal',
     isRanked: false,
   },
   850: {
     id: 850,
     name: 'Co-op vs AI Intermediate',
-    description: 'Summoner\'s Rift (Co-op vs AI Intermediate Bot)',
+    description: "Summoner's Rift (Co-op vs AI Intermediate Bot)",
     category: 'normal',
     isRanked: false,
   },
@@ -429,21 +429,21 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
   940: {
     id: 940,
     name: 'Nexus Siege',
-    description: 'Summoner\'s Rift (Nexus Siege)',
+    description: "Summoner's Rift (Nexus Siege)",
     category: 'rotating',
     isRanked: false,
   },
   950: {
     id: 950,
     name: 'Doom Bots Voting',
-    description: 'Summoner\'s Rift (Doom Bots Voting)',
+    description: "Summoner's Rift (Doom Bots Voting)",
     category: 'rotating',
     isRanked: false,
   },
   960: {
     id: 960,
     name: 'Doom Bots Standard',
-    description: 'Summoner\'s Rift (Doom Bots Standard)',
+    description: "Summoner's Rift (Doom Bots Standard)",
     category: 'rotating',
     isRanked: false,
   },
@@ -474,13 +474,15 @@ export const GAME_MODES: Record<number, GameModeInfo> = {
  * Gets game mode information by queue ID
  */
 export function getGameModeInfo(queueId: number): GameModeInfo {
-  return GAME_MODES[queueId] || {
-    id: queueId,
-    name: 'Unknown',
-    description: `Unknown game mode (Queue ID: ${queueId})`,
-    category: 'custom',
-    isRanked: false,
-  };
+  return (
+    GAME_MODES[queueId] || {
+      id: queueId,
+      name: 'Unknown',
+      description: `Unknown game mode (Queue ID: ${queueId})`,
+      category: 'custom',
+      isRanked: false,
+    }
+  );
 }
 
 /**
@@ -518,7 +520,9 @@ export function getGameModeCategory(queueId: number): GameModeInfo['category'] {
 /**
  * Gets the color associated with a game mode category
  */
-export function getGameModeCategoryColor(category: GameModeInfo['category']): string {
+export function getGameModeCategoryColor(
+  category: GameModeInfo['category']
+): string {
   switch (category) {
     case 'ranked':
       return 'text-yellow-400';
@@ -539,8 +543,10 @@ export function getGameModeCategoryColor(category: GameModeInfo['category']): st
 /**
  * Gets all game modes in a specific category
  */
-export function getGameModesByCategory(category: GameModeInfo['category']): GameModeInfo[] {
-  return Object.values(GAME_MODES).filter(mode => mode.category === category);
+export function getGameModesByCategory(
+  category: GameModeInfo['category']
+): GameModeInfo[] {
+  return Object.values(GAME_MODES).filter((mode) => mode.category === category);
 }
 
 /**
@@ -548,5 +554,5 @@ export function getGameModesByCategory(category: GameModeInfo['category']): Game
  */
 export function getPopularGameModes(): GameModeInfo[] {
   const popularQueueIds = [420, 440, 400, 430, 450, 1300, 1400, 900];
-  return popularQueueIds.map(id => getGameModeInfo(id));
+  return popularQueueIds.map((id) => getGameModeInfo(id));
 }

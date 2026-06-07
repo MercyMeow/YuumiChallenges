@@ -1,13 +1,17 @@
 /**
  * Simplified Item Timeline Types
- * 
+ *
  * Clean, maintainable type definitions for League of Legends item timeline processing.
  * Reduced complexity while maintaining all essential functionality.
  */
 
 // ==================== CORE EVENT TYPES ====================
 
-export type ItemEventType = 'ITEM_PURCHASED' | 'ITEM_SOLD' | 'ITEM_DESTROYED' | 'ITEM_UNDO';
+export type ItemEventType =
+  | 'ITEM_PURCHASED'
+  | 'ITEM_SOLD'
+  | 'ITEM_DESTROYED'
+  | 'ITEM_UNDO';
 
 export type EvolutionStage = 'base' | 'tier1' | 'tier2' | 'tier3';
 
@@ -38,18 +42,18 @@ export interface RawTimelineData {
 export interface ItemEvent {
   readonly type: ItemEventType;
   readonly timestamp: number;
-  readonly timeFormatted: string;  // "MM:SS" format
+  readonly timeFormatted: string; // "MM:SS" format
   readonly itemId: number;
   readonly isEvolution: boolean;
   readonly evolutionStage?: EvolutionStage;
 }
 
 export interface PlayerTimeline {
-  readonly participantId: number;  // 1-indexed (Riot API format)
+  readonly participantId: number; // 1-indexed (Riot API format)
   readonly events: readonly ItemEvent[];
   readonly stats: {
     readonly purchases: number;
-    readonly sales: number;  
+    readonly sales: number;
     readonly destructions: number;
     readonly evolutions: number;
   };
@@ -67,7 +71,7 @@ export const SUPPORT_EVOLUTIONS: Record<number, SupportEvolution> = {
   3865: { stage: 'base', name: 'World Atlas' },
   3866: { stage: 'tier1', name: 'Runic Compass' },
   3867: { stage: 'tier2', name: 'Bounty of Worlds' },
-  
+
   // Final Support Items (evolved from Bounty of Worlds)
   3869: { stage: 'tier3', name: 'Celestial Opposition' },
   3870: { stage: 'tier3', name: 'Dream Maker' },
@@ -79,7 +83,7 @@ export const SUPPORT_EVOLUTIONS: Record<number, SupportEvolution> = {
 // ==================== PROCESSING ====================
 
 export interface ProcessingOptions {
-  readonly participantId: number;  // 1-indexed
+  readonly participantId: number; // 1-indexed
   readonly includeUndoEvents?: boolean;
 }
 

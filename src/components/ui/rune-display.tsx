@@ -7,11 +7,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { runeImages } from '@/lib/apis/datadragon';
+import { runeImages, STAT_SHARDS } from '@/lib/apis/datadragon';
 import { useRuneData } from '@/hooks/use-rune-data';
-import { loadRuneImageOptimized, getCachedRuneImage } from '@/lib/utils/rune-image-preloader';
+import {
+  loadRuneImageOptimized,
+  getCachedRuneImage,
+} from '@/lib/utils/rune-image-preloader';
 import { StatShard } from '@/lib/apis/datadragon';
 import { cn } from '@/lib/utils';
+import { getAllRuneVarInfos } from '@/lib/runes/rune-variables';
+import { sanitizeRiotHtml } from '@/lib/utils/sanitize-html';
 
 interface RuneIconProps {
   runeId: number;
@@ -150,40 +155,6 @@ export function RuneIcon({
     return content;
   }
 
-  // Sanitize Riot rune HTML: allow a safe subset, map Riot custom tags to spans with classes
-  function sanitizeRuneHtml(input: string): string {
-    try {
-      if (!input || typeof input !== 'string') return '';
-      // Replace Riot custom tags with span + class for styling
-      let html = input
-        .replace(/<br\s*\/?>/gi, '<br/>')
-        .replace(/<status>/gi, '<span class="status">')
-        .replace(/<\/status>/gi, '</span>')
-        .replace(/<attention>/gi, '<span class="attention">')
-        .replace(/<\/attention>/gi, '</span>')
-        .replace(/<rules>/gi, '<span class="rules">')
-        .replace(/<\/rules>/gi, '</span>')
-        .replace(/<scale>/gi, '<span class="scale">')
-        .replace(/<\/scale>/gi, '</span>');
-
-      // Very small allowlist-based sanitizer: strip disallowed tags/attrs
-      // Allow tags: b, i, u, em, strong, br, ul, ol, li, span
-      html = html.replace(
-        /<(?!\/?(b|i|u|em|strong|br|ul|ol|li|span)\b)[^>]*>/gi,
-        ''
-      );
-
-      // Remove on* event handlers, javascript: URLs, and inline styles
-      html = html.replace(/\son\w+="[^"]*"/gi, '');
-      html = html.replace(/\shref="javascript:[^"]*"/gi, '');
-      html = html.replace(/\sstyle="[^"]*"/gi, '');
-
-      return html;
-    } catch {
-      return '';
-    }
-  }
-
   return (
     <Tooltip>
       <TooltipTrigger asChild>{content}</TooltipTrigger>
@@ -228,7 +199,7 @@ export function RuneIcon({
             <div
               className="prose prose-invert prose-sm max-w-none border-t border-purple-500/20 pt-3 leading-relaxed text-blue-300 [&_.attention]:text-red-300 [&_.rules]:mt-1 [&_.rules]:block [&_.rules]:text-white/80 [&_.scale]:text-yellow-300 [&_.status]:text-purple-300"
               dangerouslySetInnerHTML={{
-                __html: sanitizeRuneHtml(rune.shortDesc),
+                __html: sanitizeRiotHtml(rune.shortDesc),
               }}
             />
           )}
@@ -238,7 +209,7 @@ export function RuneIcon({
             <div
               className="prose prose-invert prose-xs max-w-none border-t border-purple-500/10 pt-2 leading-relaxed text-gray-300 [&_.attention]:text-red-300 [&_.rules]:mt-1 [&_.rules]:block [&_.rules]:text-white/80 [&_.scale]:text-yellow-300 [&_.status]:text-purple-300"
               dangerouslySetInnerHTML={{
-                __html: sanitizeRuneHtml(rune.longDesc),
+                __html: sanitizeRiotHtml(rune.longDesc),
               }}
             />
           )}
@@ -263,6 +234,8 @@ export function StatShardIcon({
 }: StatShardIconProps) {
   const { getStatShardById } = useRuneData();
   const statShard = getStatShardById(statShardId);
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
 
   const sizes = {
     xs: { width: 12, height: 12 },
@@ -275,26 +248,74 @@ export function StatShardIcon({
 
   const { width, height } = sizes[size];
 
-  // Render a neutral circular token; shards don't have official per-ID icons
+  // Map stat shard IDs to their image paths on Data Dragon
+  const getStatShardImagePath = (id: number): string => {
+    const pathMap: Record<number, string> = {
+      // Offense
+      5005: 'perk-images/StatMods/StatModsAttackSpeedIcon.png', // Attack Speed
+      5008: 'perk-images/StatMods/StatModsAdaptiveForceIcon.png', // Adaptive Force
+      5007: 'perk-images/StatMods/StatModsCDRScalingIcon.png', // Ability Haste
+      // Flex
+      5002: 'perk-images/StatMods/StatModsArmorIcon.png', // Armor
+      5003: 'perk-images/StatMods/StatModsMagicResIcon.png', // Magic Resist
+      // Defense
+      5001: 'perk-images/StatMods/StatModsHealthScalingIcon.png', // Health
+    };
+    return pathMap[id] || 'perk-images/StatMods/StatModsAdaptiveForceIcon.png';
+  };
+
+  useEffect(() => {
+    const loadStatShardImage = async () => {
+      if (!statShard) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const imagePath = getStatShardImagePath(statShard.id);
+        const url = await runeImages.icon(imagePath);
+        setImageUrl(url);
+      } catch (error) {
+        console.error('Error loading stat shard image:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadStatShardImage();
+  }, [statShard]);
 
   const getStatShardColor = (shard: StatShard) => {
     switch (shard.slot) {
       case 'offense':
-        return 'bg-orange-500/15 border-orange-500/40';
+        return 'bg-orange-500/15 border-orange-500/40 hover:border-orange-400/60';
       case 'flex':
-        return 'bg-purple-500/15 border-purple-500/40';
+        return 'bg-purple-500/15 border-purple-500/40 hover:border-purple-400/60';
       case 'defense':
-        return 'bg-green-500/15 border-green-500/40';
+        return 'bg-green-500/15 border-green-500/40 hover:border-green-400/60';
       default:
-        return 'bg-gray-500/10 border-gray-500/30';
+        return 'bg-gray-500/10 border-gray-500/30 hover:border-gray-400/40';
     }
   };
+
+  if (isLoading) {
+    return (
+      <div
+        className={cn(
+          'animate-pulse rounded-full border border-gray-600/30 bg-black/30',
+          className
+        )}
+        style={{ width, height }}
+      />
+    );
+  }
 
   if (!statShard) {
     return (
       <div
         className={cn(
-          'flex items-center justify-center rounded border border-red-500/30 bg-red-900/20',
+          'flex items-center justify-center rounded-full border border-red-500/30 bg-red-900/20',
           className
         )}
         style={{ width, height }}
@@ -307,7 +328,7 @@ export function StatShardIcon({
   const content = (
     <div
       className={cn(
-        'flex cursor-pointer items-center justify-center rounded-full border transition-opacity hover:opacity-90',
+        'flex cursor-pointer items-center justify-center overflow-hidden rounded-full border transition-all',
         getStatShardColor(statShard),
         className
       )}
@@ -315,7 +336,18 @@ export function StatShardIcon({
       aria-label={`${statShard.name} shard`}
       title={statShard.name}
     >
-      <div className="h-[60%] w-[60%] rounded-full bg-white/60" />
+      {imageUrl ? (
+        <Image
+          src={imageUrl}
+          alt={statShard.name}
+          width={width}
+          height={height}
+          className="h-full w-full object-contain p-0.5"
+          sizes={`${width}px`}
+        />
+      ) : (
+        <div className="h-[60%] w-[60%] rounded-full bg-white/60" />
+      )}
     </div>
   );
 
@@ -491,7 +523,7 @@ export function RuneTreeDisplay({
   className = '',
   runeDetailsByRuneId,
 }: RuneTreeDisplayProps) {
-  const { getRuneTreeById } = useRuneData();
+  const { getRuneTreeById, getRuneById } = useRuneData();
 
   if (!perks?.styles?.length) {
     return (
@@ -530,205 +562,422 @@ export function RuneTreeDisplay({
     );
   }
 
-
-
-  // Redesigned layout:
-  // - Two-column layout: left = Primary rune tree, right = Stat Shards
-  // - Primary tree shows header badge, keystone prominent, minor runes grouped per row
-  // - Stat shards displayed prominently in their own section
+  // League of Legends Client-Style Layout
   return (
-    <div className={cn('grid grid-cols-1 gap-6 md:grid-cols-2', className)}>
-      {/* Primary Rune Tree */}
-      <div className="rounded-lg border border-purple-500/20 bg-black/20 p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {primaryTree && (
-              <RuneTreeIcon treeId={primaryTree.id} size="sm" showName />
-            )}
+    <div className={cn('mx-auto max-w-4xl space-y-6', className)}>
+      {/* Rune Page Layout - Similar to LoL Client */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
+        {/* LEFT: Primary & Secondary Rune Trees */}
+        <div className="space-y-6">
+          {/* Primary Rune Tree */}
+          <div className="rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-900/20 via-black/40 to-black/20 p-6 shadow-lg shadow-purple-500/10 backdrop-blur-sm">
+            {/* Tree Header */}
+            <div className="mb-6 flex items-center justify-between border-b border-purple-500/20 pb-4">
+              <div className="flex items-center gap-3">
+                {primaryTree && (
+                  <>
+                    <div className="rounded-lg border border-purple-500/40 bg-purple-500/10 p-2">
+                      <RuneTreeIcon treeId={primaryTree.id} size="md" />
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-white">
+                        {primaryTree.name}
+                      </div>
+                      <div className="text-xs text-purple-300">
+                        Primary Tree
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Keystone - Large and Prominent */}
+            {primaryStyle?.selections?.[0] &&
+              (() => {
+                const keystoneRune = getRuneById(
+                  primaryStyle.selections[0].perk
+                );
+                return (
+                  <div className="mb-6">
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-purple-400">
+                      Keystone
+                    </div>
+                    <div className="flex items-start gap-4 rounded-lg border border-purple-500/30 bg-purple-500/10 p-4">
+                      <div className="shrink-0">
+                        <RuneIcon
+                          runeId={primaryStyle.selections[0].perk}
+                          size="keystone42"
+                          variant="keystone"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <div className="mb-2 text-base font-semibold text-white">
+                          {keystoneRune?.name || 'Unknown Rune'}
+                        </div>
+                        <div className="space-y-1">
+                          {/* Multi-var metrics */}
+                          {(() => {
+                            const selection = primaryStyle.selections[0];
+                            const metrics = getAllRuneVarInfos(
+                              selection.perk,
+                              {
+                                var1: selection.var1,
+                                var2: selection.var2,
+                                var3: selection.var3,
+                              },
+                              { includeRawUnknown: false }
+                            );
+                            return metrics.length ? (
+                              <ul className="space-y-0.5 text-xs text-amber-300">
+                                {metrics.map((m) => (
+                                  <li key={m.varKey + m.label}>
+                                    • {m.formatted}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : null;
+                          })()}
+
+                          {/* Show detailed stats from runeDetailsByRuneId */}
+                          {runeDetailsByRuneId?.[
+                            primaryStyle.selections[0].perk
+                          ]?.length ? (
+                            <ul className="space-y-1 text-xs text-green-300">
+                              {runeDetailsByRuneId[
+                                primaryStyle.selections[0].perk
+                              ]!.slice(0, 5).map((d, i) => {
+                                const v = Number(d.value ?? 0);
+                                const sign = v > 0 ? '+' : v < 0 ? '−' : '';
+                                const abs = Math.abs(v);
+                                const isTime = /time|duration|active/i.test(
+                                  d.statType || ''
+                                );
+                                const val = isTime
+                                  ? `${abs}s`
+                                  : abs % 1 === 0
+                                    ? abs.toFixed(0)
+                                    : abs.toFixed(1);
+                                const label = (d.statType || '')
+                                  .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+                                  .replace(/[_\-]+/g, ' ')
+                                  .trim()
+                                  .replace(/^./, (c) => c.toUpperCase());
+                                return (
+                                  <li
+                                    key={`${d.statType}-${i}`}
+                                    className={
+                                      v >= 0 ? 'text-green-300' : 'text-red-300'
+                                    }
+                                  >
+                                    {`${sign}${val} ${label}`}
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          ) : (
+                            <div className="text-xs text-purple-300/70">
+                              {keystoneRune?.shortDesc?.replace(
+                                /<[^>]*>/g,
+                                ''
+                              ) || 'No description available'}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+            {/* Minor Runes - 3 rows */}
+            <div className="space-y-4">
+              {primaryStyle?.selections.slice(1).map((selection, idx) => {
+                const rune = getRuneById(selection.perk);
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-4 rounded-lg border border-white/10 bg-white/5 p-3 transition-colors hover:border-white/20 hover:bg-white/10"
+                  >
+                    <div className="shrink-0">
+                      <RuneIcon runeId={selection.perk} size="md" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="mb-1 text-sm font-medium text-white">
+                        {rune?.name || 'Unknown Rune'}
+                      </div>
+                      <div className="space-y-1">
+                        {/* Multi-var metrics */}
+                        {(() => {
+                          const metrics = getAllRuneVarInfos(
+                            selection.perk,
+                            {
+                              var1: selection.var1,
+                              var2: selection.var2,
+                              var3: selection.var3,
+                            },
+                            { includeRawUnknown: false }
+                          );
+                          return metrics.length ? (
+                            <ul className="space-y-0.5 text-xs text-amber-300">
+                              {metrics.map((m) => (
+                                <li key={m.varKey + m.label}>
+                                  • {m.formatted}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null;
+                        })()}
+
+                        {/* Show detailed stats from runeDetailsByRuneId */}
+                        {runeDetailsByRuneId?.[selection.perk]?.length ? (
+                          <ul className="space-y-0.5 text-xs text-green-300">
+                            {runeDetailsByRuneId[selection.perk]!.slice(
+                              0,
+                              3
+                            ).map((d, i) => {
+                              const v = Number(d.value ?? 0);
+                              const sign = v > 0 ? '+' : v < 0 ? '−' : '';
+                              const abs = Math.abs(v);
+                              const isTime = /time|duration|active/i.test(
+                                d.statType || ''
+                              );
+                              const val = isTime
+                                ? `${abs}s`
+                                : abs % 1 === 0
+                                  ? abs.toFixed(0)
+                                  : abs.toFixed(1);
+                              const label = (d.statType || '')
+                                .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+                                .replace(/[_\-]+/g, ' ')
+                                .trim()
+                                .replace(/^./, (c) => c.toUpperCase());
+                              return (
+                                <li
+                                  key={`${selection.perk}-${d.statType}-${i}`}
+                                  className={
+                                    v >= 0 ? 'text-green-300' : 'text-red-300'
+                                  }
+                                >
+                                  {`${sign}${val} ${label}`}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        ) : null}
+
+                        {/* Show description only if no other data */}
+                        {!runeDetailsByRuneId?.[selection.perk]?.length &&
+                          (() => {
+                            const hasVarValues =
+                              selection.var1 > 0 ||
+                              selection.var2 > 0 ||
+                              selection.var3 > 0;
+                            return !hasVarValues ? (
+                              <div className="text-xs text-white/60">
+                                {rune?.shortDesc
+                                  ?.replace(/<[^>]*>/g, '')
+                                  .slice(0, 100) || 'No description available'}
+                              </div>
+                            ) : null;
+                          })()}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <span className="rounded-md border border-purple-500/30 bg-purple-500/10 px-2 py-0.5 text-xs text-purple-300">
-            Primary
-          </span>
+
+          {/* Secondary Rune Tree */}
+          {secondaryStyle?.selections?.length ? (
+            <div className="rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-900/20 via-black/40 to-black/20 p-6 shadow-lg shadow-blue-500/10 backdrop-blur-sm">
+              {/* Tree Header */}
+              <div className="mb-6 flex items-center gap-3 border-b border-blue-500/20 pb-4">
+                {secondaryTree && (
+                  <>
+                    <div className="rounded-lg border border-blue-500/40 bg-blue-500/10 p-2">
+                      <RuneTreeIcon treeId={secondaryTree.id} size="sm" />
+                    </div>
+                    <div>
+                      <div className="text-base font-bold text-white">
+                        {secondaryTree.name}
+                      </div>
+                      <div className="text-xs text-blue-300">
+                        Secondary Tree
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Secondary Runes - 2 selections */}
+              <div className="space-y-3">
+                {secondaryStyle.selections.map((selection, index) => {
+                  const rune = getRuneById(selection.perk);
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-start gap-4 rounded-lg border border-white/10 bg-white/5 p-3 transition-colors hover:border-white/20 hover:bg-white/10"
+                    >
+                      <div className="shrink-0">
+                        <RuneIcon runeId={selection.perk} size="sm" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="mb-1 text-sm font-medium text-white">
+                          {rune?.name || 'Unknown Rune'}
+                        </div>
+                        <div className="space-y-1">
+                          {/* Multi-var metrics */}
+                          {(() => {
+                            const metrics = getAllRuneVarInfos(
+                              selection.perk,
+                              {
+                                var1: selection.var1,
+                                var2: selection.var2,
+                                var3: selection.var3,
+                              },
+                              { includeRawUnknown: false }
+                            );
+                            return metrics.length ? (
+                              <ul className="space-y-0.5 text-xs text-amber-300">
+                                {metrics.map((m) => (
+                                  <li key={m.varKey + m.label}>
+                                    • {m.formatted}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : null;
+                          })()}
+
+                          {/* Show detailed stats from runeDetailsByRuneId */}
+                          {runeDetailsByRuneId?.[selection.perk]?.length ? (
+                            <ul className="space-y-0.5 text-xs text-green-300">
+                              {runeDetailsByRuneId[selection.perk]!.slice(
+                                0,
+                                3
+                              ).map((d, i) => {
+                                const v = Number(d.value ?? 0);
+                                const sign = v > 0 ? '+' : v < 0 ? '−' : '';
+                                const abs = Math.abs(v);
+                                const isTime = /time|duration|active/i.test(
+                                  d.statType || ''
+                                );
+                                const val = isTime
+                                  ? `${abs}s`
+                                  : abs % 1 === 0
+                                    ? abs.toFixed(0)
+                                    : abs.toFixed(1);
+                                const label = (d.statType || '')
+                                  .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+                                  .replace(/[_\-]+/g, ' ')
+                                  .trim()
+                                  .replace(/^./, (c) => c.toUpperCase());
+                                return (
+                                  <li
+                                    key={`${selection.perk}-${d.statType}-${i}`}
+                                    className={
+                                      v >= 0 ? 'text-green-300' : 'text-red-300'
+                                    }
+                                  >
+                                    {`${sign}${val} ${label}`}
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          ) : null}
+
+                          {/* Show description only if no other data */}
+                          {!runeDetailsByRuneId?.[selection.perk]?.length &&
+                            (() => {
+                              const hasVarValues =
+                                selection.var1 > 0 ||
+                                selection.var2 > 0 ||
+                                selection.var3 > 0;
+                              return !hasVarValues ? (
+                                <div className="text-xs text-white/60">
+                                  {rune?.shortDesc
+                                    ?.replace(/<[^>]*>/g, '')
+                                    .slice(0, 100) ||
+                                    'No description available'}
+                                </div>
+                              ) : null;
+                            })()}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
         </div>
 
-        {/* Keystone row */}
-        <div className="mb-4">
-          {primaryStyle?.selections?.[0] && (
-            <div className="flex items-start gap-3">
-              <div className="flex flex-col items-center gap-1">
-                <RuneIcon
-                  runeId={primaryStyle.selections[0].perk}
-                  size="keystone42"
-                  variant="keystone"
-                  className="shrink-0"
+        {/* RIGHT: Stat Shards Section */}
+        <div className="rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-900/20 via-black/40 to-black/20 p-6 shadow-lg shadow-amber-500/10 backdrop-blur-sm">
+          <div className="mb-6 border-b border-amber-500/20 pb-4">
+            <div className="text-lg font-bold text-white">Stat Shards</div>
+            <div className="text-xs text-amber-300">Bonus Stats</div>
+          </div>
+
+          <div className="space-y-4">
+            {/* Offense Shard */}
+            <div className="rounded-lg border border-orange-500/30 bg-gradient-to-br from-orange-900/20 to-orange-900/10 p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-orange-400">
+                  Offense
+                </span>
+                <StatShardIcon
+                  statShardId={perks.statPerks.offense}
+                  size="shard24"
                 />
-                <div className="text-xs text-purple-300">Keystone</div>
               </div>
-              {/* Rune Details for Keystone */}
-              {runeDetailsByRuneId?.[primaryStyle.selections[0].perk]
-                ?.length ? (
-                <div className="flex-1">
-                  {/* Inline lightweight list without importing to avoid circular deps */}
-                  <ul className="w-full space-y-1 rounded-md border border-white/10 bg-white/5 p-2 text-[11px] text-white/80">
-                    {runeDetailsByRuneId[
-                      primaryStyle.selections[0].perk
-                    ]!.slice(0, 6).map((d, i) => {
-                      const v = Number(d.value ?? 0);
-                      const sign = v > 0 ? '+' : v < 0 ? '−' : '';
-                      const abs = Math.abs(v);
-                      const isTime = /time|duration|active/i.test(
-                        d.statType || ''
-                      );
-                      const val = isTime
-                        ? `${abs}s`
-                        : abs % 1 === 0
-                          ? abs.toFixed(0)
-                          : abs.toFixed(1);
-                      const label = (d.statType || '')
-                        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-                        .replace(/[_\-]+/g, ' ')
-                        .trim()
-                        .replace(/^./, (c) => c.toUpperCase());
-                      return (
-                        <li
-                          key={`${d.statType}-${i}`}
-                          className={
-                            v >= 0 ? 'text-green-300' : 'text-red-300'
-                          }
-                        >
-                          {`${sign}${val} ${label}`}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ) : null}
-            </div>
-          )}
-        </div>
-
-        {/* Minor runes grid (3 remaining selections) */}
-        <div className="grid grid-cols-3 gap-2">
-          {primaryStyle?.selections.slice(1).map((selection, idx) => (
-            <div
-              key={idx}
-              className="flex flex-col items-stretch gap-1 rounded-md border border-white/10 bg-white/5 p-1.5"
-            >
-              <div className="flex items-center justify-center">
-                <RuneIcon runeId={selection.perk} size="minor28" />
+              <div className="text-sm font-medium text-orange-200">
+                {STAT_SHARDS[perks.statPerks.offense]?.name || 'Unknown'}
               </div>
-              {runeDetailsByRuneId?.[selection.perk]?.length ? (
-                <ul className="mt-1 w-full space-y-0.5 rounded-md border border-white/10 bg-black/20 p-1.5 text-[11px] text-white/80">
-                  {runeDetailsByRuneId[selection.perk]!.slice(0, 4).map(
-                    (d, i) => {
-                      const v = Number(d.value ?? 0);
-                      const sign = v > 0 ? '+' : v < 0 ? '−' : '';
-                      const abs = Math.abs(v);
-                      const isTime = /time|duration|active/i.test(
-                        d.statType || ''
-                      );
-                      const val = isTime
-                        ? `${abs}s`
-                        : abs % 1 === 0
-                          ? abs.toFixed(0)
-                          : abs.toFixed(1);
-                      const label = (d.statType || '')
-                        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-                        .replace(/[_\-]+/g, ' ')
-                        .trim()
-                        .replace(/^./, (c) => c.toUpperCase());
-                      return (
-                        <li
-                          key={`${selection.perk}-${d.statType}-${i}`}
-                          className={
-                            v >= 0 ? 'text-green-300' : 'text-red-300'
-                          }
-                        >
-                          {`${sign}${val} ${label}`}
-                        </li>
-                      );
-                    }
-                  )}
-                </ul>
-              ) : null}
-            </div>
-          ))}
-        </div>
-
-        {/* Secondary Runes from Secondary Tree (if available) - displayed inline */}
-        {secondaryStyle?.selections?.length ? (
-          <div className="mt-4 border-t border-white/10 pt-4">
-            <div className="mb-2 flex items-center gap-2">
-              {secondaryTree && (
-                <RuneTreeIcon treeId={secondaryTree.id} size="xs" />
-              )}
-              <span className="text-xs text-blue-300">
-                {secondaryTree?.name || 'Secondary'}
-              </span>
-            </div>
-            <div className="flex gap-2">
-              {secondaryStyle.selections.map((selection, index) => (
-                <div key={index} className="flex items-center">
-                  <RuneIcon runeId={selection.perk} size="sm" />
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : null}
-      </div>
-
-      {/* Stat Shards Section */}
-      <div className="rounded-lg border border-amber-500/20 bg-black/20 p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <span className="text-sm font-medium text-white">Stat Shards</span>
-          <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-300">
-            Bonuses
-          </span>
-        </div>
-
-        <div className="space-y-4">
-          {/* Offense Shard */}
-          <div className="flex items-center gap-3 rounded-md border border-orange-500/20 bg-orange-500/5 p-3">
-            <StatShardIcon 
-              statShardId={perks.statPerks.offense} 
-              size="shard24" 
-              className="shrink-0"
-            />
-            <div className="flex-1">
-              <div className="text-xs font-medium text-orange-300">Offense</div>
-              <div className="text-xs text-orange-200/80">
-                {/* You can add stat shard descriptions here if available */}
-                Primary offensive bonus
+              <div className="mt-1 text-xs text-orange-300/80">
+                {STAT_SHARDS[perks.statPerks.offense]?.description ||
+                  'No description'}
               </div>
             </div>
-          </div>
 
-          {/* Flex Shard */}
-          <div className="flex items-center gap-3 rounded-md border border-purple-500/20 bg-purple-500/5 p-3">
-            <StatShardIcon 
-              statShardId={perks.statPerks.flex} 
-              size="shard24" 
-              className="shrink-0"
-            />
-            <div className="flex-1">
-              <div className="text-xs font-medium text-purple-300">Flex</div>
-              <div className="text-xs text-purple-200/80">
-                Adaptive bonus
+            {/* Flex Shard */}
+            <div className="rounded-lg border border-purple-500/30 bg-gradient-to-br from-purple-900/20 to-purple-900/10 p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-purple-400">
+                  Flex
+                </span>
+                <StatShardIcon
+                  statShardId={perks.statPerks.flex}
+                  size="shard24"
+                />
+              </div>
+              <div className="text-sm font-medium text-purple-200">
+                {STAT_SHARDS[perks.statPerks.flex]?.name || 'Unknown'}
+              </div>
+              <div className="mt-1 text-xs text-purple-300/80">
+                {STAT_SHARDS[perks.statPerks.flex]?.description ||
+                  'No description'}
               </div>
             </div>
-          </div>
 
-          {/* Defense Shard */}
-          <div className="flex items-center gap-3 rounded-md border border-green-500/20 bg-green-500/5 p-3">
-            <StatShardIcon 
-              statShardId={perks.statPerks.defense} 
-              size="shard24" 
-              className="shrink-0"
-            />
-            <div className="flex-1">
-              <div className="text-xs font-medium text-green-300">Defense</div>
-              <div className="text-xs text-green-200/80">
-                Defensive bonus
+            {/* Defense Shard */}
+            <div className="rounded-lg border border-green-500/30 bg-gradient-to-br from-green-900/20 to-green-900/10 p-4">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-green-400">
+                  Defense
+                </span>
+                <StatShardIcon
+                  statShardId={perks.statPerks.defense}
+                  size="shard24"
+                />
+              </div>
+              <div className="text-sm font-medium text-green-200">
+                {STAT_SHARDS[perks.statPerks.defense]?.name || 'Unknown'}
+              </div>
+              <div className="mt-1 text-xs text-green-300/80">
+                {STAT_SHARDS[perks.statPerks.defense]?.description ||
+                  'No description'}
               </div>
             </div>
           </div>

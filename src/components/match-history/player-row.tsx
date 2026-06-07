@@ -3,9 +3,16 @@
 import { ChampionIcon } from '@/components/ui/datadragon-image';
 import { ItemSlots } from './item-slots';
 import { SummonerSpells } from './summoner-spells';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
-import { DetailedMatchParticipant, EnhancedMatchParticipant } from '@/lib/types';
+import {
+  DetailedMatchParticipant,
+  EnhancedMatchParticipant,
+} from '@/lib/types';
 import { formatNumber } from '@/lib/utils';
 
 interface PlayerRowProps {
@@ -15,14 +22,16 @@ interface PlayerRowProps {
   className?: string;
 }
 
-export function PlayerRow({ 
-  participant, 
-  isCurrentUser = false, 
+export function PlayerRow({
+  participant,
+  isCurrentUser = false,
   compact = false,
-  className = '' 
+  className = '',
 }: PlayerRowProps) {
   // Helper function to get display name with proper format
-  const getDisplayName = (participant: DetailedMatchParticipant | EnhancedMatchParticipant): string => {
+  const getDisplayName = (
+    participant: DetailedMatchParticipant | EnhancedMatchParticipant
+  ): string => {
     const enhanced = participant as EnhancedMatchParticipant;
     if (enhanced.riotIdName) {
       return enhanced.riotIdName;
@@ -31,19 +40,25 @@ export function PlayerRow({
   };
 
   // Helper functions to handle property differences between types
-  const getLevel = (participant: DetailedMatchParticipant | EnhancedMatchParticipant): number => {
+  const getLevel = (
+    participant: DetailedMatchParticipant | EnhancedMatchParticipant
+  ): number => {
     const enhanced = participant as EnhancedMatchParticipant;
     const detailed = participant as DetailedMatchParticipant;
     return enhanced.champLevel || detailed.level || 1;
   };
 
-  const getSpell1Id = (participant: DetailedMatchParticipant | EnhancedMatchParticipant): number => {
+  const getSpell1Id = (
+    participant: DetailedMatchParticipant | EnhancedMatchParticipant
+  ): number => {
     const enhanced = participant as EnhancedMatchParticipant;
     const detailed = participant as DetailedMatchParticipant;
     return enhanced.spell1Id || detailed.summoner1Id || 0;
   };
 
-  const getSpell2Id = (participant: DetailedMatchParticipant | EnhancedMatchParticipant): number => {
+  const getSpell2Id = (
+    participant: DetailedMatchParticipant | EnhancedMatchParticipant
+  ): number => {
     const enhanced = participant as EnhancedMatchParticipant;
     const detailed = participant as DetailedMatchParticipant;
     return enhanced.spell2Id || detailed.summoner2Id || 0;
@@ -53,13 +68,18 @@ export function PlayerRow({
   const level = getLevel(participant);
   const spell1Id = getSpell1Id(participant);
   const spell2Id = getSpell2Id(participant);
-  const kda = participant.deaths > 0 
-    ? ((participant.kills + participant.assists) / participant.deaths).toFixed(2)
-    : 'Perfect';
-  
-  const kdaRatio = participant.deaths > 0 
-    ? (participant.kills + participant.assists) / participant.deaths 
-    : 99;
+  const kda =
+    participant.deaths > 0
+      ? (
+          (participant.kills + participant.assists) /
+          participant.deaths
+        ).toFixed(2)
+      : 'Perfect';
+
+  const kdaRatio =
+    participant.deaths > 0
+      ? (participant.kills + participant.assists) / participant.deaths
+      : 99;
 
   const getKDAColor = (ratio: number) => {
     if (ratio >= 3) return 'text-green-400';
@@ -74,20 +94,28 @@ export function PlayerRow({
 
   if (compact) {
     return (
-      <div className={`flex items-center gap-2 py-1 px-2 rounded ${isCurrentUser ? 'bg-purple-500/10 border border-purple-500/20' : 'bg-black/20'} ${className}`}>
+      <div
+        className={`flex items-center gap-2 rounded px-2 py-1 ${isCurrentUser ? 'border border-purple-500/20 bg-purple-500/10' : 'bg-black/20'} ${className}`}
+      >
         {/* Champion */}
         <ChampionIcon championId={participant.championName} size="xs" />
-        
+
         {/* Player name */}
-        <div className="flex-1 min-w-0">
-          <span className={`text-sm truncate ${isCurrentUser ? 'text-purple-300 font-medium' : 'text-white/80'}`}>
+        <div className="min-w-0 flex-1">
+          <span
+            className={`truncate text-sm ${isCurrentUser ? 'font-medium text-purple-300' : 'text-white/80'}`}
+          >
             {displayName}
           </span>
         </div>
 
         {/* KDA */}
         <div className={`text-xs font-medium ${getKDAColor(kdaRatio)}`}>
-          {formatKDA(participant.kills, participant.deaths, participant.assists)}
+          {formatKDA(
+            participant.kills,
+            participant.deaths,
+            participant.assists
+          )}
         </div>
 
         {/* Items */}
@@ -97,7 +125,9 @@ export function PlayerRow({
   }
 
   return (
-    <div className={`flex items-center gap-3 py-2 px-3 rounded-lg ${isCurrentUser ? 'bg-purple-500/10 border border-purple-500/20' : 'bg-black/20'} ${className}`}>
+    <div
+      className={`flex items-center gap-3 rounded-lg px-3 py-2 ${isCurrentUser ? 'border border-purple-500/20 bg-purple-500/10' : 'bg-black/20'} ${className}`}
+    >
       {/* Champion */}
       <div className="flex-shrink-0">
         <Tooltip>
@@ -115,7 +145,7 @@ export function PlayerRow({
 
       {/* Summoner Spells */}
       <div className="flex-shrink-0">
-        <SummonerSpells 
+        <SummonerSpells
           spell1Id={spell1Id}
           spell2Id={spell2Id}
           size="sm"
@@ -124,30 +154,35 @@ export function PlayerRow({
       </div>
 
       {/* Player Info */}
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className={`text-sm font-medium truncate ${isCurrentUser ? 'text-purple-300' : 'text-white'}`}>
+          <span
+            className={`truncate text-sm font-medium ${isCurrentUser ? 'text-purple-300' : 'text-white'}`}
+          >
             {displayName}
           </span>
           {isCurrentUser && (
-            <Badge variant="outline" className="text-xs border-purple-500/30 text-purple-400">
+            <Badge
+              variant="outline"
+              className="border-purple-500/30 text-xs text-purple-400"
+            >
               You
             </Badge>
           )}
         </div>
-        <div className="text-xs text-white/60">
-          Level {level}
-        </div>
+        <div className="text-xs text-white/60">Level {level}</div>
       </div>
 
       {/* KDA */}
       <div className="flex-shrink-0 text-center">
         <div className={`text-sm font-bold ${getKDAColor(kdaRatio)}`}>
-          {formatKDA(participant.kills, participant.deaths, participant.assists)}
+          {formatKDA(
+            participant.kills,
+            participant.deaths,
+            participant.assists
+          )}
         </div>
-        <div className="text-xs text-white/60">
-          {kda} KDA
-        </div>
+        <div className="text-xs text-white/60">{kda} KDA</div>
       </div>
 
       {/* Stats */}
@@ -168,9 +203,7 @@ export function PlayerRow({
               <div className="text-sm font-medium text-yellow-400">
                 {participant.visionScore}
               </div>
-              <div className="text-xs text-white/60">
-                Vision
-              </div>
+              <div className="text-xs text-white/60">Vision</div>
             </div>
           </TooltipTrigger>
           <TooltipContent>
@@ -181,11 +214,7 @@ export function PlayerRow({
 
       {/* Items */}
       <div className="flex-shrink-0">
-        <ItemSlots 
-          items={participant.items} 
-          size="md"
-          showTrinketSeparately
-        />
+        <ItemSlots items={participant.items} size="md" showTrinketSeparately />
       </div>
     </div>
   );
@@ -198,15 +227,15 @@ interface PlayersListProps {
   className?: string;
 }
 
-export function PlayersList({ 
-  participants, 
+export function PlayersList({
+  participants,
   currentUserPuuid,
   compact = false,
-  className = ''
+  className = '',
 }: PlayersListProps) {
   // Ensure participants is an array before mapping
   const safeParticipants = Array.isArray(participants) ? participants : [];
-  
+
   return (
     <div className={`space-y-1 ${className}`}>
       {safeParticipants.map((participant) => (
@@ -224,10 +253,12 @@ export function PlayersList({
 /**
  * Helper function to sort participants by role order
  */
-export function sortParticipantsByRole(participants: (DetailedMatchParticipant | EnhancedMatchParticipant)[]): (DetailedMatchParticipant | EnhancedMatchParticipant)[] {
+export function sortParticipantsByRole(
+  participants: (DetailedMatchParticipant | EnhancedMatchParticipant)[]
+): (DetailedMatchParticipant | EnhancedMatchParticipant)[] {
   // This is a simplified role detection - in a real app you'd want more sophisticated role detection
   // const roleOrder = ['TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY'];
-  
+
   // Ensure participants is an array before spreading
   const safeParticipants = Array.isArray(participants) ? participants : [];
   return [...safeParticipants].sort(() => {
@@ -240,17 +271,19 @@ export function sortParticipantsByRole(participants: (DetailedMatchParticipant |
 /**
  * Helper function to get role icon based on summoner spells and champion
  */
-export function getPlayerRole(participant: DetailedMatchParticipant | EnhancedMatchParticipant): string {
+export function getPlayerRole(
+  participant: DetailedMatchParticipant | EnhancedMatchParticipant
+): string {
   // Simplified role detection
   const enhanced = participant as EnhancedMatchParticipant;
   const detailed = participant as DetailedMatchParticipant;
   const spell1 = enhanced.spell1Id || detailed.summoner1Id || 0;
   const spell2 = enhanced.spell2Id || detailed.summoner2Id || 0;
-  
+
   if (spell1 === 11 || spell2 === 11) {
     return 'JUNGLE'; // Has Smite
   }
-  
+
   // This would need more sophisticated logic in a real implementation
   return 'UNKNOWN';
 }

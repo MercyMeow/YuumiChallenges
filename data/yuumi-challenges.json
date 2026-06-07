@@ -1,0 +1,206 @@
+{
+  "categories": {
+    "seasonal": {
+      "name": "Seasonal Challenges",
+      "description": "Time-limited challenges that rotate seasonally"
+    },
+    "color": {
+      "name": "Color Challenges",
+      "description": "Rune and item themed challenges based on color combinations"
+    },
+    "bonus": {
+      "name": "Bonus Challenges",
+      "description": "Special gamemode or unique condition challenges"
+    },
+    "unique": {
+      "name": "Unique Challenges",
+      "description": "One-time achievement challenges with special rewards"
+    },
+    "regular": {
+      "name": "Regular Challenges",
+      "description": "Standard statistical achievement challenges"
+    }
+  },
+  "seasonalChallenges": [
+    {
+      "name": "Thresh's Cat Employee",
+      "requirement": "Harvest at least 1 soul per 3 minutes (0.3/min) with Dark Harvest",
+      "runes": ["Dark Harvest"],
+      "category": "seasonal"
+    },
+    {
+      "name": "Cat Creep",
+      "requirement": "Spot at least 1 enemy per 5 minutes (0.2/min) with Ghost Poro",
+      "runes": ["Ghost Poro"],
+      "category": "seasonal"
+    },
+    {
+      "name": "Hallowed Cat",
+      "requirement": "Complete both Thresh's Cat Employee and Cat Creep challenges in a single game",
+      "runes": ["Dark Harvest", "Ghost Poro"],
+      "category": "seasonal"
+    }
+  ],
+  "colorChallenges": [
+    {
+      "name": "Red Cat",
+      "requirement": "With domination primary tree, get 5 kills with red items",
+      "runes": ["Domination tree"],
+      "items": ["red items"],
+      "category": "color"
+    },
+    {
+      "name": "Garfield",
+      "requirement": "With red and yellow runes, get 25 kills + assists with orange items",
+      "runes": ["red runes", "yellow runes"],
+      "items": ["orange items"],
+      "category": "color"
+    },
+    {
+      "name": "Yellow Cat",
+      "requirement": "Yellow items with yellow runes, get at least 1 vision score per minute",
+      "runes": ["yellow runes"],
+      "items": ["yellow items"],
+      "category": "color"
+    },
+    {
+      "name": "Green Cat",
+      "requirement": "Green items with green rune, do at least 7,000 healing",
+      "runes": ["green rune"],
+      "items": ["green items"],
+      "category": "color"
+    },
+    {
+      "name": "Blue Cat",
+      "requirement": "Blue items with blue runes, get at least 20 CC score",
+      "runes": ["blue runes"],
+      "items": ["blue items"],
+      "category": "color"
+    },
+    {
+      "name": "Purple Cat",
+      "requirement": "With blue and red runes, get 5 kills with purple items",
+      "runes": ["blue runes", "red runes"],
+      "items": ["purple items"],
+      "category": "color"
+    }
+  ],
+  "bonusChallenges": [
+    {
+      "name": "CATaclysm",
+      "requirement": "Get at least 5 Cho'Gath stacks in Ultimate Spellbook",
+      "runes": ["Ultimate Spellbook"],
+      "category": "bonus"
+    },
+    {
+      "name": "Soul Healer Yuumi",
+      "requirement": "50,000 ally healing in ARENA",
+      "gamemode": "ARENA",
+      "category": "bonus"
+    },
+    {
+      "name": "Soul Fighter Yuumi",
+      "requirement": "50,000 damage in ARENA",
+      "gamemode": "ARENA",
+      "category": "bonus"
+    },
+    {
+      "name": "Yuumi Top Diff",
+      "requirement": "Have more Kills+Assists-Deaths than the enemy top laner",
+      "category": "bonus"
+    },
+    {
+      "name": "Jungle Cat",
+      "requirement": "Go jungle and kill at least 2 dragons",
+      "category": "bonus"
+    },
+    {
+      "name": "TFT Yuumi Carry",
+      "requirement": "Full build Yuumi, maintain winstreak condition",
+      "gamemode": "TFT",
+      "category": "bonus"
+    }
+  ],
+  "uniqueChallenges": [
+    {
+      "name": "Little Pakiti",
+      "requirement": "Beat the record of fastest jungle clear in practice tool",
+      "gamemode": "Practice Tool",
+      "category": "unique"
+    },
+    {
+      "name": "Bopped 'em All",
+      "requirement": "Get a Penta Kill as Yuumi",
+      "category": "unique"
+    },
+    {
+      "name": "Claws Out",
+      "requirement": "Deal at least 10,000 damage as Full AD Yuumi (not support role)",
+      "build": "Full AD",
+      "category": "unique"
+    },
+    {
+      "name": "Post Scratched",
+      "requirement": "Deal at least 5,000 damage to towers",
+      "category": "unique"
+    },
+    {
+      "name": "Rainbow Yuumi",
+      "requirement": "Complete all color challenges",
+      "category": "unique"
+    }
+  ],
+  "regularChallenges": [
+    {
+      "name": "Yuumi of All Trades",
+      "requirement": "Win all challenge roles below",
+      "category": "regular"
+    },
+    {
+      "name": "Zoomies 2",
+      "requirement": "Reach at least 7,000 shielding",
+      "category": "regular"
+    },
+    {
+      "name": "Catnip Acquired",
+      "requirement": "Reach at least 12,000 healing",
+      "category": "regular"
+    },
+    {
+      "name": "Out on the Prowl",
+      "requirement": "Play AP Yuumi and get at least 7 kills",
+      "build": "AP Yuumi",
+      "category": "regular"
+    },
+    {
+      "name": "Yuumi Diff",
+      "requirement": "Have at least 10 more Kills + Assists - Deaths than the enemy support",
+      "category": "regular"
+    },
+    {
+      "name": "Brightest Light",
+      "requirement": "Get at least 1.75 vision score per minute",
+      "category": "regular"
+    },
+    {
+      "name": "Victorious Yuumi",
+      "requirement": "Maintain winstreak of 5 games or higher",
+      "category": "regular"
+    },
+    {
+      "name": "Cat Got Your Tongue",
+      "requirement": "Have CC Score of 20 or higher",
+      "category": "regular"
+    },
+    {
+      "name": "Top Purrcentile",
+      "requirement": "Finish all support item's quests before 14 minutes",
+      "category": "regular"
+    },
+    {
+      "name": "We Got This",
+      "requirement": "Get at least 1.20 Kills+Assists per minute",
+      "category": "regular"
+    }
+  ]
+}

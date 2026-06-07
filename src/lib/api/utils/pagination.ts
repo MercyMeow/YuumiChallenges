@@ -19,7 +19,7 @@ export function getPaginationParams(request: NextRequest): PaginationParams {
   const { searchParams } = new URL(request.url);
   const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
   const offset = Math.max(parseInt(searchParams.get('offset') || '0'), 0);
-  
+
   return { limit, offset };
 }
 
@@ -39,6 +39,8 @@ export function createPaginatedResponse<T>(
   };
 }
 
-export function applyPagination<T extends { range: (from: number, to: number) => T }>(query: T, params: PaginationParams): T {
+export function applyPagination<
+  T extends { range: (from: number, to: number) => T },
+>(query: T, params: PaginationParams): T {
   return query.range(params.offset, params.offset + params.limit - 1);
 }

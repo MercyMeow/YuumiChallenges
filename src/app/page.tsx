@@ -12,8 +12,6 @@ import {
   DataDragonImage,
 } from '@/components/ui/datadragon-image';
 import { ItemSlot } from '@/components/match-history/item-slots';
-import RunePageCard from '@/components/RunePageCard';
-import { yuumiRunePages1518 } from '@/lib/runes/yuumi';
 import { BEST_ITEMS } from '@/lib/builds/yuumi';
 import {
   SUPPORT_CHAMPIONS,
@@ -29,8 +27,8 @@ import {
   Settings,
   Star,
   Zap,
-  Heart,
 } from 'lucide-react';
+import { MythicShopRotationPanel } from '@/components/mythic-shop/MythicShopRotationPanel';
 
 const PATCH = '15.18';
 
@@ -53,9 +51,9 @@ interface Build {
     shards: string[];
   };
   items: {
-    starter: { id: number; name: string; reason: string }[];
-    core: { id: number; name: string; reason: string }[];
-    situational: { id: number; name: string; reason: string }[];
+    starter: ReadonlyArray<{ id: number; name: string; reason: string }>;
+    core: ReadonlyArray<{ id: number; name: string; reason: string }>;
+    situational: ReadonlyArray<{ id: number; name: string; reason: string }>;
   };
   skillOrder: {
     priority: string;
@@ -709,11 +707,20 @@ export default function YuumiGuide() {
           </TabsContent>
         </Tabs>
 
+        <div className="mt-8">
+          <MythicShopRotationPanel />
+        </div>
+
         {/* Footer */}
         <div className="mt-12 flex items-center justify-between text-xs text-white/50">
           <span>Yuumi Guide • Patch {currentPatch} • Data from OP.GG, U.GG, LoLalytics</span>
           <div className="flex items-center gap-4">
-            <Link href="/gallery" className="hover:text-white hover:underline">Rule GIF Gallery</Link>
+            <Link href="/match" className="hover:text-white hover:underline">
+              Match lookup
+            </Link>
+            <Link href="/gallery" className="hover:text-white hover:underline">
+              Rule GIF Gallery
+            </Link>
           </div>
         </div>
       </div>

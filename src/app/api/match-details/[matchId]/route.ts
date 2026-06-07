@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { readFile } from 'fs/promises';
+import path from 'path';
 import { RiotAPI } from '@/lib/apis/riot';
 import {
   getMatchCache,
@@ -11,8 +13,6 @@ import {
   DetailedMatchParticipant,
   isDetailedMatchData,
 } from '@/lib/types';
-import { readFile } from 'fs/promises';
-import path from 'path';
 
 type TimelinePayload = unknown;
 
@@ -85,7 +85,7 @@ export async function GET(
 
     const riotApiKey = process.env.RIOT_API_KEY;
 
-    // Check cache first (works for both example and live)
+    // Check cache first
     const cacheKey = generateCacheKey(CACHE_KEYS.MATCH_DETAILS, matchId);
     const cachedData = cache.get<MatchCacheEntry>(cacheKey);
     if (cachedData) {
@@ -97,7 +97,6 @@ export async function GET(
       });
     }
 
-    // If example mode, read from root JSON files and return
     if (shouldUseExampleData(request, riotApiKey)) {
       try {
         const rootDir = process.cwd();
@@ -119,7 +118,6 @@ export async function GET(
           ? (JSON.parse(timelineRaw) as TimelinePayload)
           : null;
 
-        // Normalize like live code does
         normalizeParticipants(matchData);
 
         const dataToCache = { matchData, timelineData };
@@ -128,7 +126,7 @@ export async function GET(
         return NextResponse.json({
           success: true,
           ...dataToCache,
-          matchId: matchData?.metadata?.matchId ?? matchId,
+          matchId: matchData.metadata?.matchId ?? matchId,
           cached: false,
           example: true,
         });
@@ -141,7 +139,6 @@ export async function GET(
       }
     }
 
-    // Live mode requires API key
     if (!riotApiKey) {
       return NextResponse.json(
         { error: 'Riot API key not configured' },

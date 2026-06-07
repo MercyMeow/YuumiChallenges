@@ -11,134 +11,136 @@
     --radius-md: 0.375rem;
     --radius-lg: 0.5rem;
     --radius-xl: 0.75rem;
-    
+
     /* Sidebar */
     --sidebar-width: 16rem;
     --sidebar-width-icon: 3rem;
-    
+
     /* Magical Dark Theme Colors */
     /* Base colors - transparent/semi-transparent for magical background visibility */
-    --background: 0 0% 0% / 0;           /* Fully transparent */
-    --foreground: 0.96 0.01 260;         /* Bright white text */
-    
+    --background: 0 0% 0% / 0; /* Fully transparent */
+    --foreground: 0.96 0.01 260; /* Bright white text */
+
     /* Card surfaces - semi-transparent with glassmorphism */
-    --card: 0 0% 0% / 0.2;               /* Black with 20% opacity */
+    --card: 0 0% 0% / 0.2; /* Black with 20% opacity */
     --card-foreground: 0.96 0.01 260;
-    
+
     /* Popover/Modal - slightly more opaque */
     --popover: 0 0% 0% / 0.3;
     --popover-foreground: 0.96 0.01 260;
-    
+
     /* Primary brand colors */
-    --primary: 0.72 0.20 270;            /* Vibrant purple */
+    --primary: 0.72 0.2 270; /* Vibrant purple */
     --primary-foreground: 0.98 0.01 260;
-    
+
     /* Secondary colors */
-    --secondary: 0.72 0.15 280 / 0.2;    /* Purple tinted semi-transparent */
-    --secondary-foreground: 0.90 0.01 260;
-    
+    --secondary: 0.72 0.15 280 / 0.2; /* Purple tinted semi-transparent */
+    --secondary-foreground: 0.9 0.01 260;
+
     /* Muted colors */
-    --muted: 0.70 0.10 270 / 0.15;      /* Muted purple semi-transparent */
-    --muted-foreground: 0.70 0.05 260;
-    
+    --muted: 0.7 0.1 270 / 0.15; /* Muted purple semi-transparent */
+    --muted-foreground: 0.7 0.05 260;
+
     /* Accent colors */
-    --accent: 0.68 0.20 250 / 0.2;       /* Blue tinted semi-transparent */
+    --accent: 0.68 0.2 250 / 0.2; /* Blue tinted semi-transparent */
     --accent-foreground: 0.96 0.01 260;
-    
+
     /* Destructive/Error colors */
     --destructive: 0.62 0.25 25;
     --destructive-foreground: 0.98 0.01 260;
-    
+
     /* Border & Input */
-    --border: 0.72 0.20 270 / 0.2;       /* Purple tinted border */
-    --input: 0 0% 0% / 0.2;              /* Semi-transparent black */
-    --ring: 0.72 0.20 270;
-    
+    --border: 0.72 0.2 270 / 0.2; /* Purple tinted border */
+    --input: 0 0% 0% / 0.2; /* Semi-transparent black */
+    --ring: 0.72 0.2 270;
+
     /* Chart/Data colors */
-    --chart-1: 0.72 0.20 270;    /* Purple */
-    --chart-2: 0.65 0.20 155;    /* Green */
-    --chart-3: 0.75 0.18 85;     /* Yellow */
-    --chart-4: 0.65 0.22 320;    /* Pink */
-    --chart-5: 0.68 0.20 35;     /* Orange */
-    
+    --chart-1: 0.72 0.2 270; /* Purple */
+    --chart-2: 0.65 0.2 155; /* Green */
+    --chart-3: 0.75 0.18 85; /* Yellow */
+    --chart-4: 0.65 0.22 320; /* Pink */
+    --chart-5: 0.68 0.2 35; /* Orange */
+
     /* Sidebar specific - semi-transparent */
     --sidebar: 0 0% 0% / 0.2;
-    --sidebar-foreground: 0.90 0.01 260;
-    --sidebar-primary: 0.72 0.20 270;
+    --sidebar-foreground: 0.9 0.01 260;
+    --sidebar-primary: 0.72 0.2 270;
     --sidebar-primary-foreground: 0.98 0.01 260;
     --sidebar-accent: 0.72 0.15 280 / 0.2;
     --sidebar-accent-foreground: 0.96 0.01 260;
-    --sidebar-border: 0.72 0.20 270 / 0.2;
-    --sidebar-ring: 0.72 0.20 270;
-    
+    --sidebar-border: 0.72 0.2 270 / 0.2;
+    --sidebar-ring: 0.72 0.2 270;
+
     /* Landing page gradients - magical colors */
-    --landing-bg-from: 0.08 0.05 285;    /* Deep purple-blue */
-    --landing-bg-via: 0.06 0.08 250;     /* Dark blue */
-    --landing-bg-to: 0.08 0.06 270;      /* Purple-indigo */
-    --landing-text-primary: 0.90 0.04 285;
-    --landing-text-secondary: 0.80 0.06 250;
-    
+    --landing-bg-from: 0.08 0.05 285; /* Deep purple-blue */
+    --landing-bg-via: 0.06 0.08 250; /* Dark blue */
+    --landing-bg-to: 0.08 0.06 270; /* Purple-indigo */
+    --landing-text-primary: 0.9 0.04 285;
+    --landing-text-secondary: 0.8 0.06 250;
+
     /* Yuumi brand colors */
-    --yuumi-purple: 0.70 0.22 285;
-    --yuumi-blue: 0.68 0.20 250;
+    --yuumi-purple: 0.7 0.22 285;
+    --yuumi-blue: 0.68 0.2 250;
     --yuumi-teal: 0.65 0.18 185;
-    --yuumi-pink: 0.72 0.20 340;
-    
+    --yuumi-pink: 0.72 0.2 340;
+
     /* Success, Warning, Info colors */
-    --success: 0.65 0.20 155;
+    --success: 0.65 0.2 155;
     --warning: 0.75 0.18 85;
-    --info: 0.68 0.20 250;
-    
+    --info: 0.68 0.2 250;
+
     /* WCAG AA Compliant Colors for Dark Theme */
     /* These colors have minimum 4.5:1 contrast ratio on dark backgrounds */
-    --accessible-blue: 0.70 0.25 240;      /* #5DADE2 - Light blue for ranks */
-    --accessible-green: 0.72 0.30 150;     /* #58D68D - Light green for wins */
-    --accessible-red: 0.68 0.35 15;        /* #EC7063 - Light red for losses */
-    --accessible-yellow: 0.80 0.25 85;     /* #F7DC6F - Light yellow for warnings */
-    --accessible-orange: 0.75 0.30 45;     /* #F8C471 - Light orange for stats */
-    --accessible-purple: 0.75 0.20 280;    /* #BB8FCE - Light purple for special */
-    --accessible-pink: 0.75 0.25 320;      /* #F1948A - Light pink for vision */
-    --accessible-cyan: 0.75 0.20 185;      /* #7DCEA0 - Light cyan/teal */
-    
+    --accessible-blue: 0.7 0.25 240; /* #5DADE2 - Light blue for ranks */
+    --accessible-green: 0.72 0.3 150; /* #58D68D - Light green for wins */
+    --accessible-red: 0.68 0.35 15; /* #EC7063 - Light red for losses */
+    --accessible-yellow: 0.8 0.25 85; /* #F7DC6F - Light yellow for warnings */
+    --accessible-orange: 0.75 0.3 45; /* #F8C471 - Light orange for stats */
+    --accessible-purple: 0.75 0.2 280; /* #BB8FCE - Light purple for special */
+    --accessible-pink: 0.75 0.25 320; /* #F1948A - Light pink for vision */
+    --accessible-cyan: 0.75 0.2 185; /* #7DCEA0 - Light cyan/teal */
+
     /* High contrast variants for AAA compliance (7:1 ratio) */
-    --high-contrast-blue: 0.75 0.30 240;
+    --high-contrast-blue: 0.75 0.3 240;
     --high-contrast-green: 0.78 0.35 150;
-    --high-contrast-red: 0.75 0.40 15;
-    --high-contrast-yellow: 0.85 0.30 85;
+    --high-contrast-red: 0.75 0.4 15;
+    --high-contrast-yellow: 0.85 0.3 85;
   }
-  
+
   /* Force dark mode */
   html {
     color-scheme: dark;
     /* Ensure html has no background */
     background: transparent;
   }
-  
+
   /* Base styles */
   * {
     @apply border-border;
   }
-  
+
   /* Body - transparent to show magical background */
   body {
     @apply text-foreground antialiased;
     /* Remove any background color to show magical background */
     background: transparent !important;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
     min-height: 100vh;
   }
-  
+
   /* Scrollbar Styling - semi-transparent */
   ::-webkit-scrollbar {
     width: 12px;
     height: 12px;
   }
-  
+
   ::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(4px);
   }
-  
+
   ::-webkit-scrollbar-thumb {
     background: oklch(var(--yuumi-purple) / 0.3);
     backdrop-filter: blur(4px);
@@ -146,11 +148,11 @@
     border: 2px solid transparent;
     background-clip: padding-box;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
     background: oklch(var(--yuumi-purple) / 0.5);
   }
-  
+
   /* Selection */
   ::selection {
     background: oklch(var(--primary) / 0.3);
@@ -166,7 +168,7 @@
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid oklch(var(--yuumi-purple) / 0.2);
   }
-  
+
   .glass-card {
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(16px);
@@ -174,7 +176,7 @@
     border: 1px solid oklch(var(--yuumi-purple) / 0.2);
     box-shadow: 0 8px 32px 0 rgba(147, 51, 234, 0.1);
   }
-  
+
   /* Magical gradient background - the main background for all pages */
   .magical-bg {
     position: fixed;
@@ -182,34 +184,47 @@
     z-index: -10;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, 
-      oklch(var(--landing-bg-from)), 
-      oklch(var(--landing-bg-via)), 
+    background: linear-gradient(
+      135deg,
+      oklch(var(--landing-bg-from)),
+      oklch(var(--landing-bg-via)),
       oklch(var(--landing-bg-to))
     );
     /* Fallback for browsers that don't support OKLCH */
     background: linear-gradient(135deg, #0f0f23, #0a0a1e, #0f0f23);
   }
-  
+
   /* Radial gradient overlays for depth */
   .magical-radial-1 {
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 20% 80%, rgba(147, 51, 234, 0.3) 0%, transparent 50%);
+    background: radial-gradient(
+      circle at 20% 80%,
+      rgba(147, 51, 234, 0.3) 0%,
+      transparent 50%
+    );
   }
-  
+
   .magical-radial-2 {
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.3) 0%, transparent 50%);
+    background: radial-gradient(
+      circle at 80% 20%,
+      rgba(59, 130, 246, 0.3) 0%,
+      transparent 50%
+    );
   }
-  
+
   .magical-radial-3 {
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 40% 40%, rgba(139, 69, 234, 0.2) 0%, transparent 50%);
+    background: radial-gradient(
+      circle at 40% 40%,
+      rgba(139, 69, 234, 0.2) 0%,
+      transparent 50%
+    );
   }
-  
+
   /* Gradient text */
   .gradient-text {
     background: linear-gradient(
@@ -222,27 +237,27 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
-  
+
   /* Glow effects */
   .glow {
-    box-shadow: 
+    box-shadow:
       0 0 20px rgba(147, 51, 234, 0.4),
       0 0 40px rgba(147, 51, 234, 0.3),
       0 0 60px rgba(147, 51, 234, 0.2);
   }
-  
+
   .glow-hover {
     @apply transition-all duration-300;
   }
-  
+
   .glow-hover:hover {
-    box-shadow: 
+    box-shadow:
       0 0 25px rgba(147, 51, 234, 0.5),
       0 0 50px rgba(147, 51, 234, 0.4),
       0 0 75px rgba(147, 51, 234, 0.3);
     transform: translateY(-2px);
   }
-  
+
   /* Modern button base */
   .btn-modern {
     @apply relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5;
@@ -250,48 +265,48 @@
     backdrop-filter: blur(8px);
     border: 1px solid oklch(var(--yuumi-purple) / 0.3);
   }
-  
+
   .btn-modern::before {
     content: '';
     @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent;
     transform: translateX(-100%);
     transition: transform 0.5s;
   }
-  
+
   .btn-modern:hover::before {
     transform: translateX(100%);
   }
-  
+
   /* Card hover effect */
   .card-hover {
     @apply transition-all duration-300 hover:-translate-y-1;
     background: rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(12px);
   }
-  
+
   .card-hover:hover {
     background: rgba(0, 0, 0, 0.3);
-    box-shadow: 
+    box-shadow:
       0 20px 25px -5px rgba(147, 51, 234, 0.3),
       0 10px 10px -5px rgba(147, 51, 234, 0.1);
   }
-  
+
   /* Neon text */
   .neon {
-    text-shadow: 
+    text-shadow:
       0 0 10px rgba(147, 51, 234, 0.8),
       0 0 20px rgba(147, 51, 234, 0.6),
       0 0 40px rgba(147, 51, 234, 0.4),
       0 0 80px rgba(147, 51, 234, 0.2);
   }
-  
+
   /* Animated gradient border */
   .gradient-border {
     @apply relative;
     background: rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(12px);
   }
-  
+
   .gradient-border::before {
     content: '';
     @apply absolute inset-0 rounded-lg p-[1px];
@@ -302,13 +317,13 @@
       oklch(var(--yuumi-teal)),
       oklch(var(--primary))
     );
-    -webkit-mask: 
-      linear-gradient(#fff 0 0) content-box, 
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
       linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
   }
-  
+
   /* Content containers with glassmorphism */
   .content-glass {
     background: rgba(0, 0, 0, 0.2);
@@ -317,243 +332,243 @@
     border: 1px solid oklch(var(--yuumi-purple) / 0.2);
     border-radius: var(--radius-lg);
   }
-  
+
   /* Yuumi color utilities with transparency */
   .bg-yuumi-purple-40 {
     background-color: oklch(var(--yuumi-purple) / 0.4);
   }
-  
+
   .bg-yuumi-blue-40 {
     background-color: oklch(var(--yuumi-blue) / 0.4);
   }
-  
+
   .bg-yuumi-teal-40 {
     background-color: oklch(var(--yuumi-teal) / 0.4);
   }
-  
+
   .bg-yuumi-pink-40 {
     background-color: oklch(var(--yuumi-pink) / 0.4);
   }
-  
+
   .bg-primary-40 {
     background-color: oklch(var(--primary) / 0.4);
   }
-  
+
   /* Shadow utilities */
   .shadow-yuumi-purple {
     box-shadow: 0 10px 40px -10px oklch(var(--yuumi-purple) / 0.4);
   }
-  
+
   .shadow-yuumi-blue {
     box-shadow: 0 10px 40px -10px oklch(var(--yuumi-blue) / 0.4);
   }
-  
+
   .shadow-yuumi-teal {
     box-shadow: 0 10px 40px -10px oklch(var(--yuumi-teal) / 0.4);
   }
-  
+
   .shadow-yuumi-pink {
     box-shadow: 0 10px 40px -10px oklch(var(--yuumi-pink) / 0.4);
   }
-  
+
   .shadow-primary {
     box-shadow: 0 10px 40px -10px oklch(var(--primary) / 0.4);
   }
-  
+
   /* Landing text colors */
   .text-landing-text-primary {
     color: oklch(var(--landing-text-primary));
   }
-  
+
   .text-landing-text-secondary {
     color: oklch(var(--landing-text-secondary));
   }
-  
+
   /* Border utilities */
   .border-yuumi-purple {
     border-color: oklch(var(--yuumi-purple));
   }
-  
+
   .border-yuumi-purple\/30 {
     border-color: oklch(var(--yuumi-purple) / 0.3);
   }
-  
+
   .border-yuumi-purple\/20 {
     border-color: oklch(var(--yuumi-purple) / 0.2);
   }
-  
+
   /* Background utilities with opacity */
   .bg-yuumi-purple\/20 {
     background-color: oklch(var(--yuumi-purple) / 0.2);
   }
-  
+
   .bg-yuumi-purple\/30 {
     background-color: oklch(var(--yuumi-purple) / 0.3);
   }
-  
+
   /* Ensure all Tailwind background utilities respect transparency */
   .bg-background {
     background-color: transparent !important;
   }
-  
+
   .bg-card {
     background-color: rgba(0, 0, 0, 0.2) !important;
     backdrop-filter: blur(12px);
   }
-  
+
   .bg-popover {
     background-color: rgba(0, 0, 0, 0.3) !important;
     backdrop-filter: blur(16px);
   }
-  
+
   .bg-primary {
     background-color: oklch(var(--primary)) !important;
   }
-  
+
   .bg-secondary {
     background-color: oklch(var(--secondary)) !important;
   }
-  
+
   .bg-muted {
     background-color: oklch(var(--muted)) !important;
   }
-  
+
   .bg-accent {
     background-color: oklch(var(--accent)) !important;
   }
-  
+
   .bg-destructive {
     background-color: oklch(var(--destructive)) !important;
   }
-  
+
   /* WCAG Compliant Color Utilities */
   .text-accessible-blue {
     color: oklch(var(--accessible-blue));
   }
-  
+
   .text-accessible-green {
     color: oklch(var(--accessible-green));
   }
-  
+
   .text-accessible-red {
     color: oklch(var(--accessible-red));
   }
-  
+
   .text-accessible-yellow {
     color: oklch(var(--accessible-yellow));
   }
-  
+
   .text-accessible-orange {
     color: oklch(var(--accessible-orange));
   }
-  
+
   .text-accessible-purple {
     color: oklch(var(--accessible-purple));
   }
-  
+
   .ring-accessible-purple {
     --tw-ring-color: oklch(var(--accessible-purple));
   }
-  
+
   .ring-accessible-blue {
     --tw-ring-color: oklch(var(--accessible-blue));
   }
-  
+
   .ring-accessible-yellow {
     --tw-ring-color: oklch(var(--accessible-yellow));
   }
-  
+
   .bg-accessible-blue {
     background-color: oklch(var(--accessible-blue));
   }
-  
+
   .bg-accessible-purple {
     background-color: oklch(var(--accessible-purple));
   }
-  
+
   .bg-accessible-yellow {
     background-color: oklch(var(--accessible-yellow));
   }
-  
+
   .text-accessible-pink {
     color: oklch(var(--accessible-pink));
   }
-  
+
   .text-accessible-cyan {
     color: oklch(var(--accessible-cyan));
   }
-  
+
   /* Background variants */
   .bg-accessible-blue\/20 {
     background-color: oklch(var(--accessible-blue) / 0.2);
   }
-  
+
   .bg-accessible-green\/20 {
     background-color: oklch(var(--accessible-green) / 0.2);
   }
-  
+
   .bg-accessible-red\/20 {
     background-color: oklch(var(--accessible-red) / 0.2);
   }
-  
+
   .bg-accessible-yellow\/20 {
     background-color: oklch(var(--accessible-yellow) / 0.2);
   }
-  
+
   /* Border variants */
   .border-accessible-blue\/30 {
     border-color: oklch(var(--accessible-blue) / 0.3);
   }
-  
+
   .border-accessible-green\/30 {
     border-color: oklch(var(--accessible-green) / 0.3);
   }
-  
+
   .border-accessible-red\/30 {
     border-color: oklch(var(--accessible-red) / 0.3);
   }
-  
+
   /* High contrast variants for AAA compliance */
   .text-high-contrast-blue {
     color: oklch(var(--high-contrast-blue));
   }
-  
+
   .text-high-contrast-green {
     color: oklch(var(--high-contrast-green));
   }
-  
+
   .text-high-contrast-red {
     color: oklch(var(--high-contrast-red));
   }
-  
+
   .text-high-contrast-yellow {
     color: oklch(var(--high-contrast-yellow));
   }
-  
+
   /* Enhanced Focus Indicators for Accessibility */
   .focus-visible-enhanced {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accessible-blue focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+    @apply focus-visible:ring-accessible-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
   }
-  
+
   .focus-card {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accessible-purple focus-visible:ring-offset-2 focus-visible:ring-offset-black transition-all duration-200;
+    @apply focus-visible:ring-accessible-purple transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
   }
-  
+
   .focus-button {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accessible-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+    @apply focus-visible:ring-accessible-yellow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
   }
-  
+
   /* Skip Navigation Link */
   .skip-nav {
-    @apply absolute left-4 top-4 z-50 bg-accessible-blue text-black px-4 py-2 rounded-md font-medium;
+    @apply bg-accessible-blue absolute left-4 top-4 z-50 rounded-md px-4 py-2 font-medium text-black;
     transform: translateY(-100px);
     transition: transform 0.3s;
   }
-  
+
   .skip-nav:focus {
     transform: translateY(0);
   }
-  
+
   /* Reduced Motion Support */
   @media (prefers-reduced-motion: reduce) {
     .animate-float,
@@ -568,7 +583,7 @@
     .animate-magical-orb {
       animation: none;
     }
-    
+
     .transition-all,
     .transition-colors,
     .transition-transform {
@@ -580,199 +595,255 @@
 @layer utilities {
   /* Animation keyframes */
   @keyframes float {
-    0%, 100% { transform: translateY(0) translateX(0); }
-    25% { transform: translateY(-8px) translateX(2px); }
-    50% { transform: translateY(-12px) translateX(-2px); }
-    75% { transform: translateY(-6px) translateX(1px); }
+    0%,
+    100% {
+      transform: translateY(0) translateX(0);
+    }
+    25% {
+      transform: translateY(-8px) translateX(2px);
+    }
+    50% {
+      transform: translateY(-12px) translateX(-2px);
+    }
+    75% {
+      transform: translateY(-6px) translateX(1px);
+    }
   }
-  
+
   @keyframes pulse-glow {
-    0%, 100% { 
+    0%,
+    100% {
       opacity: 0.4;
       filter: blur(0px);
     }
-    50% { 
+    50% {
       opacity: 0.8;
       filter: blur(2px);
     }
   }
-  
+
   @keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
   }
-  
+
   @keyframes gradient-shift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
   }
-  
+
   @keyframes subtle-pulse {
-    0%, 100% { 
+    0%,
+    100% {
       opacity: 0.3;
       transform: scale(1);
     }
-    50% { 
+    50% {
       opacity: 0.6;
       transform: scale(1.1);
     }
   }
-  
+
   @keyframes subtle-float {
-    0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); }
-    33% { transform: translateY(-8px) translateX(3px) rotate(1deg); }
-    66% { transform: translateY(3px) translateX(-3px) rotate(-1deg); }
+    0%,
+    100% {
+      transform: translateY(0) translateX(0) rotate(0deg);
+    }
+    33% {
+      transform: translateY(-8px) translateX(3px) rotate(1deg);
+    }
+    66% {
+      transform: translateY(3px) translateX(-3px) rotate(-1deg);
+    }
   }
-  
+
   @keyframes twinkle {
-    0%, 100% { 
+    0%,
+    100% {
       opacity: 0;
       transform: scale(0.5);
     }
-    50% { 
+    50% {
       opacity: 1;
       transform: scale(1);
     }
   }
-  
+
   @keyframes magical-shift {
-    0%, 100% { 
+    0%,
+    100% {
       transform: scale(1) rotate(0deg);
       filter: hue-rotate(0deg) brightness(1);
     }
-    25% { 
+    25% {
       transform: scale(1.02) rotate(1deg);
       filter: hue-rotate(10deg) brightness(1.1);
     }
-    50% { 
+    50% {
       transform: scale(1.01) rotate(0deg);
       filter: hue-rotate(15deg) brightness(1.05);
     }
-    75% { 
+    75% {
       transform: scale(1.02) rotate(-1deg);
       filter: hue-rotate(5deg) brightness(1.1);
     }
   }
-  
+
   @keyframes magical-shift-reverse {
-    0%, 100% { 
+    0%,
+    100% {
       transform: scale(1) rotate(0deg);
       filter: hue-rotate(0deg) brightness(1);
     }
-    25% { 
+    25% {
       transform: scale(0.98) rotate(-1deg);
       filter: hue-rotate(-10deg) brightness(0.9);
     }
-    50% { 
+    50% {
       transform: scale(0.99) rotate(0deg);
       filter: hue-rotate(-15deg) brightness(0.95);
     }
-    75% { 
+    75% {
       transform: scale(0.98) rotate(1deg);
       filter: hue-rotate(-5deg) brightness(0.9);
     }
   }
-  
+
   @keyframes sparkle {
-    0%, 100% { 
+    0%,
+    100% {
       opacity: 0;
       transform: scale(0) rotate(0deg);
     }
-    10% { 
+    10% {
       opacity: 1;
       transform: scale(1) rotate(180deg);
     }
-    90% { 
+    90% {
       opacity: 1;
       transform: scale(1) rotate(180deg);
     }
   }
-  
+
   @keyframes aurora {
-    0%, 100% { 
+    0%,
+    100% {
       opacity: 0.3;
       transform: translateX(-100px) skewX(-5deg);
     }
-    50% { 
+    50% {
       opacity: 0.8;
       transform: translateX(100px) skewX(5deg);
     }
   }
-  
+
   @keyframes magical-orb {
-    0%, 100% { 
+    0%,
+    100% {
       transform: translate(0, 0) scale(1);
       opacity: 0.4;
     }
-    25% { 
+    25% {
       transform: translate(50px, -30px) scale(1.2);
       opacity: 0.8;
     }
-    50% { 
+    50% {
       transform: translate(-30px, 40px) scale(0.8);
       opacity: 0.6;
     }
-    75% { 
+    75% {
       transform: translate(20px, -50px) scale(1.1);
       opacity: 0.7;
     }
   }
-  
+
   /* Animation classes */
   .animate-float {
     animation: float 4s ease-in-out infinite;
   }
-  
+
   .animate-pulse-glow {
     animation: pulse-glow 3s ease-in-out infinite;
   }
-  
+
   .animate-shimmer {
     animation: shimmer 3s linear infinite;
   }
-  
+
   .animate-gradient {
     background-size: 200% 200%;
     animation: gradient-shift 6s ease infinite;
   }
-  
+
   .animate-subtle-pulse {
     animation: subtle-pulse 4s ease-in-out infinite;
   }
-  
+
   .animate-subtle-float {
     animation: subtle-float 6s ease-in-out infinite;
   }
-  
+
   .animate-twinkle {
     animation: twinkle 5s ease-in-out infinite;
   }
-  
+
   .animate-sparkle {
     animation: sparkle 8s ease-in-out infinite;
   }
-  
+
   .animate-aurora {
     animation: aurora 30s ease-in-out infinite;
   }
-  
+
   .animate-magical-orb {
     animation: magical-orb 15s ease-in-out infinite;
   }
-  
+
   /* Delay utilities for staggered animations */
-  .delay-100 { animation-delay: 100ms; }
-  .delay-200 { animation-delay: 200ms; }
-  .delay-300 { animation-delay: 300ms; }
-  .delay-500 { animation-delay: 500ms; }
-  .delay-700 { animation-delay: 700ms; }
-  .delay-1000 { animation-delay: 1000ms; }
-  .delay-1200 { animation-delay: 1200ms; }
-  .delay-1500 { animation-delay: 1500ms; }
-  .delay-2000 { animation-delay: 2000ms; }
-  .delay-2500 { animation-delay: 2500ms; }
-  .delay-3000 { animation-delay: 3000ms; }
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+  .delay-500 {
+    animation-delay: 500ms;
+  }
+  .delay-700 {
+    animation-delay: 700ms;
+  }
+  .delay-1000 {
+    animation-delay: 1000ms;
+  }
+  .delay-1200 {
+    animation-delay: 1200ms;
+  }
+  .delay-1500 {
+    animation-delay: 1500ms;
+  }
+  .delay-2000 {
+    animation-delay: 2000ms;
+  }
+  .delay-2500 {
+    animation-delay: 2500ms;
+  }
+  .delay-3000 {
+    animation-delay: 3000ms;
+  }
 }
 
 /* Global magical background application */
@@ -781,15 +852,36 @@ html::before {
   position: fixed;
   inset: 0;
   z-index: -10;
-  background: 
-    radial-gradient(circle at 15% 20%, rgba(147, 51, 234, 0.4) 0%, transparent 40%),
-    radial-gradient(circle at 85% 80%, rgba(59, 130, 246, 0.4) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(139, 69, 234, 0.3) 0%, transparent 60%),
-    radial-gradient(circle at 30% 70%, rgba(45, 212, 191, 0.3) 0%, transparent 35%),
-    radial-gradient(circle at 70% 30%, rgba(236, 72, 153, 0.3) 0%, transparent 35%),
-    linear-gradient(135deg, 
-      oklch(var(--landing-bg-from)), 
-      oklch(var(--landing-bg-via)), 
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(147, 51, 234, 0.4) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 85% 80%,
+      rgba(59, 130, 246, 0.4) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(139, 69, 234, 0.3) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      circle at 30% 70%,
+      rgba(45, 212, 191, 0.3) 0%,
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 70% 30%,
+      rgba(236, 72, 153, 0.3) 0%,
+      transparent 35%
+    ),
+    linear-gradient(
+      135deg,
+      oklch(var(--landing-bg-from)),
+      oklch(var(--landing-bg-via)),
       oklch(var(--landing-bg-to))
     );
   /* Fallback */
@@ -802,10 +894,22 @@ html::after {
   position: fixed;
   inset: 0;
   z-index: -9;
-  background: 
-    radial-gradient(circle at 80% 10%, rgba(147, 51, 234, 0.2) 0%, transparent 30%),
-    radial-gradient(circle at 20% 90%, rgba(59, 130, 246, 0.2) 0%, transparent 30%),
-    radial-gradient(circle at 60% 40%, rgba(45, 212, 191, 0.15) 0%, transparent 25%);
+  background:
+    radial-gradient(
+      circle at 80% 10%,
+      rgba(147, 51, 234, 0.2) 0%,
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 20% 90%,
+      rgba(59, 130, 246, 0.2) 0%,
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 60% 40%,
+      rgba(45, 212, 191, 0.15) 0%,
+      transparent 25%
+    );
   animation: magical-shift-reverse 25s ease-in-out infinite;
   mix-blend-mode: screen;
 }

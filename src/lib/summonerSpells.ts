@@ -29,4 +29,3 @@ const filenameByName: Record<SummonerSpellKey, string> = {
 export function getSummonerSpellIconPath(name: SummonerSpellKey) {
   return `/summoner-spells/${filenameByName[name]}`;
 }
-

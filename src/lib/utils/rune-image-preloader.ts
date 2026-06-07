@@ -8,7 +8,7 @@ import { runeImages } from '@/lib/apis/datadragon';
 // Common keystone rune IDs that are frequently seen
 const COMMON_KEYSTONE_RUNES = [
   8112, // Electrocute
-  8124, // Predator  
+  8124, // Predator
   8128, // Dark Harvest
   8143, // Sudden Impact
   9101, // Overheal
@@ -44,20 +44,23 @@ async function preloadRuneImage(iconPath: string): Promise<string> {
     return preloadPromises.get(iconPath)!;
   }
 
-  const promise = runeImages.icon(iconPath).then((url) => {
-    imageCache.set(iconPath, url);
-    preloadPromises.delete(iconPath);
-    
-    // Create actual image element to trigger browser preload
-    const img = new Image();
-    img.src = url;
-    
-    return url;
-  }).catch((error) => {
-    console.warn('Failed to preload rune image:', iconPath, error);
-    preloadPromises.delete(iconPath);
-    throw error;
-  });
+  const promise = runeImages
+    .icon(iconPath)
+    .then((url) => {
+      imageCache.set(iconPath, url);
+      preloadPromises.delete(iconPath);
+
+      // Create actual image element to trigger browser preload
+      const img = new Image();
+      img.src = url;
+
+      return url;
+    })
+    .catch((error) => {
+      console.warn('Failed to preload rune image:', iconPath, error);
+      preloadPromises.delete(iconPath);
+      throw error;
+    });
 
   preloadPromises.set(iconPath, promise);
   return promise;
@@ -74,10 +77,12 @@ export function getCachedRuneImage(iconPath: string): string | null {
  * Preload common rune images in the background
  * Should be called once when the app loads
  */
-export async function preloadCommonRuneImages(runeData: Array<{ id: number; icon?: string }>): Promise<void> {
+export async function preloadCommonRuneImages(
+  runeData: Array<{ id: number; icon?: string }>
+): Promise<void> {
   if (!Array.isArray(runeData)) return;
 
-  const commonRunes = runeData.filter(rune => 
+  const commonRunes = runeData.filter((rune) =>
     COMMON_KEYSTONE_RUNES.includes(rune.id)
   );
 
@@ -85,25 +90,29 @@ export async function preloadCommonRuneImages(runeData: Array<{ id: number; icon
   const batchSize = 5;
   for (let i = 0; i < commonRunes.length; i += batchSize) {
     const batch = commonRunes.slice(i, i + batchSize);
-    const batchPromises = batch.map(rune => 
-      rune.icon ? preloadRuneImage(rune.icon).catch(() => null) : Promise.resolve(null)
+    const batchPromises = batch.map((rune) =>
+      rune.icon
+        ? preloadRuneImage(rune.icon).catch(() => null)
+        : Promise.resolve(null)
     );
-    
+
     await Promise.all(batchPromises);
-    
+
     // Small delay between batches
     if (i + batchSize < commonRunes.length) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
-  
+
   console.log(`Preloaded ${commonRunes.length} common rune images`);
 }
 
 /**
  * Enhanced rune image loader that uses cache first
  */
-export async function loadRuneImageOptimized(iconPath: string): Promise<string> {
+export async function loadRuneImageOptimized(
+  iconPath: string
+): Promise<string> {
   // Check cache first
   const cached = getCachedRuneImage(iconPath);
   if (cached) {

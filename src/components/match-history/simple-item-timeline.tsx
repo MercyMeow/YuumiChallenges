@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -176,9 +177,11 @@ const getEventIcon = (
   if (url) {
     // Render the item icon image as the leading icon
     return (
-      <img
+      <Image
         src={url}
         alt={`Item ${event.itemId}`}
+        width={20}
+        height={20}
         className="h-5 w-5 rounded border border-white/10 object-cover"
       />
     );
