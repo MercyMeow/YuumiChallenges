@@ -1,0 +1,23 @@
+src/lib/utils/sanitize-html.ts
+  s_a4895a28bf9f40::t_231165a9ada2cd 11-82,103
+src/app/api/match-details/[matchId]/route.ts
+  s_a4895a28bf9f40::t_231165a9ada2cd 2-3,24-31,72,100-146
+README.md
+  s_a4895a28bf9f40::t_231165a9ada2cd 46-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "346aa0a27d9ebe3b81a54b7a1d86e4234238a29a",
+  "prompts": {},
+  "sessions": {
+    "s_a4895a28bf9f40": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "20fdcf37-0317-40c1-811f-7e5fb9e5cbe8",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
