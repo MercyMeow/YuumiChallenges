@@ -16,7 +16,6 @@ import {
   REGION_NAMES,
   YUUMI_DISCORD_INVITE_URL,
 } from '@/lib/utils/constants';
-import { MythicShopRotationPanel } from '@/components/mythic-shop/MythicShopRotationPanel';
 import { ExternalLink } from 'lucide-react';
 
 type RegionValue = (typeof REGIONS)[keyof typeof REGIONS];
@@ -66,8 +65,8 @@ export default function MatchLandingPage() {
 
   return (
     <main className="via-background/95 flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-background px-6 py-16">
-      <div className="grid w-full max-w-5xl items-start gap-8 lg:grid-cols-2">
-        <div className="space-y-6 text-center lg:text-left">
+      <div className="w-full max-w-md">
+        <div className="space-y-6 text-center">
           <h1 className="text-3xl font-semibold text-foreground sm:text-4xl">
             Yuumi Match Viewer
           </h1>
@@ -128,7 +127,6 @@ export default function MatchLandingPage() {
             </a>
           </Button>
         </div>
-        <MythicShopRotationPanel />
       </div>
     </main>
   );
