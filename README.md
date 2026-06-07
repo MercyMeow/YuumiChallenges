@@ -43,6 +43,10 @@ Yuumi Match Viewer is a focused Next.js application that renders deep, timeline-
 
 3. **Create local environment**
 
+        # macOS/Linux
+        touch .env.local
+
+        # Windows PowerShell
         New-Item .env.local -ItemType File
 
    Add RIOT_API_KEY before fetching live match data.
