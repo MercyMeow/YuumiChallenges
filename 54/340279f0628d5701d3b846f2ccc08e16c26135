@@ -1,0 +1,22 @@
+src/app/rule[id].gif/route.ts
+  s_6cd5a3771d95ea::t_fca9d91df3275e 22-28
+package.json
+  s_6cd5a3771d95ea::t_0b4df99d36da3b 35
+  s_6cd5a3771d95ea::t_dd31af0a03a3ca 50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "54340279f0628d5701d3b846f2ccc08e16c26135",
+  "prompts": {},
+  "sessions": {
+    "s_6cd5a3771d95ea": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4ce7c234-c603-4a63-80a7-f916beeba8ad",
+        "model": "grok-composer-2.5-fast"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
