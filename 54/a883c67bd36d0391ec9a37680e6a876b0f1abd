@@ -1,0 +1,245 @@
+next.config.ts
+  s_34e7dd0dec1192::t_73e7949087aa31 5-7
+src/lib/matchups/adcs/Aphelios.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+src/lib/matchups/adcs/Vayne.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-19
+src/lib/matchups/supports/Annie.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-24
+convex/schema.ts
+  s_34e7dd0dec1192::t_73e7949087aa31 1-221
+convex/tsconfig.json
+  s_34e7dd0dec1192::t_73e7949087aa31 1-18
+src/lib/matchups/adcs/index.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-37
+src/lib/builds/yuumi.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-187
+src/lib/matchups/supports/Lulu.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-17
+src/lib/matchups/supports/Neeko.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/supports/Velkoz.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-18
+src/lib/matchups/supports/Nami.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-17
+src/lib/matchups/supports/Milio.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-17
+src/lib/matchups/index.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-22
+src/lib/matchups/adcs/Yunara.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-12
+src/lib/matchups/supports/Yuumi.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-20
+src/lib/matchups/supports/Zilean.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/adcs/Yasuo.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/providers/ClientProviders.tsx
+  s_34e7dd0dec1192::t_73e7949087aa31 1-16
+src/lib/matchups/supports/Rell.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-17
+convex/convex.config.ts
+  s_34e7dd0dec1192::t_73e7949087aa31 1-5
+convex/_generated/api.d.ts
+  s_34e7dd0dec1192::t_73e7949087aa31 1-36
+src/contexts/AuthContext.tsx
+  s_34e7dd0dec1192::t_73e7949087aa31 1-135
+src/lib/matchups/adcs/Twitch.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/providers/ConvexProvider.tsx
+  s_34e7dd0dec1192::t_73e7949087aa31 1-40
+src/lib/matchups/supports/Braum.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-20
+src/components/RunePageCard.tsx
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-66
+src/lib/matchups/supports/Galio.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-17
+src/lib/matchups/adcs/Ashe.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+src/lib/matchups/supports/Senna.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-17
+src/lib/runes/types.ts
+  s_34e7dd0dec1192::t_6af33f0351adc8 1-27
+src/app/admin/builds/page.tsx
+  s_34e7dd0dec1192::t_73e7949087aa31 1-798
+src/lib/matchups/adcs/Tristana.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-20
+src/lib/matchups/adcs/Lucian.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-20
+src/lib/matchups/supports/Soraka.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/supports/Sona.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-19
+src/lib/matchups/supports/Fiddlesticks.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-17
+convex/_generated/dataModel.d.ts
+  s_34e7dd0dec1192::t_73e7949087aa31 1-33
+convex/_generated/server.js
+  s_34e7dd0dec1192::t_73e7949087aa31 1-13
+src/lib/matchups/adcs/Cassiopeia.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+src/lib/matchups/adcs/Zeri.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/supports/Bard.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-21
+src/lib/matchups/types.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-22
+src/lib/runes/icons.ts
+  s_34e7dd0dec1192::t_6af33f0351adc8 1-39
+convex/_generated/api.js
+  s_34e7dd0dec1192::t_73e7949087aa31 1-7
+src/lib/matchups/supports/Zyra.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-17
+src/lib/matchups/adcs/Smolder.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+src/lib/matchups.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-208
+src/app/admin/scraper/page.tsx
+  s_34e7dd0dec1192::t_73e7949087aa31 1-424
+src/lib/matchups/supports/Rakan.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/adcs/Ziggs.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+src/lib/matchups/championLists.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-98
+src/lib/matchups/adcs/Karthus.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/supports/TahmKench.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-17
+src/lib/matchups/supports/Taliyah.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-21
+src/lib/matchups/supports/Thresh.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-17
+convex/guide.ts
+  s_34e7dd0dec1192::t_73e7949087aa31 1-663
+src/lib/matchups/supports/Nautilus.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/supports/Maokai.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-17
+tsconfig.json
+  s_34e7dd0dec1192::t_73e7949087aa31 45-46
+src/lib/matchups/adcs/Syndra.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+src/lib/matchups/supports/Leona.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/adcs/Veigar.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+src/app/admin/login/page.tsx
+  s_34e7dd0dec1192::t_73e7949087aa31 1-130
+src/app/page.tsx
+  s_34e7dd0dec1192::t_3467b66422f05c 54-56
+src/lib/matchups/supports/Taric.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-18
+src/app/layout.tsx
+  s_34e7dd0dec1192::t_73e7949087aa31 3,105
+src/lib/matchups/supports/Sett.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/adcs/Kaisa.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/adcs/Jinx.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-19
+convex/scraper.ts
+  s_34e7dd0dec1192::t_73e7949087aa31 1-679
+src/lib/matchups/adcs/Taliyah.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-13
+src/lib/matchups/adcs/Teemo.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-13
+src/lib/matchups/adcs/Quinn.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-14
+src/lib/matchups/adcs/Draven.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+src/lib/matchups/supports/Xerath.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-21
+src/lib/matchups/supports/Janna.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/adcs/Vladimir.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+src/lib/matchups/adcs/TwistedFate.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-13
+convex/auth.ts
+  s_34e7dd0dec1192::t_73e7949087aa31 1-269
+package.json
+  s_34e7dd0dec1192::t_73e7949087aa31 6-10,16-18,38
+CLAUDE.md
+  s_34e7dd0dec1192::t_73e7949087aa31 1-359
+src/lib/matchups/adcs/KogMaw.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/supports/Ashe.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-21
+src/lib/matchups/supports/Swain.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-17
+src/lib/matchups/supports/Seraphine.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-18
+src/lib/matchups/adcs/Caitlyn.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+src/lib/matchups/adcs/Yone.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-17
+src/lib/matchups/supports/Lux.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-17
+src/lib/matchups/supports/Heimerdinger.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/supports/Pyke.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/adcs/Ezreal.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/supports/Hwei.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/supports/Poppy.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/app/admin/items/page.tsx
+  s_34e7dd0dec1192::t_73e7949087aa31 1-373
+src/lib/matchups/adcs/Sivir.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+src/app/admin/page.tsx
+  s_34e7dd0dec1192::t_73e7949087aa31 1-242
+src/lib/matchups/supports/Alistar.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-24
+src/lib/matchups/supports/Morgana.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-17
+src/lib/matchups/adcs/MissFortune.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+convex/_generated/server.d.ts
+  s_34e7dd0dec1192::t_73e7949087aa31 1-33
+src/lib/matchups/supports/Amumu.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-21
+src/lib/matchups/adcs/Xayah.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+src/lib/matchups/supports/Renata.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-18
+src/lib/matchups/supports/Karma.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-16
+src/lib/matchups/adcs/Varus.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+src/lib/matchups/supports/Brand.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-24
+src/lib/matchups/adcs/Samira.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-13
+src/lib/matchups/supports/index.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-45
+src/lib/matchups/supports/Blitzcrank.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-21
+src/lib/matchups/adcs/Jhin.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+src/lib/matchups/adcs/Kalista.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+src/app/match/page.tsx
+  s_34e7dd0dec1192::t_d2b2b103bf0db1 1-135
+src/lib/matchups/adcs/Nilah.ts
+  s_34e7dd0dec1192::t_0bcebf508d6ec2 1-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "54a883c67bd36d0391ec9a37680e6a876b0f1abd",
+  "prompts": {},
+  "sessions": {
+    "s_34e7dd0dec1192": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0cfaafb9-a010-4717-af88-887ba3785829",
+        "model": "grok-composer-2.5-fast"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
