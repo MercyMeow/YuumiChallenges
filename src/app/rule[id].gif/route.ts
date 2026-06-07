@@ -19,11 +19,13 @@ const validRules = [
   '15',
 ];
 
-export async function GET(
-  _request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  const { id } = await context.params;
+/** Serves rule GIFs from `/rule{id}.gif` (dynamic segment is in the folder name). */
+export async function GET(request: NextRequest) {
+  const idMatch = request.nextUrl.pathname.match(/^\/rule(\d+)\.gif$/);
+  const id = idMatch?.[1];
+  if (!id) {
+    return new NextResponse('Not Found', { status: 404 });
+  }
 
   // Check if the rule number is valid
   if (!validRules.includes(id)) {
