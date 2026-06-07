@@ -1,0 +1,21 @@
+package.json
+  s_34e7dd0dec1192::t_d54092bb0c5210 9
+scripts/vercel-build.mjs
+  s_34e7dd0dec1192::t_bcbe487bd89078 1-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "015655a1d618e67bf4f0009f3173bb69c3c4a141",
+  "prompts": {},
+  "sessions": {
+    "s_34e7dd0dec1192": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0cfaafb9-a010-4717-af88-887ba3785829",
+        "model": "grok-composer-2.5-fast"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
