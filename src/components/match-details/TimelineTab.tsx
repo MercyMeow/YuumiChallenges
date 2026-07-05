@@ -13,7 +13,7 @@ import { TimelineEventItem } from '@/components/match-history/timeline-event-ite
 import { Loader2, Timer, Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExtendedMatchData, CRITICAL_TIMELINE_EVENT_TYPES } from './types';
-import { RawTimelineData } from '@/lib/types/item-timeline-new';
+import { RawTimelineData, PlayerTimeline } from '@/lib/types/item-timeline-new';
 import { logger } from '@/lib/logger';
 import { ExtendedMatchParticipant } from './types';
 
@@ -22,7 +22,7 @@ interface TimelineTabProps {
   setActiveTimelineView: (view: 'combat' | 'items') => void;
   timelineData: RawTimelineData | null;
   isProcessing: boolean;
-  processedTimeline: unknown;
+  processedTimeline: PlayerTimeline | null;
   timelineError: string | null;
   selectedPlayerData: ExtendedMatchParticipant | null | undefined;
   matchData: ExtendedMatchData;
@@ -183,8 +183,7 @@ export function TimelineTab({
               </div>
             ) : (
               <SimpleItemTimeline
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                timeline={processedTimeline as any}
+                timeline={processedTimeline}
                 isLoading={isProcessing}
                 error={timelineError}
                 className="w-full"

@@ -4,30 +4,34 @@
  */
 
 import {
+  ActionBuilder,
+  MutationBuilder,
+  QueryBuilder,
   GenericActionCtx,
   GenericMutationCtx,
   GenericQueryCtx,
-  actionGeneric,
-  mutationGeneric,
-  queryGeneric,
-} from "convex/server";
-import type { DataModel } from "./dataModel.js";
+  GenericDatabaseReader,
+  GenericDatabaseWriter,
+} from 'convex/server';
+import type { DataModel } from './dataModel.js';
 
 /**
  * Define a query in this Convex app's public API.
  */
-export declare const query: typeof queryGeneric;
+export declare const query: QueryBuilder<DataModel, 'public'>;
 
 /**
  * Define a mutation in this Convex app's public API.
  */
-export declare const mutation: typeof mutationGeneric;
+export declare const mutation: MutationBuilder<DataModel, 'public'>;
 
 /**
  * Define an action in this Convex app's public API.
  */
-export declare const action: typeof actionGeneric;
+export declare const action: ActionBuilder<DataModel, 'public'>;
 
 export type QueryCtx = GenericQueryCtx<DataModel>;
 export type MutationCtx = GenericMutationCtx<DataModel>;
 export type ActionCtx = GenericActionCtx<DataModel>;
+export type DatabaseReader = GenericDatabaseReader<DataModel>;
+export type DatabaseWriter = GenericDatabaseWriter<DataModel>;

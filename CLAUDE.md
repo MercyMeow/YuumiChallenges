@@ -240,7 +240,7 @@ npx convex dev --once
 
 | File | Purpose |
 |------|---------|
-| `src/app/page.tsx` | Main Yuumi guide content (~32K lines) |
+| `src/app/page.tsx` | Main Yuumi guide content (~950 lines) |
 | `src/app/layout.tsx` | Root layout, metadata, providers |
 | `convex/schema.ts` | Database schema definitions |
 | `convex/guide.ts` | Guide CRUD operations |
@@ -348,7 +348,7 @@ Run `npx convex dev` to regenerate `convex/_generated/` types.
 
 ### Build Errors
 
-The project temporarily ignores TypeScript and ESLint errors during build (`next.config.ts`). Run `npm run type-check` and `npm run lint` locally to catch issues.
+TypeScript errors fail the build (`ignoreBuildErrors` was removed from `next.config.ts`). Run `npm run type-check` and `npm run lint` locally to catch issues before building.
 
 ### Environment Variables Not Working
 

@@ -1,24 +1,29 @@
 import { v } from 'convex/values';
 import { mutation, query, action } from './_generated/server';
 import { api } from './_generated/api';
+import type { Id } from './_generated/dataModel';
+import type { DatabaseReader } from './_generated/server';
+
+type ScrapeResult = { success: boolean; jobId: Id<'scrapeJobs'> };
+
+// Patch tag recorded with scraped data
+const CURRENT_PATCH = '16.13';
 
 // Helper to verify session
 async function verifyAuth(
-  ctx: { db: { query: Function; get: Function } },
+  ctx: { db: DatabaseReader },
   sessionToken: string
-): Promise<string | null> {
+): Promise<Id<'users'> | null> {
   const session = await ctx.db
     .query('sessions')
-    .withIndex('by_token', (q: { eq: Function }) =>
-      q.eq('token', sessionToken)
-    )
+    .withIndex('by_token', (q) => q.eq('token', sessionToken))
     .first();
 
   if (!session || session.expiresAt < Date.now()) {
     return null;
   }
 
-  return session.userId;
+  return session.userId ?? null;
 }
 
 // ============ SCRAPED DATA QUERIES ============
@@ -46,13 +51,14 @@ export const getScrapedData = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    let query = ctx.db.query('scrapedData');
-
-    if (args.source) {
-      query = query.withIndex('by_source', (q) => q.eq('source', args.source!));
-    }
-
-    const results = await query.order('desc').collect();
+    const source = args.source;
+    const results = source
+      ? await ctx.db
+          .query('scrapedData')
+          .withIndex('by_source', (q) => q.eq('source', source))
+          .order('desc')
+          .collect()
+      : await ctx.db.query('scrapedData').order('desc').collect();
 
     let filtered = results;
     if (args.dataType) {
@@ -151,13 +157,15 @@ export const getScrapeJobs = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    let query = ctx.db.query('scrapeJobs');
-
-    if (args.status) {
-      query = query.withIndex('by_status', (q) => q.eq('status', args.status!));
-    }
-
-    const results = await query.order('desc').take(args.limit || 50);
+    const status = args.status;
+    const limit = args.limit || 50;
+    const results = status
+      ? await ctx.db
+          .query('scrapeJobs')
+          .withIndex('by_status', (q) => q.eq('status', status))
+          .order('desc')
+          .take(limit)
+      : await ctx.db.query('scrapeJobs').order('desc').take(limit);
     return results;
   },
 });
@@ -185,7 +193,7 @@ export const createScrapeJob = mutation({
     const jobId = await ctx.db.insert('scrapeJobs', {
       source: args.source,
       status: 'pending',
-      triggeredBy: userId as any,
+      triggeredBy: userId,
     });
 
     return jobId;
@@ -272,12 +280,12 @@ export const scrapeUGG = action({
   args: {
     sessionToken: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<ScrapeResult> => {
     // Create job
-    const jobId = await ctx.runMutation(api.scraper.createScrapeJob, {
-      sessionToken: args.sessionToken,
-      source: 'ugg',
-    });
+    const jobId: Id<'scrapeJobs'> = await ctx.runMutation(
+      api.scraper.createScrapeJob,
+      { sessionToken: args.sessionToken, source: 'ugg' }
+    );
 
     try {
       await ctx.runMutation(api.scraper.updateScrapeJob, {
@@ -313,7 +321,7 @@ export const scrapeUGG = action({
       await ctx.runMutation(api.scraper.storeScrapedData, {
         source: 'ugg',
         dataType: 'stats',
-        patch: '15.18',
+        patch: CURRENT_PATCH,
         data,
       });
 
@@ -339,11 +347,11 @@ export const scrapeOPGG = action({
   args: {
     sessionToken: v.string(),
   },
-  handler: async (ctx, args) => {
-    const jobId = await ctx.runMutation(api.scraper.createScrapeJob, {
-      sessionToken: args.sessionToken,
-      source: 'opgg',
-    });
+  handler: async (ctx, args): Promise<ScrapeResult> => {
+    const jobId: Id<'scrapeJobs'> = await ctx.runMutation(
+      api.scraper.createScrapeJob,
+      { sessionToken: args.sessionToken, source: 'opgg' }
+    );
 
     try {
       await ctx.runMutation(api.scraper.updateScrapeJob, {
@@ -379,7 +387,7 @@ export const scrapeOPGG = action({
       await ctx.runMutation(api.scraper.storeScrapedData, {
         source: 'opgg',
         dataType: 'stats',
-        patch: '15.18',
+        patch: CURRENT_PATCH,
         data,
       });
 
@@ -405,11 +413,11 @@ export const scrapeLolalytics = action({
   args: {
     sessionToken: v.string(),
   },
-  handler: async (ctx, args) => {
-    const jobId = await ctx.runMutation(api.scraper.createScrapeJob, {
-      sessionToken: args.sessionToken,
-      source: 'lolalytics',
-    });
+  handler: async (ctx, args): Promise<ScrapeResult> => {
+    const jobId: Id<'scrapeJobs'> = await ctx.runMutation(
+      api.scraper.createScrapeJob,
+      { sessionToken: args.sessionToken, source: 'lolalytics' }
+    );
 
     try {
       await ctx.runMutation(api.scraper.updateScrapeJob, {
@@ -443,7 +451,7 @@ export const scrapeLolalytics = action({
       await ctx.runMutation(api.scraper.storeScrapedData, {
         source: 'lolalytics',
         dataType: 'stats',
-        patch: '15.18',
+        patch: CURRENT_PATCH,
         data,
       });
 
@@ -469,11 +477,11 @@ export const scrapeMobalytics = action({
   args: {
     sessionToken: v.string(),
   },
-  handler: async (ctx, args) => {
-    const jobId = await ctx.runMutation(api.scraper.createScrapeJob, {
-      sessionToken: args.sessionToken,
-      source: 'mobalytics',
-    });
+  handler: async (ctx, args): Promise<ScrapeResult> => {
+    const jobId: Id<'scrapeJobs'> = await ctx.runMutation(
+      api.scraper.createScrapeJob,
+      { sessionToken: args.sessionToken, source: 'mobalytics' }
+    );
 
     try {
       await ctx.runMutation(api.scraper.updateScrapeJob, {
@@ -506,7 +514,7 @@ export const scrapeMobalytics = action({
       await ctx.runMutation(api.scraper.storeScrapedData, {
         source: 'mobalytics',
         dataType: 'stats',
-        patch: '15.18',
+        patch: CURRENT_PATCH,
         data,
       });
 
@@ -532,11 +540,11 @@ export const scrapeOnetricks = action({
   args: {
     sessionToken: v.string(),
   },
-  handler: async (ctx, args) => {
-    const jobId = await ctx.runMutation(api.scraper.createScrapeJob, {
-      sessionToken: args.sessionToken,
-      source: 'onetricks',
-    });
+  handler: async (ctx, args): Promise<ScrapeResult> => {
+    const jobId: Id<'scrapeJobs'> = await ctx.runMutation(
+      api.scraper.createScrapeJob,
+      { sessionToken: args.sessionToken, source: 'onetricks' }
+    );
 
     try {
       await ctx.runMutation(api.scraper.updateScrapeJob, {
@@ -568,7 +576,7 @@ export const scrapeOnetricks = action({
       await ctx.runMutation(api.scraper.storeScrapedData, {
         source: 'onetricks',
         dataType: 'stats',
-        patch: '15.18',
+        patch: CURRENT_PATCH,
         data,
       });
 
@@ -595,8 +603,11 @@ export const scrapeAll = action({
   args: {
     sessionToken: v.string(),
   },
-  handler: async (ctx, args) => {
-    const results = [];
+  handler: async (
+    ctx,
+    args
+  ): Promise<Array<ScrapeResult | { source: string; error: string }>> => {
+    const results: Array<ScrapeResult | { source: string; error: string }> = [];
 
     // Run scrapers sequentially to avoid rate limiting
     try {
