@@ -1,0 +1,28 @@
+CLAUDE.md
+  s_4b85cd89dd42c4::t_265d6c06b230c8 73
+  s_4b85cd89dd42c4::t_24ec0f51de8d46 50-51
+  s_4b85cd89dd42c4::t_5e80e9c4063072 259-263,266,270
+  s_4b85cd89dd42c4::t_93491031a2ec53 283-285
+  s_4b85cd89dd42c4::t_27abf3da263ab5 241-254
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "376747ada048eaa4635f3e1249105b716d9a71e9",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_4b85cd89dd42c4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "78c02068-6dca-4c58-901f-bb1b43a93787",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
