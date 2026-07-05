@@ -2,9 +2,8 @@
 
 import { useRef, useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { CheckCircle, Link2 } from 'lucide-react';
+import { OrnateHeading } from '@/components/ui/hextech-panel';
 
 // Rule GIFs available in /public. Discord-friendly links point at /rule{n}.gif.
 const RULE_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15];
@@ -23,40 +22,40 @@ function GifCard({ rule, isCopied, onCopyLink }: GifCardProps) {
     <button
       type="button"
       onClick={() => onCopyLink(rule)}
-      className="group relative block w-full text-left"
+      className="group relative block w-full text-left focus:outline-hidden focus-visible:ring-2 focus-visible:ring-hx-gold"
     >
-      <div className="absolute -inset-0.5 rounded-sm bg-linear-to-r from-hx-gold/40 to-hx-magic/30 opacity-30 blur-sm transition duration-300 group-hover:opacity-60" />
-      <Card className="hex-card relative overflow-hidden rounded-sm border-hx-gold-dark/60 transition-all duration-300 hover:-translate-y-1 hover:border-hx-gold hover:shadow-2xl">
-        <CardContent className="p-0">
-          <div className="relative overflow-hidden rounded-sm bg-black/20 backdrop-blur-xs">
-            {isCopied && (
-              <div className="absolute inset-0 z-20 flex items-center justify-center rounded-sm border-2 border-green-400 bg-green-500/20">
-                <div className="flex items-center gap-2 rounded-sm bg-black/60 px-3 py-2">
-                  <CheckCircle className="h-5 w-5 text-green-400" />
-                  <span className="font-medium text-green-300">Copied!</span>
-                </div>
-              </div>
-            )}
-
-            <div className="relative flex h-48 w-full items-center justify-center p-4">
-              <Image
-                src={`/rule${rule}.gif`}
-                alt={`Rule ${rule} GIF`}
-                fill
-                unoptimized
-                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 33vw, 25vw"
-                className="object-contain transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-
-            <div className="absolute right-2 bottom-2 rounded-sm border border-hx-gold-dark bg-hx-black/60 px-2 py-1 backdrop-blur-xs">
-              <span className="text-xs font-medium text-hx-gold">
-                Rule {rule}
+      <div className="absolute -inset-0.5 rounded-sm bg-linear-to-r from-hx-gold/40 to-hx-magic/30 opacity-25 blur-sm transition duration-300 group-hover:opacity-60" />
+      <div className="hex-card hex-corners relative overflow-hidden rounded-sm transition-all duration-300 hover:-translate-y-1 hover:border-hx-gold">
+        {isCopied && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center border border-emerald-400/70 bg-emerald-500/15 backdrop-blur-[1px]">
+            <div className="flex items-center gap-2 rounded-sm border border-emerald-400/50 bg-hx-black/80 px-3 py-2">
+              <CheckCircle className="h-5 w-5 text-emerald-400" />
+              <span className="hex-title text-xs text-emerald-300">
+                Link copied
               </span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        )}
+
+        <div className="relative flex h-48 w-full items-center justify-center bg-hx-black/40 p-4">
+          <Image
+            src={`/rule${rule}.gif`}
+            alt={`Rule ${rule} GIF`}
+            fill
+            unoptimized
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 33vw, 25vw"
+            className="object-contain transition-transform duration-300 group-hover:scale-105"
+          />
+        </div>
+
+        <div className="flex items-center justify-between border-t border-hx-gold-dark/40 bg-hx-black/70 px-3 py-2">
+          <span className="hex-title text-xs text-hx-gold">Rule {rule}</span>
+          <span className="flex items-center gap-1 text-[10px] tracking-wide text-hx-gold/50 uppercase transition-colors group-hover:text-hx-magic-bright">
+            <Link2 className="h-3 w-3" />
+            Copy link
+          </span>
+        </div>
+      </div>
     </button>
   );
 }
@@ -102,42 +101,28 @@ export default function GalleryPage() {
   };
 
   return (
-    <div className="min-h-screen hex-page-bg">
-      <div className="container mx-auto px-6 py-20">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-16 text-center">
-            <Link
-              href="/"
-              className="mb-8 inline-flex items-center gap-2 text-hx-gold transition-colors hover:text-hx-gold-bright"
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back to Home</span>
-            </Link>
+    <div className="py-10 md:py-14">
+      <OrnateHeading eyebrow="The sacred laws of the cat" as="h1">
+        Yuumi Rule Gallery
+      </OrnateHeading>
+      <p className="mt-3 mb-12 text-center text-sm text-landing-text-secondary">
+        Click any rule to copy its Discord-friendly link.
+      </p>
 
-            <h1 className="mb-6 text-gradient-gold text-4xl leading-tight font-black tracking-wide uppercase md:text-6xl">
-              Yuumi Rule Gallery
-            </h1>
-            <p className="mb-2 text-lg text-landing-text-secondary">
-              Click any rule to copy its Discord-friendly link
-            </p>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {RULE_NUMBERS.map((rule, index) => (
+          <div
+            key={rule}
+            className="duration-500 animate-in fade-in fill-mode-both slide-in-from-bottom-4"
+            style={{ animationDelay: `${index * 60}ms` }}
+          >
+            <GifCard
+              rule={rule}
+              isCopied={copiedRule === rule}
+              onCopyLink={handleCopyLink}
+            />
           </div>
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {RULE_NUMBERS.map((rule, index) => (
-              <div
-                key={rule}
-                className="duration-500 animate-in fade-in fill-mode-both slide-in-from-bottom-4"
-                style={{ animationDelay: `${index * 60}ms` }}
-              >
-                <GifCard
-                  rule={rule}
-                  isCopied={copiedRule === rule}
-                  onCopyLink={handleCopyLink}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );

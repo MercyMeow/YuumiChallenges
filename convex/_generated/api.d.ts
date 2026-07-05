@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as crons from "../crons.js";
 import type * as guide from "../guide.js";
 import type * as scraper from "../scraper.js";
+import type * as seed from "../seed.js";
 
 import type {
   ApiFromModules,
@@ -24,6 +25,7 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   guide: typeof guide;
   scraper: typeof scraper;
+  seed: typeof seed;
 }>;
 
 /**

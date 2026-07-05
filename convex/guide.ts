@@ -396,7 +396,9 @@ export const bulkImportBuilds = mutation({
     const ids = [];
     for (const build of args.builds) {
       if (build.skillOrder.levels.length !== 18) {
-        throw new Error(`Build "${build.name}" skill order must have exactly 18 levels`);
+        throw new Error(
+          `Build "${build.name}" skill order must have exactly 18 levels`
+        );
       }
       const id = await ctx.db.insert('guideBuilds', {
         ...build,
@@ -457,6 +459,8 @@ export const upsertMatchup = mutation({
         v.literal('Excellent'),
         v.literal('Very Good'),
         v.literal('Good'),
+        v.literal('Average'),
+        v.literal('Situational'),
         v.literal('Poor')
       )
     ),
@@ -640,6 +644,8 @@ export const bulkImportMatchups = mutation({
             v.literal('Excellent'),
             v.literal('Very Good'),
             v.literal('Good'),
+            v.literal('Average'),
+            v.literal('Situational'),
             v.literal('Poor')
           )
         ),

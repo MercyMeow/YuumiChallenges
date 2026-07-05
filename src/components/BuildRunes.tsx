@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import { Badge } from '@/components/ui/badge';
 import {
   Tooltip,
   TooltipContent,
@@ -76,7 +75,7 @@ function RuneIcon({
 }) {
   if (!entry) {
     return (
-      <span className="rounded bg-white/10 px-1.5 py-0.5 text-xs text-white/70">
+      <span className="rounded-sm bg-hx-gold/10 px-1.5 py-0.5 text-xs text-hx-gold/80">
         {fallbackLabel}
       </span>
     );
@@ -86,7 +85,7 @@ function RuneIcon({
     <Tooltip>
       <TooltipTrigger asChild>
         <div
-          className="relative overflow-hidden rounded-full bg-black/40 ring-1 ring-white/10"
+          className="relative overflow-hidden rounded-full bg-hx-black/70 ring-1 ring-hx-gold-dark/60"
           style={{ width: size, height: size }}
         >
           <Image
@@ -99,7 +98,7 @@ function RuneIcon({
           />
         </div>
       </TooltipTrigger>
-      <TooltipContent className="border-purple-500/30 bg-black/85 text-white">
+      <TooltipContent className="border-hx-gold-dark/70 bg-hx-black/95 text-hx-parchment">
         {entry.name}
       </TooltipContent>
     </Tooltip>
@@ -128,9 +127,9 @@ export function BuildRunes({ runes }: { runes: BuildRunesData }) {
   const primaryRunes = [runes.keystone, ...runes.primary];
 
   return (
-    <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+    <div className="rounded-sm p-4 hex-card-inset">
       <div className="mb-3 text-center">
-        <Badge className="bg-purple-600">{runes.name}</Badge>
+        <span className="hex-chip">{runes.name}</span>
       </div>
 
       {loading ? (
@@ -143,7 +142,7 @@ export function BuildRunes({ runes }: { runes: BuildRunesData }) {
           ))}
         </div>
       ) : (
-        <div className="space-y-4 text-sm text-white/80">
+        <div className="space-y-4 text-sm text-hx-parchment/85">
           <div>
             <div className="mb-2 flex items-center gap-2">
               <RuneIcon
@@ -151,7 +150,7 @@ export function BuildRunes({ runes }: { runes: BuildRunesData }) {
                 fallbackLabel={runes.primaryTree}
                 size={20}
               />
-              <span className="text-yellow-300">{runes.primaryTree}</span>
+              <span className="hex-label">{runes.primaryTree}</span>
             </div>
             <div className="flex flex-wrap items-center gap-2 pl-1">
               {primaryRunes.map((key, i) => (
@@ -172,7 +171,9 @@ export function BuildRunes({ runes }: { runes: BuildRunesData }) {
                 fallbackLabel={runes.secondaryTree}
                 size={20}
               />
-              <span className="text-green-300">{runes.secondaryTree}</span>
+              <span className="hex-label text-hx-magic">
+                {runes.secondaryTree}
+              </span>
             </div>
             <div className="flex flex-wrap items-center gap-2 pl-1">
               {runes.secondary.map((key, i) => (
@@ -188,7 +189,7 @@ export function BuildRunes({ runes }: { runes: BuildRunesData }) {
 
           {runes.shards.length > 0 && (
             <div>
-              <div className="mb-2 text-white/60">Shards</div>
+              <div className="mb-2 hex-label opacity-70">Shards</div>
               <div className="flex flex-wrap items-center gap-2 pl-1">
                 {runes.shards.map((key, i) => (
                   <RuneIcon

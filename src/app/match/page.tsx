@@ -16,8 +16,7 @@ import {
   REGION_NAMES,
   YUUMI_DISCORD_INVITE_URL,
 } from '@/lib/utils/constants';
-import { ArrowLeft, ExternalLink, Search, Swords } from 'lucide-react';
-import Link from 'next/link';
+import { ExternalLink, Search, Swords } from 'lucide-react';
 
 type RegionValue = (typeof REGIONS)[keyof typeof REGIONS];
 
@@ -65,16 +64,8 @@ export default function MatchLandingPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-6 py-16 hex-page-bg">
+    <div className="flex min-h-[calc(100vh-10rem)] items-center justify-center px-2 py-16">
       <div className="w-full max-w-lg duration-500 animate-in fade-in slide-in-from-bottom-4">
-        <Link
-          href="/"
-          className="mb-6 inline-flex items-center gap-2 text-hx-gold transition-colors hover:text-hx-gold-bright"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          <span>Back to Home</span>
-        </Link>
-
         <div className="relative">
           <div className="absolute -inset-0.5 rounded-sm bg-linear-to-r from-hx-gold/40 to-hx-magic/30 opacity-40 blur-sm" />
           <div className="hex-card-elevated hex-corners relative rounded-sm p-8">
@@ -82,8 +73,8 @@ export default function MatchLandingPage() {
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-hx-gold-dark/60 bg-hx-gold/10">
                 <Swords className="h-8 w-8 text-hx-gold" />
               </div>
-              <h1 className="text-gradient-gold text-4xl font-black tracking-wide uppercase md:text-6xl">
-                Yuumi Match Viewer
+              <h1 className="text-gradient-gold text-3xl font-black tracking-wide uppercase md:text-4xl">
+                Match Viewer
               </h1>
               <p className="mx-auto mt-3 max-w-md text-sm text-landing-text-secondary sm:text-base">
                 Enter any ranked match ID to explore matchups, timelines, gold
@@ -119,7 +110,7 @@ export default function MatchLandingPage() {
                   placeholder="Match ID (e.g. 7481411158)"
                   aria-label="Match identifier"
                   aria-invalid={Boolean(matchIdError)}
-                  className="flex-1 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
+                  className="flex-1 rounded-sm hex-input"
                   spellCheck={false}
                   autoComplete="off"
                 />
@@ -129,7 +120,10 @@ export default function MatchLandingPage() {
                   {matchIdError}
                 </p>
               )}
-              <Button type="submit" className="btn-hextech w-full rounded-sm">
+              <Button
+                type="submit"
+                className="btn-hextech-primary w-full rounded-sm"
+              >
                 <Search className="mr-2 h-4 w-4" />
                 View Match Details
               </Button>
@@ -152,6 +146,6 @@ export default function MatchLandingPage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

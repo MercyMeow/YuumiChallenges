@@ -147,6 +147,8 @@ export default defineSchema({
         v.literal('Excellent'),
         v.literal('Very Good'),
         v.literal('Good'),
+        v.literal('Average'),
+        v.literal('Situational'),
         v.literal('Poor')
       )
     ), // For ally ADCs

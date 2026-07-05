@@ -136,7 +136,7 @@ export default function ItemsEditorPage() {
   );
 
   const categories: { key: ItemCategory; label: string; color: string }[] = [
-    { key: 'starter', label: 'Starter Items', color: 'text-purple-300' },
+    { key: 'starter', label: 'Starter Items', color: 'text-hx-gold' },
     { key: 'early', label: 'Early Game Items', color: 'text-blue-300' },
     { key: 'core', label: 'Core Items', color: 'text-green-300' },
     {

@@ -8,6 +8,7 @@ import { buildShareDescription } from '@/lib/builds/embed-summary';
 import { fetchAutoBuild } from '@/lib/builds/auto-build';
 import { getLiveDdragonVersion, toGuidePatch } from '@/lib/utils/live-patch';
 import { MythicShopResetBanner } from '@/components/mythic-shop/MythicShopResetBanner';
+import { SiteShell } from '@/components/shell/SiteShell';
 
 // Beaufort-like serif for headings (old LoL client look) + clean body sans.
 const cinzel = Cinzel({
@@ -98,25 +99,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                document.documentElement.classList.add('dark');
-                // Initialize magical background early
-                const createMagicalBackground = () => {
-                  if (!document.querySelector('.global-magical-bg')) {
-                    const bg = document.createElement('div');
-                    bg.className = 'global-magical-bg';
-                    bg.innerHTML = '<div class="magical-bg"></div><div class="magical-radial-1"></div><div class="magical-radial-2"></div><div class="magical-radial-3"></div>';
-                    document.body.appendChild(bg);
-                  }
-                };
-                if (document.body) {
-                  createMagicalBackground();
-                } else {
-                  document.addEventListener('DOMContentLoaded', createMagicalBackground);
-                }
-              } catch (_) {}
-            `,
+            __html: `try { document.documentElement.classList.add('dark'); } catch (_) {}`,
           }}
         />
       </head>
@@ -124,7 +107,9 @@ export default function RootLayout({
         className={`${cinzel.variable} ${sourceSans.variable} dark antialiased`}
       >
         <MythicShopResetBanner />
-        <ClientProviders>{children}</ClientProviders>
+        <ClientProviders>
+          <SiteShell>{children}</SiteShell>
+        </ClientProviders>
         <SpeedInsights />
       </body>
     </html>
