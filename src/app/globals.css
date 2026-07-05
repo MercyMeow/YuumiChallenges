@@ -61,19 +61,19 @@
   --color-yuumi-teal: oklch(var(--yuumi-teal));
   --color-yuumi-pink: oklch(var(--yuumi-pink));
 
-  /* Hextech palette */
-  --color-hx-gold: oklch(var(--hx-gold) / <alpha-value>);
-  --color-hx-gold-dark: oklch(var(--hx-gold-dark) / <alpha-value>);
-  --color-hx-gold-shadow: oklch(var(--hx-gold-shadow) / <alpha-value>);
-  --color-hx-gold-bright: oklch(var(--hx-gold-bright) / <alpha-value>);
-  --color-hx-parchment: oklch(var(--hx-parchment) / <alpha-value>);
-  --color-hx-magic: oklch(var(--hx-magic) / <alpha-value>);
-  --color-hx-magic-bright: oklch(var(--hx-magic-bright) / <alpha-value>);
-  --color-hx-blue: oklch(var(--hx-blue) / <alpha-value>);
-  --color-hx-steel: oklch(var(--hx-steel) / <alpha-value>);
-  --color-hx-panel: oklch(var(--hx-panel) / <alpha-value>);
-  --color-hx-navy: oklch(var(--hx-navy) / <alpha-value>);
-  --color-hx-black: oklch(var(--hx-black) / <alpha-value>);
+  /* Hextech palette — concrete oklch() values (v4 @theme; no <alpha-value>) */
+  --color-hx-gold: oklch(var(--hx-gold));
+  --color-hx-gold-dark: oklch(var(--hx-gold-dark));
+  --color-hx-gold-shadow: oklch(var(--hx-gold-shadow));
+  --color-hx-gold-bright: oklch(var(--hx-gold-bright));
+  --color-hx-parchment: oklch(var(--hx-parchment));
+  --color-hx-magic: oklch(var(--hx-magic));
+  --color-hx-magic-bright: oklch(var(--hx-magic-bright));
+  --color-hx-blue: oklch(var(--hx-blue));
+  --color-hx-steel: oklch(var(--hx-steel));
+  --color-hx-panel: oklch(var(--hx-panel));
+  --color-hx-navy: oklch(var(--hx-navy));
+  --color-hx-black: oklch(var(--hx-black));
 
   --color-success: oklch(0.7 0.16 150);
   --color-success-foreground: oklch(0.11 0.007 240);

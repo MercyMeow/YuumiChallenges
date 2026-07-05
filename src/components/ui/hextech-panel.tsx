@@ -85,7 +85,7 @@ export function HextechPanel({
           />
         </>
       )}
-      {title !== undefined && (
+      {title != null && title !== false && (
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-hx-gold-dark/40 px-4 py-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-2.5">
             {icon && <span className="shrink-0 text-hx-gold">{icon}</span>}

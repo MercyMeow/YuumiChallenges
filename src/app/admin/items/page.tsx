@@ -321,7 +321,7 @@ export default function ItemsEditorPage() {
                     {groupedItems[category.key].map((item) => (
                       <div
                         key={item.id}
-                        className="hex-card flex items-start gap-3 rounded-sm border-0 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-hx-gold"
+                        className="hex-card flex items-start gap-3 rounded-sm border-0 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border hover:border-hx-gold"
                       >
                         <ItemSlot itemId={item.itemId} size="lg" />
                         <div className="min-w-0 flex-1">

@@ -148,7 +148,7 @@ export const recordAutoBuild = internalMutation({
   handler: async (ctx, args) => {
     const now = Date.now();
 
-    await ctx.db.insert('scrapeJobs', {
+    const jobId = await ctx.db.insert('scrapeJobs', {
       source: 'opgg-auto',
       status: args.success ? 'completed' : 'failed',
       completedAt: now,
@@ -157,6 +157,17 @@ export const recordAutoBuild = internalMutation({
     });
 
     if (!args.success || !args.json) return { success: true };
+
+    // Validate BEFORE touching storage — keep-last-good means an invalid
+    // blob must never replace the previous good metadata value.
+    const autoBuild = parseAutoBuild(args.json);
+    if (!autoBuild) {
+      await ctx.db.patch(jobId, {
+        status: 'failed',
+        error: 'autoBuild blob failed schema validation; kept previous data',
+      });
+      return { success: false };
+    }
 
     // 1) Store the raw blob — share embeds, OG images, and the "Live" label
     //    read this metadata record.
@@ -176,29 +187,30 @@ export const recordAutoBuild = internalMutation({
 
     // 2) Make the recommended guideBuilds row the source of truth: overlay the
     //    scraped runes/core/boots/skill order onto it (starter/situational stay
-    //    curated). Skipped when the blob is invalid or no recommended row exists.
-    const autoBuild = parseAutoBuild(args.json);
-    if (autoBuild) {
-      const rows = await ctx.db.query('guideBuilds').collect();
-      const recommended =
-        rows.find((b) => b.isRecommended && b.isActive) ??
-        rows.find((b) => b.isRecommended);
-      if (recommended) {
-        const applied = applyAutoBuildToFields(
-          {
-            runes: recommended.runes,
-            items: recommended.items,
-            skillOrder: recommended.skillOrder,
-          },
-          autoBuild
-        );
-        await ctx.db.patch(recommended._id, {
-          runes: applied.runes,
-          items: applied.items,
-          skillOrder: applied.skillOrder,
-          updatedAt: now,
-        });
-      }
+    //    curated). Bounded via the by_active index; deterministic via priority
+    //    order. Inactive builds are not displayed, so they are never patched.
+    const activeBuilds = await ctx.db
+      .query('guideBuilds')
+      .withIndex('by_active', (q) => q.eq('isActive', true))
+      .collect();
+    const recommended = [...activeBuilds]
+      .sort((a, b) => a.priority - b.priority)
+      .find((b) => b.isRecommended);
+    if (recommended) {
+      const applied = applyAutoBuildToFields(
+        {
+          runes: recommended.runes,
+          items: recommended.items,
+          skillOrder: recommended.skillOrder,
+        },
+        autoBuild
+      );
+      await ctx.db.patch(recommended._id, {
+        runes: applied.runes,
+        items: applied.items,
+        skillOrder: applied.skillOrder,
+        updatedAt: now,
+      });
     }
 
     return { success: true };

@@ -18,7 +18,7 @@ import {
 import { BEST_ITEMS } from '../src/lib/builds/yuumi';
 import { SUPPORT_MATCHUPS, ADC_MATCHUPS } from '../src/lib/matchups/index';
 
-const CURRENT_PATCH = '16.13';
+import { GUIDE_PATCH } from '../src/lib/guide/patch';
 
 // Display names for Data Dragon champion ids that need punctuation.
 const CHAMPION_LABEL_OVERRIDES: Record<string, string> = {
@@ -286,7 +286,7 @@ export const seedAll = internalMutation({
         await ctx.db.insert('guideMetadata', { key, value, updatedAt: now });
       }
     };
-    await setMeta('currentPatch', CURRENT_PATCH);
+    await setMeta('currentPatch', GUIDE_PATCH);
     await setMeta('seededAt', new Date(now).toISOString());
 
     return {

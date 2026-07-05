@@ -20,6 +20,22 @@ async function verifyAuth(
   return session.userId ?? null;
 }
 
+// Shared matchup enum validators — used by upsertMatchup and
+// bulkImportMatchups so the two endpoints can never drift apart.
+const difficultyValidator = v.union(
+  v.literal('Easy'),
+  v.literal('Medium'),
+  v.literal('Hard')
+);
+const synergyValidator = v.union(
+  v.literal('Excellent'),
+  v.literal('Very Good'),
+  v.literal('Good'),
+  v.literal('Average'),
+  v.literal('Situational'),
+  v.literal('Poor')
+);
+
 // Drops the auth token from mutation args before persisting the rest.
 function stripSessionToken<T extends { sessionToken: string }>(
   args: T
@@ -451,19 +467,8 @@ export const upsertMatchup = mutation({
     championName: v.string(),
     championId: v.string(),
     matchupType: v.union(v.literal('enemy_support'), v.literal('ally_adc')),
-    difficulty: v.optional(
-      v.union(v.literal('Easy'), v.literal('Medium'), v.literal('Hard'))
-    ),
-    synergy: v.optional(
-      v.union(
-        v.literal('Excellent'),
-        v.literal('Very Good'),
-        v.literal('Good'),
-        v.literal('Average'),
-        v.literal('Situational'),
-        v.literal('Poor')
-      )
-    ),
+    difficulty: v.optional(difficultyValidator),
+    synergy: v.optional(synergyValidator),
     tips: v.array(v.string()),
     recommendedRunes: v.optional(v.string()),
     recommendedItems: v.optional(v.string()),
@@ -636,19 +641,8 @@ export const bulkImportMatchups = mutation({
         championName: v.string(),
         championId: v.string(),
         matchupType: v.union(v.literal('enemy_support'), v.literal('ally_adc')),
-        difficulty: v.optional(
-          v.union(v.literal('Easy'), v.literal('Medium'), v.literal('Hard'))
-        ),
-        synergy: v.optional(
-          v.union(
-            v.literal('Excellent'),
-            v.literal('Very Good'),
-            v.literal('Good'),
-            v.literal('Average'),
-            v.literal('Situational'),
-            v.literal('Poor')
-          )
-        ),
+        difficulty: v.optional(difficultyValidator),
+        synergy: v.optional(synergyValidator),
         tips: v.array(v.string()),
         recommendedRunes: v.optional(v.string()),
         recommendedItems: v.optional(v.string()),

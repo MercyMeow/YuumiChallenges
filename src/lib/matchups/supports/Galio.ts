@@ -7,7 +7,7 @@ export const Galio: SupportMatchup = {
     'Do not R first into his knock-up combo; hold Final Chapter to peel after taunt ends and heal allies through follow-up damage.',
     'Poke when his passive magic punch is on cooldown — empowered Q from brush chips him despite built MR.',
     'Detach only to ward when Galio shows on wave; jungler follow-up after Justice Punch engage is lethal.',
-    'Mikaels helps vs layered CC after taunt (Ashe arrow, etc.) but does not remove taunt itself.',
+    'Mikaels cleanses his taunt (and layered CC after it, like Ashe arrow) — hold it to peel your carry out of the combo.',
   ],
   recommendedRunes:
     'Aery default. Resolve Bone Plating + Revitalize mandatory vs engage lanes.',

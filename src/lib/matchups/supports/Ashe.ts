@@ -6,7 +6,7 @@ export const Ashe: SupportMatchup = {
     'Offset from your host so Enchanted Crystal Arrow cannot line both of you — attach angles are your primary dodge tool.',
     'E shield reactively after Volley damage; R channel heals through extended slow trades where she cannot burst you down.',
     'Poke with empowered Q after Hawkshot — vision cooldown creates a safe window to curve from brush.',
-    'Hold Exhaust for her ADC if Ashe is support; if she is ADC, Exhaust the Arrow target on your hyper-carry.',
+    'Hold Exhaust for the diver Ashe enables after a landed Arrow — peel your carry through the follow-up all-in.',
     'Arrow cooldown is long early — force plate pressure or rotate mid immediately after a missed Arrow.',
   ],
   recommendedRunes:

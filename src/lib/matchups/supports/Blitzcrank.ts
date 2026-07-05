@@ -12,6 +12,6 @@ export const Blitzcrank: SupportMatchup = {
   recommendedRunes:
     'Guardian if ADC is immobile (Jhin, Aphelios); Aery + Scorch if you can safely punish missed hooks.',
   recommendedItems:
-    'Moonstone into Redemption for R wave sustain in extended sieges. Ruby Crystal components before finishing mythic if all-ins are frequent.',
+    'Moonstone into Redemption for R wave sustain in extended sieges. Ruby Crystal components before finishing Moonstone if all-ins are frequent.',
   earlyItems: ['Ruby Crystal for survivability', 'Boots on host for sidestepping'],
 };

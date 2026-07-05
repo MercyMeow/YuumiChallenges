@@ -1,12 +1,19 @@
 // Brand mark: gold hex-frame diamond holding Yuumi's magic paw print.
 // Pure inline SVG so it stays crisp at any size and needs no asset request.
 
+import { useId } from 'react';
+
 interface PawEmblemProps {
   size?: number;
   className?: string;
 }
 
 export function PawEmblem({ size = 36, className }: PawEmblemProps) {
+  // Unique per instance — the emblem renders in TopNav and SideRail at once,
+  // and duplicate SVG gradient ids are invalid DOM.
+  const uid = useId();
+  const goldId = `paw-gold-${uid}`;
+  const magicId = `paw-magic-${uid}`;
   return (
     <svg
       width={size}
@@ -18,12 +25,12 @@ export function PawEmblem({ size = 36, className }: PawEmblemProps) {
       className={className}
     >
       <defs>
-        <linearGradient id="paw-gold" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={goldId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#E8D6A8" />
           <stop offset="55%" stopColor="#C8AA6E" />
           <stop offset="100%" stopColor="#785A28" />
         </linearGradient>
-        <linearGradient id="paw-magic" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id={magicId} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="#CDFAFA" />
           <stop offset="45%" stopColor="#0AC8B9" />
           <stop offset="100%" stopColor="#9D7BEE" />
@@ -36,7 +43,7 @@ export function PawEmblem({ size = 36, className }: PawEmblemProps) {
         width="35"
         height="35"
         transform="rotate(45 24 24)"
-        stroke="url(#paw-gold)"
+        stroke={`url(#${goldId})`}
         strokeWidth="2"
         fill="#010A13"
       />
@@ -52,10 +59,10 @@ export function PawEmblem({ size = 36, className }: PawEmblemProps) {
         opacity="0.8"
       />
       {/* paw print: pad + three toes, magic gradient */}
-      <ellipse cx="24" cy="28.5" rx="6.2" ry="5" fill="url(#paw-magic)" />
-      <circle cx="16.8" cy="22.5" r="2.6" fill="url(#paw-magic)" />
-      <circle cx="24" cy="19.5" r="2.8" fill="url(#paw-magic)" />
-      <circle cx="31.2" cy="22.5" r="2.6" fill="url(#paw-magic)" />
+      <ellipse cx="24" cy="28.5" rx="6.2" ry="5" fill={`url(#${magicId})`} />
+      <circle cx="16.8" cy="22.5" r="2.6" fill={`url(#${magicId})`} />
+      <circle cx="24" cy="19.5" r="2.8" fill={`url(#${magicId})`} />
+      <circle cx="31.2" cy="22.5" r="2.6" fill={`url(#${magicId})`} />
       {/* sparkle */}
       <path
         d="M33.5 12.5 L34.4 15 L37 15.9 L34.4 16.8 L33.5 19.3 L32.6 16.8 L30 15.9 L32.6 15 Z"

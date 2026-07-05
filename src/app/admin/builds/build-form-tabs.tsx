@@ -35,6 +35,27 @@ import {
 
 type SetForm = Dispatch<SetStateAction<BuildFormData>>;
 
+const SKILL_CAPS = { Q: 5, W: 5, E: 5, R: 3 } as const;
+type SkillKey = keyof typeof SKILL_CAPS;
+
+/** Split comma-separated admin input, dropping empty tokens from trailing commas. */
+function splitCsv(value: string): string[] {
+  return value
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/** True when assigning `skill` at `index` would stay within rank caps. */
+function canAssignSkill(levels: string[], index: number, skill: string): boolean {
+  if (!(skill in SKILL_CAPS)) return false;
+  const counts: Record<SkillKey, number> = { Q: 0, W: 0, E: 0, R: 0 };
+  levels.forEach((s, i) => {
+    if (i !== index && s in counts) counts[s as SkillKey]++;
+  });
+  return counts[skill as SkillKey] < SKILL_CAPS[skill as SkillKey];
+}
+
 /** Shared hextech styling for form controls in the editor. */
 const FIELD_CLASS =
   'rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40';
@@ -187,9 +208,17 @@ export function BuildRunesTab({
         <Field label="Primary Tree">
           <Select
             value={formData.runes.primaryTree}
-            onValueChange={(v) =>
-              setRunes({ primaryTree: v, keystone: KEYSTONES[v]?.[0] ?? '' })
-            }
+            onValueChange={(v) => {
+              const secondaryTree =
+                formData.runes.secondaryTree === v
+                  ? (RUNE_TREES.find((t) => t !== v) ?? '')
+                  : formData.runes.secondaryTree;
+              setRunes({
+                primaryTree: v,
+                keystone: KEYSTONES[v]?.[0] ?? '',
+                secondaryTree,
+              });
+            }}
           >
             <SelectTrigger className={FIELD_CLASS}>
               <SelectValue />
@@ -226,7 +255,7 @@ export function BuildRunesTab({
           value={formData.runes.primary.join(', ')}
           onChange={(e) =>
             setRunes({
-              primary: e.target.value.split(',').map((s) => s.trim()),
+              primary: splitCsv(e.target.value),
             })
           }
           className={FIELD_CLASS}
@@ -258,7 +287,7 @@ export function BuildRunesTab({
             value={formData.runes.secondary.join(', ')}
             onChange={(e) =>
               setRunes({
-                secondary: e.target.value.split(',').map((s) => s.trim()),
+                secondary: splitCsv(e.target.value),
               })
             }
             className={FIELD_CLASS}
@@ -270,7 +299,7 @@ export function BuildRunesTab({
         <Input
           value={formData.runes.shards.join(', ')}
           onChange={(e) =>
-            setRunes({ shards: e.target.value.split(',').map((s) => s.trim()) })
+            setRunes({ shards: splitCsv(e.target.value) })
           }
           className={FIELD_CLASS}
           placeholder="AdaptiveForce, AdaptiveForce, Health"
@@ -295,7 +324,7 @@ export function BuildItemsTab({
   });
 
   const addItem = () => {
-    if (!newItem.name || !newItem.id) return;
+    if (!newItem.name || newItem.id <= 0) return;
     setFormData((prev) => ({
       ...prev,
       items: {
@@ -353,9 +382,14 @@ export function BuildItemsTab({
               <Input
                 type="number"
                 value={newItem.id || ''}
-                onChange={(e) =>
-                  setNewItem({ ...newItem, id: parseInt(e.target.value) || 0 })
-                }
+                onChange={(e) => {
+                  const parsed = parseInt(e.target.value, 10);
+                  setNewItem({
+                    ...newItem,
+                    id:
+                      Number.isFinite(parsed) && parsed > 0 ? parsed : 0,
+                  });
+                }}
                 className={FIELD_CLASS}
                 placeholder="3850"
               />
@@ -376,7 +410,7 @@ export function BuildItemsTab({
                 type="button"
                 onClick={addItem}
                 className="btn-hextech w-full rounded-sm"
-                disabled={!newItem.name || !newItem.id}
+                disabled={!newItem.name || newItem.id <= 0}
               >
                 <Plus className="mr-1 h-4 w-4" />
                 Add
@@ -478,12 +512,22 @@ export function BuildSkillsTab({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Q">Q</SelectItem>
-                  <SelectItem value="W">W</SelectItem>
-                  <SelectItem value="E">E</SelectItem>
-                  {(idx === 5 || idx === 10 || idx === 15) && (
-                    <SelectItem value="R">R</SelectItem>
+                  {(['Q', 'W', 'E'] as const).map(
+                    (key) =>
+                      canAssignSkill(
+                        formData.skillOrder.levels,
+                        idx,
+                        key
+                      ) && (
+                        <SelectItem key={key} value={key}>
+                          {key}
+                        </SelectItem>
+                      )
                   )}
+                  {(idx === 5 || idx === 10 || idx === 15) &&
+                    canAssignSkill(formData.skillOrder.levels, idx, 'R') && (
+                      <SelectItem value="R">R</SelectItem>
+                    )}
                 </SelectContent>
               </Select>
             </div>

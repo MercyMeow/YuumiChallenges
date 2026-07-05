@@ -61,10 +61,14 @@ export function MythicShopPreview() {
 
   const now = nowMs === null ? new Date() : new Date(nowMs);
   const featured = rotation?.items.filter((i) => i.section === 'featured');
+  const showingFeatured = Boolean(featured && featured.length > 0);
   const display = (
-    featured && featured.length > 0 ? featured : (rotation?.items ?? [])
+    showingFeatured ? featured! : (rotation?.items ?? [])
   ).slice(0, 3);
-  const nextReset = getNextResetForSection('daily', now);
+  // Match the countdown label to what is actually displayed: featured items
+  // rotate ad hoc (getNextResetForSection returns null → 'Varies').
+  const countdownSection = showingFeatured ? 'featured' : 'daily';
+  const nextReset = getNextResetForSection(countdownSection, now);
 
   return (
     <HextechPanel
@@ -74,7 +78,9 @@ export function MythicShopPreview() {
       contentClassName="space-y-3 p-4"
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="hex-label opacity-70">Daily reset</span>
+        <span className="hex-label opacity-70">
+          {showingFeatured ? 'Featured rotation' : 'Daily reset'}
+        </span>
         <span className="hex-chip-magic">
           <Clock className="h-3 w-3" />
           {nowMs === null ? '—' : formatCountdown(nextReset, nowMs)}

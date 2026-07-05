@@ -39,7 +39,10 @@ export function parseAutoBuild(
   if (!json) return null;
   try {
     return autoBuildSchema.parse(JSON.parse(json));
-  } catch {
+  } catch (error) {
+    // Surface schema regressions / corrupt payloads instead of failing
+    // silently — callers still fall back to static data.
+    console.error('[auto-build] Failed to parse stored autoBuild JSON:', error);
     return null;
   }
 }

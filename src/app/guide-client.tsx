@@ -676,7 +676,7 @@ export function YuumiGuide({
 
           {/* Abilities */}
           <section id="abilities" className="scroll-mt-24 space-y-6">
-            <OrnateHeading eyebrow="Patch 16.13 kit">Spell Tips</OrnateHeading>
+            <OrnateHeading eyebrow={`Patch ${currentPatch} kit`}>Spell Tips</OrnateHeading>
             <SpellTipsPanel />
           </section>
 

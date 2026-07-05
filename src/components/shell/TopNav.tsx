@@ -24,6 +24,14 @@ export function TopNav() {
   const patch = useLivePatch();
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Close the mobile drawer on any route change (incl. back/forward), not
+  // just link clicks. Render-time adjustment keeps the React Compiler happy.
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    if (menuOpen) setMenuOpen(false);
+  }
+
   return (
     <header className="sticky top-0 z-50">
       <div className="border-b border-hx-gold-dark/70 bg-[oklch(0.11_0.03_247_/_0.92)] shadow-[0_8px_24px_oklch(0_0_0_/_0.5)] backdrop-blur-md">
