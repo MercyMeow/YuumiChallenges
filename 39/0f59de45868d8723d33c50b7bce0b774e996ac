@@ -1,0 +1,28 @@
+src/app/admin/builds/build-form-tabs.tsx
+  s_48a7ddc0e5262a::t_9ca5052ba2d475 510
+  s_48a7ddc0e5262a::t_36ec830aa5b4f3 60
+src/app/match/[matchId]/page.tsx
+  s_48a7ddc0e5262a::t_2be4b014cc09d3 176,182,188,194,200,206
+  s_48a7ddc0e5262a::t_cea1a28665f755 44-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "390f59de45868d8723d33c50b7bce0b774e996ac",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_48a7ddc0e5262a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "e800fa8f-f373-4939-899f-f7057b28e91a",
+        "model": "composer-2.5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
