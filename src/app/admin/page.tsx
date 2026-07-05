@@ -44,8 +44,8 @@ export default function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
+      <div className="flex min-h-screen items-center justify-center hex-page-bg">
+        <Loader2 className="h-8 w-8 animate-spin text-hx-gold" />
       </div>
     );
   }
@@ -64,8 +64,8 @@ export default function AdminDashboard() {
       title: 'Builds',
       value: buildsCount,
       icon: Layers,
-      color: 'text-purple-400',
-      bgColor: 'bg-purple-500/20',
+      color: 'text-hx-gold',
+      bgColor: 'bg-hx-gold/15',
       href: '/admin/builds',
       description: 'Runes, Items & Skills combined',
     },
@@ -73,38 +73,38 @@ export default function AdminDashboard() {
       title: 'Matchups',
       value: matchupsCount,
       icon: Users,
-      color: 'text-yellow-400',
-      bgColor: 'bg-yellow-500/20',
+      color: 'text-hx-magic',
+      bgColor: 'bg-hx-magic/15',
       href: null,
       description: 'Enemy & Ally matchups (managed in code)',
     },
   ];
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
+    <div className="min-h-screen hex-page-bg">
       <div className="container mx-auto max-w-7xl px-6 py-8">
         {/* Header */}
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="bg-linear-to-r from-white via-yuumi-purple to-yuumi-blue bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+            <h1 className="text-gradient-gold text-3xl font-black tracking-wide uppercase">
               Admin Dashboard
             </h1>
-            <p className="mt-1 text-white/60">
+            <p className="mt-1 text-landing-text-secondary">
               Welcome back,{' '}
-              <span className="text-purple-300">{user?.username}</span>
+              <span className="text-hx-gold">{user?.username}</span>
             </p>
           </div>
           <div className="flex items-center gap-4">
             <Badge
               variant="outline"
-              className="border-purple-400/40 text-purple-300"
+              className="rounded-sm border-hx-gold-dark bg-hx-black/60 text-hx-gold"
             >
               {user?.role}
             </Badge>
             <Button
               variant="outline"
               onClick={handleLogout}
-              className="border-white/20 text-white hover:bg-white/10"
+              className="rounded-sm border-hx-gold-dark/60 text-hx-gold hover:border-hx-gold hover:text-hx-gold-bright"
             >
               <LogOut className="mr-2 h-4 w-4" />
               Logout
@@ -115,27 +115,33 @@ export default function AdminDashboard() {
         {/* Quick Actions */}
         <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Link href="/" className="block">
-            <Card className="cursor-pointer border-white/10 bg-black/30 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:bg-black/40">
+            <Card className="hex-card cursor-pointer rounded-sm border-0 transition-all duration-200 hover:-translate-y-0.5 hover:border-hx-gold">
               <CardContent className="flex items-center gap-4 p-4">
-                <div className="rounded-lg bg-purple-500/20 p-3">
-                  <FileText className="h-6 w-6 text-purple-400" />
+                <div className="rounded-sm bg-hx-gold/15 p-3">
+                  <FileText className="h-6 w-6 text-hx-gold" />
                 </div>
                 <div>
-                  <div className="font-medium text-white">View Guide</div>
-                  <div className="text-sm text-white/60">See live guide</div>
+                  <div className="font-medium text-hx-parchment">
+                    View Guide
+                  </div>
+                  <div className="text-sm text-landing-text-secondary">
+                    See live guide
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </Link>
           <Link href="/admin/scraper" className="block">
-            <Card className="cursor-pointer border-white/10 bg-black/30 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:bg-black/40">
+            <Card className="hex-card cursor-pointer rounded-sm border-0 transition-all duration-200 hover:-translate-y-0.5 hover:border-hx-gold">
               <CardContent className="flex items-center gap-4 p-4">
-                <div className="rounded-lg bg-blue-500/20 p-3">
-                  <Database className="h-6 w-6 text-blue-400" />
+                <div className="rounded-sm bg-hx-magic/15 p-3">
+                  <Database className="h-6 w-6 text-hx-magic" />
                 </div>
                 <div>
-                  <div className="font-medium text-white">Data Scraper</div>
-                  <div className="text-sm text-white/60">
+                  <div className="font-medium text-hx-parchment">
+                    Data Scraper
+                  </div>
+                  <div className="text-sm text-landing-text-secondary">
                     Fetch external data
                   </div>
                 </div>
@@ -143,14 +149,14 @@ export default function AdminDashboard() {
             </Card>
           </Link>
           <Link href="/admin/builds" className="block">
-            <Card className="cursor-pointer border-white/10 bg-black/30 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:bg-black/40">
+            <Card className="hex-card cursor-pointer rounded-sm border-0 transition-all duration-200 hover:-translate-y-0.5 hover:border-hx-gold">
               <CardContent className="flex items-center gap-4 p-4">
-                <div className="rounded-lg bg-green-500/20 p-3">
-                  <Layers className="h-6 w-6 text-green-400" />
+                <div className="rounded-sm bg-hx-gold/15 p-3">
+                  <Layers className="h-6 w-6 text-hx-gold" />
                 </div>
                 <div>
-                  <div className="font-medium text-white">Builds</div>
-                  <div className="text-sm text-white/60">
+                  <div className="font-medium text-hx-parchment">Builds</div>
+                  <div className="text-sm text-landing-text-secondary">
                     Runes, items & skills
                   </div>
                 </div>
@@ -158,14 +164,14 @@ export default function AdminDashboard() {
             </Card>
           </Link>
           <Link href="/admin/items" className="block">
-            <Card className="cursor-pointer border-white/10 bg-black/30 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:bg-black/40">
+            <Card className="hex-card cursor-pointer rounded-sm border-0 transition-all duration-200 hover:-translate-y-0.5 hover:border-hx-gold">
               <CardContent className="flex items-center gap-4 p-4">
-                <div className="rounded-lg bg-yellow-500/20 p-3">
-                  <Settings className="h-6 w-6 text-yellow-400" />
+                <div className="rounded-sm bg-hx-gold/15 p-3">
+                  <Settings className="h-6 w-6 text-hx-gold" />
                 </div>
                 <div>
-                  <div className="font-medium text-white">Items</div>
-                  <div className="text-sm text-white/60">
+                  <div className="font-medium text-hx-parchment">Items</div>
+                  <div className="text-sm text-landing-text-secondary">
                     Item configuration
                   </div>
                 </div>
@@ -179,24 +185,26 @@ export default function AdminDashboard() {
           {stats.map((stat) => {
             const card = (
               <Card
-                className={`border-white/10 bg-black/30 backdrop-blur-md transition-all duration-200 ${
+                className={`hex-card rounded-sm border-0 transition-all duration-200 ${
                   stat.href
-                    ? 'cursor-pointer hover:-translate-y-0.5 hover:border-white/25 hover:bg-black/40'
+                    ? 'cursor-pointer hover:-translate-y-0.5 hover:border-hx-gold'
                     : ''
                 }`}
               >
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-white/60">{stat.title}</p>
-                      <p className="mt-1 text-3xl font-bold text-white">
+                      <p className="text-sm text-landing-text-secondary">
+                        {stat.title}
+                      </p>
+                      <p className="mt-1 text-3xl font-bold text-hx-parchment">
                         {stat.value}
                       </p>
-                      <p className="mt-1 text-xs text-white/40">
+                      <p className="mt-1 text-xs text-hx-gold/60">
                         {stat.description}
                       </p>
                     </div>
-                    <div className={`rounded-lg ${stat.bgColor} p-3`}>
+                    <div className={`rounded-sm ${stat.bgColor} p-3`}>
                       <stat.icon className={`h-6 w-6 ${stat.color}`} />
                     </div>
                   </div>
@@ -214,9 +222,9 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Scrape Jobs */}
-        <Card className="border-white/10 bg-black/30 backdrop-blur-md">
+        <Card className="hex-card-elevated hex-corners rounded-sm border-0">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
+            <CardTitle className="flex items-center gap-2 text-hx-gold">
               <RefreshCw className="h-5 w-5" />
               Recent Scrape Jobs
             </CardTitle>
@@ -227,28 +235,28 @@ export default function AdminDashboard() {
                 {scrapeJobs.map((job) => (
                   <div
                     key={job._id}
-                    className="flex items-center justify-between rounded-lg bg-white/5 p-3"
+                    className="flex items-center justify-between rounded-sm bg-hx-black/40 p-3"
                   >
                     <div className="flex items-center gap-3">
                       <Badge
                         variant="outline"
-                        className={`border ${
+                        className={`rounded-sm border ${
                           job.status === 'completed'
-                            ? 'border-green-400 text-green-300'
+                            ? 'border-green-400/40 text-green-300'
                             : job.status === 'running'
-                              ? 'border-blue-400 text-blue-300'
+                              ? 'border-blue-400/40 text-blue-300'
                               : job.status === 'failed'
-                                ? 'border-red-400 text-red-300'
-                                : 'border-yellow-400 text-yellow-300'
+                                ? 'border-red-400/40 text-red-300'
+                                : 'border-yellow-400/40 text-yellow-300'
                         }`}
                       >
                         {job.status}
                       </Badge>
-                      <span className="font-medium text-white">
+                      <span className="font-medium text-hx-parchment">
                         {job.source}
                       </span>
                     </div>
-                    <div className="text-sm text-white/60">
+                    <div className="text-sm text-landing-text-secondary">
                       {job.completedAt
                         ? new Date(job.completedAt).toLocaleString()
                         : job.startedAt
@@ -259,7 +267,7 @@ export default function AdminDashboard() {
                 ))}
               </div>
             ) : (
-              <p className="text-center text-white/60">
+              <p className="text-center text-landing-text-secondary">
                 No scrape jobs yet. Go to Data Scraper to fetch data.
               </p>
             )}

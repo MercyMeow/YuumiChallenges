@@ -66,8 +66,8 @@ export default function AdminMythicShopPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-        <Loader2 className="h-8 w-8 animate-spin text-yuumi-purple" />
+      <div className="flex min-h-screen items-center justify-center hex-page-bg">
+        <Loader2 className="h-8 w-8 animate-spin text-hx-gold" />
       </div>
     );
   }
@@ -108,17 +108,17 @@ export default function AdminMythicShopPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
+    <div className="min-h-screen hex-page-bg">
       <div className="container mx-auto max-w-5xl px-6 py-8">
         <Link
           href="/admin"
-          className="mb-6 inline-flex items-center gap-2 text-yuumi-purple transition-colors hover:text-yuumi-blue"
+          className="mb-6 inline-flex items-center gap-2 text-hx-gold transition-colors hover:text-hx-gold-bright"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Dashboard
         </Link>
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <h1 className="bg-gradient-to-r from-white via-yuumi-purple to-yuumi-pink bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+          <h1 className="text-gradient-gold text-3xl font-black tracking-wide uppercase">
             Mythic Shop Rotation
           </h1>
           <div className="flex items-center gap-3">
@@ -126,12 +126,12 @@ export default function AdminMythicShopPage() {
               value={patch}
               onChange={(e) => setPatch(e.target.value)}
               placeholder="Patch (e.g. 16.13)"
-              className="w-36 border-white/20 bg-white/5 text-white placeholder:text-white/40"
+              className="w-36 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
             />
             <Button
               onClick={handleSave}
               disabled={saving || !convexAvailable}
-              className="bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
+              className="btn-hextech rounded-sm"
             >
               {saving ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -144,7 +144,7 @@ export default function AdminMythicShopPage() {
         </div>
 
         {!convexAvailable && (
-          <Card className="mb-6 border-yellow-400/40 bg-black/30 backdrop-blur-md">
+          <Card className="mb-6 rounded-sm border-yellow-400/40 bg-hx-black/60">
             <CardContent className="p-4 text-sm text-yellow-300">
               Convex is not configured (NEXT_PUBLIC_CONVEX_URL missing), so
               saving is disabled.
@@ -152,20 +152,20 @@ export default function AdminMythicShopPage() {
           </Card>
         )}
         {status && (
-          <Card className="mb-6 border-white/10 bg-black/30 backdrop-blur-md">
-            <CardContent className="p-4 text-sm text-white/80">
+          <Card className="hex-card mb-6 rounded-sm border-0">
+            <CardContent className="p-4 text-sm text-landing-text-secondary">
               {status}
             </CardContent>
           </Card>
         )}
 
-        <Card className="border-white/10 bg-black/30 backdrop-blur-md">
+        <Card className="hex-card-elevated hex-corners rounded-sm border-0">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-white">Items</CardTitle>
+            <CardTitle className="text-hx-gold">Items</CardTitle>
             <Button
               variant="outline"
               onClick={() => setItems((prev) => [...prev, { ...EMPTY_ITEM }])}
-              className="border-white/20 text-white hover:bg-white/10"
+              className="rounded-sm border-hx-gold-dark/60 text-hx-gold hover:border-hx-gold hover:text-hx-gold-bright"
             >
               <Plus className="mr-2 h-4 w-4" />
               Add Item
@@ -173,7 +173,7 @@ export default function AdminMythicShopPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {items.length === 0 && (
-              <p className="text-center text-sm text-white/50">
+              <p className="text-center text-sm text-hx-gold/60">
                 No items yet. Add the current rotation — champion is the Data
                 Dragon id (e.g. MissFortune), skin # is the splash number.
               </p>
@@ -183,17 +183,17 @@ export default function AdminMythicShopPage() {
               return (
                 <div
                   key={index}
-                  className="flex flex-wrap items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3"
+                  className="flex flex-wrap items-center gap-3 rounded-sm border border-hx-gold-dark/40 bg-hx-black/40 p-3"
                 >
                   {art && item.name ? (
                     // eslint-disable-next-line @next/next/no-img-element -- tiny admin preview, remote skin art
                     <img
                       src={art}
                       alt={item.name}
-                      className="h-16 w-9 rounded object-cover"
+                      className="h-16 w-9 rounded-sm object-cover"
                     />
                   ) : (
-                    <div className="h-16 w-9 rounded bg-black/40" />
+                    <div className="h-16 w-9 rounded-sm bg-hx-black/60" />
                   )}
                   <Input
                     value={item.name}
@@ -201,7 +201,7 @@ export default function AdminMythicShopPage() {
                       updateItem(index, { name: e.target.value })
                     }
                     placeholder="Display name"
-                    className="w-48 flex-1 border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                    className="w-48 flex-1 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                   />
                   <Input
                     value={item.champion}
@@ -209,7 +209,7 @@ export default function AdminMythicShopPage() {
                       updateItem(index, { champion: e.target.value })
                     }
                     placeholder="Champion id"
-                    className="w-36 border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                    className="w-36 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                   />
                   <Input
                     type="number"
@@ -218,7 +218,7 @@ export default function AdminMythicShopPage() {
                       updateItem(index, { skinNum: Number(e.target.value) })
                     }
                     placeholder="Skin #"
-                    className="w-24 border-white/20 bg-white/5 text-white"
+                    className="w-24 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                   />
                   <Input
                     type="number"
@@ -227,7 +227,7 @@ export default function AdminMythicShopPage() {
                       updateItem(index, { costME: Number(e.target.value) })
                     }
                     placeholder="ME"
-                    className="w-24 border-white/20 bg-white/5 text-white"
+                    className="w-24 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                   />
                   <Select
                     value={item.section}
@@ -237,7 +237,7 @@ export default function AdminMythicShopPage() {
                       })
                     }
                   >
-                    <SelectTrigger className="w-32 border-white/20 bg-white/5 text-white">
+                    <SelectTrigger className="w-32 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -254,7 +254,7 @@ export default function AdminMythicShopPage() {
                       updateItem(index, { kind: value as MythicItem['kind'] })
                     }
                   >
-                    <SelectTrigger className="w-32 border-white/20 bg-white/5 text-white">
+                    <SelectTrigger className="w-32 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

@@ -65,24 +65,24 @@ export default function MatchLandingPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to px-6 py-16">
+    <main className="flex min-h-screen items-center justify-center px-6 py-16 hex-page-bg">
       <div className="w-full max-w-lg duration-500 animate-in fade-in slide-in-from-bottom-4">
         <Link
           href="/"
-          className="mb-6 inline-flex items-center gap-2 text-yuumi-purple transition-colors hover:text-yuumi-blue"
+          className="mb-6 inline-flex items-center gap-2 text-hx-gold transition-colors hover:text-hx-gold-bright"
         >
           <ArrowLeft className="h-5 w-5" />
           <span>Back to Home</span>
         </Link>
 
         <div className="relative">
-          <div className="absolute -inset-0.5 rounded-2xl bg-linear-to-r from-yuumi-purple/40 to-yuumi-blue/40 opacity-40 blur-sm" />
-          <div className="relative rounded-2xl border border-white/10 bg-black/40 p-8 backdrop-blur-md">
+          <div className="absolute -inset-0.5 rounded-sm bg-linear-to-r from-hx-gold/40 to-hx-magic/30 opacity-40 blur-sm" />
+          <div className="hex-card-elevated hex-corners relative rounded-sm p-8">
             <div className="mb-6 text-center">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yuumi-purple/20">
-                <Swords className="h-8 w-8 text-yuumi-purple" />
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-hx-gold-dark/60 bg-hx-gold/10">
+                <Swords className="h-8 w-8 text-hx-gold" />
               </div>
-              <h1 className="bg-linear-to-r from-landing-text-primary via-yuumi-purple to-yuumi-blue bg-clip-text text-3xl font-extrabold tracking-tight text-transparent sm:text-4xl">
+              <h1 className="text-gradient-gold text-4xl font-black tracking-wide uppercase md:text-6xl">
                 Yuumi Match Viewer
               </h1>
               <p className="mx-auto mt-3 max-w-md text-sm text-landing-text-secondary sm:text-base">
@@ -97,7 +97,7 @@ export default function MatchLandingPage() {
                   value={region}
                   onValueChange={(value) => setRegion(value as RegionValue)}
                 >
-                  <SelectTrigger className="w-full shrink-0 border-white/20 bg-white/5 text-white sm:w-44">
+                  <SelectTrigger className="w-full shrink-0 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment sm:w-44">
                     <SelectValue placeholder="Select region" />
                   </SelectTrigger>
                   <SelectContent>
@@ -119,7 +119,7 @@ export default function MatchLandingPage() {
                   placeholder="Match ID (e.g. 7481411158)"
                   aria-label="Match identifier"
                   aria-invalid={Boolean(matchIdError)}
-                  className="flex-1 border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                  className="flex-1 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                   spellCheck={false}
                   autoComplete="off"
                 />
@@ -129,10 +129,7 @@ export default function MatchLandingPage() {
                   {matchIdError}
                 </p>
               )}
-              <Button
-                type="submit"
-                className="w-full bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
-              >
+              <Button type="submit" className="btn-hextech w-full rounded-sm">
                 <Search className="mr-2 h-4 w-4" />
                 View Match Details
               </Button>
@@ -141,7 +138,7 @@ export default function MatchLandingPage() {
             <Button
               asChild
               variant="outline"
-              className="mt-3 w-full border-white/20 text-white hover:bg-white/10"
+              className="mt-3 w-full rounded-sm border-hx-gold-dark/60 text-hx-gold hover:border-hx-gold hover:text-hx-gold-bright"
             >
               <a
                 href={YUUMI_DISCORD_INVITE_URL}

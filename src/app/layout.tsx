@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Cinzel, Source_Sans_3 } from 'next/font/google';
 import './globals.css';
 import { ClientProviders } from '@/providers/ClientProviders';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -7,6 +8,19 @@ import { buildShareDescription } from '@/lib/builds/embed-summary';
 import { fetchAutoBuild } from '@/lib/builds/auto-build';
 import { getLiveDdragonVersion, toGuidePatch } from '@/lib/utils/live-patch';
 import { MythicShopResetBanner } from '@/components/mythic-shop/MythicShopResetBanner';
+
+// Beaufort-like serif for headings (old LoL client look) + clean body sans.
+const cinzel = Cinzel({
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '800', '900'],
+  variable: '--font-cinzel',
+  display: 'swap',
+});
+const sourceSans = Source_Sans_3({
+  subsets: ['latin'],
+  variable: '--font-source-sans',
+  display: 'swap',
+});
 
 const siteUrlFromEnv =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ??
@@ -104,7 +118,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="dark antialiased">
+      <body
+        className={`${cinzel.variable} ${sourceSans.variable} dark antialiased`}
+      >
         <MythicShopResetBanner />
         <ClientProviders>{children}</ClientProviders>
         <SpeedInsights />

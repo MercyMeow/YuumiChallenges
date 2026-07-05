@@ -217,8 +217,8 @@ export default function BuildsEditorPage() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-        <Loader2 className="h-8 w-8 animate-spin text-yuumi-purple" />
+      <div className="flex min-h-screen items-center justify-center hex-page-bg">
+        <Loader2 className="h-8 w-8 animate-spin text-hx-gold" />
       </div>
     );
   }
@@ -309,36 +309,33 @@ export default function BuildsEditorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
+    <div className="min-h-screen hex-page-bg">
       <div className="container mx-auto max-w-7xl px-6 py-8 duration-500 animate-in fade-in slide-in-from-bottom-4">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
             <Link
               href="/admin"
-              className="mb-4 inline-flex items-center text-sm text-white/60 hover:text-white"
+              className="mb-4 inline-flex items-center text-sm text-hx-gold/60 hover:text-hx-gold-bright"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
             </Link>
-            <h1 className="bg-linear-to-r from-white via-yuumi-purple to-yuumi-blue bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+            <h1 className="text-gradient-gold text-3xl font-black tracking-wide uppercase">
               Builds Editor
             </h1>
-            <p className="mt-1 text-white/60">
+            <p className="mt-1 text-landing-text-secondary">
               Manage complete builds (Runes + Items + Skill Order)
             </p>
           </div>
-          <Button
-            onClick={handleAddNew}
-            className="bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
-          >
+          <Button onClick={handleAddNew} className="btn-hextech rounded-sm">
             <Plus className="mr-2 h-4 w-4" />
             Add Build
           </Button>
         </div>
 
         {/* Convex Connection Notice */}
-        <Card className="mb-6 border-yellow-500/30 bg-yellow-500/10 backdrop-blur-md">
+        <Card className="mb-6 rounded-sm border-yellow-500/30 bg-yellow-500/10 backdrop-blur-md">
           <CardContent className="flex items-start gap-3 p-4">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-400" />
             <div>
@@ -358,21 +355,21 @@ export default function BuildsEditorPage() {
             builds.map((build) => (
               <Card
                 key={build.id}
-                className={`border-white/10 bg-black/30 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:bg-black/40 ${build.isRecommended ? 'ring-2 ring-yuumi-purple/50' : ''}`}
+                className={`hex-card rounded-sm border-0 transition-all duration-200 hover:-translate-y-0.5 hover:border-hx-gold ${build.isRecommended ? 'ring-2 ring-hx-gold/50' : ''}`}
               >
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">
-                      <div className={`rounded-lg ${build.color} p-3`}>
+                      <div className={`rounded-sm ${build.color} p-3`}>
                         <Layers className="h-6 w-6 text-white" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-lg font-semibold text-white">
+                          <h3 className="text-lg font-semibold text-hx-parchment">
                             {build.name}
                           </h3>
                           {build.isRecommended && (
-                            <Badge className="bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white">
+                            <Badge className="rounded-sm border border-hx-gold/60 bg-hx-gold/15 text-hx-gold-bright">
                               <Star className="mr-1 h-3 w-3" />
                               Recommended
                             </Badge>
@@ -380,25 +377,25 @@ export default function BuildsEditorPage() {
                           {!build.isActive && (
                             <Badge
                               variant="outline"
-                              className="border-red-400/40 text-red-300"
+                              className="rounded-sm border-red-400/40 text-red-300"
                             >
                               Inactive
                             </Badge>
                           )}
                         </div>
-                        <p className="mt-1 text-sm text-white/60">
+                        <p className="mt-1 text-sm text-landing-text-secondary">
                           {build.description}
                         </p>
                         <div className="mt-3 flex flex-wrap gap-4">
-                          <div className="flex items-center gap-2 text-sm text-white/40">
+                          <div className="flex items-center gap-2 text-sm text-hx-gold/60">
                             <Sparkles className="h-4 w-4" />
                             <span>{build.runes.keystone}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-white/40">
+                          <div className="flex items-center gap-2 text-sm text-hx-gold/60">
                             <Package className="h-4 w-4" />
                             <span>{build.items.core.length} core items</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-white/40">
+                          <div className="flex items-center gap-2 text-sm text-hx-gold/60">
                             <Target className="h-4 w-4" />
                             <span>{build.skillOrder.priority}</span>
                           </div>
@@ -410,7 +407,7 @@ export default function BuildsEditorPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleEdit(build)}
-                        className="border-white/20 text-white hover:bg-white/10"
+                        className="rounded-sm border-hx-gold-dark/60 text-hx-gold hover:border-hx-gold hover:text-hx-gold-bright"
                       >
                         <Pencil className="mr-1 h-3 w-3" />
                         Edit
@@ -419,7 +416,7 @@ export default function BuildsEditorPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleDelete(build.id)}
-                        className="border-red-400/40 text-red-300 hover:bg-red-500/10"
+                        className="rounded-sm border-red-400/40 text-red-300 hover:bg-red-500/10"
                       >
                         <Trash2 className="mr-1 h-3 w-3" />
                         Delete
@@ -430,18 +427,18 @@ export default function BuildsEditorPage() {
               </Card>
             ))
           ) : (
-            <Card className="border-white/10 bg-black/30 backdrop-blur-md">
+            <Card className="hex-card rounded-sm border-0">
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <Layers className="mb-4 h-12 w-12 text-white/20" />
-                <p className="mb-2 text-lg font-medium text-white/60">
+                <Layers className="mb-4 h-12 w-12 text-hx-gold/30" />
+                <p className="mb-2 text-lg font-medium text-landing-text-secondary">
                   No builds yet
                 </p>
-                <p className="mb-4 text-sm text-white/40">
+                <p className="mb-4 text-sm text-hx-gold/60">
                   Connect Convex and add your first build
                 </p>
                 <Button
                   onClick={handleAddNew}
-                  className="bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
+                  className="btn-hextech rounded-sm"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Create First Build
@@ -453,7 +450,7 @@ export default function BuildsEditorPage() {
 
         {/* Build Editor Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto border-white/10 bg-black/30 text-white backdrop-blur-md">
+          <DialogContent className="hex-card max-h-[90vh] max-w-4xl overflow-y-auto rounded-sm border-0 text-hx-parchment">
             <DialogHeader>
               <DialogTitle>
                 {formData.id ? 'Edit Build' : 'Create New Build'}
@@ -465,17 +462,29 @@ export default function BuildsEditorPage() {
                 onValueChange={setActiveTab}
                 className="mt-4"
               >
-                <TabsList className="mb-4 w-full bg-black/30">
-                  <TabsTrigger value="general" className="flex-1">
+                <TabsList className="hex-card mb-4 w-full rounded-sm p-1">
+                  <TabsTrigger
+                    value="general"
+                    className="flex-1 rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+                  >
                     General
                   </TabsTrigger>
-                  <TabsTrigger value="runes" className="flex-1">
+                  <TabsTrigger
+                    value="runes"
+                    className="flex-1 rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+                  >
                     Runes
                   </TabsTrigger>
-                  <TabsTrigger value="items" className="flex-1">
+                  <TabsTrigger
+                    value="items"
+                    className="flex-1 rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+                  >
                     Items
                   </TabsTrigger>
-                  <TabsTrigger value="skills" className="flex-1">
+                  <TabsTrigger
+                    value="skills"
+                    className="flex-1 rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+                  >
                     Skill Order
                   </TabsTrigger>
                 </TabsList>
@@ -490,7 +499,7 @@ export default function BuildsEditorPage() {
                         onChange={(e) =>
                           setFormData({ ...formData, name: e.target.value })
                         }
-                        className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                         placeholder="e.g., Standard Aery"
                         required
                       />
@@ -506,7 +515,7 @@ export default function BuildsEditorPage() {
                             priority: parseInt(e.target.value) || 0,
                           })
                         }
-                        className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                       />
                     </div>
                   </div>
@@ -520,7 +529,7 @@ export default function BuildsEditorPage() {
                           description: e.target.value,
                         })
                       }
-                      className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                      className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                       rows={2}
                       placeholder="Brief description of when to use this build..."
                       required
@@ -535,7 +544,7 @@ export default function BuildsEditorPage() {
                           setFormData({ ...formData, icon: v })
                         }
                       >
-                        <SelectTrigger className="border-white/20 bg-white/5 text-white placeholder:text-white/40">
+                        <SelectTrigger className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -554,7 +563,7 @@ export default function BuildsEditorPage() {
                         onChange={(e) =>
                           setFormData({ ...formData, color: e.target.value })
                         }
-                        className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                         placeholder="bg-purple-500/20"
                       />
                     </div>
@@ -568,7 +577,7 @@ export default function BuildsEditorPage() {
                             borderColor: e.target.value,
                           })
                         }
-                        className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                         placeholder="border-purple-500/50"
                       />
                     </div>
@@ -585,7 +594,7 @@ export default function BuildsEditorPage() {
                             isRecommended: e.target.checked,
                           })
                         }
-                        className="rounded border-white/20 bg-white/5"
+                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60"
                       />
                       <Label htmlFor="isRecommended">Recommended Build</Label>
                     </div>
@@ -600,7 +609,7 @@ export default function BuildsEditorPage() {
                             isActive: e.target.checked,
                           })
                         }
-                        className="rounded border-white/20 bg-white/5"
+                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60"
                       />
                       <Label htmlFor="isActive">Active (show in guide)</Label>
                     </div>
@@ -619,7 +628,7 @@ export default function BuildsEditorPage() {
                           runes: { ...formData.runes, name: e.target.value },
                         })
                       }
-                      className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                      className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                       placeholder="e.g., Standard Aery"
                     />
                   </div>
@@ -639,7 +648,7 @@ export default function BuildsEditorPage() {
                           })
                         }
                       >
-                        <SelectTrigger className="border-white/20 bg-white/5 text-white placeholder:text-white/40">
+                        <SelectTrigger className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -662,7 +671,7 @@ export default function BuildsEditorPage() {
                           })
                         }
                       >
-                        <SelectTrigger className="border-white/20 bg-white/5 text-white placeholder:text-white/40">
+                        <SelectTrigger className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -692,7 +701,7 @@ export default function BuildsEditorPage() {
                           },
                         })
                       }
-                      className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                      className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                       placeholder="ManaflowBand, Transcendence, Scorch"
                     />
                   </div>
@@ -708,7 +717,7 @@ export default function BuildsEditorPage() {
                           })
                         }
                       >
-                        <SelectTrigger className="border-white/20 bg-white/5 text-white placeholder:text-white/40">
+                        <SelectTrigger className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -737,7 +746,7 @@ export default function BuildsEditorPage() {
                             },
                           })
                         }
-                        className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                         placeholder="FontOfLife, Revitalize"
                       />
                     </div>
@@ -757,7 +766,7 @@ export default function BuildsEditorPage() {
                           },
                         })
                       }
-                      className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                      className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                       placeholder="AdaptiveForce, AdaptiveForce, Health"
                     />
                   </div>
@@ -766,9 +775,9 @@ export default function BuildsEditorPage() {
                 {/* Items Tab */}
                 <TabsContent value="items" className="space-y-6">
                   {/* Add Item Form */}
-                  <Card className="border-white/10 bg-black/30 backdrop-blur-md">
+                  <Card className="hex-card rounded-sm border-0">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm text-white/80">
+                      <CardTitle className="hex-title text-sm text-hx-gold">
                         Add New Item
                       </CardTitle>
                     </CardHeader>
@@ -782,7 +791,7 @@ export default function BuildsEditorPage() {
                               v: 'starter' | 'core' | 'situational'
                             ) => setNewItem({ ...newItem, category: v })}
                           >
-                            <SelectTrigger className="border-white/20 bg-white/5 text-white placeholder:text-white/40">
+                            <SelectTrigger className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -805,7 +814,7 @@ export default function BuildsEditorPage() {
                                 id: parseInt(e.target.value) || 0,
                               })
                             }
-                            className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                            className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                             placeholder="3850"
                           />
                         </div>
@@ -816,7 +825,7 @@ export default function BuildsEditorPage() {
                             onChange={(e) =>
                               setNewItem({ ...newItem, name: e.target.value })
                             }
-                            className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                            className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                             placeholder="Item name"
                           />
                         </div>
@@ -824,7 +833,7 @@ export default function BuildsEditorPage() {
                           <Button
                             type="button"
                             onClick={handleAddItem}
-                            className="w-full bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
+                            className="btn-hextech w-full rounded-sm"
                             disabled={!newItem.name || !newItem.id}
                           >
                             <Plus className="mr-1 h-4 w-4" />
@@ -837,7 +846,7 @@ export default function BuildsEditorPage() {
                         onChange={(e) =>
                           setNewItem({ ...newItem, reason: e.target.value })
                         }
-                        className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                         placeholder="Reason for this item..."
                       />
                     </CardContent>
@@ -853,15 +862,15 @@ export default function BuildsEditorPage() {
                             {formData.items[category].map((item, idx) => (
                               <div
                                 key={idx}
-                                className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 p-3"
+                                className="flex items-center gap-3 rounded-sm border border-hx-gold-dark/40 bg-hx-black/40 p-3"
                               >
-                                <GripVertical className="h-4 w-4 text-white/40" />
+                                <GripVertical className="h-4 w-4 text-hx-gold/60" />
                                 <ItemSlot itemId={item.id} size="sm" />
                                 <div className="flex-1">
-                                  <div className="font-medium text-white">
+                                  <div className="font-medium text-hx-parchment">
                                     {item.name}
                                   </div>
-                                  <div className="text-xs text-white/60">
+                                  <div className="text-xs text-landing-text-secondary">
                                     {item.reason}
                                   </div>
                                 </div>
@@ -880,7 +889,7 @@ export default function BuildsEditorPage() {
                             ))}
                           </div>
                         ) : (
-                          <p className="rounded-lg border border-dashed border-white/20 p-4 text-center text-sm text-white/40">
+                          <p className="rounded-sm border border-dashed border-hx-gold-dark/40 p-4 text-center text-sm text-hx-gold/60">
                             No {category} items yet
                           </p>
                         )}
@@ -904,16 +913,16 @@ export default function BuildsEditorPage() {
                           },
                         })
                       }
-                      className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                      className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                       placeholder="E > W > Q"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Level-by-Level Order</Label>
-                    <div className="grid-cols-18 grid gap-1">
+                    <div className="grid grid-cols-18 gap-1">
                       {formData.skillOrder.levels.map((skill, idx) => (
                         <div key={idx} className="text-center">
-                          <div className="mb-1 text-xs text-white/40">
+                          <div className="mb-1 text-xs text-hx-gold/60">
                             {idx + 1}
                           </div>
                           <Select
@@ -922,7 +931,7 @@ export default function BuildsEditorPage() {
                               handleSkillLevelChange(idx, v)
                             }
                           >
-                            <SelectTrigger className="h-8 w-full border-white/20 bg-white/5 px-1 text-xs text-white">
+                            <SelectTrigger className="h-8 w-full rounded-sm border-hx-gold-dark/60 bg-hx-black/60 px-1 text-xs text-hx-parchment">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -951,7 +960,7 @@ export default function BuildsEditorPage() {
                           },
                         })
                       }
-                      className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                      className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                       rows={2}
                       placeholder="Any notes about skill order variations..."
                     />
@@ -964,14 +973,11 @@ export default function BuildsEditorPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
-                  className="border-white/20"
+                  className="rounded-sm border-hx-gold-dark/60 text-hx-gold hover:border-hx-gold hover:text-hx-gold-bright"
                 >
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  className="bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
-                >
+                <Button type="submit" className="btn-hextech rounded-sm">
                   {formData.id ? 'Update Build' : 'Create Build'}
                 </Button>
               </div>

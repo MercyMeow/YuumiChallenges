@@ -81,8 +81,8 @@ export default function ScraperPage() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-        <Loader2 className="h-8 w-8 animate-spin text-yuumi-purple" />
+      <div className="flex min-h-screen items-center justify-center hex-page-bg">
+        <Loader2 className="h-8 w-8 animate-spin text-hx-gold" />
       </div>
     );
   }
@@ -117,50 +117,65 @@ export default function ScraperPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
+    <div className="min-h-screen hex-page-bg">
       <div className="container mx-auto max-w-7xl px-6 py-8 duration-500 animate-in fade-in slide-in-from-bottom-4">
         {/* Header */}
         <div className="mb-8">
           <Link
             href="/admin"
-            className="mb-4 inline-flex items-center text-sm text-white/60 hover:text-white"
+            className="mb-4 inline-flex items-center text-sm text-hx-gold/60 hover:text-hx-gold-bright"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard
           </Link>
-          <h1 className="bg-linear-to-r from-white via-yuumi-purple to-yuumi-blue bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+          <h1 className="text-gradient-gold text-3xl font-black tracking-wide uppercase">
             Data Scraper
           </h1>
-          <p className="mt-1 text-white/60">
+          <p className="mt-1 text-landing-text-secondary">
             Fetch build data from external statistics websites
           </p>
         </div>
 
         <Tabs defaultValue="scrape" className="space-y-6">
-          <TabsList className="border border-white/10 bg-black/30 backdrop-blur-md">
-            <TabsTrigger value="scrape">Scrape Data</TabsTrigger>
-            <TabsTrigger value="history">Job History</TabsTrigger>
-            <TabsTrigger value="data">Scraped Data</TabsTrigger>
+          <TabsList className="hex-card rounded-sm p-1">
+            <TabsTrigger
+              value="scrape"
+              className="rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+            >
+              Scrape Data
+            </TabsTrigger>
+            <TabsTrigger
+              value="history"
+              className="rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+            >
+              Job History
+            </TabsTrigger>
+            <TabsTrigger
+              value="data"
+              className="rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+            >
+              Scraped Data
+            </TabsTrigger>
           </TabsList>
 
           {/* Scrape Tab */}
           <TabsContent value="scrape" className="space-y-6">
             {/* Scrape All Button */}
-            <Card className="border-white/10 bg-black/30 backdrop-blur-md">
+            <Card className="hex-card rounded-sm border-0">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-white">
+                    <h3 className="hex-title text-lg text-hx-gold">
                       Scrape All Sources
                     </h3>
-                    <p className="text-sm text-white/60">
+                    <p className="text-sm text-landing-text-secondary">
                       Fetch data from all supported websites at once
                     </p>
                   </div>
                   <Button
                     onClick={() => handleScrape('all')}
                     disabled={runningJobs.has('all')}
-                    className="bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
+                    className="btn-hextech-magic rounded-sm"
                   >
                     {runningJobs.has('all') ? (
                       <>
@@ -183,16 +198,14 @@ export default function ScraperPage() {
               {SOURCES.map((source) => (
                 <Card
                   key={source.id}
-                  className="border-white/10 bg-black/30 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:bg-black/40"
+                  className="hex-card rounded-sm border-0 transition-all duration-200 hover:-translate-y-0.5 hover:border-hx-gold"
                 >
                   <CardContent className="p-6">
                     <div className="mb-4 flex items-center gap-3">
                       <div className={`h-3 w-3 rounded-full ${source.color}`} />
-                      <h3 className="font-semibold text-white">
-                        {source.name}
-                      </h3>
+                      <h3 className="hex-title text-hx-gold">{source.name}</h3>
                     </div>
-                    <p className="mb-4 text-sm text-white/60">
+                    <p className="mb-4 text-sm text-landing-text-secondary">
                       {source.id === 'ugg' &&
                         'Champion statistics and builds from U.GG'}
                       {source.id === 'opgg' &&
@@ -210,7 +223,7 @@ export default function ScraperPage() {
                         runningJobs.has(source.id) || runningJobs.has('all')
                       }
                       variant="outline"
-                      className="w-full border-white/20 text-white hover:bg-white/10"
+                      className="w-full rounded-sm border-hx-gold-dark/60 text-hx-gold hover:border-hx-gold hover:text-hx-gold-bright"
                     >
                       {runningJobs.has(source.id) ? (
                         <>
@@ -230,7 +243,7 @@ export default function ScraperPage() {
             </div>
 
             {/* Warning Notice */}
-            <Card className="border-yellow-400/40 bg-yellow-500/10 backdrop-blur-md">
+            <Card className="rounded-sm border-yellow-400/40 bg-yellow-500/10 backdrop-blur-md">
               <CardContent className="flex items-start gap-3 p-4">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-400" />
                 <div>
@@ -251,9 +264,9 @@ export default function ScraperPage() {
 
           {/* History Tab */}
           <TabsContent value="history">
-            <Card className="border-white/10 bg-black/30 backdrop-blur-md">
+            <Card className="hex-card rounded-sm border-0">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
+                <CardTitle className="flex items-center gap-2 hex-title text-hx-gold">
                   <Clock className="h-5 w-5" />
                   Job History
                 </CardTitle>
@@ -264,17 +277,17 @@ export default function ScraperPage() {
                     {scrapeJobs.map((job) => (
                       <div
                         key={job._id}
-                        className="flex items-center justify-between rounded-lg bg-white/5 p-4"
+                        className="flex items-center justify-between rounded-sm border border-hx-gold-dark/40 bg-hx-black/40 p-4"
                       >
                         <div className="flex items-center gap-4">
                           {getStatusIcon(job.status)}
                           <div>
-                            <span className="font-medium text-white">
+                            <span className="font-medium text-hx-parchment">
                               {job.source}
                             </span>
                             <Badge
                               variant="outline"
-                              className={`ml-3 ${
+                              className={`ml-3 rounded-sm ${
                                 job.status === 'completed'
                                   ? 'border-green-400/40 text-green-300'
                                   : job.status === 'running'
@@ -289,13 +302,13 @@ export default function ScraperPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm text-white/60">
+                          <div className="text-sm text-landing-text-secondary">
                             {job.startedAt
                               ? new Date(job.startedAt).toLocaleString()
                               : 'Not started'}
                           </div>
                           {job.recordsScraped !== undefined && (
-                            <div className="text-xs text-white/40">
+                            <div className="text-xs text-hx-gold/60">
                               {job.recordsScraped} records
                             </div>
                           )}
@@ -309,7 +322,7 @@ export default function ScraperPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="py-8 text-center text-white/60">
+                  <p className="py-8 text-center text-landing-text-secondary">
                     No scrape jobs yet. Connect Convex and start by clicking
                     &quot;Scrape All&quot; above.
                   </p>
@@ -321,17 +334,19 @@ export default function ScraperPage() {
           {/* Data Tab */}
           <TabsContent value="data" className="space-y-6">
             {/* Filters */}
-            <Card className="border-white/10 bg-black/30 backdrop-blur-md">
+            <Card className="hex-card rounded-sm border-0">
               <CardContent className="flex flex-wrap items-center gap-4 p-4">
                 <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-white/60" />
-                  <span className="text-sm text-white/60">Filters:</span>
+                  <Filter className="h-4 w-4 text-landing-text-secondary" />
+                  <span className="text-sm text-landing-text-secondary">
+                    Filters:
+                  </span>
                 </div>
                 <Select
                   value={selectedSource}
                   onValueChange={(v) => setSelectedSource(v as Source | 'all')}
                 >
-                  <SelectTrigger className="w-40 border-white/20 bg-white/5 text-white placeholder:text-white/40">
+                  <SelectTrigger className="w-40 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
                     <SelectValue placeholder="Source" />
                   </SelectTrigger>
                   <SelectContent>
@@ -347,7 +362,7 @@ export default function ScraperPage() {
                   value={selectedDataType}
                   onValueChange={setSelectedDataType}
                 >
-                  <SelectTrigger className="w-40 border-white/20 bg-white/5 text-white placeholder:text-white/40">
+                  <SelectTrigger className="w-40 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
                     <SelectValue placeholder="Data Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -363,9 +378,9 @@ export default function ScraperPage() {
             </Card>
 
             {/* Data List */}
-            <Card className="border-white/10 bg-black/30 backdrop-blur-md">
+            <Card className="hex-card rounded-sm border-0">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
+                <CardTitle className="flex items-center gap-2 hex-title text-hx-gold">
                   <Database className="h-5 w-5" />
                   Scraped Data ({scrapedData.length} records)
                 </CardTitle>
@@ -376,12 +391,12 @@ export default function ScraperPage() {
                     {scrapedData.map((record) => (
                       <div
                         key={record._id}
-                        className="rounded-lg bg-white/5 p-4"
+                        className="rounded-sm border border-hx-gold-dark/40 bg-hx-black/40 p-4"
                       >
                         <div className="mb-2 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <Badge
-                              className={`${
+                              className={`rounded-sm ${
                                 record.source === 'ugg'
                                   ? 'bg-blue-500'
                                   : record.source === 'opgg'
@@ -397,20 +412,20 @@ export default function ScraperPage() {
                             </Badge>
                             <Badge
                               variant="outline"
-                              className="border-white/20 text-white/80"
+                              className="rounded-sm border-hx-gold-dark/60 text-hx-gold"
                             >
                               {record.dataType}
                             </Badge>
-                            <span className="text-sm text-white/60">
+                            <span className="text-sm text-landing-text-secondary">
                               Patch {record.patch}
                             </span>
                           </div>
-                          <span className="text-sm text-white/40">
+                          <span className="text-sm text-hx-gold/60">
                             {new Date(record.scrapedAt).toLocaleString()}
                           </span>
                         </div>
                         {record.winRate && (
-                          <div className="text-sm text-white/60">
+                          <div className="text-sm text-landing-text-secondary">
                             Win Rate: {record.winRate.toFixed(2)}%
                             {record.pickRate &&
                               ` | Pick Rate: ${record.pickRate.toFixed(2)}%`}
@@ -419,7 +434,7 @@ export default function ScraperPage() {
                           </div>
                         )}
                         {record.rank && (
-                          <div className="text-xs text-white/40">
+                          <div className="text-xs text-hx-gold/60">
                             Rank: {record.rank}
                             {record.region && ` | Region: ${record.region}`}
                           </div>
@@ -428,7 +443,7 @@ export default function ScraperPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="py-8 text-center text-white/60">
+                  <p className="py-8 text-center text-landing-text-secondary">
                     No scraped data found. Connect Convex and run a scrape job
                     first.
                   </p>

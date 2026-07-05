@@ -486,20 +486,20 @@
 
 @utility focus-visible-enhanced {
   /* Enhanced Focus Indicators for Accessibility */
-  @apply focus-visible:ring-accessible-blue focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+  @apply focus-visible:ring-2 focus-visible:ring-accessible-blue focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-hidden;
 }
 
 @utility focus-card {
-  @apply focus-visible:ring-accessible-purple transition-all duration-200 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+  @apply transition-all duration-200 focus-visible:ring-2 focus-visible:ring-accessible-purple focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-hidden;
 }
 
 @utility focus-button {
-  @apply focus-visible:ring-accessible-yellow focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+  @apply focus-visible:ring-2 focus-visible:ring-accessible-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-hidden;
 }
 
 @utility skip-nav {
   /* Skip Navigation Link */
-  @apply bg-accessible-blue absolute left-4 top-4 z-50 rounded-md px-4 py-2 font-medium text-black;
+  @apply absolute top-4 left-4 z-50 rounded-md bg-accessible-blue px-4 py-2 font-medium text-black;
   transform: translateY(-100px);
   transition: transform 0.3s;
 
@@ -694,10 +694,10 @@
     --destructive: 0.62 0.25 25;
     --destructive-foreground: 0.98 0.01 260;
 
-    /* Border & Input */
-    --border: 0.72 0.2 270 / 0.2; /* Purple tinted border */
-    --input: 0 0% 0% / 0.2; /* Semi-transparent black */
-    --ring: 0.72 0.2 270;
+    /* Border & Input - hextech gold hairlines */
+    --border: 0.5 0.08 80 / 0.45; /* Dark gold */
+    --input: 0 0% 0% / 0.25; /* Semi-transparent black */
+    --ring: 0.74 0.08 85; /* Gold focus ring */
 
     /* Chart/Data colors */
     --chart-1: 0.72 0.2 270; /* Purple */
@@ -716,12 +716,22 @@
     --sidebar-border: 0.72 0.2 270 / 0.2;
     --sidebar-ring: 0.72 0.2 270;
 
-    /* Landing page gradients - magical colors */
-    --landing-bg-from: 0.08 0.05 285; /* Deep purple-blue */
-    --landing-bg-via: 0.06 0.08 250; /* Dark blue */
-    --landing-bg-to: 0.08 0.06 270; /* Purple-indigo */
-    --landing-text-primary: 0.9 0.04 285;
-    --landing-text-secondary: 0.8 0.06 250;
+    /* Landing page gradients - hextech navy (old LoL client) */
+    --landing-bg-from: 0.2 0.045 220; /* Hextech steel blue #0A323C */
+    --landing-bg-via: 0.13 0.035 245; /* Deep navy #091428 */
+    --landing-bg-to: 0.08 0.02 250; /* Hextech black #010A13 */
+    --landing-text-primary: 0.92 0.03 90; /* Parchment #F0E6D2 */
+    --landing-text-secondary: 0.76 0.07 88; /* Muted gold #C8AA6E */
+
+    /* Hextech palette (old LoL client) */
+    --hx-gold: 0.74 0.08 85; /* #C8AA6E */
+    --hx-gold-dark: 0.5 0.08 80; /* #785A28 */
+    --hx-gold-bright: 0.85 0.09 88; /* #E8D6A8 highlight */
+    --hx-parchment: 0.93 0.03 90; /* #F0E6D2 */
+    --hx-magic: 0.76 0.12 190; /* Hextech magic teal #0AC8B9 */
+    --hx-magic-bright: 0.94 0.06 195; /* #CDFAFA */
+    --hx-panel: 0.14 0.035 245; /* Panel navy #0A1428 */
+    --hx-black: 0.08 0.02 250; /* #010A13 */
 
     /* Yuumi brand colors */
     --yuumi-purple: 0.7 0.22 285;
@@ -1052,4 +1062,190 @@ html::after {
 /* Ensure dark mode */
 .dark {
   color-scheme: dark;
+}
+
+/* ============ HEXTECH THEME (old LoL client x Yuumi) ============ */
+
+@theme {
+  --color-hx-gold: oklch(var(--hx-gold) / <alpha-value>);
+  --color-hx-gold-dark: oklch(var(--hx-gold-dark) / <alpha-value>);
+  --color-hx-gold-bright: oklch(var(--hx-gold-bright) / <alpha-value>);
+  --color-hx-parchment: oklch(var(--hx-parchment) / <alpha-value>);
+  --color-hx-magic: oklch(var(--hx-magic) / <alpha-value>);
+  --color-hx-magic-bright: oklch(var(--hx-magic-bright) / <alpha-value>);
+  --color-hx-panel: oklch(var(--hx-panel) / <alpha-value>);
+  --color-hx-black: oklch(var(--hx-black) / <alpha-value>);
+
+  --font-display: var(--font-cinzel), 'Cinzel', serif;
+  --font-body: var(--font-source-sans), 'Source Sans 3', sans-serif;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-body);
+  }
+}
+
+/* Hextech panel: dark navy plate with gold hairline frame */
+@utility hex-card {
+  position: relative;
+  border: 1px solid oklch(var(--hx-gold-dark) / 0.7);
+  background: linear-gradient(
+    180deg,
+    oklch(var(--hx-panel) / 0.96),
+    oklch(var(--hx-black) / 0.98)
+  );
+  box-shadow:
+    inset 0 0 0 1px oklch(var(--hx-black) / 0.9),
+    inset 0 1px 0 oklch(var(--hx-gold) / 0.25),
+    0 8px 24px oklch(0 0 0 / 0.55);
+}
+
+/* Gold-framed hero panel with magic glow */
+@utility hex-card-elevated {
+  position: relative;
+  border: 1px solid oklch(var(--hx-gold) / 0.8);
+  background: linear-gradient(
+    180deg,
+    oklch(var(--hx-panel) / 0.92),
+    oklch(var(--hx-black) / 0.97)
+  );
+  box-shadow:
+    inset 0 0 0 1px oklch(var(--hx-black) / 0.9),
+    inset 0 1px 0 oklch(var(--hx-gold-bright) / 0.35),
+    0 0 22px oklch(var(--hx-magic) / 0.12),
+    0 10px 30px oklch(0 0 0 / 0.6);
+}
+
+/* Old-client button: gold double frame, dark center, glow on hover */
+@utility btn-hextech {
+  position: relative;
+  border: 1px solid oklch(var(--hx-gold-dark));
+  background: linear-gradient(
+    180deg,
+    oklch(0.2 0.03 245),
+    oklch(var(--hx-black))
+  );
+  color: oklch(var(--hx-gold-bright));
+  box-shadow:
+    inset 0 0 0 1px oklch(var(--hx-black)),
+    inset 0 0 0 2px oklch(var(--hx-gold) / 0.35);
+  transition:
+    box-shadow 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+.btn-hextech:hover {
+  border-color: oklch(var(--hx-gold));
+  color: oklch(var(--hx-parchment));
+  box-shadow:
+    inset 0 0 0 1px oklch(var(--hx-black)),
+    inset 0 0 0 2px oklch(var(--hx-gold) / 0.6),
+    0 0 14px oklch(var(--hx-gold) / 0.35);
+}
+
+/* Magic-blue variant for live/data accents */
+@utility btn-hextech-magic {
+  position: relative;
+  border: 1px solid oklch(var(--hx-magic) / 0.7);
+  background: linear-gradient(
+    180deg,
+    oklch(0.2 0.05 220),
+    oklch(var(--hx-black))
+  );
+  color: oklch(var(--hx-magic-bright));
+  box-shadow:
+    inset 0 0 0 1px oklch(var(--hx-black)),
+    inset 0 0 0 2px oklch(var(--hx-magic) / 0.3);
+  transition: box-shadow 0.2s ease;
+}
+.btn-hextech-magic:hover {
+  box-shadow:
+    inset 0 0 0 1px oklch(var(--hx-black)),
+    inset 0 0 0 2px oklch(var(--hx-magic) / 0.55),
+    0 0 16px oklch(var(--hx-magic) / 0.35);
+}
+
+/* Display heading: Beaufort-like serif, parchment, wide tracking */
+@utility hex-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: oklch(var(--hx-parchment));
+  text-shadow: 0 2px 12px oklch(var(--hx-black) / 0.9);
+}
+
+/* Gold gradient display text */
+@utility text-gradient-gold {
+  font-family: var(--font-display);
+  background: linear-gradient(
+    180deg,
+    oklch(var(--hx-gold-bright)) 0%,
+    oklch(var(--hx-gold)) 55%,
+    oklch(var(--hx-gold-dark)) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Horizontal gold rule that fades at the edges */
+@utility hex-divider {
+  height: 1px;
+  border: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    oklch(var(--hx-gold) / 0.8) 20%,
+    oklch(var(--hx-gold-bright)) 50%,
+    oklch(var(--hx-gold) / 0.8) 80%,
+    transparent
+  );
+}
+
+/* Vignetted hextech page background */
+@utility hex-page-bg {
+  background:
+    radial-gradient(
+      1200px 600px at 50% -10%,
+      oklch(var(--hx-magic) / 0.08),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at 50% 120%,
+      oklch(0.16 0.05 260 / 0.5),
+      transparent 55%
+    ),
+    linear-gradient(
+      180deg,
+      oklch(var(--landing-bg-from)),
+      oklch(var(--landing-bg-via)) 45%,
+      oklch(var(--landing-bg-to))
+    );
+}
+
+/* Small gold corner accents for framed panels */
+@utility hex-corners {
+  position: relative;
+}
+.hex-corners::before,
+.hex-corners::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: oklch(var(--hx-gold));
+  border-style: solid;
+  pointer-events: none;
+}
+.hex-corners::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+}
+.hex-corners::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
 }

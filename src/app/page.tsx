@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -265,139 +266,137 @@ const isSupportMatchupKey = (
 const isAdcMatchupKey = (value: string): value is keyof typeof ADC_MATCHUPS =>
   Object.prototype.hasOwnProperty.call(ADC_MATCHUPS, value);
 
-  const ChampionImage = ({
-    championName,
-    isSelected,
-    onClick,
-    size = 60,
-    interactive = true,
-    showLabel = true,
-  }: {
-    championName: string;
-    isSelected: boolean;
-    onClick?: () => void;
-    size?: number;
-    interactive?: boolean;
-    showLabel?: boolean;
-  }) => {
-    const label = formatChampionName(championName);
-    const containerStyle: CSSProperties = {
-      width: `${size}px`,
-      height: `${size}px`,
-    };
-
-    const content = (
-      <div
-        className={`relative overflow-hidden rounded-lg border-2 bg-black/30 transition-all duration-200 ${
-          isSelected
-            ? 'border-purple-400 shadow-lg shadow-purple-500/30 ring-2 ring-purple-400 ring-offset-2 ring-offset-black'
-            : 'border-white/20'
-        } ${interactive ? 'group-hover:border-purple-300/60' : ''}`}
-        style={containerStyle}
-      >
-        <DataDragonImage
-          championId={championName}
-          type="icon"
-          width={size}
-          height={size}
-          alt={label}
-          className="h-full w-full"
-        />
-        {showLabel && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 truncate bg-black/80 px-1 py-1 text-center text-[11px] font-medium text-white">
-            {label}
-          </div>
-        )}
-      </div>
-    );
-
-    if (!interactive) {
-      return (
-        <div
-          className={`flex flex-col items-center ${showLabel ? 'gap-1' : ''}`}
-        >
-          {content}
-        </div>
-      );
-    }
-
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        className={`group flex flex-col items-center ${showLabel ? 'gap-1' : ''} text-white/80 transition-transform duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-purple-400 ${isSelected ? 'scale-105' : 'hover:scale-105'}`}
-        aria-pressed={isSelected}
-        aria-label={`View matchup details for ${label}`}
-      >
-        {content}
-      </button>
-    );
+const ChampionImage = ({
+  championName,
+  isSelected,
+  onClick,
+  size = 60,
+  interactive = true,
+  showLabel = true,
+}: {
+  championName: string;
+  isSelected: boolean;
+  onClick?: () => void;
+  size?: number;
+  interactive?: boolean;
+  showLabel?: boolean;
+}) => {
+  const label = formatChampionName(championName);
+  const containerStyle: CSSProperties = {
+    width: `${size}px`,
+    height: `${size}px`,
   };
 
-  // Skill Order Table Component
-  const SkillOrderTable = ({ levels }: { levels: string[] }) => {
-    const skillColors: Record<string, string> = {
-      Q: 'text-blue-300',
-      W: 'text-green-300',
-      E: 'text-yellow-300',
-      R: 'text-red-300',
-    };
-    const dotColors: Record<string, string> = {
-      Q: 'bg-blue-400',
-      W: 'bg-green-400',
-      E: 'bg-yellow-400',
-      R: 'bg-red-400',
-    };
+  const content = (
+    <div
+      className={`relative overflow-hidden rounded-lg border-2 bg-black/30 transition-all duration-200 ${
+        isSelected
+          ? 'border-purple-400 shadow-lg ring-2 shadow-purple-500/30 ring-purple-400 ring-offset-2 ring-offset-black'
+          : 'border-white/20'
+      } ${interactive ? 'group-hover:border-purple-300/60' : ''}`}
+      style={containerStyle}
+    >
+      <DataDragonImage
+        championId={championName}
+        type="icon"
+        width={size}
+        height={size}
+        alt={label}
+        className="h-full w-full"
+      />
+      {showLabel && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 truncate bg-black/80 px-1 py-1 text-center text-[11px] font-medium text-white">
+          {label}
+        </div>
+      )}
+    </div>
+  );
 
+  if (!interactive) {
     return (
-      <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse text-xs">
-          <thead>
-            <tr>
-              <th className="w-12 border-b border-white/20 pb-1 text-left text-white/60">
-                Skill
+      <div className={`flex flex-col items-center ${showLabel ? 'gap-1' : ''}`}>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`group flex flex-col items-center ${showLabel ? 'gap-1' : ''} text-white/80 transition-transform duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-purple-400 ${isSelected ? 'scale-105' : 'hover:scale-105'}`}
+      aria-pressed={isSelected}
+      aria-label={`View matchup details for ${label}`}
+    >
+      {content}
+    </button>
+  );
+};
+
+// Skill Order Table Component
+const SkillOrderTable = ({ levels }: { levels: string[] }) => {
+  const skillColors: Record<string, string> = {
+    Q: 'text-blue-300',
+    W: 'text-green-300',
+    E: 'text-yellow-300',
+    R: 'text-red-300',
+  };
+  const dotColors: Record<string, string> = {
+    Q: 'bg-blue-400',
+    W: 'bg-green-400',
+    E: 'bg-yellow-400',
+    R: 'bg-red-400',
+  };
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full border-collapse text-xs">
+        <thead>
+          <tr>
+            <th className="w-12 border-b border-white/20 pb-1 text-left text-white/60">
+              Skill
+            </th>
+            {Array.from({ length: 18 }, (_, i) => (
+              <th
+                key={i}
+                className="w-6 border-b border-white/20 pb-1 text-center text-white/60"
+              >
+                {i + 1}
               </th>
-              {Array.from({ length: 18 }, (_, i) => (
-                <th
-                  key={i}
-                  className="w-6 border-b border-white/20 pb-1 text-center text-white/60"
-                >
-                  {i + 1}
-                </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {['Q', 'W', 'E', 'R'].map((skill) => (
+            <tr key={skill}>
+              <td className="py-1">
+                <div className="flex items-center gap-1">
+                  <AbilityIcon
+                    championId="Yuumi"
+                    ability={skill as 'Q' | 'W' | 'E' | 'R'}
+                    size={16}
+                  />
+                  <span className={`font-medium ${skillColors[skill]}`}>
+                    {skill}
+                  </span>
+                </div>
+              </td>
+              {levels.map((levelSkill, idx) => (
+                <td key={idx} className="py-1 text-center">
+                  {levelSkill === skill ? (
+                    <div
+                      className={`mx-auto h-2.5 w-2.5 rounded-full ${dotColors[skill]}`}
+                    />
+                  ) : null}
+                </td>
               ))}
             </tr>
-          </thead>
-          <tbody>
-            {['Q', 'W', 'E', 'R'].map((skill) => (
-              <tr key={skill}>
-                <td className="py-1">
-                  <div className="flex items-center gap-1">
-                    <AbilityIcon
-                      championId="Yuumi"
-                      ability={skill as 'Q' | 'W' | 'E' | 'R'}
-                      size={16}
-                    />
-                    <span className={`font-medium ${skillColors[skill]}`}>
-                      {skill}
-                    </span>
-                  </div>
-                </td>
-                {levels.map((levelSkill, idx) => (
-                  <td key={idx} className="py-1 text-center">
-                    {levelSkill === skill ? (
-                      <div
-                        className={`mx-auto h-2.5 w-2.5 rounded-full ${dotColors[skill]}`}
-                      />
-                    ) : null}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 export default function YuumiGuide() {
   const [selectedBuild, setSelectedBuild] = useState<string>(
     BUILDS[0]?.id ?? ''
@@ -567,34 +566,43 @@ export default function YuumiGuide() {
     }
   };
 
-
   return (
-    <div className="min-h-screen bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-      <div className="container mx-auto max-w-7xl px-6 py-12">
-        {/* Header */}
-        <div className="mb-10 text-center">
-          <div className="mb-6 flex items-center justify-center gap-4">
+    <div className="min-h-screen hex-page-bg">
+      {/* Hero: Yuumi splash framed like an old-client banner */}
+      <div className="relative overflow-hidden border-b border-hx-gold-dark/60">
+        <Image
+          src="https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Yuumi_0.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-[50%_20%] opacity-40"
+        />
+        <div className="absolute inset-0 bg-linear-to-b from-hx-black/30 via-hx-black/70 to-hx-black" />
+        <div className="absolute inset-x-0 bottom-0 hex-divider" />
+        <div className="relative container mx-auto max-w-7xl px-6 pt-14 pb-10 text-center">
+          <div className="mb-5 flex items-center justify-center gap-5">
             <YuumiIcon size="xl" />
-            <div>
-              <h1 className="text-4xl font-extrabold tracking-tight text-white md:text-5xl">
+            <div className="text-left">
+              <h1 className="text-gradient-gold text-4xl font-black tracking-wide uppercase md:text-6xl">
                 Yuumi Guide
               </h1>
-              <p className="mt-2 text-xl text-white/80">
+              <p className="mt-2 text-lg text-landing-text-secondary md:text-xl">
                 Best builds, runes, and matchups for Patch {currentPatch}
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-4 text-white/70">
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <Badge
               variant="outline"
-              className="border-purple-400/40 text-purple-300"
+              className="rounded-sm border-hx-gold-dark bg-hx-black/60 text-hx-gold"
             >
               Patch {currentPatch}
             </Badge>
             {autoBuild && (
               <Badge
                 variant="outline"
-                className="border-green-400/40 text-green-300"
+                className="rounded-sm border-hx-magic/60 bg-hx-black/60 text-hx-magic-bright"
                 title={`Recommended build auto-updated from ${autoBuild.source} on ${new Date(autoBuild.updatedAt).toLocaleDateString()}.`}
               >
                 Live build · {autoBuild.patch}
@@ -603,7 +611,7 @@ export default function YuumiGuide() {
             {buildDataOutdated && (
               <Badge
                 variant="outline"
-                className="border-yellow-400/40 text-yellow-300"
+                className="rounded-sm border-yellow-400/40 bg-hx-black/60 text-yellow-300"
                 title={`Builds were last verified on patch ${PATCH}; the meta rarely shifts for Yuumi between patches.`}
               >
                 Builds verified on {PATCH}
@@ -611,14 +619,14 @@ export default function YuumiGuide() {
             )}
             <Badge
               variant="outline"
-              className="border-blue-400/40 text-blue-300"
+              className="rounded-sm border-hx-magic/40 bg-hx-black/60 text-hx-magic"
             >
               Support
             </Badge>
             <Link href="/admin">
               <Badge
                 variant="outline"
-                className="cursor-pointer border-white/20 text-white/60 hover:border-white/40 hover:text-white"
+                className="cursor-pointer rounded-sm border-hx-gold-dark/50 bg-hx-black/60 text-hx-gold/70 transition-colors hover:border-hx-gold hover:text-hx-gold-bright"
               >
                 <Settings className="mr-1 h-3 w-3" />
                 Admin
@@ -626,15 +634,23 @@ export default function YuumiGuide() {
             </Link>
           </div>
         </div>
+      </div>
 
+      <div className="container mx-auto max-w-7xl px-6 py-10">
         {/* Navigation Tabs */}
         <Tabs defaultValue="builds" className="w-full">
-          <TabsList className="mb-8 grid w-full grid-cols-2">
-            <TabsTrigger value="builds" className="flex items-center gap-2">
+          <TabsList className="hex-card mb-8 grid h-12 w-full grid-cols-2 rounded-sm p-1">
+            <TabsTrigger
+              value="builds"
+              className="flex items-center gap-2 rounded-sm hex-title text-sm data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+            >
               <Layers className="h-4 w-4" />
               Builds
             </TabsTrigger>
-            <TabsTrigger value="matchups" className="flex items-center gap-2">
+            <TabsTrigger
+              value="matchups"
+              className="flex items-center gap-2 rounded-sm hex-title text-sm data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+            >
               <Users className="h-4 w-4" />
               Matchups
             </TabsTrigger>
@@ -648,53 +664,53 @@ export default function YuumiGuide() {
                 <button
                   key={build.id}
                   onClick={() => setSelectedBuild(build.id)}
-                  className={`relative rounded-xl border-2 p-4 text-left transition-all duration-200 ${
+                  className={`relative rounded-sm p-4 text-left transition-all duration-200 ${
                     selectedBuild === build.id
-                      ? `${build.borderColor} bg-linear-to-br ${build.color} ring-2 ring-white/20`
-                      : 'border-white/10 bg-black/20 hover:border-white/30 hover:bg-black/30'
+                      ? 'hex-card-elevated hex-corners'
+                      : 'hex-card hover:border-hx-gold/70'
                   }`}
                 >
                   {build.isRecommended && (
-                    <Badge className="absolute -top-2 right-2 bg-purple-600">
+                    <Badge className="absolute -top-2 right-2 rounded-sm border border-hx-gold bg-hx-black text-hx-gold-bright">
                       Recommended
                     </Badge>
                   )}
                   <div className="mb-2 flex items-center gap-2">
                     <div
-                      className={`rounded-lg p-2 ${selectedBuild === build.id ? 'bg-white/20' : 'bg-white/10'}`}
+                      className={`rounded-sm p-2 ${selectedBuild === build.id ? 'bg-hx-gold/20 text-hx-gold-bright' : 'bg-hx-gold/10 text-hx-gold'}`}
                     >
                       {build.icon}
                     </div>
-                    <h3 className="font-bold text-white">{build.name}</h3>
+                    <h3 className="hex-title text-base">{build.name}</h3>
                   </div>
-                  <p className="text-sm text-white/70">{build.description}</p>
+                  <p className="text-sm text-landing-text-secondary">
+                    {build.description}
+                  </p>
                 </button>
               ))}
             </div>
 
             {/* Selected Build Details */}
             {currentBuild && (
-              <Card
-                className={`border-2 ${currentBuild.borderColor} bg-black/30 backdrop-blur-sm`}
-              >
+              <Card className="hex-card-elevated hex-corners rounded-sm border-0">
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between text-white">
+                  <CardTitle className="flex flex-wrap items-center justify-between gap-4 text-hx-parchment">
                     <div className="flex items-center gap-3">
-                      <div
-                        className={`rounded-lg bg-linear-to-br ${currentBuild.color} p-2`}
-                      >
+                      <div className="rounded-sm bg-hx-gold/15 p-2 text-hx-gold">
                         {currentBuild.icon}
                       </div>
                       <div>
-                        <span className="text-xl">{currentBuild.name}</span>
-                        <p className="text-sm font-normal text-white/60">
+                        <span className="hex-title text-xl">
+                          {currentBuild.name}
+                        </span>
+                        <p className="text-sm font-normal text-landing-text-secondary">
                           {currentBuild.description}
                         </p>
                       </div>
                     </div>
                     <Button
                       onClick={() => downloadItemset(currentBuild)}
-                      className="bg-purple-600 hover:bg-purple-700"
+                      className="btn-hextech rounded-sm"
                     >
                       <Download className="mr-2 h-4 w-4" />
                       Download Itemset
@@ -706,7 +722,7 @@ export default function YuumiGuide() {
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                     {/* Runes Section */}
                     <div className="space-y-4">
-                      <h3 className="flex items-center gap-2 text-lg font-semibold text-purple-300">
+                      <h3 className="flex items-center gap-2 hex-title text-base text-hx-gold">
                         <span className="rounded bg-purple-500/20 p-1">🔮</span>
                         Runes
                       </h3>
@@ -715,7 +731,7 @@ export default function YuumiGuide() {
 
                     {/* Items Section */}
                     <div className="space-y-4">
-                      <h3 className="flex items-center gap-2 text-lg font-semibold text-green-300">
+                      <h3 className="flex items-center gap-2 hex-title text-base text-hx-magic-bright">
                         <span className="rounded bg-green-500/20 p-1">⚔️</span>
                         Items
                       </h3>
@@ -770,7 +786,7 @@ export default function YuumiGuide() {
 
                     {/* Skill Order Section */}
                     <div className="space-y-4">
-                      <h3 className="flex items-center gap-2 text-lg font-semibold text-blue-300">
+                      <h3 className="flex items-center gap-2 hex-title text-base text-hx-magic">
                         <span className="rounded bg-blue-500/20 p-1">📖</span>
                         Skill Order
                       </h3>
@@ -828,7 +844,7 @@ export default function YuumiGuide() {
 
           {/* Matchups Tab */}
           <TabsContent value="matchups" className="space-y-6">
-            <Card className="border-white/10 bg-black/30 backdrop-blur-sm">
+            <Card className="hex-card rounded-sm border-0">
               <CardHeader>
                 <CardTitle className="text-white">Matchup Guide</CardTitle>
                 <p className="text-white/70">
@@ -845,14 +861,24 @@ export default function YuumiGuide() {
                   }}
                   className="w-full"
                 >
-                  <TabsList className="mb-6 grid w-full grid-cols-2">
-                    <TabsTrigger value="enemy">Enemy Supports</TabsTrigger>
-                    <TabsTrigger value="ally">Ally ADCs</TabsTrigger>
+                  <TabsList className="hex-card mb-6 grid h-11 w-full grid-cols-2 rounded-sm p-1">
+                    <TabsTrigger
+                      value="enemy"
+                      className="rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+                    >
+                      Enemy Supports
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="ally"
+                      className="rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+                    >
+                      Ally ADCs
+                    </TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="enemy" className="space-y-6">
                     <div>
-                      <h3 className="mb-4 text-lg font-semibold text-purple-300">
+                      <h3 className="mb-4 hex-title text-base text-hx-gold">
                         Support Champions
                       </h3>
                       <div className="mb-6 grid grid-cols-6 gap-3 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12">
@@ -873,7 +899,7 @@ export default function YuumiGuide() {
                     </div>
 
                     {selectedSupport && supportMatchup ? (
-                      <Card className="border-white/10 bg-black/20">
+                      <Card className="hex-card rounded-sm border-0">
                         <CardHeader className="pb-3">
                           <CardTitle className="flex items-center justify-between text-lg text-white">
                             <div className="flex items-center gap-3">
@@ -928,7 +954,7 @@ export default function YuumiGuide() {
                         </CardContent>
                       </Card>
                     ) : (
-                      <Card className="border-white/10 bg-black/20">
+                      <Card className="hex-card rounded-sm border-0">
                         <CardContent className="py-8 text-center">
                           <Shield className="mx-auto mb-4 h-12 w-12 text-white/40" />
                           <p className="text-white/70">
@@ -941,7 +967,7 @@ export default function YuumiGuide() {
 
                   <TabsContent value="ally" className="space-y-6">
                     <div>
-                      <h3 className="mb-4 text-lg font-semibold text-blue-300">
+                      <h3 className="mb-4 hex-title text-base text-hx-magic">
                         ADC Champions
                       </h3>
                       <div className="mb-6 grid grid-cols-6 gap-3 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12">
@@ -962,7 +988,7 @@ export default function YuumiGuide() {
                     </div>
 
                     {selectedADC && adcMatchup ? (
-                      <Card className="border-white/10 bg-black/20">
+                      <Card className="hex-card rounded-sm border-0">
                         <CardHeader className="pb-3">
                           <CardTitle className="flex items-center justify-between text-lg text-white">
                             <div className="flex items-center gap-3">
@@ -1016,7 +1042,7 @@ export default function YuumiGuide() {
                         </CardContent>
                       </Card>
                     ) : (
-                      <Card className="border-white/10 bg-black/20">
+                      <Card className="hex-card rounded-sm border-0">
                         <CardContent className="py-8 text-center">
                           <Users className="mx-auto mb-4 h-12 w-12 text-white/40" />
                           <p className="text-white/70">
@@ -1033,16 +1059,29 @@ export default function YuumiGuide() {
         </Tabs>
 
         {/* Footer */}
-        <div className="mt-12 flex items-center justify-between text-xs text-white/50">
+        <div className="mt-12 hex-divider" />
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-hx-gold/60">
           <span>
             Yuumi Guide • Patch {currentPatch} • Data from OP.GG, U.GG,
             LoLalytics
           </span>
           <div className="flex items-center gap-4">
-            <Link href="/match" className="hover:text-white hover:underline">
+            <Link
+              href="/match"
+              className="transition-colors hover:text-hx-gold-bright"
+            >
               Match lookup
             </Link>
-            <Link href="/gallery" className="hover:text-white hover:underline">
+            <Link
+              href="/mythic-shop"
+              className="transition-colors hover:text-hx-gold-bright"
+            >
+              Mythic Shop
+            </Link>
+            <Link
+              href="/gallery"
+              className="transition-colors hover:text-hx-gold-bright"
+            >
               Rule GIF Gallery
             </Link>
           </div>
