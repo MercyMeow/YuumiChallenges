@@ -147,6 +147,8 @@ export default defineSchema({
         v.literal('Excellent'),
         v.literal('Very Good'),
         v.literal('Good'),
+        v.literal('Average'),
+        v.literal('Situational'),
         v.literal('Poor')
       )
     ), // For ally ADCs
@@ -164,37 +166,7 @@ export default defineSchema({
     .index('by_champion', ['championName'])
     .index('by_type_champion', ['matchupType', 'championName']),
 
-  // Scraped data from external sources
-  scrapedData: defineTable({
-    source: v.union(
-      v.literal('ugg'),
-      v.literal('opgg'),
-      v.literal('lolalytics'),
-      v.literal('mobalytics'),
-      v.literal('onetricks')
-    ),
-    dataType: v.union(
-      v.literal('items'),
-      v.literal('runes'),
-      v.literal('skillOrder'),
-      v.literal('matchups'),
-      v.literal('stats')
-    ),
-    patch: v.string(),
-    rank: v.optional(v.string()), // e.g., 'Emerald+', 'Diamond+', 'All'
-    region: v.optional(v.string()), // e.g., 'World', 'NA', 'EUW'
-    data: v.any(), // JSON data from the source
-    sampleSize: v.optional(v.number()),
-    winRate: v.optional(v.number()),
-    pickRate: v.optional(v.number()),
-    scrapedAt: v.number(),
-  })
-    .index('by_source', ['source'])
-    .index('by_source_type', ['source', 'dataType'])
-    .index('by_source_patch', ['source', 'patch'])
-    .index('by_scrapedAt', ['scrapedAt']),
-
-  // Scrape job logs
+  // Scrape job logs (auto-build cron run history)
   scrapeJobs: defineTable({
     source: v.string(),
     status: v.union(

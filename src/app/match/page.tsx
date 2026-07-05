@@ -16,7 +16,7 @@ import {
   REGION_NAMES,
   YUUMI_DISCORD_INVITE_URL,
 } from '@/lib/utils/constants';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Search, Swords } from 'lucide-react';
 
 type RegionValue = (typeof REGIONS)[keyof typeof REGIONS];
 
@@ -64,70 +64,88 @@ export default function MatchLandingPage() {
   };
 
   return (
-    <main className="via-background/95 flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-background px-6 py-16">
-      <div className="w-full max-w-md">
-        <div className="space-y-6 text-center">
-          <h1 className="text-3xl font-semibold text-foreground sm:text-4xl">
-            Yuumi Match Viewer
-          </h1>
-          <p className="mx-auto max-w-md text-sm text-muted-foreground sm:text-base lg:mx-0">
-            Enter any ranked match ID to explore matchups, timelines, gold
-            swings, and Yuumi-specific insights without leaving the browser.
-          </p>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="flex gap-2">
-              <Select
-                value={region}
-                onValueChange={(value) => setRegion(value as RegionValue)}
-              >
-                <SelectTrigger className="w-44 shrink-0">
-                  <SelectValue placeholder="Select region" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(REGIONS).map(([key, value]) => (
-                    <SelectItem key={key} value={value}>
-                      {REGION_NAMES[value]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Input
-                value={matchId}
-                onChange={(event) => {
-                  setMatchId(event.target.value);
-                  if (matchIdError) {
-                    setMatchIdError('');
-                  }
-                }}
-                placeholder="Match ID (e.g. 7481411158)"
-                aria-label="Match identifier"
-                aria-invalid={Boolean(matchIdError)}
-                className="flex-1"
-                spellCheck={false}
-                autoComplete="off"
-              />
-            </div>
-            {matchIdError && (
-              <p className="text-sm text-destructive" role="alert">
-                {matchIdError}
+    <div className="flex min-h-[calc(100vh-10rem)] items-center justify-center px-2 py-16">
+      <div className="w-full max-w-lg duration-500 animate-in fade-in slide-in-from-bottom-4">
+        <div className="relative">
+          <div className="absolute -inset-0.5 rounded-sm bg-linear-to-r from-hx-gold/40 to-hx-magic/30 opacity-40 blur-sm" />
+          <div className="hex-card-elevated hex-corners relative rounded-sm p-8">
+            <div className="mb-6 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-hx-gold-dark/60 bg-hx-gold/10">
+                <Swords className="h-8 w-8 text-hx-gold" />
+              </div>
+              <h1 className="text-gradient-gold text-3xl font-black tracking-wide uppercase md:text-4xl">
+                Match Viewer
+              </h1>
+              <p className="mx-auto mt-3 max-w-md text-sm text-landing-text-secondary sm:text-base">
+                Enter any ranked match ID to explore matchups, timelines, gold
+                swings, and Yuumi-specific insights without leaving the browser.
               </p>
-            )}
-            <Button type="submit" className="w-full">
-              View Match Details
-            </Button>
-          </form>
-          <Button asChild variant="outline" className="w-full">
-            <a
-              href={YUUMI_DISCORD_INVITE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Select
+                  value={region}
+                  onValueChange={(value) => setRegion(value as RegionValue)}
+                >
+                  <SelectTrigger className="w-full shrink-0 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment sm:w-44">
+                    <SelectValue placeholder="Select region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(REGIONS).map(([key, value]) => (
+                      <SelectItem key={key} value={value}>
+                        {REGION_NAMES[value]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  value={matchId}
+                  onChange={(event) => {
+                    setMatchId(event.target.value);
+                    if (matchIdError) {
+                      setMatchIdError('');
+                    }
+                  }}
+                  placeholder="Match ID (e.g. 7481411158)"
+                  aria-label="Match identifier"
+                  aria-invalid={Boolean(matchIdError)}
+                  className="flex-1 rounded-sm hex-input"
+                  spellCheck={false}
+                  autoComplete="off"
+                />
+              </div>
+              {matchIdError && (
+                <p className="text-sm text-red-300" role="alert">
+                  {matchIdError}
+                </p>
+              )}
+              <Button
+                type="submit"
+                className="btn-hextech-primary w-full rounded-sm"
+              >
+                <Search className="mr-2 h-4 w-4" />
+                View Match Details
+              </Button>
+            </form>
+
+            <Button
+              asChild
+              variant="outline"
+              className="mt-3 w-full rounded-sm border-hx-gold-dark/60 text-hx-gold hover:border-hx-gold hover:text-hx-gold-bright"
             >
-              Join the Yuumi Mains Discord
-              <ExternalLink className="h-4 w-4" />
-            </a>
-          </Button>
+              <a
+                href={YUUMI_DISCORD_INVITE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Join the Yuumi Mains Discord
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </Button>
+          </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

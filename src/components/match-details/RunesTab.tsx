@@ -4,7 +4,7 @@
  * Extracted from match details page
  */
 
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ChampionIcon } from '@/components/ui/datadragon-image';
 import { RuneTreeDisplay } from '@/components/ui/rune-display';

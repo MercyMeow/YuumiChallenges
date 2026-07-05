@@ -35,38 +35,54 @@ export function MatchHistoryCard({
   refreshTrigger,
 }: MatchHistoryCardProps) {
   const [matches, setMatches] = useState<MatchData[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Only start in the loading state when there is a summoner to fetch for.
+  const [loading, setLoading] = useState(() => Boolean(summonerId));
   const [error, setError] = useState<string | null>(null);
 
-  const fetchMatches = useCallback(async () => {
+  // Reset loading/error during render when the summoner or the external
+  // refresh trigger changes (the lazy initial state covers the first fetch),
+  // so the fetch effect below never calls setState synchronously.
+  const [prevFetchKey, setPrevFetchKey] = useState({
+    summonerId,
+    refreshTrigger,
+  });
+  if (
+    prevFetchKey.summonerId !== summonerId ||
+    prevFetchKey.refreshTrigger !== refreshTrigger
+  ) {
+    setPrevFetchKey({ summonerId, refreshTrigger });
+    setLoading(Boolean(summonerId));
+    if (summonerId) {
+      setError(null);
+    }
+  }
+
+  // Promise-chain style (rather than async/await) so every setState happens
+  // inside an async callback, never synchronously when called from the effect.
+  const fetchMatches = useCallback(() => {
     if (!summonerId) return;
 
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch(
-        `/api/summoners/${summonerId}/matches?limit=5`
-      );
+    fetch(`/api/summoners/${summonerId}/matches?limit=5`)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch matches');
+        }
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch matches');
-      }
-
-      const data = await response.json();
-      setMatches(data.matches || []);
-    } catch (error) {
-      console.error('Error fetching matches:', error);
-      setError('Failed to load match history');
-    } finally {
-      setLoading(false);
-    }
+        const data = await response.json();
+        setMatches(data.matches || []);
+      })
+      .catch((error) => {
+        console.error('Error fetching matches:', error);
+        setError('Failed to load match history');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [summonerId]);
 
   useEffect(() => {
     if (summonerId) {
       fetchMatches();
-    } else {
-      setLoading(false);
     }
   }, [summonerId, fetchMatches, refreshTrigger]); // Add refreshTrigger to dependencies
 
@@ -183,7 +199,11 @@ export function MatchHistoryCard({
           <Button
             variant="outline"
             size="sm"
-            onClick={fetchMatches}
+            onClick={() => {
+              setLoading(true);
+              setError(null);
+              fetchMatches();
+            }}
             className="border-red-500/30 text-red-400 hover:bg-red-500/10"
           >
             <RefreshCw className="mr-2 h-4 w-4" />

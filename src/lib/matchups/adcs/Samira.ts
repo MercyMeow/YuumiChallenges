@@ -1,13 +1,15 @@
 import { BotLaneSynergy } from '../types';
 
 export const Samira: BotLaneSynergy = {
-  synergy: 'Very Good',
-  playstyle: 'Aggressive all-in resets with style meter',
+  synergy: 'Excellent',
+  playstyle: 'Aggressive all-in resets; snowball with style meter',
   tips: [
-    'Attach for early all-ins; Exhaust enemy carry to secure kills and snowball S rank into ult.',
-    'Pre-cast E (Zoomies) when she dashes to maintain spacing and survive counter-burst.',
-    'Use R to layer slows right as she begins her ultimate so enemies cannot kite out.',
-    'Q poke between waves to prep low HP targets for her dives.',
+    'Attach for early all-ins; Exhaust enemy carry to secure kills and snowball style into Inferno Trigger.',
+    'Pre-cast E (Zoomies) when she Wild Rush dashes—shield and AS amplify her burst when ahead.',
+    'Use R (Final Chapter) to layer slows as she begins Inferno Trigger so enemies cannot kite out.',
+    'Curve Q (Prowling Projectile) between waves to prep low-HP targets for her dives.',
   ],
-  buildAdjustments: ["Shurelya's to engage; Mikael's vs point-and-click CC; Ardent optional"],
+  buildAdjustments: [
+    "Shurelya's to engage when fed; Mikael's vs point-and-click CC; Ardent strong on snowball builds.",
+  ],
 };

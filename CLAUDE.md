@@ -18,14 +18,14 @@ This document provides comprehensive guidance for AI assistants working on this 
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | Next.js 15.3.5 (App Router, Turbopack) |
-| Language | TypeScript 5.x (strict mode) |
+| Framework | Next.js 16.x (App Router, Turbopack) |
+| Language | TypeScript 6.x (strict mode) |
 | Backend | Convex (real-time database & functions) |
-| Styling | Tailwind CSS 3.x + tailwindcss-animate |
+| Styling | Tailwind CSS 4.x (CSS-first config in `globals.css` via `@theme`) + tailwindcss-animate |
 | UI Components | Radix UI primitives + custom components |
 | Forms | React Hook Form + Zod validation |
 | State | React Context (Auth, Theme) + Convex queries |
-| Runtime | Node.js 18+ |
+| Runtime | Node.js 20.9+ |
 
 ## Directory Structure
 
@@ -47,7 +47,8 @@ YuumiChallenges/
 │   │   └── globals.css        # Global styles + Tailwind
 │   ├── components/
 │   │   ├── match-history/     # Match display components
-│   │   └── ui/                # Reusable UI primitives (shadcn-style)
+│   │   ├── shell/             # App shell (SiteShell, TopNav, SideRail, PawEmblem)
+│   │   └── ui/                # Reusable UI primitives (shadcn-style + hextech-panel)
 │   ├── contexts/              # React Context providers
 │   │   ├── AuthContext.tsx    # Admin authentication state
 │   │   └── theme-context.tsx  # Theme management
@@ -69,6 +70,7 @@ YuumiChallenges/
 │   ├── schema.ts              # Database schema definitions
 │   ├── auth.ts                # Authentication functions
 │   ├── guide.ts               # Guide CRUD operations
+│   ├── seed.ts                # Database seeding (npx convex run seed:seedAll)
 │   └── scraper.ts             # Data scraping functions
 ├── public/                    # Static assets
 │   ├── images/                # Champion, rune, item images
@@ -236,18 +238,36 @@ When schema changes, types auto-regenerate during `npm run dev`. For manual rege
 npx convex dev --once
 ```
 
+### Seeding the Database
+
+`convex/seed.ts` populates the guide tables (builds, items, rune pages,
+skill orders, all matchups, sections, metadata) from the static data under
+`src/lib/` — the same modules the site falls back to when Convex is
+unreachable, so DB and fallback stay in sync. Idempotent (replaces seeded
+tables; only touches specific metadata keys):
+
+```bash
+npx convex deploy            # push schema/functions first
+npx convex run seed:seedAll
+npx convex run scraper:autoUpdateBuild   # refresh the OP.GG auto build
+```
+
 ## Key Files Reference
 
 | File | Purpose |
 |------|---------|
-| `src/app/page.tsx` | Main Yuumi guide content (~32K lines) |
-| `src/app/layout.tsx` | Root layout, metadata, providers |
+| `src/app/page.tsx` | Main Yuumi guide (hero, builds, matchups, right rail) |
+| `src/app/layout.tsx` | Root layout, metadata, providers, SiteShell |
+| `src/components/shell/SiteShell.tsx` | LoL-client chrome (TopNav + SideRail; admin renders bare) |
+| `src/components/ui/hextech-panel.tsx` | Ornate panel + OrnateHeading primitives |
+| `src/lib/builds/default-builds.ts` | Static builds — fallback + seed source of truth |
 | `convex/schema.ts` | Database schema definitions |
 | `convex/guide.ts` | Guide CRUD operations |
+| `convex/seed.ts` | Guide table seeding (`seed:seedAll`) |
 | `src/lib/embeds/yuumi.ts` | Discord embed configuration |
 | `src/lib/types/index.ts` | Shared TypeScript types |
 | `src/components/ui/datadragon-image.tsx` | League asset image component |
-| `tailwind.config.ts` | Tailwind + custom theme config |
+| `src/app/globals.css` | Hextech design system: `@theme` tokens + `hex-*`/`btn-hextech*` utilities (no tailwind.config.ts) |
 
 ## Common Tasks
 
@@ -260,7 +280,9 @@ npx convex dev --once
 
 ### Modifying Guide Data
 
-**Via Code** (static): Edit constants in `src/app/page.tsx`
+**Via Code** (static fallback + seed source): Edit
+`src/lib/builds/default-builds.ts` (builds) or `src/lib/matchups/` (matchup
+notes), then re-run `npx convex run seed:seedAll` so the database matches.
 
 **Via Admin Panel** (dynamic):
 1. Navigate to `/admin/login`
@@ -348,7 +370,7 @@ Run `npx convex dev` to regenerate `convex/_generated/` types.
 
 ### Build Errors
 
-The project temporarily ignores TypeScript and ESLint errors during build (`next.config.ts`). Run `npm run type-check` and `npm run lint` locally to catch issues.
+TypeScript errors fail the build (`ignoreBuildErrors` was removed from `next.config.ts`). Run `npm run type-check` and `npm run lint` locally to catch issues before building.
 
 ### Environment Variables Not Working
 

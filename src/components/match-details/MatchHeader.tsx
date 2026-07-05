@@ -5,7 +5,7 @@
  * Memoized to prevent re-renders when props haven't changed
  */
 
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Gamepad2 } from 'lucide-react';

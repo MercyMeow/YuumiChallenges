@@ -2,15 +2,15 @@ import { BotLaneSynergy } from '../types';
 
 export const Yasuo: BotLaneSynergy = {
   synergy: 'Very Good',
-  playstyle: 'All-in skirmisher; thrives with peel and MS buffs',
+  playstyle: 'All-in skirmisher; thrives with peel and Zoomies tempo',
   tips: [
-    'Attach for all-ins; Exhaust enemy carry during his ult to deny burst tradebacks.',
-    'Pre-cast E (Zoomies) as he dashes through wave to keep spacing during engage.',
-    'Use R to root enemy team after his knockup/ult chain ends; keeps them in Tornado/ally AoE.',
-    'Q poke supports between waves to soften targets for his engage; avoid detaching into CC.',
+    'Pre-cast E (Zoomies) as he dashes through minions; shield and movement speed reduce eat-before-ult risk.',
+    'Exhaust the enemy carry during Last Breath; W on-hit healing during the knockup window is huge at levels 6–9.',
+    'After his ult lands, steer R (Final Chapter) through front-line allies and Yasuo to heal per wave while slowing follow-ups.',
+    'Land Q slow on the knockup target pre-ult to grant Yasuo Best Friend on-hit magic damage if he weaves autos.',
   ],
   buildAdjustments: [
-    "Ardent decent; Shurelya's can be high value to start fights on his timings. Mikael's vs point-and-click CC.",
+    "Shurelya's high value to start fights on his timings; Ardent decent but not mandatory.",
+    "Mikael's vs point-and-click CC that stops his dash chains.",
   ],
 };
-

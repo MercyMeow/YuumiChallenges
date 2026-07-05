@@ -1,24 +1,48 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import type { DatabaseReader } from './_generated/server';
 import { Id } from './_generated/dataModel';
 
 // Helper to verify session
 async function verifyAuth(
-  ctx: { db: { query: Function; get: Function } },
+  ctx: { db: DatabaseReader },
   sessionToken: string
 ): Promise<Id<'users'> | null> {
   const session = await ctx.db
     .query('sessions')
-    .withIndex('by_token', (q: { eq: Function }) =>
-      q.eq('token', sessionToken)
-    )
+    .withIndex('by_token', (q) => q.eq('token', sessionToken))
     .first();
 
   if (!session || session.expiresAt < Date.now()) {
     return null;
   }
 
-  return session.userId;
+  return session.userId ?? null;
+}
+
+// Shared matchup enum validators — used by upsertMatchup and
+// bulkImportMatchups so the two endpoints can never drift apart.
+const difficultyValidator = v.union(
+  v.literal('Easy'),
+  v.literal('Medium'),
+  v.literal('Hard')
+);
+const synergyValidator = v.union(
+  v.literal('Excellent'),
+  v.literal('Very Good'),
+  v.literal('Good'),
+  v.literal('Average'),
+  v.literal('Situational'),
+  v.literal('Poor')
+);
+
+// Drops the auth token from mutation args before persisting the rest.
+function stripSessionToken<T extends { sessionToken: string }>(
+  args: T
+): Omit<T, 'sessionToken'> {
+  const { sessionToken: _sessionToken, ...rest } = args;
+  void _sessionToken;
+  return rest;
 }
 
 // ============ ITEMS ============
@@ -74,7 +98,7 @@ export const upsertItem = mutation({
     const userId = await verifyAuth(ctx, args.sessionToken);
     if (!userId) throw new Error('Unauthorized');
 
-    const { sessionToken, id, ...data } = args;
+    const { id, ...data } = stripSessionToken(args);
     const itemData = { ...data, updatedAt: Date.now() };
 
     if (id) {
@@ -134,7 +158,7 @@ export const upsertRune = mutation({
     const userId = await verifyAuth(ctx, args.sessionToken);
     if (!userId) throw new Error('Unauthorized');
 
-    const { sessionToken, id, ...data } = args;
+    const { id, ...data } = stripSessionToken(args);
     const runeData = { ...data, updatedAt: Date.now() };
 
     if (id) {
@@ -188,7 +212,7 @@ export const upsertSkillOrder = mutation({
       throw new Error('Skill order must have exactly 18 levels');
     }
 
-    const { sessionToken, id, ...data } = args;
+    const { id, ...data } = stripSessionToken(args);
     const skillData = { ...data, updatedAt: Date.now() };
 
     if (id) {
@@ -302,7 +326,7 @@ export const upsertBuild = mutation({
       throw new Error('Skill order must have exactly 18 levels');
     }
 
-    const { sessionToken, id, ...data } = args;
+    const { id, ...data } = stripSessionToken(args);
     const buildData = { ...data, updatedAt: Date.now() };
 
     if (id) {
@@ -388,7 +412,9 @@ export const bulkImportBuilds = mutation({
     const ids = [];
     for (const build of args.builds) {
       if (build.skillOrder.levels.length !== 18) {
-        throw new Error(`Build "${build.name}" skill order must have exactly 18 levels`);
+        throw new Error(
+          `Build "${build.name}" skill order must have exactly 18 levels`
+        );
       }
       const id = await ctx.db.insert('guideBuilds', {
         ...build,
@@ -441,17 +467,8 @@ export const upsertMatchup = mutation({
     championName: v.string(),
     championId: v.string(),
     matchupType: v.union(v.literal('enemy_support'), v.literal('ally_adc')),
-    difficulty: v.optional(
-      v.union(v.literal('Easy'), v.literal('Medium'), v.literal('Hard'))
-    ),
-    synergy: v.optional(
-      v.union(
-        v.literal('Excellent'),
-        v.literal('Very Good'),
-        v.literal('Good'),
-        v.literal('Poor')
-      )
-    ),
+    difficulty: v.optional(difficultyValidator),
+    synergy: v.optional(synergyValidator),
     tips: v.array(v.string()),
     recommendedRunes: v.optional(v.string()),
     recommendedItems: v.optional(v.string()),
@@ -465,7 +482,7 @@ export const upsertMatchup = mutation({
     const userId = await verifyAuth(ctx, args.sessionToken);
     if (!userId) throw new Error('Unauthorized');
 
-    const { sessionToken, id, ...data } = args;
+    const { id, ...data } = stripSessionToken(args);
     const matchupData = { ...data, updatedAt: Date.now() };
 
     if (id) {
@@ -526,7 +543,7 @@ export const upsertSection = mutation({
     const userId = await verifyAuth(ctx, args.sessionToken);
     if (!userId) throw new Error('Unauthorized');
 
-    const { sessionToken, id, ...data } = args;
+    const { id, ...data } = stripSessionToken(args);
     const sectionData = { ...data, updatedAt: Date.now(), updatedBy: userId };
 
     if (id) {
@@ -624,17 +641,8 @@ export const bulkImportMatchups = mutation({
         championName: v.string(),
         championId: v.string(),
         matchupType: v.union(v.literal('enemy_support'), v.literal('ally_adc')),
-        difficulty: v.optional(
-          v.union(v.literal('Easy'), v.literal('Medium'), v.literal('Hard'))
-        ),
-        synergy: v.optional(
-          v.union(
-            v.literal('Excellent'),
-            v.literal('Very Good'),
-            v.literal('Good'),
-            v.literal('Poor')
-          )
-        ),
+        difficulty: v.optional(difficultyValidator),
+        synergy: v.optional(synergyValidator),
         tips: v.array(v.string()),
         recommendedRunes: v.optional(v.string()),
         recommendedItems: v.optional(v.string()),

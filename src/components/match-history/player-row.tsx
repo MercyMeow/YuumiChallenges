@@ -129,7 +129,7 @@ export function PlayerRow({
       className={`flex items-center gap-3 rounded-lg px-3 py-2 ${isCurrentUser ? 'border border-purple-500/20 bg-purple-500/10' : 'bg-black/20'} ${className}`}
     >
       {/* Champion */}
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         <Tooltip>
           <TooltipTrigger asChild>
             <div>
@@ -144,7 +144,7 @@ export function PlayerRow({
       </div>
 
       {/* Summoner Spells */}
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         <SummonerSpells
           spell1Id={spell1Id}
           spell2Id={spell2Id}
@@ -174,7 +174,7 @@ export function PlayerRow({
       </div>
 
       {/* KDA */}
-      <div className="flex-shrink-0 text-center">
+      <div className="shrink-0 text-center">
         <div className={`text-sm font-bold ${getKDAColor(kdaRatio)}`}>
           {formatKDA(
             participant.kills,
@@ -186,7 +186,7 @@ export function PlayerRow({
       </div>
 
       {/* Stats */}
-      <div className="flex-shrink-0 text-center">
+      <div className="shrink-0 text-center">
         <div className="text-sm font-medium text-white">
           {formatNumber(participant.goldEarned)}g
         </div>
@@ -196,7 +196,7 @@ export function PlayerRow({
       </div>
 
       {/* Vision Score */}
-      <div className="flex-shrink-0 text-center">
+      <div className="shrink-0 text-center">
         <Tooltip>
           <TooltipTrigger asChild>
             <div>
@@ -213,7 +213,7 @@ export function PlayerRow({
       </div>
 
       {/* Items */}
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         <ItemSlots items={participant.items} size="md" showTrinketSeparately />
       </div>
     </div>

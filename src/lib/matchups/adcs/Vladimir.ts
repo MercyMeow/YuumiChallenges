@@ -2,14 +2,15 @@ import { BotLaneSynergy } from '../types';
 
 export const Vladimir: BotLaneSynergy = {
   synergy: 'Good',
-  playstyle: 'Scaling AP carry; spike fights with Hemoplague',
+  playstyle: 'Scaling AP carry with Hemoplague teamfight spikes',
   tips: [
-    'Play safe early; empower Q poke from brush to draw pressure while he farms to levels/items.',
-    'Use R to layer slows inside Hemoplague for amplified burst; peel back until damage pops.',
-    'Pre-cast E (Zoomies) as he ghosts/flashes in so he can reposition after the burst.',
-    'Attach for mid-game skirmishes; swap to jungler if Vlad splits.',
+    'Play safe early; detach for empowered passive autos and Q poke while Vlad scales through Lost Chapter.',
+    'Pre-cast E (Zoomies) as he Sanguine Pools or Flashes in; shield and mana restore keep him casting after the burst.',
+    'When Hemoplague pops, steer R (Final Chapter) through Vlad and nearby allies for amplified per-wave healing.',
+    'Attach for mid-game skirmishes; Staff boosts your heal and shield power for R waves more than W auto sustain.',
   ],
   buildAdjustments: [
-    'Staff preferred; Putrifier early into heavy healing comps. Redemption later for grouped fights.',
+    'Staff of Flowing Water preferred; Putrifier early into heavy healing comps.',
+    'Redemption later when Vlad groups for five-man Hemoplague fights.',
   ],
 };

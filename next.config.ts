@@ -1,11 +1,6 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  typescript: {
-    // Temporarily ignore Convex type errors until database is connected
-    // Run `npx convex dev` to generate proper types
-    ignoreBuildErrors: true,
-  },
   // Production optimizations
   compress: true, // Enable gzip compression
   poweredByHeader: false, // Remove X-Powered-By header for security

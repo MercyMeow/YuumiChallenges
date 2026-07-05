@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ItemSlots } from '@/components/match-history/item-slots';
@@ -85,11 +85,11 @@ const STATUS_META: Record<
 
 const CARD_ACCENTS: Record<ChallengeStatus, string> = {
   achieved:
-    'border-emerald-500/40 bg-gradient-to-br from-emerald-500/15 via-emerald-500/10 to-transparent',
+    'border-emerald-500/40 bg-linear-to-br from-emerald-500/15 via-emerald-500/10 to-transparent',
   likely:
-    'border-sky-500/40 bg-gradient-to-br from-sky-500/15 via-sky-500/10 to-transparent',
+    'border-sky-500/40 bg-linear-to-br from-sky-500/15 via-sky-500/10 to-transparent',
   manual:
-    'border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent',
+    'border-amber-500/30 bg-linear-to-br from-amber-500/10 via-amber-500/5 to-transparent',
   not_met: 'border-white/10 bg-white/5',
 };
 
@@ -117,7 +117,7 @@ const StatTile = ({
   sublabel,
   accentClass,
 }: StatTileProps) => (
-  <div className="rounded-xl border border-white/10 bg-black/25 px-4 py-3 backdrop-blur">
+  <div className="rounded-xl border border-white/10 bg-black/25 px-4 py-3 backdrop-blur-sm">
     <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white/60">
       <Icon className="h-4 w-4" />
       {label}
@@ -151,7 +151,7 @@ const renderCategory = (category: EvaluatedCategory) => {
   return (
     <Card
       key={category.key}
-      className="border border-white/10 bg-gradient-to-br from-slate-900/65 via-slate-900/40 to-slate-900/30 backdrop-blur-lg"
+      className="border border-white/10 bg-linear-to-br from-slate-900/65 via-slate-900/40 to-slate-900/30 backdrop-blur-lg"
     >
       <CardHeader className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -251,7 +251,7 @@ const renderCategory = (category: EvaluatedCategory) => {
                       {challenge.evidence.map((item) => (
                         <div
                           key={`${challenge.id}-${item.label}`}
-                          className="group relative overflow-hidden rounded-lg border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-3 backdrop-blur-sm transition-all hover:border-white/20 hover:shadow-lg"
+                          className="group relative overflow-hidden rounded-lg border border-white/10 bg-linear-to-br from-white/5 to-transparent p-3 backdrop-blur-xs transition-all hover:border-white/20 hover:shadow-lg"
                         >
                           <div className="relative z-10">
                             <span className="block text-[10px] font-bold uppercase tracking-wider text-white/50">
@@ -273,9 +273,9 @@ const renderCategory = (category: EvaluatedCategory) => {
                             className={cn(
                               'absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100',
                               item.accent === 'positive' &&
-                                'bg-gradient-to-br from-emerald-500/10 to-transparent',
+                                'bg-linear-to-br from-emerald-500/10 to-transparent',
                               item.accent === 'negative' &&
-                                'bg-gradient-to-br from-rose-500/10 to-transparent'
+                                'bg-linear-to-br from-rose-500/10 to-transparent'
                             )}
                           />
                         </div>
@@ -325,7 +325,7 @@ export function YuumiChallengesTab({
 
   if (!selectedPlayerData) {
     return (
-      <Card className="border-white/10 bg-black/20 backdrop-blur">
+      <Card className="border-white/10 bg-black/20 backdrop-blur-sm">
         <CardContent className="py-12 text-center text-white/70">
           <Award className="mx-auto mb-4 h-12 w-12 text-white/40" />
           <p>
@@ -415,7 +415,7 @@ export function YuumiChallengesTab({
 
   return (
     <div className="space-y-6">
-      <Card className="border-white/10 bg-gradient-to-br from-purple-500/20 via-indigo-600/10 to-slate-900/60 shadow-[0_40px_120px_-60px_rgba(79,70,229,0.85)] backdrop-blur-lg">
+      <Card className="border-white/10 bg-linear-to-br from-purple-500/20 via-indigo-600/10 to-slate-900/60 shadow-[0_40px_120px_-60px_rgba(79,70,229,0.85)] backdrop-blur-lg">
         <CardHeader className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -440,7 +440,7 @@ export function YuumiChallengesTab({
                 <Badge
                   key={badge.label}
                   className={cn(
-                    'border px-3 py-1 text-xs font-semibold uppercase tracking-wide backdrop-blur',
+                    'border px-3 py-1 text-xs font-semibold uppercase tracking-wide backdrop-blur-sm',
                     badge.className,
                     badge.value === 0 && 'opacity-60'
                   )}
@@ -493,7 +493,7 @@ export function YuumiChallengesTab({
               <h3 className="text-xs font-semibold uppercase tracking-wide text-white/60">
                 Final Build
               </h3>
-              <div className="mt-3 rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur">
+              <div className="mt-3 rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur-sm">
                 <ItemSlots items={items} size="lg" gridLayout />
               </div>
             </div>
@@ -525,7 +525,7 @@ export function YuumiChallengesTab({
             <h3 className="text-xs font-semibold uppercase tracking-wide text-white/60">
               Rune Setup
             </h3>
-            <div className="mt-3 space-y-4 rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur">
+            <div className="mt-3 space-y-4 rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur-sm">
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-white/50">
                   Primary Path
@@ -599,7 +599,7 @@ export function YuumiChallengesTab({
       {evaluation && evaluation.length > 0 ? (
         evaluation.map((category) => renderCategory(category))
       ) : (
-        <Card className="border-white/10 bg-black/20 backdrop-blur">
+        <Card className="border-white/10 bg-black/20 backdrop-blur-sm">
           <CardContent className="py-10 text-center text-white/70">
             <p>No Yuumi challenge data available for this match.</p>
           </CardContent>

@@ -1,20 +1,16 @@
 import { BotLaneSynergy } from '../types';
 
 export const Lucian: BotLaneSynergy = {
-  synergy: 'Very Good',
-  playstyle: 'Mobile kiting and poke',
+  synergy: 'Average',
+  playstyle: 'Short burst trades; mobile kiting with limited attach uptime',
   tips: [
-    'His mobility complements your roaming perfectly - use R to help him chase or escape',
-    'Pre-cast E during his dashes for extra speed and positioning',
-    'Great for poke and kiting - stay attached while he positions for shots',
-    'Position for his laser positioning and dash combos',
-    'Use your shields to protect him during his vulnerable dash recovery',
-    'His extended range allows for safe farming - roam when he has wave control',
-    'Track his passive stacks for optimal engage timing',
-    'Perfect for split pushing with his mobility and poke',
+    'Stay attached during his Light Slinger combos; his dash windows are too short for long enchanter scaling.',
+    'Pre-cast E (Zoomies) during Relentless Pursuit dashes for extra MS—shield before he commits to Culling.',
+    'Use R (Final Chapter) to peel divers after he dashes out; multi-wave slows buy time for his cooldowns.',
+    'Curve Q (Prowling Projectile) from brush between his trades to chip supports without breaking his rhythm.',
   ],
   buildAdjustments: [
-    "Shurelya's strong to enable culling chases; Mikael's vs point-and-click CC.",
-    'Ardent good if another on-hit user exists; otherwise Redemption mid-late.',
+    "Shurelya's strong to enable Culling chases; Mikael's vs point-and-click CC.",
+    'Ardent optional; Redemption mid-late if team lacks sustain elsewhere.',
   ],
 };

@@ -4,6 +4,7 @@
  */
 
 // DataDragon API base URL
+import { FALLBACK_DDRAGON_VERSION } from '@/lib/utils/live-patch';
 const DATADRAGON_BASE_URL = 'https://ddragon.leagueoflegends.com';
 
 // Cache for storing versions to avoid repeated API calls
@@ -157,7 +158,7 @@ export async function getDDragonVersions(): Promise<DDragonVersions> {
     }
 
     const versions: string[] = await response.json();
-    const latest = versions[0] || '14.23.1'; // First version is always the latest
+    const latest = versions[0] || FALLBACK_DDRAGON_VERSION; // First version is always the latest
 
     // Cache the results
     cachedVersions = versions;
@@ -167,7 +168,10 @@ export async function getDDragonVersions(): Promise<DDragonVersions> {
   } catch (error) {
     console.error('Error fetching DataDragon versions:', error);
     // Fallback to a reasonable default if the API fails
-    return { versions: ['14.23.1'], latest: '14.23.1' };
+    return {
+      versions: [FALLBACK_DDRAGON_VERSION],
+      latest: FALLBACK_DDRAGON_VERSION,
+    };
   }
 }
 

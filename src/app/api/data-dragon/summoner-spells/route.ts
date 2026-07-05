@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { FALLBACK_DDRAGON_VERSION } from '@/lib/utils/live-patch';
 
 const DATADRAGON_BASE_URL = 'https://ddragon.leagueoflegends.com';
 
@@ -25,9 +26,9 @@ async function getLatestVersion(): Promise<string> {
       cache: 'no-store',
     });
     const versions: string[] = await res.json();
-    cachedVersion = versions?.[0] || '16.11.1';
+    cachedVersion = versions?.[0] || FALLBACK_DDRAGON_VERSION;
   } catch {
-    cachedVersion = '16.11.1';
+    cachedVersion = FALLBACK_DDRAGON_VERSION;
   }
   return cachedVersion;
 }

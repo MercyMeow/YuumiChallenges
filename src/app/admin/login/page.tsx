@@ -21,8 +21,8 @@ export default function AdminLoginPage() {
   // Redirect if already authenticated
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
+      <div className="flex min-h-screen items-center justify-center hex-page-bg">
+        <Loader2 className="h-8 w-8 animate-spin text-hx-gold" />
       </div>
     );
   }
@@ -48,83 +48,87 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to p-4">
-      <Card className="w-full max-w-md border-white/10 bg-black/40 backdrop-blur">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-purple-500/20">
-            <Lock className="h-8 w-8 text-purple-400" />
-          </div>
-          <CardTitle className="text-2xl text-white">Admin Login</CardTitle>
-          <p className="text-sm text-white/60">
-            Sign in to manage the Yuumi guide
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert className="border-red-500/30 bg-red-500/10">
-                <AlertCircle className="h-4 w-4 text-red-400" />
-                <AlertDescription className="text-red-200">
-                  {error}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="username" className="text-white/80">
-                Username
-              </Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-                <Input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="border-white/20 bg-white/5 pl-10 text-white placeholder:text-white/40"
-                  placeholder="Enter username"
-                  required
-                  autoComplete="username"
-                />
-              </div>
+    <div className="flex min-h-screen items-center justify-center p-4 hex-page-bg">
+      <div className="relative w-full max-w-md duration-500 animate-in fade-in slide-in-from-bottom-4">
+        <Card className="hex-card-elevated hex-corners relative w-full rounded-sm border-0">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-sm bg-hx-gold/15">
+              <Lock className="h-8 w-8 text-hx-gold" />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-white/80">
-                Password
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="border-white/20 bg-white/5 pl-10 text-white placeholder:text-white/40"
-                  placeholder="Enter password"
-                  required
-                  autoComplete="current-password"
-                />
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full bg-purple-600 hover:bg-purple-700"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign In'
+            <CardTitle className="text-gradient-gold text-2xl font-black tracking-wide uppercase">
+              Admin Login
+            </CardTitle>
+            <p className="text-sm text-landing-text-secondary">
+              Sign in to manage the Yuumi guide
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <Alert className="rounded-sm border-red-500/30 bg-red-500/10">
+                  <AlertCircle className="h-4 w-4 text-red-400" />
+                  <AlertDescription className="text-red-200">
+                    {error}
+                  </AlertDescription>
+                </Alert>
               )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+
+              <div className="space-y-2">
+                <Label htmlFor="username" className="text-hx-parchment/80">
+                  Username
+                </Label>
+                <div className="relative">
+                  <User className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-hx-gold/40" />
+                  <Input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 pl-10 text-hx-parchment placeholder:text-hx-gold/40"
+                    placeholder="Enter username"
+                    required
+                    autoComplete="username"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-hx-parchment/80">
+                  Password
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-hx-gold/40" />
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 pl-10 text-hx-parchment placeholder:text-hx-gold/40"
+                    placeholder="Enter password"
+                    required
+                    autoComplete="current-password"
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="btn-hextech w-full rounded-sm"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

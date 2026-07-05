@@ -1,17 +1,17 @@
 import { SupportMatchup } from '../types';
 
 export const Morgana: SupportMatchup = {
-  difficulty: 'Medium',
+  difficulty: 'Easy',
   tips: [
-    "Buy Mikael's early - her Q root is long enough to decide fights. Cleanse immediately to avoid jungle follow-up.",
-    'Break Black Shield with empowered Q poke before your team engages; coordinate with allied magic damage.',
-    'Avoid detaching in open; Q travels fast and punishes stationary Yuumi. Ward only when she shows on wave.',
-    'Do not R first into Black Shield; force it first, then commit Final Chapter to root multiple targets.',
-    "Trade when her W pool is on cooldown - her sustain falls off if she cannot land W consistently.",
+    'This is a favorable matchup — punish her immobility with empowered Q curves from brush when Black Shield is down.',
+    'Black Shield blocks CC not damage — your Q still chunks; coordinate allied magic damage to break shield before engage.',
+    'Mikaels cleanses her Q root if she lands it — buy early only if jungler camps bot frequently.',
+    'Avoid detaching in open; Dark Binding travels fast. Ward only when she shows on wave.',
+    'Do not R first into Black Shield; force it with poke, then commit Final Chapter for multi-target slows and R wave healing.',
   ],
   recommendedRunes:
-    'Aery default. Resolve secondary with Font of Life + Revitalize; Bone Plating if paired with burst ADCs.',
+    'Aery + Scorch to press advantage. Resolve Font of Life + Revitalize; Bone Plating if paired with burst ADCs.',
   recommendedItems:
-    "Moonstone, Ardent, or Staff by comp. Mikael's is premium in this matchup; Redemption later for grouped fights.",
+    'Moonstone into Ardent or Staff by carry. Mikaels optional insurance; Redemption later for grouped fights.',
   earlyItems: ['Forbidden Idol', 'Control Ward to break brush traps'],
 };

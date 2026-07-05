@@ -3,10 +3,9 @@
 import {
   createContext,
   useContext,
-  useState,
-  useEffect,
   ReactNode,
   useCallback,
+  useSyncExternalStore,
 } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
@@ -31,22 +30,59 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const SESSION_KEY = 'yuumi_guide_session';
 
+// Session token store backed by localStorage, read via useSyncExternalStore.
+// The server snapshot is `null` so SSR and the first client paint render the
+// logged-out state; the stored token is picked up right after hydration
+// (same timing as the previous read-localStorage-on-mount effect).
+const sessionTokenListeners = new Set<() => void>();
+
+function subscribeToSessionToken(onStoreChange: () => void): () => void {
+  sessionTokenListeners.add(onStoreChange);
+  return () => {
+    sessionTokenListeners.delete(onStoreChange);
+  };
+}
+
+function getSessionTokenSnapshot(): string | null {
+  // `|| null` treats an empty stored value as "no session", matching the old
+  // `if (stored) setSessionToken(stored)` behavior.
+  return localStorage.getItem(SESSION_KEY) || null;
+}
+
+function getServerSessionTokenSnapshot(): null {
+  return null;
+}
+
+function setStoredSessionToken(token: string | null): void {
+  if (token === null) {
+    localStorage.removeItem(SESSION_KEY);
+  } else {
+    localStorage.setItem(SESSION_KEY, token);
+  }
+  sessionTokenListeners.forEach((listener) => listener());
+}
+
+// Hydration flag: `false` on the server / during hydration, `true` right
+// after — mirrors the old `isLoading` state that flipped in a mount effect.
+const subscribeToNothing = () => () => {};
+const getHydratedSnapshot = () => true;
+const getServerHydratedSnapshot = () => false;
+
 // Auth provider that uses Convex for authentication
 function AuthProviderWithConvex({ children }: { children: ReactNode }) {
-  const [sessionToken, setSessionToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const sessionToken = useSyncExternalStore(
+    subscribeToSessionToken,
+    getSessionTokenSnapshot,
+    getServerSessionTokenSnapshot
+  );
+  const isHydrated = useSyncExternalStore(
+    subscribeToNothing,
+    getHydratedSnapshot,
+    getServerHydratedSnapshot
+  );
 
   const loginMutation = useMutation(api.auth.login);
   const logoutMutation = useMutation(api.auth.logout);
-
-  // Load session from localStorage on mount
-  useEffect(() => {
-    const stored = localStorage.getItem(SESSION_KEY);
-    if (stored) {
-      setSessionToken(stored);
-    }
-    setIsLoading(false);
-  }, []);
 
   // Verify session
   const sessionData = useQuery(
@@ -59,8 +95,7 @@ function AuthProviderWithConvex({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (username: string, password: string) => {
       const result = await loginMutation({ username, password });
-      localStorage.setItem(SESSION_KEY, result.token);
-      setSessionToken(result.token);
+      setStoredSessionToken(result.token);
     },
     [loginMutation]
   );
@@ -69,8 +104,7 @@ function AuthProviderWithConvex({ children }: { children: ReactNode }) {
     if (sessionToken) {
       await logoutMutation({ sessionToken });
     }
-    localStorage.removeItem(SESSION_KEY);
-    setSessionToken(null);
+    setStoredSessionToken(null);
   }, [sessionToken, logoutMutation]);
 
   return (
@@ -78,7 +112,7 @@ function AuthProviderWithConvex({ children }: { children: ReactNode }) {
       value={{
         user,
         isLoading:
-          isLoading || (sessionToken !== null && sessionData === undefined),
+          !isHydrated || (sessionToken !== null && sessionData === undefined),
         isAuthenticated: !!user,
         login,
         logout,

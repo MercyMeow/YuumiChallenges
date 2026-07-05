@@ -4,7 +4,6 @@
  * Extracted from match details page
  */
 
-import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -13,7 +12,7 @@ import { TimelineEventItem } from '@/components/match-history/timeline-event-ite
 import { Loader2, Timer, Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExtendedMatchData, CRITICAL_TIMELINE_EVENT_TYPES } from './types';
-import { RawTimelineData } from '@/lib/types/item-timeline-new';
+import { RawTimelineData, PlayerTimeline } from '@/lib/types/item-timeline-new';
 import { logger } from '@/lib/logger';
 import { ExtendedMatchParticipant } from './types';
 
@@ -22,7 +21,7 @@ interface TimelineTabProps {
   setActiveTimelineView: (view: 'combat' | 'items') => void;
   timelineData: RawTimelineData | null;
   isProcessing: boolean;
-  processedTimeline: unknown;
+  processedTimeline: PlayerTimeline | null;
   timelineError: string | null;
   selectedPlayerData: ExtendedMatchParticipant | null | undefined;
   matchData: ExtendedMatchData;
@@ -112,7 +111,7 @@ export function TimelineTab({
                         className="ml-2 border-l-2 border-white/20 pl-4"
                       >
                         <div className="mb-2 flex items-center gap-2">
-                          <div className="-ml-[1.25rem] h-2 w-2 rounded-full bg-white"></div>
+                          <div className="-ml-5 h-2 w-2 rounded-full bg-white"></div>
                           <Badge variant="outline" className="text-white/60">
                             {formattedTime}
                           </Badge>
@@ -183,8 +182,7 @@ export function TimelineTab({
               </div>
             ) : (
               <SimpleItemTimeline
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                timeline={processedTimeline as any}
+                timeline={processedTimeline}
                 isLoading={isProcessing}
                 error={timelineError}
                 className="w-full"

@@ -49,43 +49,62 @@ export function EnhancedMatchHistoryDisplay({
   const [limit] = useState(50); // Show more matches by default
   const [hasMore, setHasMore] = useState(false);
 
+  // Reset loading/error during render when the summoner changes (the initial
+  // state already covers the first fetch), so the fetch effect below never
+  // calls setState synchronously.
+  const [prevSummonerId, setPrevSummonerId] = useState(summonerId);
+  if (prevSummonerId !== summonerId) {
+    setPrevSummonerId(summonerId);
+    setLoading(true);
+    setError(null);
+  }
+
+  // Promise-chain style (rather than async/await) so every setState happens
+  // inside an async callback, never synchronously when called from the effect.
   const fetchMatches = useCallback(
-    async (resetMatches = true) => {
-      try {
-        setLoading(resetMatches);
-        setError(null);
+    (resetMatches = true) => {
+      const offset = resetMatches ? 0 : matches.length;
 
-        const offset = resetMatches ? 0 : matches.length;
-        const response = await fetch(
-          `/api/summoners/${summonerId}/matches?limit=${limit}&offset=${offset}&detailed=true`
-        );
+      return fetch(
+        `/api/summoners/${summonerId}/matches?limit=${limit}&offset=${offset}&detailed=true`
+      )
+        .then(async (response) => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch matches');
+          }
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch matches');
-        }
+          const data = await response.json();
+          const newMatches = data.matches || [];
 
-        const data = await response.json();
-        const newMatches = data.matches || [];
+          if (resetMatches) {
+            setMatches(newMatches);
+          } else {
+            setMatches((prev) => [
+              ...(Array.isArray(prev) ? prev : []),
+              ...(Array.isArray(newMatches) ? newMatches : []),
+            ]);
+          }
 
-        if (resetMatches) {
-          setMatches(newMatches);
-        } else {
-          setMatches((prev) => [
-            ...(Array.isArray(prev) ? prev : []),
-            ...(Array.isArray(newMatches) ? newMatches : []),
-          ]);
-        }
-
-        setHasMore(data.pagination?.hasMore || false);
-      } catch (error) {
-        console.error('Error fetching matches:', error);
-        setError('Failed to load match history');
-      } finally {
-        setLoading(false);
-      }
+          setHasMore(data.pagination?.hasMore || false);
+        })
+        .catch((error) => {
+          console.error('Error fetching matches:', error);
+          setError('Failed to load match history');
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     },
     [summonerId, limit, matches.length]
   );
+
+  // Event-handler entry point: applies the synchronous loading/error reset
+  // that fetchMatches previously did itself.
+  const startFetch = (resetMatches = true) => {
+    setLoading(resetMatches);
+    setError(null);
+    fetchMatches(resetMatches);
+  };
 
   useEffect(() => {
     fetchMatches(true);
@@ -271,7 +290,7 @@ export function EnhancedMatchHistoryDisplay({
           <p className="mb-4 text-white/60">{error}</p>
           <Button
             variant="outline"
-            onClick={() => fetchMatches(true)}
+            onClick={() => startFetch(true)}
             className="border-red-500/30 text-red-400 hover:bg-red-500/10"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
@@ -308,7 +327,7 @@ export function EnhancedMatchHistoryDisplay({
               variant="outline"
               onClick={() => {
                 onRefresh();
-                fetchMatches(true);
+                startFetch(true);
               }}
               disabled={isRefreshing}
               className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
@@ -353,7 +372,7 @@ export function EnhancedMatchHistoryDisplay({
           <>
             {/* Enhanced Statistics Overview */}
             <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-              <div className="rounded-lg border border-blue-500/20 bg-gradient-to-br from-blue-500/10 to-blue-600/5 p-4 text-center">
+              <div className="rounded-lg border border-blue-500/20 bg-linear-to-br from-blue-500/10 to-blue-600/5 p-4 text-center">
                 <div className="mb-2 flex items-center justify-center">
                   <BarChart3 className="mr-2 h-5 w-5 text-blue-400" />
                   <span className="text-2xl font-bold text-blue-400">
@@ -366,7 +385,7 @@ export function EnhancedMatchHistoryDisplay({
                 </p>
               </div>
 
-              <div className="rounded-lg border border-green-500/20 bg-gradient-to-br from-green-500/10 to-green-600/5 p-4 text-center">
+              <div className="rounded-lg border border-green-500/20 bg-linear-to-br from-green-500/10 to-green-600/5 p-4 text-center">
                 <div className="mb-2 flex items-center justify-center">
                   <TrendingUp className="mr-2 h-5 w-5 text-green-400" />
                   <span className="text-2xl font-bold text-green-400">
@@ -379,7 +398,7 @@ export function EnhancedMatchHistoryDisplay({
                 </p>
               </div>
 
-              <div className="rounded-lg border border-yellow-500/20 bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 p-4 text-center">
+              <div className="rounded-lg border border-yellow-500/20 bg-linear-to-br from-yellow-500/10 to-yellow-600/5 p-4 text-center">
                 <div className="mb-2 flex items-center justify-center">
                   <Target className="mr-2 h-5 w-5 text-yellow-400" />
                   <span className="text-2xl font-bold text-yellow-400">
@@ -392,7 +411,7 @@ export function EnhancedMatchHistoryDisplay({
                 </p>
               </div>
 
-              <div className="rounded-lg border border-purple-500/20 bg-gradient-to-br from-purple-500/10 to-purple-600/5 p-4 text-center">
+              <div className="rounded-lg border border-purple-500/20 bg-linear-to-br from-purple-500/10 to-purple-600/5 p-4 text-center">
                 <div className="mb-2 flex items-center justify-center">
                   <Trophy className="mr-2 h-5 w-5 text-purple-400" />
                   <Badge
@@ -405,7 +424,7 @@ export function EnhancedMatchHistoryDisplay({
                 <p className="text-sm text-white/60">Current Streak</p>
               </div>
 
-              <div className="rounded-lg border border-pink-500/20 bg-gradient-to-br from-pink-500/10 to-pink-600/5 p-4 text-center">
+              <div className="rounded-lg border border-pink-500/20 bg-linear-to-br from-pink-500/10 to-pink-600/5 p-4 text-center">
                 <div className="mb-2 flex items-center justify-center">
                   <Zap className="mr-2 h-5 w-5 text-pink-400" />
                   <span className="text-2xl font-bold text-pink-400">
@@ -445,7 +464,7 @@ export function EnhancedMatchHistoryDisplay({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => fetchMatches(false)}
+                      onClick={() => startFetch(false)}
                       disabled={loading}
                       className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
                     >

@@ -36,50 +36,73 @@ interface UseRuneDataReturn {
   getRunesByTreeAndSlot: (treeId: number, slotIndex: number) => RuneData[];
 }
 
+/**
+ * Fetch rune data from the API. Pure network logic (no React state) so the
+ * mount effect can consume it via a promise chain without synchronous
+ * setState calls.
+ */
+async function loadRuneData(): Promise<RuneDataResponse> {
+  const response = await fetch('/api/data-dragon/runes', {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch rune data: ${response.status}`);
+  }
+
+  const data: RuneDataResponse = await response.json();
+
+  if (data.error && !data.fallback) {
+    throw new Error(data.error);
+  }
+
+  return data;
+}
+
 export function useRuneData(): UseRuneDataReturn {
   const [runeTrees, setRuneTrees] = useState<RuneTree[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRuneData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // Applies the fetch result to state. All setState calls happen inside
+  // promise callbacks (asynchronously), never in the effect body itself.
+  const executeFetch = () =>
+    loadRuneData()
+      .then((data) => {
+        setRuneTrees(data.runes);
 
-      const response = await fetch('/api/data-dragon/runes', {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        // Show warning if using fallback data
+        if (data.fallback) {
+          console.warn(
+            'Using fallback rune data due to API issues:',
+            data.error
+          );
+        }
+      })
+      .catch((err: unknown) => {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Unknown error occurred';
+        setError(errorMessage);
+        console.error('Error fetching rune data:', err);
+      })
+      .finally(() => {
+        setLoading(false);
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch rune data: ${response.status}`);
-      }
-
-      const data: RuneDataResponse = await response.json();
-
-      if (data.error && !data.fallback) {
-        throw new Error(data.error);
-      }
-
-      setRuneTrees(data.runes);
-
-      // Show warning if using fallback data
-      if (data.fallback) {
-        console.warn('Using fallback rune data due to API issues:', data.error);
-      }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Unknown error occurred';
-      setError(errorMessage);
-      console.error('Error fetching rune data:', err);
-    } finally {
-      setLoading(false);
-    }
+  // Refetch entry point for consumers (event handlers), where resetting
+  // loading/error synchronously is fine.
+  const refetch = async () => {
+    setLoading(true);
+    setError(null);
+    await executeFetch();
   };
 
   useEffect(() => {
-    fetchRuneData();
+    // Initial state already has loading=true and error=null, so no
+    // synchronous state updates are needed before the async fetch.
+    void executeFetch();
   }, []);
 
   // Utility functions that work with the current data
@@ -114,7 +137,7 @@ export function useRuneData(): UseRuneDataReturn {
     runeTrees,
     loading,
     error,
-    refetch: fetchRuneData,
+    refetch,
     getRuneById: getRuneByIdLocal,
     getRuneTreeById: getRuneTreeByIdLocal,
     getStatShardById: getStatShardByIdLocal,

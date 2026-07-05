@@ -3,22 +3,15 @@ import { SupportMatchup } from '../types';
 export const Annie: SupportMatchup = {
   difficulty: 'Medium',
   tips: [
-    'Count her passive stacks (4 for stun). Communicate stack state in chat or pings',
-    'When she holds stun do not throw empowered Q straight line. Curve late to force shield timing misplay',
-    'Shield your host right before Tibbers lands to absorb burst then use R slows to zone Tibbers pathing in choke',
-    'Sit on a long range mobile ADC (Ezreal Lucian) to reduce value of her Flash Tibbers multi stun',
-    'If she uses Molten Shield offensively she lacks E DR. Use that window to poke twice with Q then passive proc for sustain',
-    'Early Null Magic Mantle rush if paired with poke ADC (Varus) can be justified delaying Bandleglass',
-    'Deny brush control. She often sits in lane brush charging stun safely. Place Control Ward and track her stepping forward',
-    'Tibbers reveals fog. After summon reposition via W to a diver to keep Q angles unpredictable',
-    'Consider Mikaels only if enemy also fields long root style CC (Ashe Lux). Annie stun alone is often not worth early purchase',
+    'Count passive stacks (4 = stun) and ping stack state — never face-tank an empowered Q when stun is ready.',
+    'E shield your host right before Tibbers lands to absorb burst; R wave healing sustains through her combo aftermath.',
+    'Curve empowered Q late when she holds stun to force a defensive Molten Shield, then punish the cooldown window.',
+    'Deny lane brush control — she charges stun safely from fog. Ward and poke from side angles when E is down.',
+    'Attach to mobile ADCs (Ezreal, Lucian) to reduce Tibbers multi-stun value; W swap mid-fight if she Flash engages.',
   ],
   recommendedRunes:
-    'Aery + Manaflow Transcendence Scorch. Secondary Resolve Second Wind if double poke else Inspiration Biscuit for mana pressure',
+    'Aery + Manaflow + Transcendence + Scorch. Inspiration Biscuits if mana-heavy lane; Second Wind vs double poke.',
   recommendedItems:
-    'Moonstone into Mikaels if multiple single target stuns. Otherwise Ardent or Staff depending on ally AP scaling',
-  earlyItems: [
-    'Null Magic Mantle situational',
-    'Extra Refillable not needed usually',
-  ],
+    'Moonstone into Staff or Ardent by carry scaling. Mikaels only if enemy comp layers extra point-click CC beyond Annie stun.',
+  earlyItems: ['Null Magic Mantle vs AP burst duo', 'Control Ward for brush deny'],
 };

@@ -59,6 +59,8 @@ export interface DiscordEmbedPayload {
   components?: DiscordComponentActionRow[];
 }
 
+import { buildDiscordBuildField } from '@/lib/builds/embed-summary';
+
 const exampleMatchId = 'EUW1_7481411158';
 
 export const yuumiDiscordEmbed: DiscordEmbedPayload = {
@@ -82,6 +84,10 @@ export const yuumiDiscordEmbed: DiscordEmbedPayload = {
         url: 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Yuumi_2.jpg',
       },
       fields: [
+        {
+          name: 'Recommended Build',
+          value: buildDiscordBuildField(),
+        },
         {
           name: 'Highlights',
           value:

@@ -3,18 +3,15 @@ import { SupportMatchup } from '../types';
 export const Yuumi: SupportMatchup = {
   difficulty: 'Medium',
   tips: [
-    'Focus on out rotating. Mirror her roams by tracking which ally she attaches to',
-    'Trade when her passive shield on cooldown. Force repeated small trades',
-    'Deny her detach brush control with control wards',
-    'Hold R until after she layers hers then use yours to refresh overlapping slow waves and keep enemies in contested zone',
-    'Ardent stacking scales both lineups. Accelerate to second item faster than opposing Yuumi',
-    'Swap hosts more frequently to generate friend mark healing if she stays static',
-    'Mana differences become decisive. Conserve E usage until needed',
-    'Consider early Oblivion only if enemy comp has extra healing not just Yuumi',
-    'Track which ally becomes her best friend and deny their farm windows with pressure',
+    'Out-rotate her — track which ally she attaches to and mirror roams to deny free plates.',
+    'Trade when her passive shield is on cooldown; force repeated small trades with empowered Q.',
+    'Deny her detach brush control with control wards; punish stationary reattach timing.',
+    'Hold R until after she layers hers, then refresh overlapping slow waves to keep enemies contested.',
+    'Mana differences become decisive — conserve E shield for critical moments, not pre-casting into poke.',
   ],
   recommendedRunes:
-    'Aery mirror. Consider Guardian if protecting immobile hyper carry vs dive',
-  recommendedItems: 'Moonstone into Ardent then Staff',
+    'Aery mirror. Guardian if protecting immobile hyper-carry vs dive comp.',
+  recommendedItems:
+    'Dream Maker into Moonstone, then Ardent or Staff by ally scaling. Dawncore snowballs if ahead.',
   earlyItems: ['Forbidden Idol rush'],
 };

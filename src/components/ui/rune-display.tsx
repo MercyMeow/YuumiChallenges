@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import {
   Tooltip,
@@ -128,7 +128,7 @@ export function RuneIcon({
       className={cn(
         'cursor-pointer overflow-hidden rounded border transition-colors hover:border-opacity-70',
         variant === 'keystone'
-          ? 'border-purple-500/60 bg-purple-500/10 shadow-sm shadow-purple-500/20 hover:border-purple-400/70'
+          ? 'border-purple-500/60 bg-purple-500/10 shadow-xs shadow-purple-500/20 hover:border-purple-400/70'
           : 'border-white/10 hover:border-white/20',
         // circular look like Riot client
         'rounded-full',
@@ -162,7 +162,7 @@ export function RuneIcon({
         <div className="space-y-3">
           {/* Header with Rune Icon and Name */}
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <Image
                 src={imageUrl}
                 alt={rune.name}
@@ -171,7 +171,7 @@ export function RuneIcon({
                 className={cn(
                   'rounded border',
                   variant === 'keystone'
-                    ? 'border-purple-500/50 shadow-sm shadow-purple-500/20'
+                    ? 'border-purple-500/50 shadow-xs shadow-purple-500/20'
                     : 'border-purple-500/30'
                 )}
                 sizes="32px"
@@ -570,7 +570,7 @@ export function RuneTreeDisplay({
         {/* LEFT: Primary & Secondary Rune Trees */}
         <div className="space-y-6">
           {/* Primary Rune Tree */}
-          <div className="rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-900/20 via-black/40 to-black/20 p-6 shadow-lg shadow-purple-500/10 backdrop-blur-sm">
+          <div className="rounded-xl border border-purple-500/30 bg-linear-to-br from-purple-900/20 via-black/40 to-black/20 p-6 shadow-lg shadow-purple-500/10 backdrop-blur-xs">
             {/* Tree Header */}
             <div className="mb-6 flex items-center justify-between border-b border-purple-500/20 pb-4">
               <div className="flex items-center gap-3">
@@ -791,7 +791,7 @@ export function RuneTreeDisplay({
 
           {/* Secondary Rune Tree */}
           {secondaryStyle?.selections?.length ? (
-            <div className="rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-900/20 via-black/40 to-black/20 p-6 shadow-lg shadow-blue-500/10 backdrop-blur-sm">
+            <div className="rounded-xl border border-blue-500/30 bg-linear-to-br from-blue-900/20 via-black/40 to-black/20 p-6 shadow-lg shadow-blue-500/10 backdrop-blur-xs">
               {/* Tree Header */}
               <div className="mb-6 flex items-center gap-3 border-b border-blue-500/20 pb-4">
                 {secondaryTree && (
@@ -914,7 +914,7 @@ export function RuneTreeDisplay({
         </div>
 
         {/* RIGHT: Stat Shards Section */}
-        <div className="rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-900/20 via-black/40 to-black/20 p-6 shadow-lg shadow-amber-500/10 backdrop-blur-sm">
+        <div className="rounded-xl border border-amber-500/30 bg-linear-to-br from-amber-900/20 via-black/40 to-black/20 p-6 shadow-lg shadow-amber-500/10 backdrop-blur-xs">
           <div className="mb-6 border-b border-amber-500/20 pb-4">
             <div className="text-lg font-bold text-white">Stat Shards</div>
             <div className="text-xs text-amber-300">Bonus Stats</div>
@@ -922,7 +922,7 @@ export function RuneTreeDisplay({
 
           <div className="space-y-4">
             {/* Offense Shard */}
-            <div className="rounded-lg border border-orange-500/30 bg-gradient-to-br from-orange-900/20 to-orange-900/10 p-4">
+            <div className="rounded-lg border border-orange-500/30 bg-linear-to-br from-orange-900/20 to-orange-900/10 p-4">
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-orange-400">
                   Offense
@@ -942,7 +942,7 @@ export function RuneTreeDisplay({
             </div>
 
             {/* Flex Shard */}
-            <div className="rounded-lg border border-purple-500/30 bg-gradient-to-br from-purple-900/20 to-purple-900/10 p-4">
+            <div className="rounded-lg border border-purple-500/30 bg-linear-to-br from-purple-900/20 to-purple-900/10 p-4">
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-purple-400">
                   Flex
@@ -962,7 +962,7 @@ export function RuneTreeDisplay({
             </div>
 
             {/* Defense Shard */}
-            <div className="rounded-lg border border-green-500/30 bg-gradient-to-br from-green-900/20 to-green-900/10 p-4">
+            <div className="rounded-lg border border-green-500/30 bg-linear-to-br from-green-900/20 to-green-900/10 p-4">
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wider text-green-400">
                   Defense

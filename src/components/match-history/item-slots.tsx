@@ -274,7 +274,7 @@ export function ItemSlot({
           <div className="space-y-3">
             {/* Header with Item Icon and Name */}
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 {imageUrl && (
                   <Image
                     src={imageUrl}

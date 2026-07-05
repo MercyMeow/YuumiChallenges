@@ -2,19 +2,15 @@ import { BotLaneSynergy } from '../types';
 
 export const Tristana: BotLaneSynergy = {
   synergy: 'Excellent',
-  playstyle: 'Aggressive roaming and split pushing',
+  playstyle: 'Burst all-in and tower dive with Rocket Jump resets',
   tips: [
-    'Perfect synergy with her mobility and burst - stay attached during her rocket jumps',
-    'Use R to extend her engages and rocket jumps for maximum damage',
-    'Pre-cast E for movement speed before her W to enhance her positioning',
-    'Position for her to rocket jump into fights and create chaos',
-    'Stay attached during her burst windows to maximize her DPS output',
-    'Her mobility allows for aggressive split pushing - follow her lead',
-    'Use your shields to protect her during engages and escapes',
-    'Track her takedowns for speed boosts that extend your ultimate range',
+    'Pre-cast E (Zoomies) shield and attack speed before Rocket Jump; movement speed helps her land and re-kite.',
+    'Stay attached through burst windows so W on-hit healing and Q on-hit magic damage spike every Rapid Fire auto.',
+    'Channel R (Final Chapter) when she commits to all-ins or tower dives to heal per wave during the chaos.',
+    'Only detach for vision when Explosive Charge is not mid-detonation; dropping host mid-burst wastes Best Friend bonuses.',
   ],
   buildAdjustments: [
-    'Focus on sustain items to keep her in lane longer',
-    'Consider mobility boots for better roaming',
+    "Ardent is top priority second—Tristana attack speed multiplies W and Q Best Friend value.",
+    "Mikael's early vs point-and-click CC that stops her mid-jump.",
   ],
 };

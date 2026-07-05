@@ -2,18 +2,15 @@ import { BotLaneSynergy } from '../types';
 
 export const Vayne: BotLaneSynergy = {
   synergy: 'Very Good',
-  playstyle: 'Short window duelist and anti tank shred with reposition',
+  playstyle: 'Short-trade duelist and anti-tank shred with reposition',
   tips: [
-    'Use Zoomies proactively before she tumbles forward for Silver Bolts proc trades reducing retaliation window',
-    'Hold R waves until after she Condemns target into wall to layer repeated slow waves maximizing wall stun punish',
-    'Swap attach if she stealths with ultimate to an approaching diver then reattach to Vayne when she resumes DPS',
-    'Peel oriented Exhaust timing matters more than aggressive Ignite with Vayne scaling',
-    'Track enemy pink wards to help her maintain stealth reposition during team fights',
-    'Encourage early Noonquiver buy by protecting her during vulnerable BF sword spike windows',
-    'Stay attached late game almost permanently; her mobility plus your healing neutralize poke comps',
+    'Pre-cast E (Zoomies) shield and attack speed before she Tumble forward; attack speed helps proc Silver Bolts faster.',
+    'W Best Friend on-hit healing rewards extended duels—stay attached through Condemn commits, not only before them.',
+    'Land Q on the condemned target; Best Friend on-hit magic damage punishes wall stuns.',
+    'Channel R (Final Chapter) through Vayne during ult stealth re-engages to heal per wave and slow enemies catching up.',
   ],
   buildAdjustments: [
-    'Ardent high priority',
-    'Redemption later for multi fight sustain',
+    'Ardent high priority—attack speed and on-hit synergy stack with her DPS pattern.',
+    "Mikael's or Exhaust focus over Ignite; peel wins more fights than extra kill pressure.",
   ],
 };

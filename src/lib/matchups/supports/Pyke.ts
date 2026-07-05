@@ -3,14 +3,15 @@ import { SupportMatchup } from '../types';
 export const Pyke: SupportMatchup = {
   difficulty: 'Hard',
   tips: [
-    'Do not detach in his Q range - channel time is short. Ward only when he shows on wave.',
-    'Exhaust him on E engage or pre-R execute to deny resets.',
-    'Save R to slow him repeatedly after his E dash; this helps prevent follow-up kills.',
-    'Punish misses - empowered Q from brush forces him to back off when Q/E are down.',
+    'Never detach in his Q range — channel time is short and hook into E is lethal. Ward only when he shows on wave.',
+    'Exhaust him on E engage or pre-R execute to deny resets and gold share.',
+    'Save R to repeatedly slow him after his E dash; multi-wave roots stop follow-up kills.',
+    'Punish misses — empowered Q from brush forces him back when Q/E are down.',
+    'Pre-shield with E before predictable hook angles; shield + MS helps your host sidestep the channel.',
   ],
   recommendedRunes:
-    'Guardian or Aery; Resolve secondary Bone Plating + Revitalize. Consider Stopwatch purchase into dive lanes.',
+    'Guardian or Aery; Resolve secondary Bone Plating + Revitalize. Guardian if protecting immobile hyper-carry.',
   recommendedItems:
-    "Moonstone is often strong; consider it early in extended skirmishes. Mikael's situational. Shurelya's helps your team escape his picks.",
-  earlyItems: ['Control Ward for river/tri', 'Forbidden Idol for sustain'],
+    "Dream Maker into Moonstone. Mikael's if hooks land reliably; Shurelya's to escape his pick windows.",
+  earlyItems: ['Control Ward for river/tri', 'Forbidden Idol for mana sustain'],
 };

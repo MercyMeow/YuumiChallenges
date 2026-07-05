@@ -2,14 +2,15 @@ import { BotLaneSynergy } from '../types';
 
 export const Xayah: BotLaneSynergy = {
   synergy: 'Very Good',
-  playstyle: 'Front-to-back DPS with strong self-peel ult',
+  playstyle: 'Front-to-back DPS with feather recall self-peel',
   tips: [
-    'Pre-cast E (Zoomies) before she commits so she can kite while stacking feathers.',
-    'Use R to apply slows when she ults defensively; keep enemies in feather recall line for maximum damage.',
-    'Q poke from brush to force supports low so she can walk up safely to cast feathers.',
-    'Attach late game for permanent peel; swap to diver only for pick setups.',
+    'Pre-cast E (Zoomies) before she commits feathers; shield and attack speed maximize Blade Caller recall damage.',
+    'Stay Best Friend in extended fights—W on-hit healing and Q on-hit magic damage stack on every feather auto.',
+    'When she Featherstorm ults defensively, channel R (Final Chapter) through her landing zone to heal per wave and slow chasers.',
+    'Stay attached late game; swap host only for pick setups when the enemy engager is on the opposite flank.',
   ],
   buildAdjustments: [
-    "Ardent strong; Mikael's vs hard CC comps. Shurelya's to engage/disengage around her ult windows.",
+    "Ardent is strong; Mikael's vs hard CC that catches her before ult.",
+    "Shurelya's to engage or disengage around Featherstorm windows.",
   ],
 };

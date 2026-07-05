@@ -2,14 +2,15 @@ import { BotLaneSynergy } from '../types';
 
 export const Ziggs: BotLaneSynergy = {
   synergy: 'Good',
-  playstyle: 'Siege and objective control with satchel',
+  playstyle: 'Siege and objective control with Satchel escapes',
   tips: [
-    'Q from brush to force health pots and plates; Ziggs wants turret damage windows.',
-    'Save R to peel engages during sieges; multi-wave slows keep divers off him.',
-    'Pre-cast E (Zoomies) when he steps up to Satchel turrets for demolitions.',
-    'Roam mid to siege if bot turret is low; swap back after objective.',
+    'Detach to Q poke supports between Mega Inferno Bombs; force recalls so Ziggs can plate safely.',
+    'Pre-cast E (Zoomies) when he Satchel jumps forward to demolish; shield covers the vulnerable landing.',
+    'When sieges get engaged, steer R (Final Chapter) through Ziggs and nearby allies for per-wave heals—not only enemy slows.',
+    'Roam mid with Ziggs on low bot turret; reattach before tower dives so Best Friend bonuses are active.',
   ],
   buildAdjustments: [
-    'Staff over Ardent; Redemption synergizes with long sieges.',
+    'Staff over Ardent; Redemption synergizes with long siege and grouped fights.',
+    "Shurelya's to peel after Satchel escape windows close.",
   ],
 };

@@ -64,54 +64,7 @@ const perkIdsOfInterest = [
   8360, 8369, 8306, 8304, 8313, 8321, 8316, 8345, 8347, 8410, 8352,
 ];
 
-const formatTypeHints = {
-  damage: ['Damage', 'Bonus Damage', 'Damage Dealt'],
-  healing: ['Healing', 'Health Restored', 'Healing Done', 'Heal'],
-  shielding: ['Shield', 'Shielding'],
-  gold: ['Gold'],
-  time: [
-    'Time',
-    'Cooldown Remaining',
-    'Uptime',
-    'Duration',
-    'Seconds',
-    'Minutes',
-    'Hours',
-    'Active',
-  ],
-  count: [
-    'Procs',
-    'Times',
-    'Stacks',
-    'Souls',
-    'Uses',
-    'Wards',
-    'Poros',
-    'Enemies Spotted',
-    'Attacks',
-    'Activations',
-    'Mementos',
-    'Items Gained',
-    'Instant health restored',
-    'Deep Wards',
-    'Move Speed Increase',
-  ],
-  value: [
-    'Mana',
-    'Armor',
-    'Magic Resist',
-    'Max Health',
-    'Adaptive Force',
-    'Item Haste',
-    'Summoner Haste',
-    'Attack Speed',
-    'Life Steal',
-    'Ability Haste',
-    'Swaps',
-  ],
-  cdr: ['Cooldown Reduced', 'Ability Haste', 'Ultimate Haste'],
-  percent: ['%'],
-};
+
 
 function inferFormat(label) {
   const plain = label.toLowerCase();

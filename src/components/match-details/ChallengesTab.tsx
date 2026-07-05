@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ChampionIcon } from '@/components/ui/datadragon-image';
@@ -111,7 +111,7 @@ const ChallengeStatCard = ({
   <div
     className={`flex flex-col gap-2 rounded-xl border border-white/10 px-4 py-3 ${
       highlight
-        ? 'bg-gradient-to-br from-purple-500/25 via-purple-500/10 to-transparent'
+        ? 'bg-linear-to-br from-purple-500/25 via-purple-500/10 to-transparent'
         : 'bg-black/25'
     }`}
   >
@@ -132,13 +132,14 @@ export function ChallengesTab({
   selectedPlayerData?: ExtendedMatchParticipant | null | undefined;
 }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const challenges = selectedPlayerData?.challenges;
 
   const normalizedEntries = useMemo<ChallengeEntry[]>(() => {
-    if (!selectedPlayerData?.challenges) {
+    if (!challenges) {
       return [];
     }
 
-    return Object.entries(selectedPlayerData.challenges)
+    return Object.entries(challenges)
       .filter(
         ([, value]) => typeof value === 'number' && Number.isFinite(value)
       )
@@ -152,7 +153,7 @@ export function ChallengesTab({
         };
       })
       .sort((a, b) => (b.numericValue ?? 0) - (a.numericValue ?? 0));
-  }, [selectedPlayerData?.challenges]);
+  }, [challenges]);
 
   const filteredEntries = useMemo(() => {
     if (!searchTerm) {
