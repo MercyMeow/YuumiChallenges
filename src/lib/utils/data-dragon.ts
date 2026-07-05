@@ -2,6 +2,7 @@
  * Data Dragon API utilities for League of Legends assets
  * Handles dynamic version fetching to avoid hardcoded version strings
  */
+import { FALLBACK_DDRAGON_VERSION } from './live-patch';
 
 // Cache for Data Dragon version to avoid repeated API calls
 let cachedVersion: string | null = null;
@@ -54,7 +55,7 @@ export async function getLatestDataDragonVersion(): Promise<string> {
 
     // Fallback to a reasonable default if API fails
     // This should be updated occasionally but serves as emergency fallback
-    const fallbackVersion = '16.13.1';
+    const fallbackVersion = FALLBACK_DDRAGON_VERSION;
 
     if (!cachedVersion) {
       console.warn(`Using fallback Data Dragon version: ${fallbackVersion}`);

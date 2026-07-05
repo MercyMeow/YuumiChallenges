@@ -164,7 +164,7 @@ export const getScrapeJobs = query({
   },
   handler: async (ctx, args) => {
     const status = args.status;
-    const limit = args.limit || 50;
+    const limit = args.limit ?? 50;
     const results = status
       ? await ctx.db
           .query('scrapeJobs')

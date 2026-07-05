@@ -2,16 +2,18 @@
 // Cached for an hour so metadata/OG images auto-follow new patches.
 
 const VERSIONS_URL = 'https://ddragon.leagueoflegends.com/api/versions.json';
-const FALLBACK_VERSION = '16.13.1';
+
+/** Single source of truth for the emergency Data Dragon fallback version. */
+export const FALLBACK_DDRAGON_VERSION = '16.13.1';
 
 export async function getLiveDdragonVersion(): Promise<string> {
   try {
     const res = await fetch(VERSIONS_URL, { next: { revalidate: 3600 } });
-    if (!res.ok) return FALLBACK_VERSION;
+    if (!res.ok) return FALLBACK_DDRAGON_VERSION;
     const versions: string[] = await res.json();
-    return versions?.[0] ?? FALLBACK_VERSION;
+    return versions?.[0] ?? FALLBACK_DDRAGON_VERSION;
   } catch {
-    return FALLBACK_VERSION;
+    return FALLBACK_DDRAGON_VERSION;
   }
 }
 

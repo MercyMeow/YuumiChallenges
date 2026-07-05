@@ -1,9 +1,9 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Clock, Sparkles } from 'lucide-react';
 import { getNextResetForSection } from '@/lib/mythic-shop/reset-schedule';
+import { formatCountdown, useNowMs } from '@/lib/mythic-shop/countdown';
 import type { MythicShopSectionId } from '@/lib/mythic-shop/types';
 
 interface SectionMeta {
@@ -19,42 +19,6 @@ const SECTIONS: SectionMeta[] = [
   { id: 'daily', label: 'Daily' },
 ];
 
-/** Formats a future ISO timestamp as a compact "2d 3h" countdown string. */
-function formatCountdown(targetIso: string | null, nowMs: number): string {
-  if (!targetIso) {
-    return 'Varies';
-  }
-  const diff = new Date(targetIso).getTime() - nowMs;
-  if (diff <= 0) {
-    return 'Resetting…';
-  }
-
-  const days = Math.floor(diff / (24 * 60 * 60 * 1000));
-  const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-  const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
-
-  if (days > 0) return `${days}d ${hours}h`;
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
-}
-
-// Minute-tick time store for useSyncExternalStore. The server snapshot is
-// `null` so SSR and the first client paint render the same placeholder, then
-// the real timestamp is picked up once React subscribes after hydration.
-let nowMsSnapshot: number | null = null;
-
-function subscribeToMinuteTick(onStoreChange: () => void): () => void {
-  nowMsSnapshot = Date.now();
-  const interval = setInterval(() => {
-    nowMsSnapshot = Date.now();
-    onStoreChange();
-  }, 60_000);
-  return () => clearInterval(interval);
-}
-
-const getNowMsSnapshot = () => nowMsSnapshot;
-const getServerNowMsSnapshot = () => null;
-
 /**
  * Site-wide top banner showing the Mythic Shop reset countdowns.
  *
@@ -64,11 +28,7 @@ const getServerNowMsSnapshot = () => null;
 export function MythicShopResetBanner() {
   // Renders the same value on server and first client paint to avoid
   // hydration mismatches, then ticks once a minute after subscribing.
-  const nowMs = useSyncExternalStore(
-    subscribeToMinuteTick,
-    getNowMsSnapshot,
-    getServerNowMsSnapshot
-  );
+  const nowMs = useNowMs();
 
   const now = nowMs === null ? new Date() : new Date(nowMs);
   const referenceMs = nowMs ?? now.getTime();

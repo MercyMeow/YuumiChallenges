@@ -25,7 +25,7 @@ This document provides comprehensive guidance for AI assistants working on this 
 | UI Components | Radix UI primitives + custom components |
 | Forms | React Hook Form + Zod validation |
 | State | React Context (Auth, Theme) + Convex queries |
-| Runtime | Node.js 18+ |
+| Runtime | Node.js 20.9+ |
 
 ## Directory Structure
 

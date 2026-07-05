@@ -7,17 +7,12 @@ import type { AutoBuild } from './auto-build';
 
 export const SKILL_ORDER = ['Q', 'E', 'W'] as const;
 
-// Data Dragon rune icon paths (stable across patches), keyed by rune name.
-// Base URL: https://ddragon.leagueoflegends.com/cdn/img/
-// Used as fallback when no auto build (which carries its own icon paths).
-export const RUNE_ICON_PATHS: Record<string, string> = {
-  'Summon Aery': 'perk-images/Styles/Sorcery/SummonAery/SummonAery.png',
-  'Manaflow Band': 'perk-images/Styles/Sorcery/ManaflowBand/ManaflowBand.png',
-  Transcendence: 'perk-images/Styles/Sorcery/Transcendence/Transcendence.png',
-  Scorch: 'perk-images/Styles/Sorcery/Scorch/Scorch.png',
-  'Font of Life': 'perk-images/Styles/Resolve/FontOfLife/FontOfLife.png',
-  Revitalize: 'perk-images/Styles/Resolve/Revitalize/Revitalize.png',
-};
+// Derives the Data Dragon icon path from a rune's tree + key. Riot's
+// convention (perk-images/Styles/{Tree}/{Key}/{Key}.png) holds for every
+// rune the static build uses; the auto build carries exact paths anyway.
+function runeIconPath(tree: string, key: string): string {
+  return `perk-images/Styles/${tree}/${key}/${key}.png`;
+}
 
 export interface EmbedRune {
   name: string;
@@ -33,12 +28,19 @@ export function getEmbedRunes(auto?: AutoBuild | null): EmbedRune[] {
       ...auto.runes.secondary,
     ].map((rune) => ({ name: rune.name, icon: rune.icon }));
   }
-  const names = [
-    BEST_RUNES.primary.keystone.name,
-    ...BEST_RUNES.primary.slots.map((slot) => slot.name),
-    ...BEST_RUNES.secondary.slots.map((slot) => slot.name),
-  ];
-  return names.map((name) => ({ name, icon: RUNE_ICON_PATHS[name] ?? null }));
+  const { primary, secondary } = BEST_RUNES;
+  return [
+    {
+      name: primary.keystone.name,
+      key: primary.keystone.key,
+      tree: primary.tree,
+    },
+    ...primary.slots.map((slot) => ({ ...slot, tree: primary.tree })),
+    ...secondary.slots.map((slot) => ({ ...slot, tree: secondary.tree })),
+  ].map((rune) => ({
+    name: rune.name,
+    icon: runeIconPath(rune.tree, rune.key),
+  }));
 }
 
 export function getCoreItems(

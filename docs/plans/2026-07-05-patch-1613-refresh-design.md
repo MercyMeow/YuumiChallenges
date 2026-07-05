@@ -43,9 +43,11 @@ Mode: autonomous (user absent); assumptions documented below.
 - Admin pages: hardcoded `bg-purple-600` etc. → design tokens (folded into UI pass).
 - **Deliberately out of scope** (risk > value without tests): renaming
   `match-history` duplicate components, splitting 1534-line
-  `DetailedStatsTab.tsx`, removing `ignoreBuildErrors` (Convex integration
-  pending per existing TODOs), touching untracked `verify_shards.ps1` (user's
+  `DetailedStatsTab.tsx`, touching untracked `verify_shards.ps1` (user's
   local script).
+- ~~Removing `ignoreBuildErrors` was also listed here originally~~ —
+  superseded later in the same PR: the Convex type errors were fixed and
+  `ignoreBuildErrors` WAS removed; TypeScript errors now fail the build.
 
 ### C. UI polish (frontend-design skill governs execution)
 

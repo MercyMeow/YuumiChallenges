@@ -27,11 +27,18 @@ import {
   type MythicItem,
 } from '@/lib/mythic-shop/rotation';
 
-const EMPTY_ITEM: MythicItem = {
+// Editor rows keep numeric fields as strings so inputs can be cleared while
+// typing; values are converted and zod-validated on save.
+type EditorItem = Omit<MythicItem, 'skinNum' | 'costME'> & {
+  skinNum: string;
+  costME: string;
+};
+
+const EMPTY_ITEM: EditorItem = {
   name: '',
   champion: '',
-  skinNum: 0,
-  costME: 0,
+  skinNum: '0',
+  costME: '',
   section: 'biweekly',
   kind: 'skin',
 };
@@ -41,7 +48,8 @@ export default function AdminMythicShopPage() {
   const { isAuthenticated, isLoading, sessionToken } = useAuth();
   const convexAvailable = useConvexAvailable();
 
-  const [items, setItems] = useState<MythicItem[]>([]);
+  const [items, setItems] = useState<EditorItem[]>([]);
+  const [loadingRotation, setLoadingRotation] = useState(true);
   const [patch, setPatch] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -54,11 +62,21 @@ export default function AdminMythicShopPage() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchMythicRotation().then((rotation) => {
-      if (cancelled || !rotation) return;
-      setItems(rotation.items);
-      setPatch(rotation.patch ?? '');
-    });
+    fetchMythicRotation()
+      .then((rotation) => {
+        if (cancelled || !rotation) return;
+        setItems(
+          rotation.items.map((item) => ({
+            ...item,
+            skinNum: String(item.skinNum),
+            costME: String(item.costME),
+          }))
+        );
+        setPatch(rotation.patch ?? '');
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingRotation(false);
+      });
     return () => {
       cancelled = true;
     };
@@ -73,7 +91,7 @@ export default function AdminMythicShopPage() {
   }
   if (!isAuthenticated) return null;
 
-  const updateItem = (index: number, patchData: Partial<MythicItem>) => {
+  const updateItem = (index: number, patchData: Partial<EditorItem>) => {
     setItems((prev) =>
       prev.map((item, i) => (i === index ? { ...item, ...patchData } : item))
     );
@@ -89,7 +107,13 @@ export default function AdminMythicShopPage() {
         version: 1,
         updatedAt: Date.now(),
         ...(patch ? { patch } : {}),
-        items: items.filter((item) => item.name.trim().length > 0),
+        items: items
+          .filter((item) => item.name.trim().length > 0)
+          .map((item) => ({
+            ...item,
+            skinNum: Number(item.skinNum || 0),
+            costME: Number(item.costME || 0),
+          })),
       });
       const client = new ConvexHttpClient(convexUrl);
       await client.mutation(api.guide.setMetadata, {
@@ -172,14 +196,24 @@ export default function AdminMythicShopPage() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
-            {items.length === 0 && (
+            {loadingRotation && (
+              <p className="flex items-center justify-center gap-2 text-sm text-hx-gold/60">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading current rotation…
+              </p>
+            )}
+            {!loadingRotation && items.length === 0 && (
               <p className="text-center text-sm text-hx-gold/60">
                 No items yet. Add the current rotation — champion is the Data
                 Dragon id (e.g. MissFortune), skin # is the splash number.
               </p>
             )}
             {items.map((item, index) => {
-              const art = skinLoadingUrl(item);
+              const art = skinLoadingUrl({
+                ...item,
+                skinNum: Number(item.skinNum || 0),
+                costME: 0,
+              });
               return (
                 <div
                   key={index}
@@ -215,7 +249,7 @@ export default function AdminMythicShopPage() {
                     type="number"
                     value={item.skinNum}
                     onChange={(e) =>
-                      updateItem(index, { skinNum: Number(e.target.value) })
+                      updateItem(index, { skinNum: e.target.value })
                     }
                     placeholder="Skin #"
                     className="w-24 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
@@ -224,7 +258,7 @@ export default function AdminMythicShopPage() {
                     type="number"
                     value={item.costME}
                     onChange={(e) =>
-                      updateItem(index, { costME: Number(e.target.value) })
+                      updateItem(index, { costME: e.target.value })
                     }
                     placeholder="ME"
                     className="w-24 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"

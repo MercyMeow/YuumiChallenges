@@ -346,7 +346,7 @@ export default function ScraperPage() {
                   value={selectedSource}
                   onValueChange={(v) => setSelectedSource(v as Source | 'all')}
                 >
-                  <SelectTrigger className="w-40 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
+                  <SelectTrigger className="w-40 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment">
                     <SelectValue placeholder="Source" />
                   </SelectTrigger>
                   <SelectContent>
@@ -362,7 +362,7 @@ export default function ScraperPage() {
                   value={selectedDataType}
                   onValueChange={setSelectedDataType}
                 >
-                  <SelectTrigger className="w-40 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
+                  <SelectTrigger className="w-40 rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment">
                     <SelectValue placeholder="Data Type" />
                   </SelectTrigger>
                   <SelectContent>

@@ -26,7 +26,8 @@ export default async function OpengraphImage() {
     getLiveDdragonVersion(),
     fetchAutoBuild(),
   ]);
-  const patch = toGuidePatch(version);
+  // Show the patch the rendered build belongs to (auto build wins).
+  const patch = auto?.patch ?? toGuidePatch(version);
   const runes = getEmbedRunes(auto);
   const coreItems = getCoreItems(auto);
   const skillPriority = getSkillPriority(auto);

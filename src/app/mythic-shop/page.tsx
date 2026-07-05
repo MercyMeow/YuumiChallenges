@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Clock, ExternalLink, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { getNextResetForSection } from '@/lib/mythic-shop/reset-schedule';
+import { formatCountdown, useNowMs } from '@/lib/mythic-shop/countdown';
 import type { MythicShopSectionId } from '@/lib/mythic-shop/types';
 import {
   fetchMythicRotation,
@@ -29,31 +30,6 @@ const SECTION_ACCENTS: Record<MythicShopSectionId, string> = {
   weekly: 'rounded-sm bg-hx-black/60 border-hx-magic/60 text-hx-magic-bright',
   daily: 'rounded-sm bg-hx-black/60 border-hx-magic/40 text-hx-magic',
 };
-
-function formatCountdown(targetIso: string | null, nowMs: number): string {
-  if (!targetIso) return 'Varies';
-  const diff = new Date(targetIso).getTime() - nowMs;
-  if (diff <= 0) return 'Resetting…';
-  const days = Math.floor(diff / 86_400_000);
-  const hours = Math.floor((diff % 86_400_000) / 3_600_000);
-  const minutes = Math.floor((diff % 3_600_000) / 60_000);
-  if (days > 0) return `${days}d ${hours}h`;
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
-}
-
-// Minute-tick store shared pattern (see MythicShopResetBanner).
-let nowMsSnapshot: number | null = null;
-function subscribeToMinuteTick(onStoreChange: () => void): () => void {
-  nowMsSnapshot = Date.now();
-  const interval = setInterval(() => {
-    nowMsSnapshot = Date.now();
-    onStoreChange();
-  }, 60_000);
-  return () => clearInterval(interval);
-}
-const getNowMsSnapshot = () => nowMsSnapshot;
-const getServerNowMsSnapshot = () => null;
 
 function ItemCard({ item }: { item: MythicItem }) {
   const art = skinLoadingUrl(item);
@@ -88,11 +64,7 @@ function ItemCard({ item }: { item: MythicItem }) {
 }
 
 export default function MythicShopPage() {
-  const nowMs = useSyncExternalStore(
-    subscribeToMinuteTick,
-    getNowMsSnapshot,
-    getServerNowMsSnapshot
-  );
+  const nowMs = useNowMs();
   const [rotation, setRotation] = useState<MythicRotation | null>(null);
   const [loaded, setLoaded] = useState(false);
 

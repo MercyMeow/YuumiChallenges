@@ -20,6 +20,7 @@ import {
   RUNE_STYLE_NAMES,
   type AutoBuild,
 } from '@/lib/builds/auto-build';
+import { toGuidePatch } from '@/lib/utils/live-patch';
 import {
   SUPPORT_CHAMPIONS,
   ADC_CHAMPIONS,
@@ -415,8 +416,7 @@ export default function YuumiGuide() {
       .then((res) => res.json())
       .then((data: { version?: string }) => {
         if (cancelled || typeof data.version !== 'string') return;
-        const [major, minor] = data.version.split('.');
-        if (major && minor) setLivePatch(`${major}.${minor}`);
+        setLivePatch(toGuidePatch(data.version));
       })
       .catch(() => {});
     return () => {
@@ -482,8 +482,10 @@ export default function YuumiGuide() {
   const currentBuild =
     displayBuilds.find((b) => b.id === selectedBuild) ?? displayBuilds[0];
   const currentPatch = livePatch ?? PATCH;
+  // Warn when the displayed build (auto-scraped when present, else static)
+  // trails the live patch.
   const buildDataOutdated =
-    autoBuild === null && livePatch !== null && livePatch !== PATCH;
+    livePatch !== null && livePatch !== (autoBuild?.patch ?? PATCH);
 
   const supportMatchup = isSupportMatchupKey(selectedSupport)
     ? SUPPORT_MATCHUPS[selectedSupport]
@@ -612,9 +614,9 @@ export default function YuumiGuide() {
               <Badge
                 variant="outline"
                 className="rounded-sm border-yellow-400/40 bg-hx-black/60 text-yellow-300"
-                title={`Builds were last verified on patch ${PATCH}; the meta rarely shifts for Yuumi between patches.`}
+                title={`Builds were last verified on patch ${autoBuild?.patch ?? PATCH}; the meta rarely shifts for Yuumi between patches.`}
               >
-                Builds verified on {PATCH}
+                Builds verified on {autoBuild?.patch ?? PATCH}
               </Badge>
             )}
             <Badge

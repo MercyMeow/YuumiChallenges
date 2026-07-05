@@ -65,18 +65,19 @@ export default yuumiBuild;
 export const BEST_RUNES = {
   primary: {
     tree: 'Sorcery',
-    keystone: { id: 8214, name: 'Summon Aery' },
+    // `key` is the Data Dragon rune key; icon paths derive from tree + key.
+    keystone: { id: 8214, name: 'Summon Aery', key: 'SummonAery' },
     slots: [
-      { id: 8226, name: 'Manaflow Band' },
-      { id: 8210, name: 'Transcendence' },
-      { id: 8237, name: 'Scorch' },
+      { id: 8226, name: 'Manaflow Band', key: 'ManaflowBand' },
+      { id: 8210, name: 'Transcendence', key: 'Transcendence' },
+      { id: 8237, name: 'Scorch', key: 'Scorch' },
     ],
   },
   secondary: {
     tree: 'Resolve',
     slots: [
-      { id: 8463, name: 'Font of Life' },
-      { id: 8453, name: 'Revitalize' },
+      { id: 8463, name: 'Font of Life', key: 'FontOfLife' },
+      { id: 8453, name: 'Revitalize', key: 'Revitalize' },
     ],
   },
   shards: [

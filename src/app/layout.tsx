@@ -39,7 +39,9 @@ export async function generateMetadata(): Promise<Metadata> {
     getLiveDdragonVersion(),
     fetchAutoBuild(),
   ]);
-  const patch = toGuidePatch(version);
+  // Label the share content with the patch the described build belongs to
+  // (auto-scraped build's patch when present), not the newest live patch.
+  const patch = autoBuild?.patch ?? toGuidePatch(version);
   const shareTitle = `Yuumi Guide · Patch ${patch}`;
   const shareDescription = buildShareDescription(patch, autoBuild);
 

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { FALLBACK_DDRAGON_VERSION } from '@/lib/utils/live-patch';
 
 // Server-side cache for Data Dragon version
 let cachedVersion: string | null = null;
@@ -84,7 +85,7 @@ export async function GET() {
     }
 
     // Fallback to known working version
-    const fallbackVersion = '16.13.1';
+    const fallbackVersion = FALLBACK_DDRAGON_VERSION;
     return NextResponse.json(
       {
         version: fallbackVersion,
