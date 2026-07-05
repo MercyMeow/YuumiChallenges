@@ -1,13 +1,13 @@
 import { BotLaneSynergy } from '../types';
 
 export const Jhin: BotLaneSynergy = {
-  synergy: 'Very Good',
+  synergy: 'Good',
   playstyle: 'Pick and burst with setup CC and slows',
   tips: [
-    'Layer your R slows after his W root lands to convert picks into guaranteed kills.',
-    'Pre-cast E (Zoomies) before his fourth shot or ult channel to maintain spacing while he fires.',
-    'Q from brush to chip supports so Jhin can fish for W roots on slowed targets.',
-    'Detach only to ward when reload is finished; keep him safe during reload windows.',
+    'Layer R (Final Chapter) slows after Deadly Flourish root lands to convert picks into kills.',
+    'Pre-cast E (Zoomies) before his fourth shot or Curtain Call channel to maintain spacing.',
+    'Curve Q (Prowling Projectile) from brush to chip supports so Jhin can fish for W roots.',
+    'Stay attached during reload windows; detach only to ward when four shots are available.',
   ],
   buildAdjustments: [
     'Ardent solid but not mandatory; Redemption synergizes with pick comps for longer sieges.',

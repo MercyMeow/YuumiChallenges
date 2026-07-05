@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, Settings, X } from 'lucide-react';
 import { PawEmblem } from './PawEmblem';
+import { isActiveLink } from './nav';
 import { useLivePatch } from '@/lib/hooks/use-live-patch';
 import { cn } from '@/lib/utils';
 
@@ -16,12 +17,6 @@ const NAV_LINKS: ReadonlyArray<{ label: string; href: string }> = [
   { label: 'Mythic Shop', href: '/mythic-shop' },
   { label: 'Gallery', href: '/gallery' },
 ];
-
-function isActiveLink(pathname: string, href: string): boolean {
-  if (href.includes('#')) return false;
-  if (href === '/') return pathname === '/';
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 
 /** Old-client top bar: wordmark, gold nav links, live patch crystal. */
 export function TopNav() {

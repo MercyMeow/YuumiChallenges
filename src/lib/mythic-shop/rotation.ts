@@ -5,8 +5,7 @@
 // anything invalid yields null and the UI shows the countdown-only state.
 
 import { z } from 'zod';
-import { ConvexHttpClient } from 'convex/browser';
-import { api } from '../../../convex/_generated/api';
+import { fetchMetadataValue } from '../convex/http';
 import type { MythicShopSectionId } from './types';
 
 export const MYTHIC_SHOP_METADATA_KEY = 'mythicShop';
@@ -64,16 +63,7 @@ export function skinSplashUrl(item: MythicItem): string | null {
 
 /** Works on server and client; null when Convex is absent or data invalid. */
 export async function fetchMythicRotation(): Promise<MythicRotation | null> {
-  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-  if (!convexUrl) return null;
-  try {
-    const client = new ConvexHttpClient(convexUrl);
-    const metadata: Record<string, string> = await client.query(
-      api.guide.getMetadata,
-      {}
-    );
-    return parseMythicRotation(metadata[MYTHIC_SHOP_METADATA_KEY]);
-  } catch {
-    return null;
-  }
+  return parseMythicRotation(
+    await fetchMetadataValue(MYTHIC_SHOP_METADATA_KEY)
+  );
 }

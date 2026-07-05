@@ -1,17 +1,17 @@
 import { SupportMatchup } from '../types';
 
 export const Swain: SupportMatchup = {
-  difficulty: 'Medium',
+  difficulty: 'Easy',
   tips: [
-    "Never allow him to pull you or your host without Mikael's available - his E pull sets up lethal follow-up.",
-    'Do not R into his Demonic Ascension unless your team can kite it out; instead, use your R to peel and disengage.',
-    'Ignite has high value vs his drain; apply it early in all-ins.',
-    'Punish his immobility with empowered Q angles from brush. Harass when E is down (long cooldown).',
-    'Detach only to ward when he shows on wave; respect fog - his pull through minions is unpredictable.',
+    'Punish his immobility with empowered Q from brush. Harass when E is down — long early cooldown.',
+    'Stand off-angle from your ADC so his E pull cannot snag both of you through minions.',
+    'Do not R into his Demonic Ascension — peel with slow waves and kite until it expires.',
+    'Ignite has high value vs his drain; apply it early in all-ins to cut his sustain.',
+    'Curve empowered Q around minions to chip him safely; his pull is his only real threat in lane.',
   ],
   recommendedRunes:
-    'Aery + Scorch for lane. Resolve secondary with Font of Life + Revitalize; Bone Plating if enemy duo is bursty.',
+    'Aery + Scorch for lane. Resolve secondary Font of Life + Revitalize; Bone Plating if duo is bursty.',
   recommendedItems:
-    'Moonstone. Mikaels has high value to break E pull; Redemption later.',
+    "Dream Maker into Moonstone. Imperial Mandate amplifies Q slow trades. Mikael's only if he chains E with jungle CC.",
   earlyItems: ['Forbidden Idol', 'Control Ward; avoid his brush control'],
 };

@@ -10,6 +10,11 @@
 
 import { internalMutation } from './_generated/server';
 import { DEFAULT_BUILDS } from '../src/lib/builds/default-builds';
+import { applyAutoBuild } from '../src/lib/builds/apply-auto-build';
+import {
+  AUTO_BUILD_METADATA_KEY,
+  parseAutoBuild,
+} from '../src/lib/builds/auto-build-shared';
 import { BEST_ITEMS } from '../src/lib/builds/yuumi';
 import { SUPPORT_MATCHUPS, ADC_MATCHUPS } from '../src/lib/matchups/index';
 
@@ -51,31 +56,33 @@ const GUIDE_SECTIONS = [
     sectionKey: 'playstyle',
     title: 'Playstyle',
     content:
-      'Attach to the ally who carries fights, weave detached windows for ' +
-      'empowered autos and passive shields, and hold Zoomies for skirmish ' +
-      'tempo. Your Q slow decides trades in lane; your positioning decides ' +
-      'whether you cast it safely. Attach is a tool, not a home — brave cats ' +
-      'earn Best Friend stacks.',
+      'Ride your Best Friend — the ally with the strongest bond empowers Q, W, ' +
+      'and R. Curve Prowling Projectile for empowered slows in lane; buffer ' +
+      'Zoomies shields before trades, not after damage lands. Detach only ' +
+      'when W is ready and enemy CC is down. E shields and restores mana; ' +
+      'healing comes from passive procs, W on-hit heal, and Final Chapter waves.',
     order: 2,
   },
   {
     sectionKey: 'laning',
     title: 'Laning Phase',
     content:
-      'Start World Atlas and poke with empowered autos while the wave is ' +
-      'neutral. Track enemy engage cooldowns before detaching. Complete the ' +
-      'support quest before recalls when possible, and buy control wards — a ' +
-      'dead cat heals nobody.',
+      'Start World Atlas and max Q first for poke. Curve Q behind minions to ' +
+      'force recalls — empowered hits after ~1.35s travel deal bonus damage ' +
+      'and a stronger slow. Proc passive with autos or Q, then re-attach to ' +
+      'share the heal. Never detach into hook or grab range; immobilize while ' +
+      'detached locks W. Complete the support quest and buy control wards.',
     order: 3,
   },
   {
     sectionKey: 'teamfighting',
     title: 'Teamfighting',
     content:
-      'Final Chapter wins fights when multiple allies collect its heals and ' +
-      'the roots land through chained waves. Channel from the backline, swap ' +
-      'hosts to reset threat, and save E burst-heal for the moment your host ' +
-      'gets focused, not after.',
+      'Channel Final Chapter where multiple allies collect wave heals — excess ' +
+      'healing becomes shields. On Best Friend, steer R with your mouse. You ' +
+      'can cast Zoomies mid-ult for emergency shields. Swap hosts with W to ' +
+      'follow divers, but casting W during R locks wave direction. Q poke ' +
+      'between cooldowns; save E for the moment your carry gets focused.',
     order: 4,
   },
   {
@@ -95,6 +102,19 @@ export const seedAll = internalMutation({
   handler: async (ctx) => {
     const now = Date.now();
 
+    // Overlay the latest auto-scraped build (persisted in guideMetadata, which
+    // this seed never wipes) onto the recommended build, so re-seeding keeps the
+    // live scraped runes/core/boots/skill order instead of regressing to the
+    // curated static data. Falls back to curated when no auto build exists.
+    const autoMeta = await ctx.db
+      .query('guideMetadata')
+      .withIndex('by_key', (q) => q.eq('key', AUTO_BUILD_METADATA_KEY))
+      .first();
+    const builds = applyAutoBuild(
+      DEFAULT_BUILDS,
+      parseAutoBuild(autoMeta?.value)
+    );
+
     // ---- wipe seeded tables (leave users/sessions/scrape data/metadata) ----
     const tables = [
       'guideBuilds',
@@ -113,7 +133,7 @@ export const seedAll = internalMutation({
 
     // ---- unified builds ----
     let priority = 0;
-    for (const build of DEFAULT_BUILDS) {
+    for (const build of builds) {
       await ctx.db.insert('guideBuilds', {
         name: build.name,
         description: build.description,
@@ -172,7 +192,7 @@ export const seedAll = internalMutation({
 
     // ---- rune pages + skill orders (mirroring the unified builds) ----
     let runePriority = 0;
-    for (const build of DEFAULT_BUILDS) {
+    for (const build of builds) {
       const [p1 = '', p2 = '', p3 = ''] = build.runes.primary;
       const [s1 = '', s2 = ''] = build.runes.secondary;
       const [sh1 = '', sh2 = '', sh3 = ''] = build.runes.shards;

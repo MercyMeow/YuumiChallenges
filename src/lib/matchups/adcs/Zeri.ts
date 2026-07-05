@@ -1,16 +1,16 @@
 import { BotLaneSynergy } from '../types';
 
 export const Zeri: BotLaneSynergy = {
-  synergy: 'Very Good',
-  playstyle: 'Extended kiting fights; enchanter amplification',
+  synergy: 'Excellent',
+  playstyle: 'Extended kiting with Overcharge resets and enchanter scaling',
   tips: [
-    'Attach almost permanently mid-late; heal/shield uptime lets her kite and stack Overcharge.',
-    'Pre-cast E (Zoomies) before she ults to maximize uptime on movement speed. Save a charge for re-engage.',
-    'Use R to peel divers off her when she kites back; multi-wave slows give her space to DPS.',
-    'Q poke supports to force camps/recalls so she can scale to 2 items safely.',
+    'Attach almost permanently mid-late; W on-hit healing and passive shield uptime let her kite while stacking Overcharge.',
+    'Pre-cast E (Zoomies) before she ults; movement speed and attack speed compound with Lightning Crash.',
+    'Land Q on chasers to grant Best Friend on-hit magic damage that procs through her chained auto on-hit effects.',
+    'Steer R (Final Chapter) down kiting paths to heal Zeri per wave while slowing divers she outruns.',
   ],
   buildAdjustments: [
-    "Ardent is premium; Mikael's early vs hard CC comps that can catch her.",
-    "Shurelya's later to help her choose fights on her timings.",
+    'Ardent is premium second; Zeri is one of the highest-value Best Friend anchors in 16.13.',
+    "Mikael's early vs hard CC comps that can catch her during Overcharge downtime.",
   ],
 };

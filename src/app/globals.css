@@ -836,58 +836,10 @@ html::after {
   border-radius: var(--radius-lg);
 }
 
-@utility gradient-text {
-  font-family: var(--font-display);
-  background: linear-gradient(
-    180deg,
-    oklch(var(--hx-gold-bright)) 0%,
-    oklch(var(--hx-gold)) 55%,
-    oklch(var(--hx-gold-dark)) 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
 @utility glow {
   box-shadow:
     0 0 20px oklch(var(--hx-gold) / 0.35),
     0 0 40px oklch(var(--hx-gold) / 0.2);
-}
-
-@utility glow-hover {
-  @apply transition-all duration-300;
-
-  &:hover {
-    box-shadow:
-      0 0 25px oklch(var(--hx-gold) / 0.4),
-      0 0 50px oklch(var(--hx-gold) / 0.25);
-    transform: translateY(-2px);
-  }
-}
-
-@utility btn-modern {
-  @apply relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5;
-  background: oklch(var(--hx-black) / 0.6);
-  backdrop-filter: blur(8px);
-  border: 1px solid oklch(var(--hx-gold-dark) / 0.6);
-
-  &::before {
-    content: '';
-    @apply absolute inset-0 bg-linear-to-r from-transparent to-transparent;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      oklch(var(--hx-gold) / 0.15),
-      transparent
-    );
-    transform: translateX(-100%);
-    transition: transform 0.5s;
-  }
-
-  &:hover::before {
-    transform: translateX(100%);
-  }
 }
 
 @utility card-hover {
@@ -904,77 +856,6 @@ html::after {
       0 20px 25px -5px oklch(0 0 0 / 0.5),
       0 0 18px oklch(var(--hx-gold) / 0.2);
   }
-}
-
-@utility neon {
-  text-shadow:
-    0 0 10px oklch(var(--hx-gold) / 0.8),
-    0 0 20px oklch(var(--hx-gold) / 0.5),
-    0 0 40px oklch(var(--hx-gold) / 0.3);
-}
-
-@utility gradient-border {
-  @apply relative;
-  background: oklch(var(--hx-black) / 0.6);
-  backdrop-filter: blur(12px);
-
-  &::before {
-    content: '';
-    @apply absolute inset-0 rounded-lg p-px;
-    background: linear-gradient(
-      45deg,
-      oklch(var(--hx-gold-dark)),
-      oklch(var(--hx-gold)),
-      oklch(var(--hx-magic)),
-      oklch(var(--hx-gold-dark))
-    );
-    -webkit-mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-  }
-}
-
-/* Yuumi color helpers (kept for existing components) */
-@utility bg-yuumi-purple-40 {
-  background-color: oklch(var(--yuumi-purple) / 0.4);
-}
-
-@utility bg-yuumi-blue-40 {
-  background-color: oklch(var(--yuumi-blue) / 0.4);
-}
-
-@utility bg-yuumi-teal-40 {
-  background-color: oklch(var(--yuumi-teal) / 0.4);
-}
-
-@utility bg-yuumi-pink-40 {
-  background-color: oklch(var(--yuumi-pink) / 0.4);
-}
-
-@utility bg-primary-40 {
-  background-color: oklch(var(--primary) / 0.4);
-}
-
-@utility shadow-yuumi-purple {
-  box-shadow: 0 10px 40px -10px oklch(var(--yuumi-purple) / 0.4);
-}
-
-@utility shadow-yuumi-blue {
-  box-shadow: 0 10px 40px -10px oklch(var(--yuumi-blue) / 0.4);
-}
-
-@utility shadow-yuumi-teal {
-  box-shadow: 0 10px 40px -10px oklch(var(--yuumi-teal) / 0.4);
-}
-
-@utility shadow-yuumi-pink {
-  box-shadow: 0 10px 40px -10px oklch(var(--yuumi-pink) / 0.4);
-}
-
-@utility shadow-primary {
-  box-shadow: 0 10px 40px -10px oklch(var(--primary) / 0.4);
 }
 
 @utility text-landing-text-primary {
@@ -1127,66 +1008,11 @@ html::after {
   border-color: oklch(var(--accessible-red) / 0.3);
 }
 
-@utility text-high-contrast-blue {
-  color: oklch(var(--high-contrast-blue));
-}
-
-@utility text-high-contrast-green {
-  color: oklch(var(--high-contrast-green));
-}
-
-@utility text-high-contrast-red {
-  color: oklch(var(--high-contrast-red));
-}
-
-@utility text-high-contrast-yellow {
-  color: oklch(var(--high-contrast-yellow));
-}
-
-@utility focus-visible-enhanced {
-  @apply focus-visible:ring-2 focus-visible:ring-accessible-blue focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-hidden;
-}
-
 @utility focus-card {
   @apply transition-all duration-200 focus-visible:ring-2 focus-visible:ring-accessible-purple focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-hidden;
 }
 
-@utility focus-button {
-  @apply focus-visible:ring-2 focus-visible:ring-accessible-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-hidden;
-}
-
-@utility skip-nav {
-  @apply absolute top-4 left-4 z-50 rounded-md bg-accessible-blue px-4 py-2 font-medium text-black;
-  transform: translateY(-100px);
-  transition: transform 0.3s;
-
-  &:focus {
-    transform: translateY(0);
-  }
-}
-
 /* ============ Animations ============ */
-
-@utility animate-float {
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-  animation: float 4s ease-in-out infinite;
-}
-
-@utility animate-pulse-glow {
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
-@utility animate-shimmer {
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-  animation: shimmer 3s linear infinite;
-}
 
 @utility animate-gradient {
   @media (prefers-reduced-motion: reduce) {
@@ -1194,34 +1020,6 @@ html::after {
   }
   background-size: 200% 200%;
   animation: gradient-shift 6s ease infinite;
-}
-
-@utility animate-subtle-pulse {
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-  animation: subtle-pulse 4s ease-in-out infinite;
-}
-
-@utility animate-subtle-float {
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-  animation: subtle-float 6s ease-in-out infinite;
-}
-
-@utility animate-twinkle {
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-  animation: twinkle 5s ease-in-out infinite;
-}
-
-@utility animate-sparkle {
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-  animation: sparkle 8s ease-in-out infinite;
 }
 
 /* Pulsing gem (patch crystal, live badges) */
@@ -1240,106 +1038,22 @@ html::after {
   animation: wisp-drift 9s ease-in-out infinite;
 }
 
-@utility transition-all {
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
+/* Respect prefers-reduced-motion globally. A same-named `@utility
+   transition-*` would SHADOW Tailwind's built-ins and strip their
+   property/duration/timing, breaking every `transition-colors` etc. One
+   global reset does the job without touching the utility layer. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-}
-
-@utility transition-colors {
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
-}
-
-@utility transition-transform {
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
-}
-
-@utility delay-100 {
-  animation-delay: 100ms;
-}
-
-@utility delay-200 {
-  animation-delay: 200ms;
-}
-
-@utility delay-300 {
-  animation-delay: 300ms;
-}
-
-@utility delay-500 {
-  animation-delay: 500ms;
-}
-
-@utility delay-700 {
-  animation-delay: 700ms;
-}
-
-@utility delay-1000 {
-  animation-delay: 1000ms;
-}
-
-@utility delay-1200 {
-  animation-delay: 1200ms;
-}
-
-@utility delay-1500 {
-  animation-delay: 1500ms;
-}
-
-@utility delay-2000 {
-  animation-delay: 2000ms;
-}
-
-@utility delay-2500 {
-  animation-delay: 2500ms;
-}
-
-@utility delay-3000 {
-  animation-delay: 3000ms;
 }
 
 @layer utilities {
-  @keyframes float {
-    0%,
-    100% {
-      transform: translateY(0) translateX(0);
-    }
-    25% {
-      transform: translateY(-8px) translateX(2px);
-    }
-    50% {
-      transform: translateY(-12px) translateX(-2px);
-    }
-    75% {
-      transform: translateY(-6px) translateX(1px);
-    }
-  }
-
-  @keyframes pulse-glow {
-    0%,
-    100% {
-      opacity: 0.4;
-      filter: blur(0px);
-    }
-    50% {
-      opacity: 0.8;
-      filter: blur(2px);
-    }
-  }
-
-  @keyframes shimmer {
-    0% {
-      transform: translateX(-100%);
-    }
-    100% {
-      transform: translateX(100%);
-    }
-  }
-
   @keyframes gradient-shift {
     0% {
       background-position: 0% 50%;
@@ -1349,59 +1063,6 @@ html::after {
     }
     100% {
       background-position: 0% 50%;
-    }
-  }
-
-  @keyframes subtle-pulse {
-    0%,
-    100% {
-      opacity: 0.3;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.6;
-      transform: scale(1.1);
-    }
-  }
-
-  @keyframes subtle-float {
-    0%,
-    100% {
-      transform: translateY(0) translateX(0) rotate(0deg);
-    }
-    33% {
-      transform: translateY(-8px) translateX(3px) rotate(1deg);
-    }
-    66% {
-      transform: translateY(3px) translateX(-3px) rotate(-1deg);
-    }
-  }
-
-  @keyframes twinkle {
-    0%,
-    100% {
-      opacity: 0;
-      transform: scale(0.5);
-    }
-    50% {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes sparkle {
-    0%,
-    100% {
-      opacity: 0;
-      transform: scale(0) rotate(0deg);
-    }
-    10% {
-      opacity: 1;
-      transform: scale(1) rotate(180deg);
-    }
-    90% {
-      opacity: 1;
-      transform: scale(1) rotate(180deg);
     }
   }
 

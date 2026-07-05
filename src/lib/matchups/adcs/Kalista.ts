@@ -1,15 +1,15 @@
 import { BotLaneSynergy } from '../types';
 
 export const Kalista: BotLaneSynergy = {
-  synergy: 'Very Good',
-  playstyle: 'Aggressive lane with rend setup; kite and all-in',
+  synergy: 'Average',
+  playstyle: 'Aggressive lane with Rend setup; hop-heavy kiting',
   tips: [
-    'Attach for early level 2 all-ins; Exhaust the enemy ADC/support to win skirmish.',
-    'Pre-cast E (Zoomies) as she hops forward to keep spacing while stacking spears.',
-    'Use R to peel divers with repeated slows after she ults you in or to secure resets in extended fights.',
-    'Q from brush to force low HP trades so Kalista can rip safely.',
+    'Attach for early level 2 all-ins; Exhaust enemy carry—timing must match her hop trades.',
+    'Pre-cast E (Zoomies) as she hops forward; MS and shield help spacing while stacking spears.',
+    'Use R (Final Chapter) to peel divers after Fate’s Call or to secure resets in extended fights.',
+    'Curve Q (Prowling Projectile) from brush to force low-HP trades so Kalista can Rend safely.',
   ],
   buildAdjustments: [
-    'Ardent high value with on-hit builds; Mikael’s vs hard CC is clutch to keep her hopping.',
+    'Ardent high value with on-hit builds; Mikael’s vs hard CC to keep her hopping.',
   ],
 };

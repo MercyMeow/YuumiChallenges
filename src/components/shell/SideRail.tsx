@@ -12,6 +12,7 @@ import {
   Users,
 } from 'lucide-react';
 import { PawEmblem } from './PawEmblem';
+import { isActiveLink } from './nav';
 import { useLivePatch } from '@/lib/hooks/use-live-patch';
 
 const GUIDE_LINKS = [
@@ -26,12 +27,6 @@ const RESOURCE_LINKS = [
   { label: 'Rule Gallery', href: '/gallery', icon: ImageIcon },
   { label: 'Guide Admin', href: '/admin', icon: BookOpen },
 ] as const;
-
-function isActiveLink(pathname: string, href: string): boolean {
-  if (href.includes('#')) return false;
-  if (href === '/') return pathname === '/';
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 
 /** Left rail: Yuumi medallion, engraved nav groups, live patch crystal. */
 export function SideRail() {

@@ -2,14 +2,14 @@ import { BotLaneSynergy } from '../types';
 
 export const Aphelios: BotLaneSynergy = {
   synergy: 'Very Good',
-  playstyle: 'Front-to-back DPS with weapon spike timings',
+  playstyle: 'Front-to-back DPS; time fights around weapon cycles',
   tips: [
-    'Track gun cycles - accelerate fights on Calibrum/Severum/Infernum spikes; play safer on Gravitum/Infernum farm.',
-    'Pre-cast E (Zoomies) for weapon swap all-ins; he lacks mobility and relies on spacing.',
-    'Use R to peel divers off him with repeated slows; Infernum R plus your slow waves shred clumped fights.',
-    'Q from brush to chip supports so Aphelios can step up for trades safely.',
+    'Track gun cycles—push on Calibrum/Severum/Infernum spikes; play safer during Gravitum farm windows.',
+    'Pre-cast E (Zoomies) before weapon-swap all-ins; shield and MS cover his low mobility during trades.',
+    'Use R (Final Chapter) to peel divers with repeated slows; Infernum R plus your waves shred clumped fights.',
+    'Curve Q (Prowling Projectile) from brush to chip supports so Aphelios can step up for Calibrum marks safely.',
   ],
   buildAdjustments: [
-    'Ardent is strong; Mikael’s vs hard CC. Redemption later for 5v5s.',
+    'Ardent second is strong; Mikael’s vs hard CC. Redemption later for extended 5v5s.',
   ],
 };

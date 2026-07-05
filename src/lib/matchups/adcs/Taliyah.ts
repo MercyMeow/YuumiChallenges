@@ -2,12 +2,15 @@ import { BotLaneSynergy } from '../types';
 
 export const Taliyah: BotLaneSynergy = {
   synergy: 'Good',
-  playstyle: 'Poke/siege with strong zone control and wall picks',
+  playstyle: 'Roam-heavy shove with Weaver Wall picks',
   tips: [
-    'Q from brush to force potions; her shove power loves prio.',
-    'Use R to layer slows on enemies knocked by W into E; guaranteed damage and picks.',
-    'Pre-cast E (Zoomies) when she roams with wall; help her escape collapses post-play.',
-    'Detach to ward only when enemies show; protect her immobility.',
+    'Pre-cast E (Zoomies) before she walls or roams so she has shield, movement speed, and mana for the play.',
+    'Land Q on enemies knocked into Unraveled Earth; Best Friend on-hit magic damage spikes if she follows with autos.',
+    'After wall picks, channel R (Final Chapter) through allies to heal per wave and slow enemies trying to escape.',
+    'Detach only to ward when enemies show on map; protect her immobility between worked-ground cooldowns.',
   ],
-  buildAdjustments: ["Staff over Ardent; Shurelya's to reposition around wall"],
+  buildAdjustments: [
+    "Staff over Ardent; Shurelya's helps reposition around wall angles.",
+    'Redemption when Taliyah roams and the team fights around objectives.',
+  ],
 };

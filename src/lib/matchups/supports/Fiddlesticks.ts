@@ -1,17 +1,17 @@
 import { SupportMatchup } from '../types';
 
 export const Fiddlesticks: SupportMatchup = {
-  difficulty: 'Hard',
+  difficulty: 'Medium',
   tips: [
-    'Ward deep flanks and lane brushes - his R over walls decides fights. Swap to Oracle post-6 and sweep common angles.',
-    'Mikael’s cleanses fear; use it quickly on your carry if they are targeted in the crowstorm.',
-    'Do not commit R into his; peel back and layer slow waves on divers after his initial burst.',
-    'Harass when his drain (W) is on cooldown; empowered Q poke makes him retreat or waste W defensively.',
-    'Detach only to ward when he shows on wave; otherwise he can fear you from fog enabling a pick.',
+    'Ward deep flanks and sweep common Crowstorm angles post-6 — his R over walls decides fights before you can react.',
+    'Mikaels cleanses fear; use it immediately on your carry if they are targeted in the ultimate channel.',
+    'Harass when Drain (W) is on cooldown — empowered Q poke forces him to waste W defensively or retreat.',
+    'Do not commit R into his channel; peel back and layer slow waves on divers after his initial burst ends.',
+    'Detach only to ward when he shows on wave — fear from fog punishes careless passive procs on detached Yuumi.',
   ],
   recommendedRunes:
-    'Aery default. Resolve secondary with Bone Plating + Revitalize or Font of Life if fights are longer.',
+    'Aery default. Resolve Bone Plating + Revitalize vs all-in; Font of Life if fights run longer.',
   recommendedItems:
-    "Moonstone is often strong in extended fights. Early Mikael's is high value; Redemption mitigates AoE. Consider Stopwatch for clutch R peel plays.",
-  earlyItems: ['Control Wards for flanks', 'Forbidden Idol for sustain vs poke'],
+    'Moonstone into early Mikaels — fear is fight-deciding. Redemption mitigates AoE burst; Stopwatch for clutch R peel.',
+  earlyItems: ['Control Wards for flank angles', 'Forbidden Idol vs poke attrition'],
 };

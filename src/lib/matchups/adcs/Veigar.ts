@@ -2,14 +2,15 @@ import { BotLaneSynergy } from '../types';
 
 export const Veigar: BotLaneSynergy = {
   synergy: 'Good',
-  playstyle: 'Scaling mage; cage picks into burst',
+  playstyle: 'Scaling cage picks into burst stacks',
   tips: [
-    'Q from brush to force supports low so he can farm stacks safely.',
-    'Use R to layer slows inside Event Horizon, guaranteeing W + R damage.',
-    'Pre-cast E (Zoomies) when he steps forward to cage; keep spacing to avoid ganks.',
-    'Detach only to ward when enemies show on wave; protect his immobility.',
+    'Detach to Q poke supports so Veigar can farm Passive stacks safely behind the wave.',
+    'Pre-cast E (Zoomies) shield when he steps to Event Horizon; spacing buys time to land Dark Matter and Primordial Burst.',
+    'After cage stun, steer R (Final Chapter) through Veigar for per-wave heals while enemies are trapped inside.',
+    'W on-hit healing is low value until he weaves autos—prioritize E shield and R wave heals over expecting auto sustain.',
   ],
   buildAdjustments: [
-    'Staff preferred; Redemption strong in grouped fights. Mikael’s vs CC that denies cage setup.',
+    'Staff preferred over Ardent; Redemption strong in grouped mid-game fights.',
+    "Mikael's vs CC that denies cage setup before his spike.",
   ],
 };

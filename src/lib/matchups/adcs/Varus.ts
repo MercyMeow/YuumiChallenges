@@ -2,14 +2,15 @@ import { BotLaneSynergy } from '../types';
 
 export const Varus: BotLaneSynergy = {
   synergy: 'Good',
-  playstyle: 'Poke/siege or on-hit DPS depending on build',
+  playstyle: 'Poke siege or on-hit DPS depending on build path',
   tips: [
-    'Coordinate all-ins around his R - your slow waves extend the control window for kills.',
-    'If lethality, play for siege: Q from brush to force heals, protect him from engages with R peel.',
-    'If on-hit, prioritize Ardent and kite fights front-to-back with Exhaust for divers.',
-    'Detach only to ward when he has R up and enemies show; otherwise protect his immobility.',
+    'On-hit builds: stay Best Friend permanently—W on-hit healing and Q on-hit magic damage define lane trades.',
+    'Lethality poke: detach for Q slow pokes; pre-cast E (Zoomies) shield when he steps up under engage threat.',
+    'After Chain of Corruption lands, steer R (Final Chapter) through allies for per-wave heals during the lockdown.',
+    'Exhaust divers on immobile Varus; R healing only matters if he survives the initial leap.',
   ],
   buildAdjustments: [
-    "Ardent for on-hit; Staff if AP-heavy team. Mikael's vs chain-CC comps.",
+    'Ardent for on-hit; Staff if the team is AP-heavy or he runs ability-focused builds.',
+    "Mikael's vs chain-CC comps that punish his lack of mobility.",
   ],
 };

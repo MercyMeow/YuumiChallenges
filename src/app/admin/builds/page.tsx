@@ -4,19 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -24,7 +14,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ItemSlot } from '@/components/match-history/item-slots';
 import {
   Loader2,
   ArrowLeft,
@@ -37,14 +26,18 @@ import {
   Package,
   Target,
   Star,
-  GripVertical,
 } from 'lucide-react';
-
-interface BuildItem {
-  id: number;
-  name: string;
-  reason: string;
-}
+import {
+  initialFormData,
+  type BuildFormData,
+  type BuildItem,
+} from './build-form';
+import {
+  BuildGeneralTab,
+  BuildItemsTab,
+  BuildRunesTab,
+  BuildSkillsTab,
+} from './build-form-tabs';
 
 interface Build {
   id: string;
@@ -77,134 +70,12 @@ interface Build {
   };
 }
 
-interface BuildFormData {
-  id?: string;
-  name: string;
-  description: string;
-  icon: string;
-  color: string;
-  borderColor: string;
-  isRecommended: boolean;
-  isActive: boolean;
-  priority: number;
-  runes: {
-    name: string;
-    primaryTree: string;
-    keystone: string;
-    primary: string[];
-    secondaryTree: string;
-    secondary: string[];
-    shards: string[];
-  };
-  items: {
-    starter: BuildItem[];
-    core: BuildItem[];
-    situational: BuildItem[];
-  };
-  skillOrder: {
-    priority: string;
-    levels: string[];
-    notes: string;
-  };
-}
-
-const DEFAULT_SKILL_LEVELS = [
-  'E',
-  'W',
-  'Q',
-  'E',
-  'E',
-  'R',
-  'E',
-  'W',
-  'E',
-  'W',
-  'R',
-  'W',
-  'W',
-  'Q',
-  'Q',
-  'R',
-  'Q',
-  'Q',
-];
-
-const RUNE_TREES = [
-  'Sorcery',
-  'Resolve',
-  'Domination',
-  'Precision',
-  'Inspiration',
-];
-
-const KEYSTONES: Record<string, string[]> = {
-  Sorcery: ['SummonAery', 'ArcaneComet', 'PhaseRush'],
-  Resolve: ['GraspOfTheUndying', 'Aftershock', 'Guardian'],
-  Domination: ['Electrocute', 'Predator', 'DarkHarvest', 'HailOfBlades'],
-  Precision: ['PressTheAttack', 'LethalTempo', 'FleetFootwork', 'Conqueror'],
-  Inspiration: ['GlacialAugment', 'UnsealedSpellbook', 'FirstStrike'],
-};
-
-const ICONS = [
-  'wand',
-  'shield',
-  'flame',
-  'zap',
-  'star',
-  'heart',
-  'target',
-  'sparkles',
-];
-
-const initialFormData: BuildFormData = {
-  name: '',
-  description: '',
-  icon: 'wand',
-  color: 'bg-purple-500/20',
-  borderColor: 'border-purple-500/50',
-  isRecommended: false,
-  isActive: true,
-  priority: 0,
-  runes: {
-    name: 'New Rune Page',
-    primaryTree: 'Sorcery',
-    keystone: 'SummonAery',
-    primary: ['ManaflowBand', 'Transcendence', 'Scorch'],
-    secondaryTree: 'Resolve',
-    secondary: ['FontOfLife', 'Revitalize'],
-    shards: ['AdaptiveForce', 'AdaptiveForce', 'Health'],
-  },
-  items: {
-    starter: [
-      { id: 3850, name: "Spellthief's Edge", reason: 'Starting support item' },
-    ],
-    core: [],
-    situational: [],
-  },
-  skillOrder: {
-    priority: 'E > W > Q',
-    levels: [...DEFAULT_SKILL_LEVELS],
-    notes: '',
-  },
-};
-
 export default function BuildsEditorPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState<BuildFormData>(initialFormData);
   const [activeTab, setActiveTab] = useState('general');
-  const [newItem, setNewItem] = useState<{
-    category: 'starter' | 'core' | 'situational';
-    id: number;
-    name: string;
-    reason: string;
-  }>({
-    category: 'core',
-    id: 0,
-    name: '',
-    reason: '',
-  });
 
   // Placeholder - builds will come from Convex when connected
   const builds: Build[] = [];
@@ -268,44 +139,6 @@ export default function BuildsEditorPage() {
     setFormData(initialFormData);
     setActiveTab('general');
     setIsDialogOpen(true);
-  };
-
-  const handleAddItem = () => {
-    if (!newItem.name || !newItem.id) return;
-    setFormData((prev) => ({
-      ...prev,
-      items: {
-        ...prev.items,
-        [newItem.category]: [
-          ...prev.items[newItem.category],
-          { id: newItem.id, name: newItem.name, reason: newItem.reason },
-        ],
-      },
-    }));
-    setNewItem({ category: newItem.category, id: 0, name: '', reason: '' });
-  };
-
-  const handleRemoveItem = (
-    category: 'starter' | 'core' | 'situational',
-    index: number
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      items: {
-        ...prev.items,
-        [category]: prev.items[category].filter((_, i) => i !== index),
-      },
-    }));
-  };
-
-  const handleSkillLevelChange = (index: number, skill: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      skillOrder: {
-        ...prev.skillOrder,
-        levels: prev.skillOrder.levels.map((s, i) => (i === index ? skill : s)),
-      },
-    }));
   };
 
   return (
@@ -490,481 +323,35 @@ export default function BuildsEditorPage() {
                 </TabsList>
 
                 {/* General Tab */}
-                <TabsContent value="general" className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Build Name</Label>
-                      <Input
-                        value={formData.name}
-                        onChange={(e) =>
-                          setFormData({ ...formData, name: e.target.value })
-                        }
-                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                        placeholder="e.g., Standard Aery"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Priority (lower = first)</Label>
-                      <Input
-                        type="number"
-                        value={formData.priority}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            priority: parseInt(e.target.value) || 0,
-                          })
-                        }
-                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Description</Label>
-                    <Textarea
-                      value={formData.description}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          description: e.target.value,
-                        })
-                      }
-                      className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                      rows={2}
-                      placeholder="Brief description of when to use this build..."
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label>Icon</Label>
-                      <Select
-                        value={formData.icon}
-                        onValueChange={(v) =>
-                          setFormData({ ...formData, icon: v })
-                        }
-                      >
-                        <SelectTrigger className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ICONS.map((icon) => (
-                            <SelectItem key={icon} value={icon}>
-                              {icon}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Color Class</Label>
-                      <Input
-                        value={formData.color}
-                        onChange={(e) =>
-                          setFormData({ ...formData, color: e.target.value })
-                        }
-                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                        placeholder="bg-purple-500/20"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Border Class</Label>
-                      <Input
-                        value={formData.borderColor}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            borderColor: e.target.value,
-                          })
-                        }
-                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                        placeholder="border-purple-500/50"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex gap-6">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="isRecommended"
-                        checked={formData.isRecommended}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            isRecommended: e.target.checked,
-                          })
-                        }
-                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60"
-                      />
-                      <Label htmlFor="isRecommended">Recommended Build</Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="isActive"
-                        checked={formData.isActive}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            isActive: e.target.checked,
-                          })
-                        }
-                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60"
-                      />
-                      <Label htmlFor="isActive">Active (show in guide)</Label>
-                    </div>
-                  </div>
+                <TabsContent value="general">
+                  <BuildGeneralTab
+                    formData={formData}
+                    setFormData={setFormData}
+                  />
                 </TabsContent>
 
                 {/* Runes Tab */}
-                <TabsContent value="runes" className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Rune Page Name</Label>
-                    <Input
-                      value={formData.runes.name}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          runes: { ...formData.runes, name: e.target.value },
-                        })
-                      }
-                      className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                      placeholder="e.g., Standard Aery"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Primary Tree</Label>
-                      <Select
-                        value={formData.runes.primaryTree}
-                        onValueChange={(v) =>
-                          setFormData({
-                            ...formData,
-                            runes: {
-                              ...formData.runes,
-                              primaryTree: v,
-                              keystone: KEYSTONES[v]?.[0] ?? '',
-                            },
-                          })
-                        }
-                      >
-                        <SelectTrigger className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {RUNE_TREES.map((tree) => (
-                            <SelectItem key={tree} value={tree}>
-                              {tree}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Keystone</Label>
-                      <Select
-                        value={formData.runes.keystone}
-                        onValueChange={(v) =>
-                          setFormData({
-                            ...formData,
-                            runes: { ...formData.runes, keystone: v },
-                          })
-                        }
-                      >
-                        <SelectTrigger className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(KEYSTONES[formData.runes.primaryTree] ?? []).map(
-                            (keystone) => (
-                              <SelectItem key={keystone} value={keystone}>
-                                {keystone}
-                              </SelectItem>
-                            )
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Primary Runes (comma-separated)</Label>
-                    <Input
-                      value={formData.runes.primary.join(', ')}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          runes: {
-                            ...formData.runes,
-                            primary: e.target.value
-                              .split(',')
-                              .map((s) => s.trim()),
-                          },
-                        })
-                      }
-                      className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                      placeholder="ManaflowBand, Transcendence, Scorch"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Secondary Tree</Label>
-                      <Select
-                        value={formData.runes.secondaryTree}
-                        onValueChange={(v) =>
-                          setFormData({
-                            ...formData,
-                            runes: { ...formData.runes, secondaryTree: v },
-                          })
-                        }
-                      >
-                        <SelectTrigger className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {RUNE_TREES.filter(
-                            (t) => t !== formData.runes.primaryTree
-                          ).map((tree) => (
-                            <SelectItem key={tree} value={tree}>
-                              {tree}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Secondary Runes (comma-separated)</Label>
-                      <Input
-                        value={formData.runes.secondary.join(', ')}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            runes: {
-                              ...formData.runes,
-                              secondary: e.target.value
-                                .split(',')
-                                .map((s) => s.trim()),
-                            },
-                          })
-                        }
-                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                        placeholder="FontOfLife, Revitalize"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Stat Shards (comma-separated)</Label>
-                    <Input
-                      value={formData.runes.shards.join(', ')}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          runes: {
-                            ...formData.runes,
-                            shards: e.target.value
-                              .split(',')
-                              .map((s) => s.trim()),
-                          },
-                        })
-                      }
-                      className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                      placeholder="AdaptiveForce, AdaptiveForce, Health"
-                    />
-                  </div>
+                <TabsContent value="runes">
+                  <BuildRunesTab
+                    formData={formData}
+                    setFormData={setFormData}
+                  />
                 </TabsContent>
 
                 {/* Items Tab */}
-                <TabsContent value="items" className="space-y-6">
-                  {/* Add Item Form */}
-                  <Card className="hex-card rounded-sm border-0">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="hex-title text-sm text-hx-gold">
-                        Add New Item
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="grid grid-cols-4 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs">Category</Label>
-                          <Select
-                            value={newItem.category}
-                            onValueChange={(
-                              v: 'starter' | 'core' | 'situational'
-                            ) => setNewItem({ ...newItem, category: v })}
-                          >
-                            <SelectTrigger className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="starter">Starter</SelectItem>
-                              <SelectItem value="core">Core</SelectItem>
-                              <SelectItem value="situational">
-                                Situational
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">Item ID</Label>
-                          <Input
-                            type="number"
-                            value={newItem.id || ''}
-                            onChange={(e) =>
-                              setNewItem({
-                                ...newItem,
-                                id: parseInt(e.target.value) || 0,
-                              })
-                            }
-                            className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                            placeholder="3850"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">Name</Label>
-                          <Input
-                            value={newItem.name}
-                            onChange={(e) =>
-                              setNewItem({ ...newItem, name: e.target.value })
-                            }
-                            className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                            placeholder="Item name"
-                          />
-                        </div>
-                        <div className="flex items-end">
-                          <Button
-                            type="button"
-                            onClick={handleAddItem}
-                            className="btn-hextech w-full rounded-sm"
-                            disabled={!newItem.name || !newItem.id}
-                          >
-                            <Plus className="mr-1 h-4 w-4" />
-                            Add
-                          </Button>
-                        </div>
-                      </div>
-                      <Input
-                        value={newItem.reason}
-                        onChange={(e) =>
-                          setNewItem({ ...newItem, reason: e.target.value })
-                        }
-                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                        placeholder="Reason for this item..."
-                      />
-                    </CardContent>
-                  </Card>
-
-                  {/* Item Lists */}
-                  {(['starter', 'core', 'situational'] as const).map(
-                    (category) => (
-                      <div key={category} className="space-y-2">
-                        <Label className="capitalize">{category} Items</Label>
-                        {formData.items[category].length > 0 ? (
-                          <div className="space-y-2">
-                            {formData.items[category].map((item, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-center gap-3 rounded-sm border border-hx-gold-dark/40 bg-hx-black/40 p-3"
-                              >
-                                <GripVertical className="h-4 w-4 text-hx-gold/60" />
-                                <ItemSlot itemId={item.id} size="sm" />
-                                <div className="flex-1">
-                                  <div className="font-medium text-hx-parchment">
-                                    {item.name}
-                                  </div>
-                                  <div className="text-xs text-landing-text-secondary">
-                                    {item.reason}
-                                  </div>
-                                </div>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() =>
-                                    handleRemoveItem(category, idx)
-                                  }
-                                  className="text-red-300 hover:bg-red-500/10 hover:text-red-300"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="rounded-sm border border-dashed border-hx-gold-dark/40 p-4 text-center text-sm text-hx-gold/60">
-                            No {category} items yet
-                          </p>
-                        )}
-                      </div>
-                    )
-                  )}
+                <TabsContent value="items">
+                  <BuildItemsTab
+                    formData={formData}
+                    setFormData={setFormData}
+                  />
                 </TabsContent>
 
                 {/* Skill Order Tab */}
-                <TabsContent value="skills" className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Skill Priority</Label>
-                    <Input
-                      value={formData.skillOrder.priority}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          skillOrder: {
-                            ...formData.skillOrder,
-                            priority: e.target.value,
-                          },
-                        })
-                      }
-                      className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                      placeholder="E > W > Q"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Level-by-Level Order</Label>
-                    <div className="grid grid-cols-18 gap-1">
-                      {formData.skillOrder.levels.map((skill, idx) => (
-                        <div key={idx} className="text-center">
-                          <div className="mb-1 text-xs text-hx-gold/60">
-                            {idx + 1}
-                          </div>
-                          <Select
-                            value={skill}
-                            onValueChange={(v) =>
-                              handleSkillLevelChange(idx, v)
-                            }
-                          >
-                            <SelectTrigger className="h-8 w-full rounded-sm border-hx-gold-dark/60 bg-hx-black/60 px-1 text-xs text-hx-parchment">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Q">Q</SelectItem>
-                              <SelectItem value="W">W</SelectItem>
-                              <SelectItem value="E">E</SelectItem>
-                              {(idx === 5 || idx === 10 || idx === 15) && (
-                                <SelectItem value="R">R</SelectItem>
-                              )}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Notes</Label>
-                    <Textarea
-                      value={formData.skillOrder.notes}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          skillOrder: {
-                            ...formData.skillOrder,
-                            notes: e.target.value,
-                          },
-                        })
-                      }
-                      className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                      rows={2}
-                      placeholder="Any notes about skill order variations..."
-                    />
-                  </div>
+                <TabsContent value="skills">
+                  <BuildSkillsTab
+                    formData={formData}
+                    setFormData={setFormData}
+                  />
                 </TabsContent>
               </Tabs>
 

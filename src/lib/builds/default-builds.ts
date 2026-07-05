@@ -73,7 +73,7 @@ export const DEFAULT_BUILDS: DefaultBuild[] = [
         'W',
       ],
       notes:
-        'Max Q for poke damage, E second for sustain. Take W after E is maxed.',
+        'Max Q first for poke; E second for shields and mana restore. Take W after E is maxed (patch 16.13 standard).',
     },
   },
   {
