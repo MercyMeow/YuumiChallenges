@@ -1,0 +1,27 @@
+src/app/admin/mythic-shop/page.tsx
+  s_7e86a87772aad7::t_3aef19607b01e1 83-84,94-95
+  s_7e86a87772aad7::t_e8f6ddd9f5a159 6
+CLAUDE.md
+  s_7e86a87772aad7::t_248e20fead3635 21-22,24,250
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "53d8a1050eb92289e22e883ad4f604f3c2919a46",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_7e86a87772aad7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6bc66787-22e6-4f67-9489-ed5601fe7f02",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
