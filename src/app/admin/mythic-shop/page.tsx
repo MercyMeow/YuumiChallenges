@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useMutation } from 'convex/react';
+import { ConvexHttpClient } from 'convex/browser';
 import { api } from '@/../convex/_generated/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useConvexAvailable } from '@/providers/ConvexProvider';
@@ -40,7 +40,6 @@ export default function AdminMythicShopPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading, sessionToken } = useAuth();
   const convexAvailable = useConvexAvailable();
-  const setMetadata = useMutation(api.guide.setMetadata);
 
   const [items, setItems] = useState<MythicItem[]>([]);
   const [patch, setPatch] = useState('');
@@ -81,7 +80,8 @@ export default function AdminMythicShopPage() {
   };
 
   const handleSave = async () => {
-    if (!sessionToken) return;
+    const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+    if (!sessionToken || !convexUrl) return;
     setSaving(true);
     setStatus(null);
     try {
@@ -91,7 +91,8 @@ export default function AdminMythicShopPage() {
         ...(patch ? { patch } : {}),
         items: items.filter((item) => item.name.trim().length > 0),
       });
-      await setMetadata({
+      const client = new ConvexHttpClient(convexUrl);
+      await client.mutation(api.guide.setMetadata, {
         sessionToken,
         key: MYTHIC_SHOP_METADATA_KEY,
         value: JSON.stringify(rotation),

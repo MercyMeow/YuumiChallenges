@@ -18,10 +18,10 @@ This document provides comprehensive guidance for AI assistants working on this 
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | Next.js 15.3.5 (App Router, Turbopack) |
-| Language | TypeScript 5.x (strict mode) |
+| Framework | Next.js 16.x (App Router, Turbopack) |
+| Language | TypeScript 6.x (strict mode) |
 | Backend | Convex (real-time database & functions) |
-| Styling | Tailwind CSS 3.x + tailwindcss-animate |
+| Styling | Tailwind CSS 4.x (CSS-first config in `globals.css` via `@theme`) + tailwindcss-animate |
 | UI Components | Radix UI primitives + custom components |
 | Forms | React Hook Form + Zod validation |
 | State | React Context (Auth, Theme) + Convex queries |
@@ -247,7 +247,7 @@ npx convex dev --once
 | `src/lib/embeds/yuumi.ts` | Discord embed configuration |
 | `src/lib/types/index.ts` | Shared TypeScript types |
 | `src/components/ui/datadragon-image.tsx` | League asset image component |
-| `tailwind.config.ts` | Tailwind + custom theme config |
+| `src/app/globals.css` | Tailwind v4 `@theme` tokens + custom utilities (no tailwind.config.ts) |
 
 ## Common Tasks
 
