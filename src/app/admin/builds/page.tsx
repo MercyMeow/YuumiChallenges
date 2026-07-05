@@ -217,7 +217,7 @@ export default function BuildsEditorPage() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
         <Loader2 className="h-8 w-8 animate-spin text-yuumi-purple" />
       </div>
     );
@@ -309,7 +309,7 @@ export default function BuildsEditorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
+    <div className="min-h-screen bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
       <div className="container mx-auto max-w-7xl px-6 py-8 duration-500 animate-in fade-in slide-in-from-bottom-4">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
@@ -321,7 +321,7 @@ export default function BuildsEditorPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
             </Link>
-            <h1 className="bg-gradient-to-r from-white via-yuumi-purple to-yuumi-blue bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+            <h1 className="bg-linear-to-r from-white via-yuumi-purple to-yuumi-blue bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
               Builds Editor
             </h1>
             <p className="mt-1 text-white/60">
@@ -330,7 +330,7 @@ export default function BuildsEditorPage() {
           </div>
           <Button
             onClick={handleAddNew}
-            className="bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
+            className="bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
           >
             <Plus className="mr-2 h-4 w-4" />
             Add Build
@@ -340,7 +340,7 @@ export default function BuildsEditorPage() {
         {/* Convex Connection Notice */}
         <Card className="mb-6 border-yellow-500/30 bg-yellow-500/10 backdrop-blur-md">
           <CardContent className="flex items-start gap-3 p-4">
-            <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-400" />
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-400" />
             <div>
               <h4 className="font-medium text-yellow-200">Connect Convex</h4>
               <p className="mt-1 text-sm text-yellow-200/80">
@@ -372,7 +372,7 @@ export default function BuildsEditorPage() {
                             {build.name}
                           </h3>
                           {build.isRecommended && (
-                            <Badge className="bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white">
+                            <Badge className="bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white">
                               <Star className="mr-1 h-3 w-3" />
                               Recommended
                             </Badge>
@@ -441,7 +441,7 @@ export default function BuildsEditorPage() {
                 </p>
                 <Button
                   onClick={handleAddNew}
-                  className="bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
+                  className="bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Create First Build
@@ -824,7 +824,7 @@ export default function BuildsEditorPage() {
                           <Button
                             type="button"
                             onClick={handleAddItem}
-                            className="w-full bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
+                            className="w-full bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
                             disabled={!newItem.name || !newItem.id}
                           >
                             <Plus className="mr-1 h-4 w-4" />
@@ -970,7 +970,7 @@ export default function BuildsEditorPage() {
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
+                  className="bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
                 >
                   {formData.id ? 'Update Build' : 'Create Build'}
                 </Button>

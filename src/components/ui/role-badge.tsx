@@ -5,24 +5,24 @@ import { Crown, Shield, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const roleBadgeVariants = cva(
-  'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all duration-200 shadow-sm hover:shadow-md backdrop-blur-sm',
+  'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all duration-200 shadow-xs hover:shadow-md backdrop-blur-xs',
   {
     variants: {
       role: {
         owner: [
-          'bg-gradient-to-r from-amber-500/10 to-yellow-500/10',
+          'bg-linear-to-r from-amber-500/10 to-yellow-500/10',
           'border-amber-500/30 text-amber-300',
           'hover:from-amber-500/20 hover:to-yellow-500/20 hover:border-amber-400/50',
           'shadow-amber-500/10 hover:shadow-amber-500/20',
         ],
         admin: [
-          'bg-gradient-to-r from-red-500/10 to-rose-500/10',
+          'bg-linear-to-r from-red-500/10 to-rose-500/10',
           'border-red-500/30 text-red-300',
           'hover:from-red-500/20 hover:to-rose-500/20 hover:border-red-400/50',
           'shadow-red-500/10 hover:shadow-red-500/20',
         ],
         member: [
-          'bg-gradient-to-r from-slate-500/10 to-gray-500/10',
+          'bg-linear-to-r from-slate-500/10 to-gray-500/10',
           'border-slate-500/30 text-slate-300',
           'hover:from-slate-500/20 hover:to-gray-500/20 hover:border-slate-400/50',
           'shadow-slate-500/10 hover:shadow-slate-500/20',

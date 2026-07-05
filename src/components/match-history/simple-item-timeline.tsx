@@ -303,7 +303,7 @@ const SupportQuestCompletionItem = ({
       )}
     >
       {/* Quest icon */}
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         <div className="flex h-10 w-10 items-center justify-center rounded-full border border-purple-400/40 bg-black/30">
           {/* Intentionally no decorative icon per spec */}
           <span className="text-xs text-purple-200">Quest</span>
@@ -347,7 +347,7 @@ const SupportQuestCompletionItem = ({
         </div>
 
         {/* Timestamp */}
-        <div className="flex flex-shrink-0 items-center gap-1 text-sm text-muted-foreground">
+        <div className="flex shrink-0 items-center gap-1 text-sm text-muted-foreground">
           <Clock className="h-3 w-3" />
           {completion.timeFormatted}
         </div>
@@ -382,7 +382,7 @@ const ItemEventItem = ({
       )}
     >
       {/* Timeline connector dot */}
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         <div className="flex h-8 w-8 items-center justify-center rounded-full border border-purple-500/20 bg-black/30 backdrop-blur-md">
           {getEventIcon(event)}
         </div>
@@ -431,7 +431,7 @@ const ItemEventItem = ({
         </div>
 
         {/* Timestamp */}
-        <div className="flex flex-shrink-0 items-center gap-1 text-sm text-muted-foreground">
+        <div className="flex shrink-0 items-center gap-1 text-sm text-muted-foreground">
           <Clock className="h-3 w-3" />
           {event.timeFormatted}
         </div>
@@ -521,7 +521,7 @@ const GroupedEventItem = ({
               )}
             >
               {/* Event icon */}
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="flex h-6 w-6 items-center justify-center rounded-full border border-purple-500/20 bg-black/30 backdrop-blur-md">
                   {getEventIcon(event)}
                 </div>
@@ -812,7 +812,7 @@ export function SimpleItemTimeline({
 
         {/* Support Quest Summary */}
         {questAnalysis.completions.length > 0 && (
-          <div className="mt-3 rounded-lg border border-purple-500/20 bg-gradient-to-r from-purple-500/10 to-blue-500/10 p-3 backdrop-blur-md">
+          <div className="mt-3 rounded-lg border border-purple-500/20 bg-linear-to-r from-purple-500/10 to-blue-500/10 p-3 backdrop-blur-md">
             <div className="mb-2 flex items-center gap-2">
               {/* Removed star effect icon per spec */}
               <span className="text-sm font-medium text-purple-300">

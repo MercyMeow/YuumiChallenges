@@ -325,7 +325,7 @@ const isAdcMatchupKey = (value: string): value is keyof typeof ADC_MATCHUPS =>
       <button
         type="button"
         onClick={onClick}
-        className={`group flex flex-col items-center ${showLabel ? 'gap-1' : ''} text-white/80 transition-transform duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${isSelected ? 'scale-105' : 'hover:scale-105'}`}
+        className={`group flex flex-col items-center ${showLabel ? 'gap-1' : ''} text-white/80 transition-transform duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-purple-400 ${isSelected ? 'scale-105' : 'hover:scale-105'}`}
         aria-pressed={isSelected}
         aria-label={`View matchup details for ${label}`}
       >
@@ -569,7 +569,7 @@ export default function YuumiGuide() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
+    <div className="min-h-screen bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
       <div className="container mx-auto max-w-7xl px-6 py-12">
         {/* Header */}
         <div className="mb-10 text-center">
@@ -650,7 +650,7 @@ export default function YuumiGuide() {
                   onClick={() => setSelectedBuild(build.id)}
                   className={`relative rounded-xl border-2 p-4 text-left transition-all duration-200 ${
                     selectedBuild === build.id
-                      ? `${build.borderColor} bg-gradient-to-br ${build.color} ring-2 ring-white/20`
+                      ? `${build.borderColor} bg-linear-to-br ${build.color} ring-2 ring-white/20`
                       : 'border-white/10 bg-black/20 hover:border-white/30 hover:bg-black/30'
                   }`}
                 >
@@ -675,13 +675,13 @@ export default function YuumiGuide() {
             {/* Selected Build Details */}
             {currentBuild && (
               <Card
-                className={`border-2 ${currentBuild.borderColor} bg-black/30 backdrop-blur`}
+                className={`border-2 ${currentBuild.borderColor} bg-black/30 backdrop-blur-sm`}
               >
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between text-white">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`rounded-lg bg-gradient-to-br ${currentBuild.color} p-2`}
+                        className={`rounded-lg bg-linear-to-br ${currentBuild.color} p-2`}
                       >
                         {currentBuild.icon}
                       </div>
@@ -828,7 +828,7 @@ export default function YuumiGuide() {
 
           {/* Matchups Tab */}
           <TabsContent value="matchups" className="space-y-6">
-            <Card className="border-white/10 bg-black/30 backdrop-blur">
+            <Card className="border-white/10 bg-black/30 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-white">Matchup Guide</CardTitle>
                 <p className="text-white/70">

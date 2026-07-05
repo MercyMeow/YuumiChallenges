@@ -65,7 +65,7 @@ export default function MatchLandingPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to px-6 py-16">
+    <main className="flex min-h-screen items-center justify-center bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to px-6 py-16">
       <div className="w-full max-w-lg duration-500 animate-in fade-in slide-in-from-bottom-4">
         <Link
           href="/"
@@ -76,13 +76,13 @@ export default function MatchLandingPage() {
         </Link>
 
         <div className="relative">
-          <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-yuumi-purple/40 to-yuumi-blue/40 opacity-40 blur" />
+          <div className="absolute -inset-0.5 rounded-2xl bg-linear-to-r from-yuumi-purple/40 to-yuumi-blue/40 opacity-40 blur-sm" />
           <div className="relative rounded-2xl border border-white/10 bg-black/40 p-8 backdrop-blur-md">
             <div className="mb-6 text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yuumi-purple/20">
                 <Swords className="h-8 w-8 text-yuumi-purple" />
               </div>
-              <h1 className="bg-gradient-to-r from-landing-text-primary via-yuumi-purple to-yuumi-blue bg-clip-text text-3xl font-extrabold tracking-tight text-transparent sm:text-4xl">
+              <h1 className="bg-linear-to-r from-landing-text-primary via-yuumi-purple to-yuumi-blue bg-clip-text text-3xl font-extrabold tracking-tight text-transparent sm:text-4xl">
                 Yuumi Match Viewer
               </h1>
               <p className="mx-auto mt-3 max-w-md text-sm text-landing-text-secondary sm:text-base">
@@ -131,7 +131,7 @@ export default function MatchLandingPage() {
               )}
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
+                className="w-full bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
               >
                 <Search className="mr-2 h-4 w-4" />
                 View Match Details

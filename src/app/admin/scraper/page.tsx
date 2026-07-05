@@ -81,7 +81,7 @@ export default function ScraperPage() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
         <Loader2 className="h-8 w-8 animate-spin text-yuumi-purple" />
       </div>
     );
@@ -117,7 +117,7 @@ export default function ScraperPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
+    <div className="min-h-screen bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
       <div className="container mx-auto max-w-7xl px-6 py-8 duration-500 animate-in fade-in slide-in-from-bottom-4">
         {/* Header */}
         <div className="mb-8">
@@ -128,7 +128,7 @@ export default function ScraperPage() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard
           </Link>
-          <h1 className="bg-gradient-to-r from-white via-yuumi-purple to-yuumi-blue bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+          <h1 className="bg-linear-to-r from-white via-yuumi-purple to-yuumi-blue bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
             Data Scraper
           </h1>
           <p className="mt-1 text-white/60">
@@ -160,7 +160,7 @@ export default function ScraperPage() {
                   <Button
                     onClick={() => handleScrape('all')}
                     disabled={runningJobs.has('all')}
-                    className="bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
+                    className="bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
                   >
                     {runningJobs.has('all') ? (
                       <>
@@ -232,7 +232,7 @@ export default function ScraperPage() {
             {/* Warning Notice */}
             <Card className="border-yellow-400/40 bg-yellow-500/10 backdrop-blur-md">
               <CardContent className="flex items-start gap-3 p-4">
-                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-400" />
+                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-400" />
                 <div>
                   <h4 className="font-medium text-yellow-200">
                     Important Note

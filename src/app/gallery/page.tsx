@@ -26,10 +26,10 @@ function GifCard({ rule, isCopied, onCopyLink }: GifCardProps) {
       onClick={() => onCopyLink(rule)}
       className="group relative block w-full text-left"
     >
-      <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-cyan-500/50 to-teal-500/50 opacity-30 blur transition duration-300 group-hover:opacity-60" />
-      <Card className="relative overflow-hidden border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 to-teal-500/10 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/40 hover:shadow-2xl">
+      <div className="absolute -inset-0.5 rounded-2xl bg-linear-to-r from-cyan-500/50 to-teal-500/50 opacity-30 blur-sm transition duration-300 group-hover:opacity-60" />
+      <Card className="relative overflow-hidden border border-cyan-500/20 bg-linear-to-br from-cyan-500/10 to-teal-500/10 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/40 hover:shadow-2xl">
         <CardContent className="p-0">
-          <div className="relative overflow-hidden rounded-lg bg-black/20 backdrop-blur-sm">
+          <div className="relative overflow-hidden rounded-lg bg-black/20 backdrop-blur-xs">
             {isCopied && (
               <div className="absolute inset-0 z-20 flex items-center justify-center rounded-lg border-2 border-green-400 bg-green-500/20">
                 <div className="flex items-center gap-2 rounded-lg bg-black/60 px-3 py-2">
@@ -50,7 +50,7 @@ function GifCard({ rule, isCopied, onCopyLink }: GifCardProps) {
               />
             </div>
 
-            <div className="absolute bottom-2 right-2 rounded-lg bg-black/60 px-2 py-1 backdrop-blur-sm">
+            <div className="absolute bottom-2 right-2 rounded-lg bg-black/60 px-2 py-1 backdrop-blur-xs">
               <span className="text-xs font-medium text-cyan-300">
                 Rule {rule}
               </span>
@@ -115,7 +115,7 @@ export default function GalleryPage() {
               <span>Back to Home</span>
             </Link>
 
-            <h1 className="mb-6 bg-gradient-to-r from-landing-text-primary via-yuumi-teal to-yuumi-blue bg-clip-text text-4xl font-bold leading-tight text-transparent md:text-6xl">
+            <h1 className="mb-6 bg-linear-to-r from-landing-text-primary via-yuumi-teal to-yuumi-blue bg-clip-text text-4xl font-bold leading-tight text-transparent md:text-6xl">
               Yuumi Rule Gallery
             </h1>
             <p className="mb-2 text-lg text-landing-text-secondary">

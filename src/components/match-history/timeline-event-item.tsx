@@ -97,7 +97,7 @@ const TimelineEventItemComponent = memo(
 
       return (
         <div className="flex items-center gap-3 text-sm">
-          <Swords className="h-4 w-4 flex-shrink-0 text-red-400" />
+          <Swords className="h-4 w-4 shrink-0 text-red-400" />
 
           {/* Killer */}
           <div className="flex items-center gap-2">
@@ -146,7 +146,7 @@ const TimelineEventItemComponent = memo(
 
       return (
         <div className="flex items-center gap-3 text-sm">
-          <Trophy className="h-4 w-4 flex-shrink-0 text-purple-400" />
+          <Trophy className="h-4 w-4 shrink-0 text-purple-400" />
 
           {/* Killer */}
           <div className="flex items-center gap-2">
@@ -182,11 +182,11 @@ const TimelineEventItemComponent = memo(
 
       return (
         <div className="flex items-center gap-3 text-sm">
-          <Target className="h-4 w-4 flex-shrink-0 text-yellow-400" />
+          <Target className="h-4 w-4 shrink-0 text-yellow-400" />
 
           {/* Team indicator */}
           <div
-            className={`h-3 w-3 flex-shrink-0 rounded-full ${
+            className={`h-3 w-3 shrink-0 rounded-full ${
               event.teamId === 100 ? 'bg-blue-500' : 'bg-red-500'
             }`}
           />
@@ -208,11 +208,11 @@ const TimelineEventItemComponent = memo(
 
       return (
         <div className="flex items-center gap-3 text-sm">
-          <Trophy className="h-4 w-4 flex-shrink-0 text-orange-400" />
+          <Trophy className="h-4 w-4 shrink-0 text-orange-400" />
 
           {/* Team indicator */}
           <div
-            className={`h-3 w-3 flex-shrink-0 rounded-full ${
+            className={`h-3 w-3 shrink-0 rounded-full ${
               event.teamId === 100 ? 'bg-blue-500' : 'bg-red-500'
             }`}
           />
@@ -229,7 +229,7 @@ const TimelineEventItemComponent = memo(
     const renderUnknownEvent = () => {
       return (
         <div className="flex items-center gap-3 text-sm">
-          <div className="h-4 w-4 flex-shrink-0 rounded-full bg-white/20" />
+          <div className="h-4 w-4 shrink-0 rounded-full bg-white/20" />
           <span className="text-white/60">
             {event.type.replace(/_/g, ' ').toLowerCase()}
           </span>
@@ -240,8 +240,8 @@ const TimelineEventItemComponent = memo(
     return (
       <div
         className={cn(
-          'rounded-lg border border-white/10 bg-gradient-to-r from-black/10 to-black/5 p-3',
-          'backdrop-blur-sm hover:bg-gradient-to-r hover:from-black/20 hover:to-black/10',
+          'rounded-lg border border-white/10 bg-linear-to-r from-black/10 to-black/5 p-3',
+          'backdrop-blur-xs hover:bg-linear-to-r hover:from-black/20 hover:to-black/10',
           'transition-all duration-200',
           className
         )}

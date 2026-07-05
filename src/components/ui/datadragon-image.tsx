@@ -89,7 +89,7 @@ export function DataDragonImage({
   if (isLoading) {
     return (
       <div
-        className={`flex-shrink-0 animate-pulse rounded bg-muted ${className || ''}`}
+        className={`shrink-0 animate-pulse rounded bg-muted ${className || ''}`}
         style={{
           width: `${width}px`,
           height: `${height}px`,
@@ -104,7 +104,7 @@ export function DataDragonImage({
 
   return (
     <div
-      className={`relative flex-shrink-0 overflow-hidden rounded ${className || ''}`}
+      className={`relative shrink-0 overflow-hidden rounded ${className || ''}`}
       style={{
         width: `${width}px`,
         height: `${height}px`,
@@ -153,7 +153,7 @@ export function ChampionIcon({
 
   return (
     <div
-      className={`relative inline-block flex-shrink-0 ${className || ''}`}
+      className={`relative inline-block shrink-0 ${className || ''}`}
       style={{
         width: `${width}px`,
         height: `${height}px`,

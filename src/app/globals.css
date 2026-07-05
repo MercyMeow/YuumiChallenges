@@ -1,6 +1,651 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@plugin 'tailwindcss-animate';
+
+@theme {
+  --color-background: oklch(var(--background));
+  --color-foreground: oklch(var(--foreground));
+
+  --color-card: oklch(var(--card));
+  --color-card-foreground: oklch(var(--card-foreground));
+
+  --color-popover: oklch(var(--popover));
+  --color-popover-foreground: oklch(var(--popover-foreground));
+
+  --color-primary: oklch(var(--primary));
+  --color-primary-foreground: oklch(var(--primary-foreground));
+
+  --color-secondary: oklch(var(--secondary));
+  --color-secondary-foreground: oklch(var(--secondary-foreground));
+
+  --color-muted: oklch(var(--muted));
+  --color-muted-foreground: oklch(var(--muted-foreground));
+
+  --color-accent: oklch(var(--accent));
+  --color-accent-foreground: oklch(var(--accent-foreground));
+
+  --color-destructive: oklch(var(--destructive));
+  --color-destructive-foreground: oklch(var(--destructive-foreground));
+
+  --color-border: oklch(var(--border));
+  --color-input: oklch(var(--input));
+  --color-ring: oklch(var(--ring));
+
+  --color-chart-1: oklch(var(--chart-1));
+  --color-chart-2: oklch(var(--chart-2));
+  --color-chart-3: oklch(var(--chart-3));
+  --color-chart-4: oklch(var(--chart-4));
+  --color-chart-5: oklch(var(--chart-5));
+
+  --color-sidebar: oklch(var(--sidebar));
+  --color-sidebar-foreground: oklch(var(--sidebar-foreground));
+  --color-sidebar-primary: oklch(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: oklch(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: oklch(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: oklch(var(--sidebar-accent-foreground));
+  --color-sidebar-border: oklch(var(--sidebar-border));
+  --color-sidebar-ring: oklch(var(--sidebar-ring));
+
+  --color-landing-bg-from: oklch(var(--landing-bg-from));
+  --color-landing-bg-via: oklch(var(--landing-bg-via));
+  --color-landing-bg-to: oklch(var(--landing-bg-to));
+  --color-landing-text-primary: oklch(var(--landing-text-primary));
+  --color-landing-text-secondary: oklch(var(--landing-text-secondary));
+  --color-yuumi-purple: oklch(var(--yuumi-purple));
+  --color-yuumi-blue: oklch(var(--yuumi-blue));
+  --color-yuumi-teal: oklch(var(--yuumi-teal));
+  --color-yuumi-pink: oklch(var(--yuumi-pink));
+
+  --color-success: oklch(0.7 0.16 150);
+  --color-success-foreground: oklch(0.11 0.007 240);
+
+  --color-warning: oklch(0.75 0.15 50);
+  --color-warning-foreground: oklch(0.11 0.007 240);
+
+  --color-info: oklch(0.66 0.17 240);
+  --color-info-foreground: oklch(0.11 0.007 240);
+
+  --radius-lg: var(--radius-lg);
+  --radius-md: var(--radius-md);
+  --radius-sm: var(--radius-sm);
+  --radius-xl: var(--radius-xl);
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial,
+    sans-serif;
+  --font-mono:
+    SF Mono, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+
+  --width-sidebar: var(--sidebar-width);
+  --width-sidebar-icon: var(--sidebar-width-icon);
+
+  --spacing-sidebar: var(--sidebar-width);
+  --spacing-sidebar-icon: var(--sidebar-width-icon);
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility glass {
+  /* Glass morphism effects - updated for better visibility */
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid oklch(var(--yuumi-purple) / 0.2);
+}
+
+@utility glass-card {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid oklch(var(--yuumi-purple) / 0.2);
+  box-shadow: 0 8px 32px 0 rgba(147, 51, 234, 0.1);
+}
+
+@utility magical-bg {
+  /* Magical gradient background - the main background for all pages */
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    oklch(var(--landing-bg-from)),
+    oklch(var(--landing-bg-via)),
+    oklch(var(--landing-bg-to))
+  );
+  /* Fallback for browsers that don't support OKLCH */
+  background: linear-gradient(135deg, #0f0f23, #0a0a1e, #0f0f23);
+}
+
+@utility magical-radial-1 {
+  /* Radial gradient overlays for depth */
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 20% 80%,
+    rgba(147, 51, 234, 0.3) 0%,
+    transparent 50%
+  );
+}
+
+@utility magical-radial-2 {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 80% 20%,
+    rgba(59, 130, 246, 0.3) 0%,
+    transparent 50%
+  );
+}
+
+@utility magical-radial-3 {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 40% 40%,
+    rgba(139, 69, 234, 0.2) 0%,
+    transparent 50%
+  );
+}
+
+@utility gradient-text {
+  /* Gradient text */
+  background: linear-gradient(
+    to right,
+    oklch(var(--primary)),
+    oklch(var(--yuumi-blue)),
+    oklch(var(--yuumi-teal))
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@utility glow {
+  /* Glow effects */
+  box-shadow:
+    0 0 20px rgba(147, 51, 234, 0.4),
+    0 0 40px rgba(147, 51, 234, 0.3),
+    0 0 60px rgba(147, 51, 234, 0.2);
+}
+
+@utility glow-hover {
+  @apply transition-all duration-300;
+
+  &:hover {
+    box-shadow:
+      0 0 25px rgba(147, 51, 234, 0.5),
+      0 0 50px rgba(147, 51, 234, 0.4),
+      0 0 75px rgba(147, 51, 234, 0.3);
+    transform: translateY(-2px);
+  }
+}
+
+@utility btn-modern {
+  /* Modern button base */
+  @apply relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  border: 1px solid oklch(var(--yuumi-purple) / 0.3);
+
+  &::before {
+    content: '';
+    @apply absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent;
+    transform: translateX(-100%);
+    transition: transform 0.5s;
+  }
+
+  &:hover::before {
+    transform: translateX(100%);
+  }
+}
+
+@utility card-hover {
+  /* Card hover effect */
+  @apply transition-all duration-300 hover:-translate-y-1;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow:
+      0 20px 25px -5px rgba(147, 51, 234, 0.3),
+      0 10px 10px -5px rgba(147, 51, 234, 0.1);
+  }
+}
+
+@utility neon {
+  /* Neon text */
+  text-shadow:
+    0 0 10px rgba(147, 51, 234, 0.8),
+    0 0 20px rgba(147, 51, 234, 0.6),
+    0 0 40px rgba(147, 51, 234, 0.4),
+    0 0 80px rgba(147, 51, 234, 0.2);
+}
+
+@utility gradient-border {
+  /* Animated gradient border */
+  @apply relative;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+
+  &::before {
+    content: '';
+    @apply absolute inset-0 rounded-lg p-px;
+    background: linear-gradient(
+      45deg,
+      oklch(var(--primary)),
+      oklch(var(--yuumi-blue)),
+      oklch(var(--yuumi-teal)),
+      oklch(var(--primary))
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+}
+
+@utility content-glass {
+  /* Content containers with glassmorphism */
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid oklch(var(--yuumi-purple) / 0.2);
+  border-radius: var(--radius-lg);
+}
+
+@utility bg-yuumi-purple-40 {
+  /* Yuumi color utilities with transparency */
+  background-color: oklch(var(--yuumi-purple) / 0.4);
+}
+
+@utility bg-yuumi-blue-40 {
+  background-color: oklch(var(--yuumi-blue) / 0.4);
+}
+
+@utility bg-yuumi-teal-40 {
+  background-color: oklch(var(--yuumi-teal) / 0.4);
+}
+
+@utility bg-yuumi-pink-40 {
+  background-color: oklch(var(--yuumi-pink) / 0.4);
+}
+
+@utility bg-primary-40 {
+  background-color: oklch(var(--primary) / 0.4);
+}
+
+@utility shadow-yuumi-purple {
+  /* Shadow utilities */
+  box-shadow: 0 10px 40px -10px oklch(var(--yuumi-purple) / 0.4);
+}
+
+@utility shadow-yuumi-blue {
+  box-shadow: 0 10px 40px -10px oklch(var(--yuumi-blue) / 0.4);
+}
+
+@utility shadow-yuumi-teal {
+  box-shadow: 0 10px 40px -10px oklch(var(--yuumi-teal) / 0.4);
+}
+
+@utility shadow-yuumi-pink {
+  box-shadow: 0 10px 40px -10px oklch(var(--yuumi-pink) / 0.4);
+}
+
+@utility shadow-primary {
+  box-shadow: 0 10px 40px -10px oklch(var(--primary) / 0.4);
+}
+
+@utility text-landing-text-primary {
+  /* Landing text colors */
+  color: oklch(var(--landing-text-primary));
+}
+
+@utility text-landing-text-secondary {
+  color: oklch(var(--landing-text-secondary));
+}
+
+@utility border-yuumi-purple {
+  /* Border utilities */
+  border-color: oklch(var(--yuumi-purple));
+}
+
+@utility border-yuumi-purple/30 {
+  border-color: oklch(var(--yuumi-purple) / 0.3);
+}
+
+@utility border-yuumi-purple/20 {
+  border-color: oklch(var(--yuumi-purple) / 0.2);
+}
+
+@utility bg-yuumi-purple/20 {
+  /* Background utilities with opacity */
+  background-color: oklch(var(--yuumi-purple) / 0.2);
+}
+
+@utility bg-yuumi-purple/30 {
+  background-color: oklch(var(--yuumi-purple) / 0.3);
+}
+
+@utility bg-background {
+  /* Ensure all Tailwind background utilities respect transparency */
+  background-color: transparent !important;
+}
+
+@utility bg-card {
+  background-color: rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: blur(12px);
+}
+
+@utility bg-popover {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(16px);
+}
+
+@utility bg-primary {
+  background-color: oklch(var(--primary)) !important;
+}
+
+@utility bg-secondary {
+  background-color: oklch(var(--secondary)) !important;
+}
+
+@utility bg-muted {
+  background-color: oklch(var(--muted)) !important;
+}
+
+@utility bg-accent {
+  background-color: oklch(var(--accent)) !important;
+}
+
+@utility bg-destructive {
+  background-color: oklch(var(--destructive)) !important;
+}
+
+@utility text-accessible-blue {
+  /* WCAG Compliant Color Utilities */
+  color: oklch(var(--accessible-blue));
+}
+
+@utility text-accessible-green {
+  color: oklch(var(--accessible-green));
+}
+
+@utility text-accessible-red {
+  color: oklch(var(--accessible-red));
+}
+
+@utility text-accessible-yellow {
+  color: oklch(var(--accessible-yellow));
+}
+
+@utility text-accessible-orange {
+  color: oklch(var(--accessible-orange));
+}
+
+@utility text-accessible-purple {
+  color: oklch(var(--accessible-purple));
+}
+
+@utility ring-accessible-purple {
+  --tw-ring-color: oklch(var(--accessible-purple));
+}
+
+@utility ring-accessible-blue {
+  --tw-ring-color: oklch(var(--accessible-blue));
+}
+
+@utility ring-accessible-yellow {
+  --tw-ring-color: oklch(var(--accessible-yellow));
+}
+
+@utility bg-accessible-blue {
+  background-color: oklch(var(--accessible-blue));
+}
+
+@utility bg-accessible-purple {
+  background-color: oklch(var(--accessible-purple));
+}
+
+@utility bg-accessible-yellow {
+  background-color: oklch(var(--accessible-yellow));
+}
+
+@utility text-accessible-pink {
+  color: oklch(var(--accessible-pink));
+}
+
+@utility text-accessible-cyan {
+  color: oklch(var(--accessible-cyan));
+}
+
+@utility bg-accessible-blue/20 {
+  /* Background variants */
+  background-color: oklch(var(--accessible-blue) / 0.2);
+}
+
+@utility bg-accessible-green/20 {
+  background-color: oklch(var(--accessible-green) / 0.2);
+}
+
+@utility bg-accessible-red/20 {
+  background-color: oklch(var(--accessible-red) / 0.2);
+}
+
+@utility bg-accessible-yellow/20 {
+  background-color: oklch(var(--accessible-yellow) / 0.2);
+}
+
+@utility border-accessible-blue/30 {
+  /* Border variants */
+  border-color: oklch(var(--accessible-blue) / 0.3);
+}
+
+@utility border-accessible-green/30 {
+  border-color: oklch(var(--accessible-green) / 0.3);
+}
+
+@utility border-accessible-red/30 {
+  border-color: oklch(var(--accessible-red) / 0.3);
+}
+
+@utility text-high-contrast-blue {
+  /* High contrast variants for AAA compliance */
+  color: oklch(var(--high-contrast-blue));
+}
+
+@utility text-high-contrast-green {
+  color: oklch(var(--high-contrast-green));
+}
+
+@utility text-high-contrast-red {
+  color: oklch(var(--high-contrast-red));
+}
+
+@utility text-high-contrast-yellow {
+  color: oklch(var(--high-contrast-yellow));
+}
+
+@utility focus-visible-enhanced {
+  /* Enhanced Focus Indicators for Accessibility */
+  @apply focus-visible:ring-accessible-blue focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+}
+
+@utility focus-card {
+  @apply focus-visible:ring-accessible-purple transition-all duration-200 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+}
+
+@utility focus-button {
+  @apply focus-visible:ring-accessible-yellow focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+}
+
+@utility skip-nav {
+  /* Skip Navigation Link */
+  @apply bg-accessible-blue absolute left-4 top-4 z-50 rounded-md px-4 py-2 font-medium text-black;
+  transform: translateY(-100px);
+  transition: transform 0.3s;
+
+  &:focus {
+    transform: translateY(0);
+  }
+
+  /* Reduced Motion Support */
+}
+
+@utility animate-float {
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+  /* Animation keyframes */
+
+  /* Animation classes */
+  animation: float 4s ease-in-out infinite;
+}
+
+@utility animate-pulse-glow {
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@utility animate-shimmer {
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+  animation: shimmer 3s linear infinite;
+}
+
+@utility animate-gradient {
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+  background-size: 200% 200%;
+  animation: gradient-shift 6s ease infinite;
+}
+
+@utility animate-subtle-pulse {
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+  animation: subtle-pulse 4s ease-in-out infinite;
+}
+
+@utility animate-subtle-float {
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+  animation: subtle-float 6s ease-in-out infinite;
+}
+
+@utility animate-twinkle {
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+  animation: twinkle 5s ease-in-out infinite;
+}
+
+@utility animate-sparkle {
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+  animation: sparkle 8s ease-in-out infinite;
+}
+
+@utility animate-aurora {
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+  animation: aurora 30s ease-in-out infinite;
+}
+
+@utility animate-magical-orb {
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+  animation: magical-orb 15s ease-in-out infinite;
+}
+
+@utility transition-all {
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility transition-colors {
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility transition-transform {
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility delay-100 {
+  /* Delay utilities for staggered animations */
+  animation-delay: 100ms;
+}
+
+@utility delay-200 {
+  animation-delay: 200ms;
+}
+
+@utility delay-300 {
+  animation-delay: 300ms;
+}
+
+@utility delay-500 {
+  animation-delay: 500ms;
+}
+
+@utility delay-700 {
+  animation-delay: 700ms;
+}
+
+@utility delay-1000 {
+  animation-delay: 1000ms;
+}
+
+@utility delay-1200 {
+  animation-delay: 1200ms;
+}
+
+@utility delay-1500 {
+  animation-delay: 1500ms;
+}
+
+@utility delay-2000 {
+  animation-delay: 2000ms;
+}
+
+@utility delay-2500 {
+  animation-delay: 2500ms;
+}
+
+@utility delay-3000 {
+  animation-delay: 3000ms;
+}
 
 @layer base {
   /* CSS Variables for Magical Dark Theme */
@@ -160,440 +805,7 @@
   }
 }
 
-@layer components {
-  /* Glass morphism effects - updated for better visibility */
-  .glass {
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid oklch(var(--yuumi-purple) / 0.2);
-  }
-
-  .glass-card {
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid oklch(var(--yuumi-purple) / 0.2);
-    box-shadow: 0 8px 32px 0 rgba(147, 51, 234, 0.1);
-  }
-
-  /* Magical gradient background - the main background for all pages */
-  .magical-bg {
-    position: fixed;
-    inset: 0;
-    z-index: -10;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      135deg,
-      oklch(var(--landing-bg-from)),
-      oklch(var(--landing-bg-via)),
-      oklch(var(--landing-bg-to))
-    );
-    /* Fallback for browsers that don't support OKLCH */
-    background: linear-gradient(135deg, #0f0f23, #0a0a1e, #0f0f23);
-  }
-
-  /* Radial gradient overlays for depth */
-  .magical-radial-1 {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(
-      circle at 20% 80%,
-      rgba(147, 51, 234, 0.3) 0%,
-      transparent 50%
-    );
-  }
-
-  .magical-radial-2 {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(
-      circle at 80% 20%,
-      rgba(59, 130, 246, 0.3) 0%,
-      transparent 50%
-    );
-  }
-
-  .magical-radial-3 {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(
-      circle at 40% 40%,
-      rgba(139, 69, 234, 0.2) 0%,
-      transparent 50%
-    );
-  }
-
-  /* Gradient text */
-  .gradient-text {
-    background: linear-gradient(
-      to right,
-      oklch(var(--primary)),
-      oklch(var(--yuumi-blue)),
-      oklch(var(--yuumi-teal))
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  /* Glow effects */
-  .glow {
-    box-shadow:
-      0 0 20px rgba(147, 51, 234, 0.4),
-      0 0 40px rgba(147, 51, 234, 0.3),
-      0 0 60px rgba(147, 51, 234, 0.2);
-  }
-
-  .glow-hover {
-    @apply transition-all duration-300;
-  }
-
-  .glow-hover:hover {
-    box-shadow:
-      0 0 25px rgba(147, 51, 234, 0.5),
-      0 0 50px rgba(147, 51, 234, 0.4),
-      0 0 75px rgba(147, 51, 234, 0.3);
-    transform: translateY(-2px);
-  }
-
-  /* Modern button base */
-  .btn-modern {
-    @apply relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5;
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(8px);
-    border: 1px solid oklch(var(--yuumi-purple) / 0.3);
-  }
-
-  .btn-modern::before {
-    content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent;
-    transform: translateX(-100%);
-    transition: transform 0.5s;
-  }
-
-  .btn-modern:hover::before {
-    transform: translateX(100%);
-  }
-
-  /* Card hover effect */
-  .card-hover {
-    @apply transition-all duration-300 hover:-translate-y-1;
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(12px);
-  }
-
-  .card-hover:hover {
-    background: rgba(0, 0, 0, 0.3);
-    box-shadow:
-      0 20px 25px -5px rgba(147, 51, 234, 0.3),
-      0 10px 10px -5px rgba(147, 51, 234, 0.1);
-  }
-
-  /* Neon text */
-  .neon {
-    text-shadow:
-      0 0 10px rgba(147, 51, 234, 0.8),
-      0 0 20px rgba(147, 51, 234, 0.6),
-      0 0 40px rgba(147, 51, 234, 0.4),
-      0 0 80px rgba(147, 51, 234, 0.2);
-  }
-
-  /* Animated gradient border */
-  .gradient-border {
-    @apply relative;
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(12px);
-  }
-
-  .gradient-border::before {
-    content: '';
-    @apply absolute inset-0 rounded-lg p-[1px];
-    background: linear-gradient(
-      45deg,
-      oklch(var(--primary)),
-      oklch(var(--yuumi-blue)),
-      oklch(var(--yuumi-teal)),
-      oklch(var(--primary))
-    );
-    -webkit-mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-  }
-
-  /* Content containers with glassmorphism */
-  .content-glass {
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid oklch(var(--yuumi-purple) / 0.2);
-    border-radius: var(--radius-lg);
-  }
-
-  /* Yuumi color utilities with transparency */
-  .bg-yuumi-purple-40 {
-    background-color: oklch(var(--yuumi-purple) / 0.4);
-  }
-
-  .bg-yuumi-blue-40 {
-    background-color: oklch(var(--yuumi-blue) / 0.4);
-  }
-
-  .bg-yuumi-teal-40 {
-    background-color: oklch(var(--yuumi-teal) / 0.4);
-  }
-
-  .bg-yuumi-pink-40 {
-    background-color: oklch(var(--yuumi-pink) / 0.4);
-  }
-
-  .bg-primary-40 {
-    background-color: oklch(var(--primary) / 0.4);
-  }
-
-  /* Shadow utilities */
-  .shadow-yuumi-purple {
-    box-shadow: 0 10px 40px -10px oklch(var(--yuumi-purple) / 0.4);
-  }
-
-  .shadow-yuumi-blue {
-    box-shadow: 0 10px 40px -10px oklch(var(--yuumi-blue) / 0.4);
-  }
-
-  .shadow-yuumi-teal {
-    box-shadow: 0 10px 40px -10px oklch(var(--yuumi-teal) / 0.4);
-  }
-
-  .shadow-yuumi-pink {
-    box-shadow: 0 10px 40px -10px oklch(var(--yuumi-pink) / 0.4);
-  }
-
-  .shadow-primary {
-    box-shadow: 0 10px 40px -10px oklch(var(--primary) / 0.4);
-  }
-
-  /* Landing text colors */
-  .text-landing-text-primary {
-    color: oklch(var(--landing-text-primary));
-  }
-
-  .text-landing-text-secondary {
-    color: oklch(var(--landing-text-secondary));
-  }
-
-  /* Border utilities */
-  .border-yuumi-purple {
-    border-color: oklch(var(--yuumi-purple));
-  }
-
-  .border-yuumi-purple\/30 {
-    border-color: oklch(var(--yuumi-purple) / 0.3);
-  }
-
-  .border-yuumi-purple\/20 {
-    border-color: oklch(var(--yuumi-purple) / 0.2);
-  }
-
-  /* Background utilities with opacity */
-  .bg-yuumi-purple\/20 {
-    background-color: oklch(var(--yuumi-purple) / 0.2);
-  }
-
-  .bg-yuumi-purple\/30 {
-    background-color: oklch(var(--yuumi-purple) / 0.3);
-  }
-
-  /* Ensure all Tailwind background utilities respect transparency */
-  .bg-background {
-    background-color: transparent !important;
-  }
-
-  .bg-card {
-    background-color: rgba(0, 0, 0, 0.2) !important;
-    backdrop-filter: blur(12px);
-  }
-
-  .bg-popover {
-    background-color: rgba(0, 0, 0, 0.3) !important;
-    backdrop-filter: blur(16px);
-  }
-
-  .bg-primary {
-    background-color: oklch(var(--primary)) !important;
-  }
-
-  .bg-secondary {
-    background-color: oklch(var(--secondary)) !important;
-  }
-
-  .bg-muted {
-    background-color: oklch(var(--muted)) !important;
-  }
-
-  .bg-accent {
-    background-color: oklch(var(--accent)) !important;
-  }
-
-  .bg-destructive {
-    background-color: oklch(var(--destructive)) !important;
-  }
-
-  /* WCAG Compliant Color Utilities */
-  .text-accessible-blue {
-    color: oklch(var(--accessible-blue));
-  }
-
-  .text-accessible-green {
-    color: oklch(var(--accessible-green));
-  }
-
-  .text-accessible-red {
-    color: oklch(var(--accessible-red));
-  }
-
-  .text-accessible-yellow {
-    color: oklch(var(--accessible-yellow));
-  }
-
-  .text-accessible-orange {
-    color: oklch(var(--accessible-orange));
-  }
-
-  .text-accessible-purple {
-    color: oklch(var(--accessible-purple));
-  }
-
-  .ring-accessible-purple {
-    --tw-ring-color: oklch(var(--accessible-purple));
-  }
-
-  .ring-accessible-blue {
-    --tw-ring-color: oklch(var(--accessible-blue));
-  }
-
-  .ring-accessible-yellow {
-    --tw-ring-color: oklch(var(--accessible-yellow));
-  }
-
-  .bg-accessible-blue {
-    background-color: oklch(var(--accessible-blue));
-  }
-
-  .bg-accessible-purple {
-    background-color: oklch(var(--accessible-purple));
-  }
-
-  .bg-accessible-yellow {
-    background-color: oklch(var(--accessible-yellow));
-  }
-
-  .text-accessible-pink {
-    color: oklch(var(--accessible-pink));
-  }
-
-  .text-accessible-cyan {
-    color: oklch(var(--accessible-cyan));
-  }
-
-  /* Background variants */
-  .bg-accessible-blue\/20 {
-    background-color: oklch(var(--accessible-blue) / 0.2);
-  }
-
-  .bg-accessible-green\/20 {
-    background-color: oklch(var(--accessible-green) / 0.2);
-  }
-
-  .bg-accessible-red\/20 {
-    background-color: oklch(var(--accessible-red) / 0.2);
-  }
-
-  .bg-accessible-yellow\/20 {
-    background-color: oklch(var(--accessible-yellow) / 0.2);
-  }
-
-  /* Border variants */
-  .border-accessible-blue\/30 {
-    border-color: oklch(var(--accessible-blue) / 0.3);
-  }
-
-  .border-accessible-green\/30 {
-    border-color: oklch(var(--accessible-green) / 0.3);
-  }
-
-  .border-accessible-red\/30 {
-    border-color: oklch(var(--accessible-red) / 0.3);
-  }
-
-  /* High contrast variants for AAA compliance */
-  .text-high-contrast-blue {
-    color: oklch(var(--high-contrast-blue));
-  }
-
-  .text-high-contrast-green {
-    color: oklch(var(--high-contrast-green));
-  }
-
-  .text-high-contrast-red {
-    color: oklch(var(--high-contrast-red));
-  }
-
-  .text-high-contrast-yellow {
-    color: oklch(var(--high-contrast-yellow));
-  }
-
-  /* Enhanced Focus Indicators for Accessibility */
-  .focus-visible-enhanced {
-    @apply focus-visible:ring-accessible-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
-  }
-
-  .focus-card {
-    @apply focus-visible:ring-accessible-purple transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
-  }
-
-  .focus-button {
-    @apply focus-visible:ring-accessible-yellow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
-  }
-
-  /* Skip Navigation Link */
-  .skip-nav {
-    @apply bg-accessible-blue absolute left-4 top-4 z-50 rounded-md px-4 py-2 font-medium text-black;
-    transform: translateY(-100px);
-    transition: transform 0.3s;
-  }
-
-  .skip-nav:focus {
-    transform: translateY(0);
-  }
-
-  /* Reduced Motion Support */
-  @media (prefers-reduced-motion: reduce) {
-    .animate-float,
-    .animate-pulse-glow,
-    .animate-shimmer,
-    .animate-gradient,
-    .animate-subtle-pulse,
-    .animate-subtle-float,
-    .animate-twinkle,
-    .animate-sparkle,
-    .animate-aurora,
-    .animate-magical-orb {
-      animation: none;
-    }
-
-    .transition-all,
-    .transition-colors,
-    .transition-transform {
-      transition: none;
-    }
-  }
-}
-
 @layer utilities {
-  /* Animation keyframes */
   @keyframes float {
     0%,
     100% {
@@ -766,83 +978,6 @@
       transform: translate(20px, -50px) scale(1.1);
       opacity: 0.7;
     }
-  }
-
-  /* Animation classes */
-  .animate-float {
-    animation: float 4s ease-in-out infinite;
-  }
-
-  .animate-pulse-glow {
-    animation: pulse-glow 3s ease-in-out infinite;
-  }
-
-  .animate-shimmer {
-    animation: shimmer 3s linear infinite;
-  }
-
-  .animate-gradient {
-    background-size: 200% 200%;
-    animation: gradient-shift 6s ease infinite;
-  }
-
-  .animate-subtle-pulse {
-    animation: subtle-pulse 4s ease-in-out infinite;
-  }
-
-  .animate-subtle-float {
-    animation: subtle-float 6s ease-in-out infinite;
-  }
-
-  .animate-twinkle {
-    animation: twinkle 5s ease-in-out infinite;
-  }
-
-  .animate-sparkle {
-    animation: sparkle 8s ease-in-out infinite;
-  }
-
-  .animate-aurora {
-    animation: aurora 30s ease-in-out infinite;
-  }
-
-  .animate-magical-orb {
-    animation: magical-orb 15s ease-in-out infinite;
-  }
-
-  /* Delay utilities for staggered animations */
-  .delay-100 {
-    animation-delay: 100ms;
-  }
-  .delay-200 {
-    animation-delay: 200ms;
-  }
-  .delay-300 {
-    animation-delay: 300ms;
-  }
-  .delay-500 {
-    animation-delay: 500ms;
-  }
-  .delay-700 {
-    animation-delay: 700ms;
-  }
-  .delay-1000 {
-    animation-delay: 1000ms;
-  }
-  .delay-1200 {
-    animation-delay: 1200ms;
-  }
-  .delay-1500 {
-    animation-delay: 1500ms;
-  }
-  .delay-2000 {
-    animation-delay: 2000ms;
-  }
-  .delay-2500 {
-    animation-delay: 2500ms;
-  }
-  .delay-3000 {
-    animation-delay: 3000ms;
   }
 }
 

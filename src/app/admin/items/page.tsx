@@ -83,7 +83,7 @@ export default function ItemsEditorPage() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
         <Loader2 className="h-8 w-8 animate-spin text-yuumi-purple" />
       </div>
     );
@@ -147,7 +147,7 @@ export default function ItemsEditorPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
+    <div className="min-h-screen bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
       <div className="container mx-auto max-w-7xl px-6 py-8 duration-500 animate-in fade-in slide-in-from-bottom-4">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
@@ -159,7 +159,7 @@ export default function ItemsEditorPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
             </Link>
-            <h1 className="bg-gradient-to-r from-white via-yuumi-purple to-yuumi-blue bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+            <h1 className="bg-linear-to-r from-white via-yuumi-purple to-yuumi-blue bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
               Items Editor
             </h1>
             <p className="mt-1 text-white/60">
@@ -170,7 +170,7 @@ export default function ItemsEditorPage() {
             <DialogTrigger asChild>
               <Button
                 onClick={handleAddNew}
-                className="bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
+                className="bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Item
@@ -284,7 +284,7 @@ export default function ItemsEditorPage() {
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
+                    className="bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
                   >
                     Save Item
                   </Button>
@@ -297,7 +297,7 @@ export default function ItemsEditorPage() {
         {/* Convex Connection Notice */}
         <Card className="mb-6 border-yellow-500/30 bg-yellow-500/10 backdrop-blur-md">
           <CardContent className="flex items-start gap-3 p-4">
-            <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-400" />
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-400" />
             <div>
               <h4 className="font-medium text-yellow-200">Connect Convex</h4>
               <p className="mt-1 text-sm text-yellow-200/80">

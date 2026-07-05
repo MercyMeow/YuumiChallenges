@@ -372,7 +372,7 @@ export function EnhancedMatchHistoryDisplay({
           <>
             {/* Enhanced Statistics Overview */}
             <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-              <div className="rounded-lg border border-blue-500/20 bg-gradient-to-br from-blue-500/10 to-blue-600/5 p-4 text-center">
+              <div className="rounded-lg border border-blue-500/20 bg-linear-to-br from-blue-500/10 to-blue-600/5 p-4 text-center">
                 <div className="mb-2 flex items-center justify-center">
                   <BarChart3 className="mr-2 h-5 w-5 text-blue-400" />
                   <span className="text-2xl font-bold text-blue-400">
@@ -385,7 +385,7 @@ export function EnhancedMatchHistoryDisplay({
                 </p>
               </div>
 
-              <div className="rounded-lg border border-green-500/20 bg-gradient-to-br from-green-500/10 to-green-600/5 p-4 text-center">
+              <div className="rounded-lg border border-green-500/20 bg-linear-to-br from-green-500/10 to-green-600/5 p-4 text-center">
                 <div className="mb-2 flex items-center justify-center">
                   <TrendingUp className="mr-2 h-5 w-5 text-green-400" />
                   <span className="text-2xl font-bold text-green-400">
@@ -398,7 +398,7 @@ export function EnhancedMatchHistoryDisplay({
                 </p>
               </div>
 
-              <div className="rounded-lg border border-yellow-500/20 bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 p-4 text-center">
+              <div className="rounded-lg border border-yellow-500/20 bg-linear-to-br from-yellow-500/10 to-yellow-600/5 p-4 text-center">
                 <div className="mb-2 flex items-center justify-center">
                   <Target className="mr-2 h-5 w-5 text-yellow-400" />
                   <span className="text-2xl font-bold text-yellow-400">
@@ -411,7 +411,7 @@ export function EnhancedMatchHistoryDisplay({
                 </p>
               </div>
 
-              <div className="rounded-lg border border-purple-500/20 bg-gradient-to-br from-purple-500/10 to-purple-600/5 p-4 text-center">
+              <div className="rounded-lg border border-purple-500/20 bg-linear-to-br from-purple-500/10 to-purple-600/5 p-4 text-center">
                 <div className="mb-2 flex items-center justify-center">
                   <Trophy className="mr-2 h-5 w-5 text-purple-400" />
                   <Badge
@@ -424,7 +424,7 @@ export function EnhancedMatchHistoryDisplay({
                 <p className="text-sm text-white/60">Current Streak</p>
               </div>
 
-              <div className="rounded-lg border border-pink-500/20 bg-gradient-to-br from-pink-500/10 to-pink-600/5 p-4 text-center">
+              <div className="rounded-lg border border-pink-500/20 bg-linear-to-br from-pink-500/10 to-pink-600/5 p-4 text-center">
                 <div className="mb-2 flex items-center justify-center">
                   <Zap className="mr-2 h-5 w-5 text-pink-400" />
                   <span className="text-2xl font-bold text-pink-400">

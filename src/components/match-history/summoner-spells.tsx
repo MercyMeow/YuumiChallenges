@@ -127,7 +127,7 @@ export function SummonerSpell({
       </TooltipTrigger>
       <TooltipContent className="max-w-96 border-purple-500/30 bg-black/85 p-4 shadow-lg shadow-purple-500/20 backdrop-blur-md">
         <div className="flex items-start gap-3">
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <Image
               src={imageUrl}
               alt={spell.name}

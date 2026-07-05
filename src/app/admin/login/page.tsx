@@ -21,7 +21,7 @@ export default function AdminLoginPage() {
   // Redirect if already authenticated
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
         <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
       </div>
     );
@@ -48,15 +48,15 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to p-4">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to p-4">
       <div className="relative w-full max-w-md duration-500 animate-in fade-in slide-in-from-bottom-4">
-        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-yuumi-purple/40 to-yuumi-blue/40 opacity-40 blur" />
+        <div className="absolute -inset-0.5 rounded-2xl bg-linear-to-r from-yuumi-purple/40 to-yuumi-blue/40 opacity-40 blur-sm" />
         <Card className="relative w-full border-white/10 bg-black/40 backdrop-blur-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-purple-500/20">
               <Lock className="h-8 w-8 text-purple-400" />
             </div>
-            <CardTitle className="bg-gradient-to-r from-white via-yuumi-purple to-yuumi-blue bg-clip-text text-2xl font-extrabold tracking-tight text-transparent">
+            <CardTitle className="bg-linear-to-r from-white via-yuumi-purple to-yuumi-blue bg-clip-text text-2xl font-extrabold tracking-tight text-transparent">
               Admin Login
             </CardTitle>
             <p className="text-sm text-white/60">
@@ -114,7 +114,7 @@ export default function AdminLoginPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
+                className="w-full bg-linear-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
                 disabled={isLoading}
               >
                 {isLoading ? (

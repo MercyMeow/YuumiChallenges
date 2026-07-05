@@ -111,7 +111,7 @@ const ChallengeStatCard = ({
   <div
     className={`flex flex-col gap-2 rounded-xl border border-white/10 px-4 py-3 ${
       highlight
-        ? 'bg-gradient-to-br from-purple-500/25 via-purple-500/10 to-transparent'
+        ? 'bg-linear-to-br from-purple-500/25 via-purple-500/10 to-transparent'
         : 'bg-black/25'
     }`}
   >

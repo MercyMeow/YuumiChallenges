@@ -85,8 +85,8 @@ export function MatchCard({
     // Enhanced highlighting for current user
     return {
       containerClass: isBlueTeam
-        ? 'bg-gradient-to-r from-blue-500/20 to-blue-400/10 rounded-md px-1 py-0.5 border border-blue-400/40'
-        : 'bg-gradient-to-r from-red-500/20 to-red-400/10 rounded-md px-1 py-0.5 border border-red-400/40',
+        ? 'bg-linear-to-r from-blue-500/20 to-blue-400/10 rounded-md px-1 py-0.5 border border-blue-400/40'
+        : 'bg-linear-to-r from-red-500/20 to-red-400/10 rounded-md px-1 py-0.5 border border-red-400/40',
       iconClass: isBlueTeam
         ? 'border-2 border-blue-400 rounded shadow-lg shadow-blue-500/30'
         : 'border-2 border-red-400 rounded shadow-lg shadow-red-500/30',
@@ -142,7 +142,7 @@ export function MatchCard({
 
   return (
     <Card
-      className={`focus-card relative bg-gradient-to-br from-purple-500/5 to-purple-600/5 backdrop-blur-md transition-all duration-200 hover:bg-white/5 ${
+      className={`focus-card relative bg-linear-to-br from-purple-500/5 to-purple-600/5 backdrop-blur-md transition-all duration-200 hover:bg-white/5 ${
         match.win
           ? 'border-l-accessible-green border-accessible-green/30 border-b border-l-4 border-r border-t'
           : 'border-l-accessible-red border-accessible-red/30 border-b border-l-4 border-r border-t'
@@ -183,7 +183,7 @@ export function MatchCard({
         variant="outline"
         size="sm"
         onClick={() => window.open(`/match/${match.match_id}`, '_blank')}
-        className="absolute left-72 top-3 z-10 border-white/20 px-2 py-0.5 text-xs text-white/60 backdrop-blur-sm hover:bg-white/10 hover:text-white"
+        className="absolute left-72 top-3 z-10 border-white/20 px-2 py-0.5 text-xs text-white/60 backdrop-blur-xs hover:bg-white/10 hover:text-white"
       >
         <ExternalLink className="h-2.5 w-2.5" />
       </Button>
@@ -192,17 +192,17 @@ export function MatchCard({
         <div className="grid grid-cols-12 items-start gap-4">
           {/* Champion and level - col-span-2 */}
           <div className="col-span-2 -mt-2 flex items-start gap-4">
-            <div className="relative flex-shrink-0">
+            <div className="relative shrink-0">
               <ChampionIcon championId={match.champion} size="xl" />
 
               {/* Champion name badge overlay on top of champion */}
-              <div className="absolute -top-1 left-1/2 z-10 -translate-x-1/2 transform rounded-full border border-blue-400/50 bg-gradient-to-br from-blue-500 to-indigo-600 px-2 py-0.5 text-xs font-bold text-white shadow-lg shadow-blue-500/25 backdrop-blur-sm">
+              <div className="absolute -top-1 left-1/2 z-10 -translate-x-1/2 transform rounded-full border border-blue-400/50 bg-linear-to-br from-blue-500 to-indigo-600 px-2 py-0.5 text-xs font-bold text-white shadow-lg shadow-blue-500/25 backdrop-blur-xs">
                 {match.champion}
               </div>
 
               {/* Level badge overlay on champion */}
               {match.champion_level && (
-                <div className="absolute -bottom-1 left-1/2 z-10 -translate-x-1/2 transform rounded-full border border-purple-400/50 bg-gradient-to-br from-purple-500 to-pink-500 px-2 py-0.5 text-xs font-bold text-white shadow-lg shadow-purple-500/25 backdrop-blur-sm">
+                <div className="absolute -bottom-1 left-1/2 z-10 -translate-x-1/2 transform rounded-full border border-purple-400/50 bg-linear-to-br from-purple-500 to-pink-500 px-2 py-0.5 text-xs font-bold text-white shadow-lg shadow-purple-500/25 backdrop-blur-xs">
                   {match.champion_level}
                 </div>
               )}
@@ -329,7 +329,7 @@ export function MatchCard({
                       <ChampionIcon
                         championId={participant.championName}
                         size="xs"
-                        className={`${highlightStyles.iconClass} flex-shrink-0`}
+                        className={`${highlightStyles.iconClass} shrink-0`}
                       />
                       <span
                         className={`max-w-16 truncate text-[10px] ${highlightStyles.textClass}`}
@@ -359,7 +359,7 @@ export function MatchCard({
                       <ChampionIcon
                         championId={participant.championName}
                         size="xs"
-                        className={`${highlightStyles.iconClass} flex-shrink-0`}
+                        className={`${highlightStyles.iconClass} shrink-0`}
                       />
                       <span
                         className={`max-w-16 truncate text-[10px] ${highlightStyles.textClass}`}

@@ -93,7 +93,7 @@ export default function MatchDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
+      <div className="min-h-screen bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-12 w-12 animate-spin text-white/60" />
@@ -108,7 +108,7 @@ export default function MatchDetailsPage() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
+      <div className="min-h-screen bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center py-12">
             <AlertCircle className="mr-4 h-12 w-12 text-red-400" />
@@ -137,7 +137,7 @@ export default function MatchDetailsPage() {
   const { blueTeam, redTeam, blueTeamData, redTeamData } = teams;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
+    <div className="min-h-screen bg-linear-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
       {/* Animated particles */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-1/4 top-1/4 h-2 w-2 animate-pulse rounded-full bg-purple-400 opacity-60"></div>

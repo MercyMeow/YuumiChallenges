@@ -111,7 +111,7 @@ export function TimelineTab({
                         className="ml-2 border-l-2 border-white/20 pl-4"
                       >
                         <div className="mb-2 flex items-center gap-2">
-                          <div className="-ml-[1.25rem] h-2 w-2 rounded-full bg-white"></div>
+                          <div className="-ml-5 h-2 w-2 rounded-full bg-white"></div>
                           <Badge variant="outline" className="text-white/60">
                             {formattedTime}
                           </Badge>
