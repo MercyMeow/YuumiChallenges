@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -267,9 +267,28 @@ export default function YuumiGuide() {
   const [selectedSupport, setSelectedSupport] = useState<string>('');
   const [selectedADC, setSelectedADC] = useState<string>('');
   const [matchupType, setMatchupType] = useState<'enemy' | 'ally'>('enemy');
+  const [livePatch, setLivePatch] = useState<string | null>(null);
+
+  // Follow the live patch from Data Dragon; PATCH stays as the patch the
+  // build data was last verified against.
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/data-dragon/version')
+      .then((res) => res.json())
+      .then((data: { version?: string }) => {
+        if (cancelled || typeof data.version !== 'string') return;
+        const [major, minor] = data.version.split('.');
+        if (major && minor) setLivePatch(`${major}.${minor}`);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const currentBuild = BUILDS.find((b) => b.id === selectedBuild) ?? BUILDS[0];
-  const currentPatch = PATCH;
+  const currentPatch = livePatch ?? PATCH;
+  const buildDataOutdated = livePatch !== null && livePatch !== PATCH;
 
   const supportMatchup = isSupportMatchupKey(selectedSupport)
     ? SUPPORT_MATCHUPS[selectedSupport]
@@ -502,13 +521,22 @@ export default function YuumiGuide() {
               </p>
             </div>
           </div>
-          <div className="flex items-center justify-center gap-4 text-white/70">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-white/70">
             <Badge
               variant="outline"
               className="border-purple-400/40 text-purple-300"
             >
               Patch {currentPatch}
             </Badge>
+            {buildDataOutdated && (
+              <Badge
+                variant="outline"
+                className="border-yellow-400/40 text-yellow-300"
+                title={`Builds were last verified on patch ${PATCH}; the meta rarely shifts for Yuumi between patches.`}
+              >
+                Builds verified on {PATCH}
+              </Badge>
+            )}
             <Badge
               variant="outline"
               className="border-blue-400/40 text-blue-300"

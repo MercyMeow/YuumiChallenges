@@ -3,6 +3,8 @@ import './globals.css';
 import { ClientProviders } from '@/providers/ClientProviders';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { yuumiDiscordEmbed } from '@/lib/embeds/yuumi';
+import { buildShareDescription } from '@/lib/builds/embed-summary';
+import { getLiveDdragonVersion, toGuidePatch } from '@/lib/utils/live-patch';
 import { MythicShopResetBanner } from '@/components/mythic-shop/MythicShopResetBanner';
 
 const siteUrlFromEnv =
@@ -10,61 +12,56 @@ const siteUrlFromEnv =
   'http://localhost:3000';
 
 const primaryEmbed = yuumiDiscordEmbed.embeds[0];
-const shareTitle = primaryEmbed?.title ?? 'Yuumi Match Viewer';
-const shareDescription =
-  primaryEmbed?.description ??
-  'Timeline-aware Yuumi match analysis with runes, item spikes, objectives, and combat breakdowns.';
 const embedColorHex = primaryEmbed?.color
   ? `#${primaryEmbed.color.toString(16).padStart(6, '0')}`
   : '#7ac4ff';
-const shareImages: string[] = [
-  primaryEmbed?.image?.url,
-  primaryEmbed?.thumbnail?.url,
-].flatMap((url) => (url ? [url] : []));
-const openGraphImages = shareImages.map((url, index) => ({
-  url,
-  width: index === 0 ? 1280 : 256,
-  height: index === 0 ? 720 : 256,
-  alt: index === 0 ? `${shareTitle} splash art` : `${shareTitle} emblem`,
-}));
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrlFromEnv),
-  title: shareTitle,
-  description: shareDescription,
-  keywords: [
-    'League of Legends',
-    'Yuumi',
-    'Match Viewer',
-    'Match Analysis',
-    'Timeline',
-    'Riot API',
-  ],
-  authors: [{ name: 'Yuumi Mains Community' }],
-  alternates: {
-    canonical: '/',
-  },
-  openGraph: {
+// Share title/description follow the current patch and recommended build.
+// The og:image comes from src/app/opengraph-image.tsx (file convention),
+// which renders runes, core items, and skill order from the same data.
+export async function generateMetadata(): Promise<Metadata> {
+  const patch = toGuidePatch(await getLiveDdragonVersion());
+  const shareTitle = `Yuumi Guide · Patch ${patch}`;
+  const shareDescription = buildShareDescription(patch);
+
+  return {
+    metadataBase: new URL(siteUrlFromEnv),
     title: shareTitle,
     description: shareDescription,
-    url: '/',
-    siteName: 'Yuumi Challenges',
-    type: 'website',
-    locale: 'en_US',
-    images: openGraphImages.length ? openGraphImages : undefined,
-  },
-  twitter: {
-    card: shareImages.length ? 'summary_large_image' : 'summary',
-    title: shareTitle,
-    description: shareDescription,
-    images: shareImages.length ? [shareImages[0]!] : undefined,
-  },
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/favicon.ico',
-  },
-};
+    keywords: [
+      'League of Legends',
+      'Yuumi',
+      'Yuumi Build',
+      'Yuumi Runes',
+      'Match Viewer',
+      'Match Analysis',
+      'Timeline',
+      'Riot API',
+    ],
+    authors: [{ name: 'Yuumi Mains Community' }],
+    alternates: {
+      canonical: '/',
+    },
+    openGraph: {
+      title: shareTitle,
+      description: shareDescription,
+      url: '/',
+      siteName: 'Yuumi Challenges',
+      type: 'website',
+      locale: 'en_US',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: shareTitle,
+      description: shareDescription,
+    },
+    icons: {
+      icon: '/favicon.ico',
+      shortcut: '/favicon.ico',
+      apple: '/favicon.ico',
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: embedColorHex,
