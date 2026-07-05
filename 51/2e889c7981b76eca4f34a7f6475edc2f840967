@@ -1,0 +1,40 @@
+src/app/admin/mythic-shop/page.tsx
+  s_7e86a87772aad7::t_2fcb88c4e6a2ed 1-198,202-284
+  s_7e86a87772aad7::t_5fa02c918df7e6 199-201
+src/components/mythic-shop/MythicShopResetBanner.tsx
+  s_7e86a87772aad7::t_2e155c28bf8b32 62
+  s_7e86a87772aad7::t_9367d3a79ae5bf 99-100,103-105
+  s_7e86a87772aad7::t_5fa02c918df7e6 89
+  s_7e86a87772aad7::t_606c9c4f18bbaf 4-5
+src/lib/mythic-shop/rotation.ts
+  s_7e86a87772aad7::t_3f1354a6b951a4 1-79
+src/app/mythic-shop/page.tsx
+  s_7e86a87772aad7::t_907b6f69535f6d 162-164
+  s_7e86a87772aad7::t_5fa02c918df7e6 80,170-173
+  s_7e86a87772aad7::t_20be88eac7041d 1-79,81-161,165-169,174-204
+src/app/match/page.tsx
+  s_7e86a87772aad7::t_6ab4c816ae4632 95,100
+src/app/admin/page.tsx
+  s_7e86a87772aad7::t_34fcca0316121d 87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "512e889c7981b76eca4f34a7f6475edc2f840967",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_7e86a87772aad7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6bc66787-22e6-4f67-9489-ed5601fe7f02",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
