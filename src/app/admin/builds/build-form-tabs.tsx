@@ -57,8 +57,7 @@ function canAssignSkill(levels: string[], index: number, skill: string): boolean
 }
 
 /** Shared hextech styling for form controls in the editor. */
-const FIELD_CLASS =
-  'rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40';
+const FIELD_CLASS = 'hex-input rounded-sm';
 
 /** Label + control stacked with the standard spacing. */
 function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -508,7 +507,7 @@ export function BuildSkillsTab({
             <div key={idx} className="text-center">
               <div className="mb-1 text-xs text-hx-gold/60">{idx + 1}</div>
               <Select value={skill} onValueChange={(v) => setLevel(idx, v)}>
-                <SelectTrigger className="h-8 w-full rounded-sm border-hx-gold-dark/60 bg-hx-black/60 px-1 text-xs text-hx-parchment">
+                <SelectTrigger className="hex-input h-8 w-full rounded-sm px-1 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

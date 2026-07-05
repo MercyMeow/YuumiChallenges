@@ -41,6 +41,9 @@ const YuumiChallengesTab = lazy(() =>
   }))
 );
 
+const MATCH_TAB_TRIGGER =
+  'rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright';
+
 export default function MatchDetailsPage() {
   const params = useParams();
   const matchId = params.matchId as string;
@@ -170,37 +173,37 @@ export default function MatchDetailsPage() {
           <TabsList className="hex-card grid h-auto w-full grid-cols-2 rounded-sm p-1 sm:grid-cols-3 lg:grid-cols-6">
             <TabsTrigger
               value="overview"
-              className="rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+              className={MATCH_TAB_TRIGGER}
             >
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="details"
-              className="rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+              className={MATCH_TAB_TRIGGER}
             >
               Detailed Stats
             </TabsTrigger>
             <TabsTrigger
               value="runes"
-              className="rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+              className={MATCH_TAB_TRIGGER}
             >
               Runes
             </TabsTrigger>
             <TabsTrigger
               value="timeline"
-              className="rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+              className={MATCH_TAB_TRIGGER}
             >
               Timeline
             </TabsTrigger>
             <TabsTrigger
               value="challenges"
-              className="rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+              className={MATCH_TAB_TRIGGER}
             >
               Challenges
             </TabsTrigger>
             <TabsTrigger
               value="yuumi-challenges"
-              className="rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+              className={MATCH_TAB_TRIGGER}
             >
               Yuumi Challenges
             </TabsTrigger>
