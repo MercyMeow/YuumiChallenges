@@ -92,12 +92,12 @@ export default function MatchLandingPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3">
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Select
                   value={region}
                   onValueChange={(value) => setRegion(value as RegionValue)}
                 >
-                  <SelectTrigger className="w-44 shrink-0 border-white/20 bg-white/5 text-white">
+                  <SelectTrigger className="w-full shrink-0 border-white/20 bg-white/5 text-white sm:w-44">
                     <SelectValue placeholder="Select region" />
                   </SelectTrigger>
                   <SelectContent>

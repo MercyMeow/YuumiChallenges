@@ -1,10 +1,10 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import { Clock, ExternalLink, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, Clock, Sparkles } from 'lucide-react';
 import { getNextResetForSection } from '@/lib/mythic-shop/reset-schedule';
 import type { MythicShopSectionId } from '@/lib/mythic-shop/types';
-import { MYTHIC_SHOP_TRACKER_URL } from '@/lib/utils/constants';
 
 interface SectionMeta {
   id: MythicShopSectionId;
@@ -59,7 +59,7 @@ const getServerNowMsSnapshot = () => null;
  * Site-wide top banner showing the Mythic Shop reset countdowns.
  *
  * Riot has no public shop API, so the per-section timers are computed locally
- * (see reset-schedule) and we link out for the live item list.
+ * (see reset-schedule) and the curated item list lives at /mythic-shop.
  */
 export function MythicShopResetBanner() {
   // Renders the same value on server and first client paint to avoid
@@ -86,7 +86,7 @@ export function MythicShopResetBanner() {
             return (
               <li key={section.id} className="flex items-center gap-1.5">
                 <span className="text-white/60">{section.label}</span>
-                <span className="bg-primary/10 flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-primary">
+                <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                   <Clock className="h-3 w-3" />
                   {nowMs === null
                     ? '—'
@@ -96,15 +96,13 @@ export function MythicShopResetBanner() {
             );
           })}
         </ul>
-        <a
-          href={MYTHIC_SHOP_TRACKER_URL}
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          href="/mythic-shop"
           className="flex items-center gap-1 text-xs text-white/60 transition-colors hover:text-white"
         >
-          View items
-          <ExternalLink className="h-3 w-3" />
-        </a>
+          View rotation
+          <ArrowRight className="h-3 w-3" />
+        </Link>
       </div>
     </div>
   );
