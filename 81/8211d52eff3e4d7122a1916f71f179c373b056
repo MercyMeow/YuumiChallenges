@@ -1,0 +1,39 @@
+convex/_generated/server.d.ts
+  s_7e86a87772aad7::t_74a98ec91d553e 7-9,13-16,21,26,31,36-37
+convex/scraper.ts
+  s_7e86a87772aad7::t_5387038180f615 4-5
+  s_7e86a87772aad7::t_8ad6eb38d8e08e 6-10
+  s_7e86a87772aad7::t_6d5b5ea5f57811 14,16,19
+  s_7e86a87772aad7::t_000a42c51249be 59,166
+  s_7e86a87772aad7::t_0ec396044ebfde 60-61
+  s_7e86a87772aad7::t_12649f02ce8890 54-58,163
+  s_7e86a87772aad7::t_826ed72bf4a320 26
+  s_7e86a87772aad7::t_0599339f87c492 160-162,164-165,167-168,196,283,285-288,324,350-354,390,416-420,454,480-484,517,543-547,579,606-610
+verify_shards.ps1
+  h_b5ca98ac0212e2 1-19
+src/components/match-details/TimelineTab.tsx
+  s_7e86a87772aad7::t_bda3b37cd56142 16,25,186
+CLAUDE.md
+  s_7e86a87772aad7::t_5ffb0e5437dd5a 243,351
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "818211d52eff3e4d7122a1916f71f179c373b056",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_7e86a87772aad7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6bc66787-22e6-4f67-9489-ed5601fe7f02",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
