@@ -1,0 +1,38 @@
+src/lib/runes/yuumi.ts
+  s_7e86a87772aad7::t_205febc016148c 3,6,30,49,68,87
+  s_7e86a87772aad7::t_ff7539eea7f96e 107
+src/lib/builds/yuumi.ts
+  s_7e86a87772aad7::t_2171fe4568c306 1
+  s_7e86a87772aad7::t_4bbe4941ca1c15 17,19,24,52,60
+src/app/api/data-dragon/summoner-spells/route.ts
+  s_7e86a87772aad7::t_dea5d0cb571ae1 28,30
+src/app/api/data-dragon/version/route.ts
+  s_7e86a87772aad7::t_d50c8544b467e3 87
+src/app/page.tsx
+  s_7e86a87772aad7::t_9f656ae7e31a42 33
+src/lib/apis/datadragon.ts
+  s_7e86a87772aad7::t_4ece23ad5afd7e 160,170
+src/lib/utils/data-dragon.ts
+  s_7e86a87772aad7::t_1cebac0c0f1eb4 57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "859dd94bce0529e04575efe69bb6d28b6b963841",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_7e86a87772aad7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6bc66787-22e6-4f67-9489-ed5601fe7f02",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
