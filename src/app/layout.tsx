@@ -23,9 +23,16 @@ const sourceSans = Source_Sans_3({
   display: 'swap',
 });
 
-const siteUrlFromEnv =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ??
-  'http://localhost:3000';
+// Public origin for absolute share URLs (og:image, twitter:image, canonical).
+// Without a real origin, metadataBase falls back to localhost and Discord/
+// Twitter can't fetch the preview image. Production is yuumi.quest; localhost
+// is only used for local dev (override with NEXT_PUBLIC_SITE_URL).
+const siteUrlFromEnv = (
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.NODE_ENV === 'production'
+    ? 'https://yuumi.quest'
+    : 'http://localhost:3000')
+).replace(/\/$/, '');
 
 const primaryEmbed = yuumiDiscordEmbed.embeds[0];
 const embedColorHex = primaryEmbed?.color

@@ -204,9 +204,11 @@ const SkillOrderTable = ({ levels }: { levels: string[] }) => (
               <td key={idx} className="py-1.5 text-center">
                 {levelSkill === skill ? (
                   <div
-                    className={`mx-auto h-2 w-2 rotate-45 ${SKILL_DOT[skill]} shadow-[0_0_6px_currentColor]`}
+                    className={`mx-auto h-2.5 w-2.5 rotate-45 rounded-[1px] ${SKILL_DOT[skill]} ${SKILL_TEXT[skill]} shadow-[0_0_6px_currentColor]`}
                   />
-                ) : null}
+                ) : (
+                  <div className="mx-auto h-1 w-1 rounded-full bg-hx-gold-dark/25" />
+                )}
               </td>
             ))}
           </tr>

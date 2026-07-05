@@ -964,6 +964,14 @@ html::after {
   background-color: oklch(var(--accessible-blue));
 }
 
+@utility bg-accessible-green {
+  background-color: oklch(var(--accessible-green));
+}
+
+@utility bg-accessible-red {
+  background-color: oklch(var(--accessible-red));
+}
+
 @utility bg-accessible-purple {
   background-color: oklch(var(--accessible-purple));
 }
