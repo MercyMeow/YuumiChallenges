@@ -25,9 +25,9 @@ async function getLatestVersion(): Promise<string> {
       cache: 'no-store',
     });
     const versions: string[] = await res.json();
-    cachedVersion = versions?.[0] || '16.11.1';
+    cachedVersion = versions?.[0] || '16.13.1';
   } catch {
-    cachedVersion = '16.11.1';
+    cachedVersion = '16.13.1';
   }
   return cachedVersion;
 }

@@ -157,7 +157,7 @@ export async function getDDragonVersions(): Promise<DDragonVersions> {
     }
 
     const versions: string[] = await response.json();
-    const latest = versions[0] || '14.23.1'; // First version is always the latest
+    const latest = versions[0] || '16.13.1'; // First version is always the latest
 
     // Cache the results
     cachedVersions = versions;
@@ -167,7 +167,7 @@ export async function getDDragonVersions(): Promise<DDragonVersions> {
   } catch (error) {
     console.error('Error fetching DataDragon versions:', error);
     // Fallback to a reasonable default if the API fails
-    return { versions: ['14.23.1'], latest: '14.23.1' };
+    return { versions: ['16.13.1'], latest: '16.13.1' };
   }
 }
 

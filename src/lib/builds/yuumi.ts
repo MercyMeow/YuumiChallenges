@@ -1,4 +1,4 @@
-// Yuumi build data for patch 16.11
+// Yuumi build data for patch 16.13
 // Source emphasis: Lolalytics. Cross-checked with OP.GG, Mobalytics where applicable.
 // Note: Item identifiers are provided as canonical names; map these to your app's item ID/icon system.
 
@@ -14,14 +14,14 @@ export type ChampionBuildData = {
   notes?: string[];
 };
 
-export const yuumiBuild1611: ChampionBuildData = {
+export const yuumiBuild: ChampionBuildData = {
   champion: 'Yuumi',
-  patch: '16.11',
+  patch: '16.13',
   sources: [
     'https://lolalytics.com/lol/yuumi/build/',
     'https://lolalytics.com/lol/yuumi/build/?tier=1trick',
   ],
-  updatedAt: new Date().toISOString(),
+  updatedAt: '2026-07-05T00:00:00.000Z',
   starter: [
     'World Atlas',
     'Runic Compass',
@@ -49,7 +49,7 @@ export const yuumiBuild1611: ChampionBuildData = {
   ],
   notes: [
     'Rush support income; prioritize Forbidden Idol and Kindlegem components early.',
-    'Dream Maker into Moonstone Renewer is the most common backbone in 16.11.',
+    'Dream Maker into Moonstone Renewer is the most common backbone in 16.13.',
     "Buy Ionian Boots when you actually need CDR and can afford leaving host; it's often skipped.",
     "Pick Mikael's vs heavy CC, Ardent/Staff for synergy with carry damage profile.",
     "Dawncore and Imperial Mandate are the highest-winrate late picks; Shurelya's for engage, Locket for burst mitigation, Knight's Vow when pocketing a single hyper-carry.",
@@ -57,7 +57,7 @@ export const yuumiBuild1611: ChampionBuildData = {
   ],
 };
 
-export default yuumiBuild1611;
+export default yuumiBuild;
 
 // Back-compat exports used by the guide Build tab
 // BEST_RUNES and BEST_ITEMS mirror the shapes consumed in src/app/page.tsx

@@ -1,9 +1,9 @@
 import type { RunePage } from './types';
 
-export const yuumiRunePages1518: RunePage[] = [
+export const yuumiRunePages: RunePage[] = [
   {
     name: 'Aery + Resolve (Standard)',
-    patch: '16.11',
+    patch: '16.13',
     primary: {
       tree: 'Sorcery',
       keystone: 'Summon Aery',
@@ -27,7 +27,7 @@ export const yuumiRunePages1518: RunePage[] = [
   },
   {
     name: 'Aery + Resolve (Sustain)',
-    patch: '16.11',
+    patch: '16.13',
     primary: {
       tree: 'Sorcery',
       keystone: 'Summon Aery',
@@ -46,7 +46,7 @@ export const yuumiRunePages1518: RunePage[] = [
   },
   {
     name: 'Aery + Inspiration (Utility)',
-    patch: '16.11',
+    patch: '16.13',
     primary: {
       tree: 'Sorcery',
       keystone: 'Summon Aery',
@@ -65,7 +65,7 @@ export const yuumiRunePages1518: RunePage[] = [
   },
   {
     name: 'Guardian + Sorcery (Peel)',
-    patch: '16.11',
+    patch: '16.13',
     primary: {
       tree: 'Resolve',
       keystone: 'Guardian',
@@ -84,7 +84,7 @@ export const yuumiRunePages1518: RunePage[] = [
   },
   {
     name: 'Aery + Domination (Niche CDR/Ult)',
-    patch: '16.11',
+    patch: '16.13',
     primary: {
       tree: 'Sorcery',
       keystone: 'Summon Aery',
@@ -104,4 +104,4 @@ export const yuumiRunePages1518: RunePage[] = [
   },
 ];
 
-export default yuumiRunePages1518;
+export default yuumiRunePages;

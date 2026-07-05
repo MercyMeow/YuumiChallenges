@@ -54,7 +54,7 @@ export async function getLatestDataDragonVersion(): Promise<string> {
 
     // Fallback to a reasonable default if API fails
     // This should be updated occasionally but serves as emergency fallback
-    const fallbackVersion = '15.14.1';
+    const fallbackVersion = '16.13.1';
 
     if (!cachedVersion) {
       console.warn(`Using fallback Data Dragon version: ${fallbackVersion}`);

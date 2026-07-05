@@ -84,7 +84,7 @@ export async function GET() {
     }
 
     // Fallback to known working version
-    const fallbackVersion = '15.14.1';
+    const fallbackVersion = '16.13.1';
     return NextResponse.json(
       {
         version: fallbackVersion,
