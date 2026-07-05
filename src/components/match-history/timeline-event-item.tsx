@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { ChampionIcon } from '@/components/ui/datadragon-image';
 import { Swords, Trophy, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';

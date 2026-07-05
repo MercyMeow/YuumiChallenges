@@ -4,7 +4,7 @@
  * Extracted from match details page
  */
 
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import {
