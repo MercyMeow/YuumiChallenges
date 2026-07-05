@@ -65,11 +65,11 @@ const config: Config = {
         'landing-bg-to': 'oklch(var(--landing-bg-to))',
         'landing-text-primary': 'oklch(var(--landing-text-primary))',
         'landing-text-secondary': 'oklch(var(--landing-text-secondary))',
-        // Yuumi-inspired accent colors
-        'yuumi-purple': 'oklch(var(--yuumi-purple))',
-        'yuumi-blue': 'oklch(var(--yuumi-blue))',
-        'yuumi-teal': 'oklch(var(--yuumi-teal))',
-        'yuumi-pink': 'oklch(var(--yuumi-pink))',
+        // Yuumi-inspired accent colors (alpha-aware for /opacity modifiers)
+        'yuumi-purple': 'oklch(var(--yuumi-purple) / <alpha-value>)',
+        'yuumi-blue': 'oklch(var(--yuumi-blue) / <alpha-value>)',
+        'yuumi-teal': 'oklch(var(--yuumi-teal) / <alpha-value>)',
+        'yuumi-pink': 'oklch(var(--yuumi-pink) / <alpha-value>)',
         // Modern dark theme utility colors
         success: {
           DEFAULT: 'oklch(0.70 0.16 150)',

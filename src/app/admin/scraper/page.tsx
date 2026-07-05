@@ -82,7 +82,7 @@ export default function ScraperPage() {
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-yuumi-purple" />
       </div>
     );
   }
@@ -118,7 +118,7 @@ export default function ScraperPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-      <div className="container mx-auto max-w-7xl px-6 py-8">
+      <div className="container mx-auto max-w-7xl px-6 py-8 duration-500 animate-in fade-in slide-in-from-bottom-4">
         {/* Header */}
         <div className="mb-8">
           <Link
@@ -128,14 +128,16 @@ export default function ScraperPage() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-white">Data Scraper</h1>
+          <h1 className="bg-gradient-to-r from-white via-yuumi-purple to-yuumi-blue bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+            Data Scraper
+          </h1>
           <p className="mt-1 text-white/60">
             Fetch build data from external statistics websites
           </p>
         </div>
 
         <Tabs defaultValue="scrape" className="space-y-6">
-          <TabsList className="bg-black/30">
+          <TabsList className="border border-white/10 bg-black/30 backdrop-blur-md">
             <TabsTrigger value="scrape">Scrape Data</TabsTrigger>
             <TabsTrigger value="history">Job History</TabsTrigger>
             <TabsTrigger value="data">Scraped Data</TabsTrigger>
@@ -144,7 +146,7 @@ export default function ScraperPage() {
           {/* Scrape Tab */}
           <TabsContent value="scrape" className="space-y-6">
             {/* Scrape All Button */}
-            <Card className="border-purple-500/30 bg-black/30">
+            <Card className="border-white/10 bg-black/30 backdrop-blur-md">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -158,7 +160,7 @@ export default function ScraperPage() {
                   <Button
                     onClick={() => handleScrape('all')}
                     disabled={runningJobs.has('all')}
-                    className="bg-purple-600 hover:bg-purple-700"
+                    className="bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
                   >
                     {runningJobs.has('all') ? (
                       <>
@@ -179,11 +181,16 @@ export default function ScraperPage() {
             {/* Individual Sources */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {SOURCES.map((source) => (
-                <Card key={source.id} className="border-white/10 bg-black/30">
+                <Card
+                  key={source.id}
+                  className="border-white/10 bg-black/30 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:bg-black/40"
+                >
                   <CardContent className="p-6">
                     <div className="mb-4 flex items-center gap-3">
                       <div className={`h-3 w-3 rounded-full ${source.color}`} />
-                      <h3 className="font-semibold text-white">{source.name}</h3>
+                      <h3 className="font-semibold text-white">
+                        {source.name}
+                      </h3>
                     </div>
                     <p className="mb-4 text-sm text-white/60">
                       {source.id === 'ugg' &&
@@ -199,7 +206,9 @@ export default function ScraperPage() {
                     </p>
                     <Button
                       onClick={() => handleScrape(source.id)}
-                      disabled={runningJobs.has(source.id) || runningJobs.has('all')}
+                      disabled={
+                        runningJobs.has(source.id) || runningJobs.has('all')
+                      }
                       variant="outline"
                       className="w-full border-white/20 text-white hover:bg-white/10"
                     >
@@ -221,16 +230,19 @@ export default function ScraperPage() {
             </div>
 
             {/* Warning Notice */}
-            <Card className="border-yellow-500/30 bg-yellow-500/10">
+            <Card className="border-yellow-400/40 bg-yellow-500/10 backdrop-blur-md">
               <CardContent className="flex items-start gap-3 p-4">
                 <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-400" />
                 <div>
-                  <h4 className="font-medium text-yellow-200">Important Note</h4>
+                  <h4 className="font-medium text-yellow-200">
+                    Important Note
+                  </h4>
                   <p className="mt-1 text-sm text-yellow-200/80">
-                    Web scraping should be done responsibly. These scrapers fetch
-                    public data for personal use. Excessive scraping may result in
-                    rate limiting or IP blocks. Use the &quot;Scrape All&quot; function
-                    sparingly. Connect Convex to enable scraping functionality.
+                    Web scraping should be done responsibly. These scrapers
+                    fetch public data for personal use. Excessive scraping may
+                    result in rate limiting or IP blocks. Use the &quot;Scrape
+                    All&quot; function sparingly. Connect Convex to enable
+                    scraping functionality.
                   </p>
                 </div>
               </CardContent>
@@ -239,7 +251,7 @@ export default function ScraperPage() {
 
           {/* History Tab */}
           <TabsContent value="history">
-            <Card className="border-white/10 bg-black/30">
+            <Card className="border-white/10 bg-black/30 backdrop-blur-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-white">
                   <Clock className="h-5 w-5" />
@@ -264,12 +276,12 @@ export default function ScraperPage() {
                               variant="outline"
                               className={`ml-3 ${
                                 job.status === 'completed'
-                                  ? 'border-green-400 text-green-300'
+                                  ? 'border-green-400/40 text-green-300'
                                   : job.status === 'running'
-                                    ? 'border-blue-400 text-blue-300'
+                                    ? 'border-blue-400/40 text-blue-300'
                                     : job.status === 'failed'
-                                      ? 'border-red-400 text-red-300'
-                                      : 'border-yellow-400 text-yellow-300'
+                                      ? 'border-red-400/40 text-red-300'
+                                      : 'border-yellow-400/40 text-yellow-300'
                               }`}
                             >
                               {job.status}
@@ -298,7 +310,8 @@ export default function ScraperPage() {
                   </div>
                 ) : (
                   <p className="py-8 text-center text-white/60">
-                    No scrape jobs yet. Connect Convex and start by clicking &quot;Scrape All&quot; above.
+                    No scrape jobs yet. Connect Convex and start by clicking
+                    &quot;Scrape All&quot; above.
                   </p>
                 )}
               </CardContent>
@@ -308,7 +321,7 @@ export default function ScraperPage() {
           {/* Data Tab */}
           <TabsContent value="data" className="space-y-6">
             {/* Filters */}
-            <Card className="border-white/10 bg-black/30">
+            <Card className="border-white/10 bg-black/30 backdrop-blur-md">
               <CardContent className="flex flex-wrap items-center gap-4 p-4">
                 <div className="flex items-center gap-2">
                   <Filter className="h-4 w-4 text-white/60" />
@@ -318,7 +331,7 @@ export default function ScraperPage() {
                   value={selectedSource}
                   onValueChange={(v) => setSelectedSource(v as Source | 'all')}
                 >
-                  <SelectTrigger className="w-40 border-white/20 bg-white/5 text-white">
+                  <SelectTrigger className="w-40 border-white/20 bg-white/5 text-white placeholder:text-white/40">
                     <SelectValue placeholder="Source" />
                   </SelectTrigger>
                   <SelectContent>
@@ -334,7 +347,7 @@ export default function ScraperPage() {
                   value={selectedDataType}
                   onValueChange={setSelectedDataType}
                 >
-                  <SelectTrigger className="w-40 border-white/20 bg-white/5 text-white">
+                  <SelectTrigger className="w-40 border-white/20 bg-white/5 text-white placeholder:text-white/40">
                     <SelectValue placeholder="Data Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -350,7 +363,7 @@ export default function ScraperPage() {
             </Card>
 
             {/* Data List */}
-            <Card className="border-white/10 bg-black/30">
+            <Card className="border-white/10 bg-black/30 backdrop-blur-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-white">
                   <Database className="h-5 w-5" />
@@ -382,7 +395,10 @@ export default function ScraperPage() {
                             >
                               {record.source}
                             </Badge>
-                            <Badge variant="outline" className="border-white/20">
+                            <Badge
+                              variant="outline"
+                              className="border-white/20 text-white/80"
+                            >
                               {record.dataType}
                             </Badge>
                             <span className="text-sm text-white/60">
@@ -396,8 +412,10 @@ export default function ScraperPage() {
                         {record.winRate && (
                           <div className="text-sm text-white/60">
                             Win Rate: {record.winRate.toFixed(2)}%
-                            {record.pickRate && ` | Pick Rate: ${record.pickRate.toFixed(2)}%`}
-                            {record.sampleSize && ` | Sample: ${record.sampleSize.toLocaleString()}`}
+                            {record.pickRate &&
+                              ` | Pick Rate: ${record.pickRate.toFixed(2)}%`}
+                            {record.sampleSize &&
+                              ` | Sample: ${record.sampleSize.toLocaleString()}`}
                           </div>
                         )}
                         {record.rank && (
@@ -411,7 +429,8 @@ export default function ScraperPage() {
                   </div>
                 ) : (
                   <p className="py-8 text-center text-white/60">
-                    No scraped data found. Connect Convex and run a scrape job first.
+                    No scraped data found. Connect Convex and run a scrape job
+                    first.
                   </p>
                 )}
               </CardContent>

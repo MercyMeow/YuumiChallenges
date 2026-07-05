@@ -24,7 +24,7 @@ function GifCard({ rule, isCopied, onCopyLink }: GifCardProps) {
     <button
       type="button"
       onClick={() => onCopyLink(rule)}
-      className="group relative text-left"
+      className="group relative block w-full text-left"
     >
       <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-cyan-500/50 to-teal-500/50 opacity-30 blur transition duration-300 group-hover:opacity-60" />
       <Card className="relative overflow-hidden border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 to-teal-500/10 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/40 hover:shadow-2xl">
@@ -124,13 +124,18 @@ export default function GalleryPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {RULE_NUMBERS.map((rule) => (
-              <GifCard
+            {RULE_NUMBERS.map((rule, index) => (
+              <div
                 key={rule}
-                rule={rule}
-                isCopied={copiedRule === rule}
-                onCopyLink={handleCopyLink}
-              />
+                className="duration-500 animate-in fade-in slide-in-from-bottom-4 fill-mode-both"
+                style={{ animationDelay: `${index * 60}ms` }}
+              >
+                <GifCard
+                  rule={rule}
+                  isCopied={copiedRule === rule}
+                  onCopyLink={handleCopyLink}
+                />
+              </div>
             ))}
           </div>
         </div>

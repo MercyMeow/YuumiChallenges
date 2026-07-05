@@ -84,7 +84,7 @@ export default function ItemsEditorPage() {
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-yuumi-purple" />
       </div>
     );
   }
@@ -139,12 +139,16 @@ export default function ItemsEditorPage() {
     { key: 'starter', label: 'Starter Items', color: 'text-purple-300' },
     { key: 'early', label: 'Early Game Items', color: 'text-blue-300' },
     { key: 'core', label: 'Core Items', color: 'text-green-300' },
-    { key: 'situational', label: 'Situational Items', color: 'text-yellow-300' },
+    {
+      key: 'situational',
+      label: 'Situational Items',
+      color: 'text-yellow-300',
+    },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">
-      <div className="container mx-auto max-w-7xl px-6 py-8">
+      <div className="container mx-auto max-w-7xl px-6 py-8 duration-500 animate-in fade-in slide-in-from-bottom-4">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
@@ -155,7 +159,9 @@ export default function ItemsEditorPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
             </Link>
-            <h1 className="text-3xl font-bold text-white">Items Editor</h1>
+            <h1 className="bg-gradient-to-r from-white via-yuumi-purple to-yuumi-blue bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+              Items Editor
+            </h1>
             <p className="mt-1 text-white/60">
               Manage recommended items for the Yuumi guide
             </p>
@@ -164,13 +170,13 @@ export default function ItemsEditorPage() {
             <DialogTrigger asChild>
               <Button
                 onClick={handleAddNew}
-                className="bg-purple-600 hover:bg-purple-700"
+                className="bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Item
               </Button>
             </DialogTrigger>
-            <DialogContent className="border-white/10 bg-gray-900 text-white">
+            <DialogContent className="border-white/10 bg-black/30 text-white backdrop-blur-md">
               <DialogHeader>
                 <DialogTitle>
                   {formData.id ? 'Edit Item' : 'Add New Item'}
@@ -185,7 +191,7 @@ export default function ItemsEditorPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, name: e.target.value })
                       }
-                      className="border-white/20 bg-white/5"
+                      className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
                       required
                     />
                   </div>
@@ -200,7 +206,7 @@ export default function ItemsEditorPage() {
                           itemId: parseInt(e.target.value) || 0,
                         })
                       }
-                      className="border-white/20 bg-white/5"
+                      className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
                       required
                     />
                   </div>
@@ -211,10 +217,13 @@ export default function ItemsEditorPage() {
                     <Select
                       value={formData.category}
                       onValueChange={(v) =>
-                        setFormData({ ...formData, category: v as ItemCategory })
+                        setFormData({
+                          ...formData,
+                          category: v as ItemCategory,
+                        })
                       }
                     >
-                      <SelectTrigger className="border-white/20 bg-white/5">
+                      <SelectTrigger className="border-white/20 bg-white/5 text-white placeholder:text-white/40">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -236,7 +245,7 @@ export default function ItemsEditorPage() {
                           priority: parseInt(e.target.value) || 0,
                         })
                       }
-                      className="border-white/20 bg-white/5"
+                      className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
                     />
                   </div>
                 </div>
@@ -247,7 +256,7 @@ export default function ItemsEditorPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, reason: e.target.value })
                     }
-                    className="border-white/20 bg-white/5"
+                    className="border-white/20 bg-white/5 text-white placeholder:text-white/40"
                     rows={3}
                     required
                   />
@@ -275,7 +284,7 @@ export default function ItemsEditorPage() {
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-purple-600 hover:bg-purple-700"
+                    className="bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
                   >
                     Save Item
                   </Button>
@@ -286,13 +295,15 @@ export default function ItemsEditorPage() {
         </div>
 
         {/* Convex Connection Notice */}
-        <Card className="mb-6 border-yellow-500/30 bg-yellow-500/10">
+        <Card className="mb-6 border-yellow-500/30 bg-yellow-500/10 backdrop-blur-md">
           <CardContent className="flex items-start gap-3 p-4">
             <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-400" />
             <div>
               <h4 className="font-medium text-yellow-200">Connect Convex</h4>
               <p className="mt-1 text-sm text-yellow-200/80">
-                Run <code className="rounded bg-black/30 px-1">npx convex dev</code> to connect your Convex database and enable item management.
+                Run{' '}
+                <code className="rounded bg-black/30 px-1">npx convex dev</code>{' '}
+                to connect your Convex database and enable item management.
               </p>
             </div>
           </CardContent>
@@ -301,9 +312,14 @@ export default function ItemsEditorPage() {
         {/* Items by Category */}
         <div className="space-y-6">
           {categories.map((category) => (
-            <Card key={category.key} className="border-white/10 bg-black/30">
+            <Card
+              key={category.key}
+              className="border-white/10 bg-black/30 backdrop-blur-md"
+            >
               <CardHeader>
-                <CardTitle className={`flex items-center gap-2 ${category.color}`}>
+                <CardTitle
+                  className={`flex items-center gap-2 ${category.color}`}
+                >
                   <Package className="h-5 w-5" />
                   {category.label}
                 </CardTitle>
@@ -314,7 +330,7 @@ export default function ItemsEditorPage() {
                     {groupedItems[category.key].map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-4"
+                        className="flex items-start gap-3 rounded-lg border border-white/10 bg-black/30 p-4 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:bg-black/40"
                       >
                         <ItemSlot itemId={item.itemId} size="lg" />
                         <div className="min-w-0 flex-1">
@@ -325,7 +341,7 @@ export default function ItemsEditorPage() {
                             {!item.isActive && (
                               <Badge
                                 variant="outline"
-                                className="border-red-400 text-red-300"
+                                className="border-red-400/40 text-red-300"
                               >
                                 Inactive
                               </Badge>
@@ -348,7 +364,7 @@ export default function ItemsEditorPage() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleDelete(item.id)}
-                              className="h-7 border-red-400/50 px-2 text-xs text-red-300 hover:bg-red-500/20"
+                              className="h-7 border-red-400/40 px-2 text-xs text-red-300 hover:bg-red-500/10"
                             >
                               <Trash2 className="mr-1 h-3 w-3" />
                               Delete

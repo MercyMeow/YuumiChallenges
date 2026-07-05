@@ -16,7 +16,8 @@ import {
   REGION_NAMES,
   YUUMI_DISCORD_INVITE_URL,
 } from '@/lib/utils/constants';
-import { ExternalLink } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Search, Swords } from 'lucide-react';
+import Link from 'next/link';
 
 type RegionValue = (typeof REGIONS)[keyof typeof REGIONS];
 
@@ -64,68 +65,94 @@ export default function MatchLandingPage() {
   };
 
   return (
-    <main className="via-background/95 flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-background px-6 py-16">
-      <div className="w-full max-w-md">
-        <div className="space-y-6 text-center">
-          <h1 className="text-3xl font-semibold text-foreground sm:text-4xl">
-            Yuumi Match Viewer
-          </h1>
-          <p className="mx-auto max-w-md text-sm text-muted-foreground sm:text-base lg:mx-0">
-            Enter any ranked match ID to explore matchups, timelines, gold
-            swings, and Yuumi-specific insights without leaving the browser.
-          </p>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="flex gap-2">
-              <Select
-                value={region}
-                onValueChange={(value) => setRegion(value as RegionValue)}
-              >
-                <SelectTrigger className="w-44 shrink-0">
-                  <SelectValue placeholder="Select region" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(REGIONS).map(([key, value]) => (
-                    <SelectItem key={key} value={value}>
-                      {REGION_NAMES[value]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Input
-                value={matchId}
-                onChange={(event) => {
-                  setMatchId(event.target.value);
-                  if (matchIdError) {
-                    setMatchIdError('');
-                  }
-                }}
-                placeholder="Match ID (e.g. 7481411158)"
-                aria-label="Match identifier"
-                aria-invalid={Boolean(matchIdError)}
-                className="flex-1"
-                spellCheck={false}
-                autoComplete="off"
-              />
-            </div>
-            {matchIdError && (
-              <p className="text-sm text-destructive" role="alert">
-                {matchIdError}
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to px-6 py-16">
+      <div className="w-full max-w-lg duration-500 animate-in fade-in slide-in-from-bottom-4">
+        <Link
+          href="/"
+          className="mb-6 inline-flex items-center gap-2 text-yuumi-purple transition-colors hover:text-yuumi-blue"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          <span>Back to Home</span>
+        </Link>
+
+        <div className="relative">
+          <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-yuumi-purple/40 to-yuumi-blue/40 opacity-40 blur" />
+          <div className="relative rounded-2xl border border-white/10 bg-black/40 p-8 backdrop-blur-md">
+            <div className="mb-6 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yuumi-purple/20">
+                <Swords className="h-8 w-8 text-yuumi-purple" />
+              </div>
+              <h1 className="bg-gradient-to-r from-landing-text-primary via-yuumi-purple to-yuumi-blue bg-clip-text text-3xl font-extrabold tracking-tight text-transparent sm:text-4xl">
+                Yuumi Match Viewer
+              </h1>
+              <p className="mx-auto mt-3 max-w-md text-sm text-landing-text-secondary sm:text-base">
+                Enter any ranked match ID to explore matchups, timelines, gold
+                swings, and Yuumi-specific insights without leaving the browser.
               </p>
-            )}
-            <Button type="submit" className="w-full">
-              View Match Details
-            </Button>
-          </form>
-          <Button asChild variant="outline" className="w-full">
-            <a
-              href={YUUMI_DISCORD_INVITE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div className="flex gap-2">
+                <Select
+                  value={region}
+                  onValueChange={(value) => setRegion(value as RegionValue)}
+                >
+                  <SelectTrigger className="w-44 shrink-0 border-white/20 bg-white/5 text-white">
+                    <SelectValue placeholder="Select region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(REGIONS).map(([key, value]) => (
+                      <SelectItem key={key} value={value}>
+                        {REGION_NAMES[value]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  value={matchId}
+                  onChange={(event) => {
+                    setMatchId(event.target.value);
+                    if (matchIdError) {
+                      setMatchIdError('');
+                    }
+                  }}
+                  placeholder="Match ID (e.g. 7481411158)"
+                  aria-label="Match identifier"
+                  aria-invalid={Boolean(matchIdError)}
+                  className="flex-1 border-white/20 bg-white/5 text-white placeholder:text-white/40"
+                  spellCheck={false}
+                  autoComplete="off"
+                />
+              </div>
+              {matchIdError && (
+                <p className="text-sm text-red-300" role="alert">
+                  {matchIdError}
+                </p>
+              )}
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-yuumi-purple to-yuumi-blue text-white transition-opacity hover:opacity-90"
+              >
+                <Search className="mr-2 h-4 w-4" />
+                View Match Details
+              </Button>
+            </form>
+
+            <Button
+              asChild
+              variant="outline"
+              className="mt-3 w-full border-white/20 text-white hover:bg-white/10"
             >
-              Join the Yuumi Mains Discord
-              <ExternalLink className="h-4 w-4" />
-            </a>
-          </Button>
+              <a
+                href={YUUMI_DISCORD_INVITE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Join the Yuumi Mains Discord
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </Button>
+          </div>
         </div>
       </div>
     </main>
