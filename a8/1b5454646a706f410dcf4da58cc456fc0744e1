@@ -1,0 +1,95 @@
+src/app/globals.css
+  s_48a7ddc0e5262a::t_2d3d54669c1073 64-76
+src/components/shell/TopNav.tsx
+  s_7e86a87772aad7::t_29f2c59c32e9fc 27-34
+src/components/ui/hextech-panel.tsx
+  s_7e86a87772aad7::t_8724952251e33b 88
+convex/seed.ts
+  s_7e86a87772aad7::t_7fa0550bc596f9 21,289
+src/components/shell/PawEmblem.tsx
+  s_7e86a87772aad7::t_9a046ef66b55b9 33
+  s_7e86a87772aad7::t_dbb52d9c13ba54 28
+  s_7e86a87772aad7::t_115177b35f20bb 4-5,12-16
+  s_7e86a87772aad7::t_a3ff00d8042af4 46
+  s_7e86a87772aad7::t_f39360fffb0f6f 62-65
+convex/scraper.ts
+  s_7e86a87772aad7::t_32f7a1882fbc7e 151,161-171,190-213
+src/app/admin/items/page.tsx
+  s_48a7ddc0e5262a::t_4b9ed6023c117c 324
+src/lib/builds/auto-build-shared.ts
+  s_7e86a87772aad7::t_336b9f6970d42a 42-45
+src/components/guide/guide-panels.tsx
+  s_7e86a87772aad7::t_55534d2bd3c790 64,66,68-71
+  s_7e86a87772aad7::t_6f52adb3962849 81-83
+convex/guide.ts
+  s_7e86a87772aad7::t_736908c8942b0c 23-38
+  s_7e86a87772aad7::t_dc62e5590f46d7 470-471
+  s_7e86a87772aad7::t_07bf9bac56154d 644-645
+src/app/guide-client.tsx
+  s_7e86a87772aad7::t_8724952251e33b 679
+src/app/admin/builds/build-form-tabs.tsx
+  s_48a7ddc0e5262a::t_be874869749a9d 385-392
+  s_48a7ddc0e5262a::t_265d35d709ab20 413
+  s_48a7ddc0e5262a::t_3a40662e6273a9 290
+  s_48a7ddc0e5262a::t_ff5e79c690acee 327
+  s_48a7ddc0e5262a::t_81d542ca7d389b 258
+  s_48a7ddc0e5262a::t_b9a7632b89cd8a 211-221
+  s_48a7ddc0e5262a::t_4b86487feb36fa 38-58
+  s_48a7ddc0e5262a::t_1503da638aa906 302
+  s_48a7ddc0e5262a::t_b94ddb5b6ad190 515-525,527-530
+src/lib/guide/patch.ts
+  s_7e86a87772aad7::t_868a40e94627c9 3-4
+src/lib/matchups/adcs/Nilah.ts
+  s_c3b588934a3e1b::t_558cbd659f4126 7-9
+src/lib/matchups/adcs/Yone.ts
+  s_c3b588934a3e1b::t_44387930d93a83 10
+src/lib/matchups/supports/Bard.ts
+  s_c3b588934a3e1b::t_f7ba87c05aa421 7,9
+src/lib/matchups/supports/Blitzcrank.ts
+  s_c3b588934a3e1b::t_06fb67d2fa4baf 15
+src/lib/matchups/supports/Galio.ts
+  s_c3b588934a3e1b::t_7cf5504a5e14ed 10
+src/lib/matchups/supports/Leona.ts
+  s_c3b588934a3e1b::t_8320bb51bf9520 10
+src/lib/matchups/supports/Rell.ts
+  s_c3b588934a3e1b::t_1d8d40ef7f841e 6,9
+src/lib/matchups/supports/Zilean.ts
+  s_c3b588934a3e1b::t_0af03e9aa5275d 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a81b5454646a706f410dcf4da58cc456fc0744e1",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_48a7ddc0e5262a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "e800fa8f-f373-4939-899f-f7057b28e91a",
+        "model": "composer-2.5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    },
+    "s_7e86a87772aad7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6bc66787-22e6-4f67-9489-ed5601fe7f02",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    },
+    "s_c3b588934a3e1b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a1602e6d39dfae0ed",
+        "model": "unknown"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
