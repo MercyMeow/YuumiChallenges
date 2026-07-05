@@ -1,0 +1,93 @@
+src/app/page.tsx
+  s_7e86a87772aad7::t_263cd04e548ba2 268-400
+convex/guide.ts
+  s_7e86a87772aad7::t_7c785e02fbdc6c 3,8,13
+  s_7e86a87772aad7::t_4b1d5afd6ee1fd 20-29,85,145,199,313,476,537
+src/components/match-details/ChallengesTab.tsx
+  s_7e86a87772aad7::t_bf2b6eeff5fb6c 135,138,142
+  s_7e86a87772aad7::t_161a6d8a6ed382 156
+src/hooks/use-summoner-spells.ts
+  s_7e86a87772aad7::t_b326dd65c641c1 20-23,26-27,31-32
+tailwind.config.ts
+  s_7e86a87772aad7::t_a71fa2cd3882dd 2
+  s_7e86a87772aad7::t_b66299c2c09b92 123
+src/components/match-history/match-history-card.tsx
+  s_7e86a87772aad7::t_bfead84218f278 202-206
+  s_7e86a87772aad7::t_d3aeb469cc6273 38-39,42-55,57-58,63,70
+  s_7e86a87772aad7::t_c3cafa81847a7d 60-62,65-69,71-80
+tsconfig.json
+  s_7e86a87772aad7::t_8f05c4d174f33e 4-8,18,43-45,48-58
+src/hooks/use-mobile.ts
+  s_7e86a87772aad7::t_ae1594d33b96ba 5-18,20-23
+src/components/match-history/enhanced-match-history-display.tsx
+  s_7e86a87772aad7::t_380cc2e6ffe199 52-60,64
+  s_7e86a87772aad7::t_b91fefa412da12 330
+  s_7e86a87772aad7::t_daad38cadca23f 293
+  s_7e86a87772aad7::t_39fc361c5ecf50 101-108
+  s_7e86a87772aad7::t_735aff6747804a 467
+  s_7e86a87772aad7::t_3834a3d7c9c113 62-63,65-96
+src/lib/hooks/use-performance-monitor.ts
+  s_7e86a87772aad7::t_a2d12371c1a54a 66-68,74
+  s_7e86a87772aad7::t_c4c8c1761b4e4f 75
+  s_7e86a87772aad7::t_837edb2bfb9cb1 80-81
+src/components/match-history/simple-item-timeline.tsx
+  s_7e86a87772aad7::t_b2ef023c9bde1e 48
+  s_7e86a87772aad7::t_8697385c44d297 700,704,712-713,717
+src/components/mythic-shop/MythicShopResetBanner.tsx
+  s_7e86a87772aad7::t_3df26c213f8a61 3
+  s_917dc67c68d63a::t_c5c3bb4ca7ae10 41-57,65-71
+src/hooks/use-player-selection.ts
+  s_7e86a87772aad7::t_23a915703448ab 6,10-12,15-18,26,28-31
+scripts/extract-rune-vars.mjs
+  s_7e86a87772aad7::t_9590f4a4f8d059 67
+src/hooks/use-rune-data.ts
+  s_7e86a87772aad7::t_a69b3f0c03dc58 39-63,69-91,99,105
+  s_7e86a87772aad7::t_4679c38be57786 94-98,103-104
+  s_7e86a87772aad7::t_f7422ae6f682cc 140
+src/components/ui/sidebar.tsx
+  s_7e86a87772aad7::t_a1af844d3685e0 610-614
+src/contexts/AuthContext.tsx
+  s_7e86a87772aad7::t_cc4f0f76596422 98,107
+  s_7e86a87772aad7::t_7c01556fcfa524 8
+  s_7e86a87772aad7::t_7e6e0fe63ae9af 115
+  s_7e86a87772aad7::t_d47dd62db614e0 47-49
+  s_7e86a87772aad7::t_0e7c482b59000d 33-46,50-70,73-82
+src/components/match-history/match-history-display.tsx
+  s_7e86a87772aad7::t_48dfaab86dedbd 46-54
+  s_7e86a87772aad7::t_38da40c46095de 56-63,65-74
+  s_7e86a87772aad7::t_6efa5db1daaf9e 244-248
+src/hooks/use-match-data.ts
+  s_7e86a87772aad7::t_2c7cf134399185 143,145,154-156,159,164
+  s_7e86a87772aad7::t_bd7b7cfe242f30 140
+  s_7e86a87772aad7::t_e490c81acc45d9 124,126
+  s_7e86a87772aad7::t_01a0aea722f048 102,105-107,114-118,121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "31dedc031bdb2292c713e2e84c0d7cf3285ddfc0",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_7e86a87772aad7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6bc66787-22e6-4f67-9489-ed5601fe7f02",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    },
+    "s_917dc67c68d63a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a065f6d70cdcb34e6",
+        "model": "unknown"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
