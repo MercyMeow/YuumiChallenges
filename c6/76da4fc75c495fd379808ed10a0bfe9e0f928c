@@ -1,0 +1,29 @@
+src/app/guide-client.tsx
+  s_48a7ddc0e5262a::t_2d73dd49ca827f 207,209-211
+src/app/layout.tsx
+  s_48a7ddc0e5262a::t_9965ea62bd5d9d 27-29,32-33
+  s_48a7ddc0e5262a::t_f2d5494798db10 26,30-31,34-35
+src/app/globals.css
+  s_48a7ddc0e5262a::t_364f48e3ad7496 967-974
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "c676da4fc75c495fd379808ed10a0bfe9e0f928c",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_48a7ddc0e5262a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "e800fa8f-f373-4939-899f-f7057b28e91a",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
