@@ -17,22 +17,24 @@ let clientCache: SpellMap | null = null;
 let cacheTime = 0;
 const TTL = 25 * 60 * 1000;
 
+function isCacheFresh(): boolean {
+  return clientCache !== null && Date.now() - cacheTime < TTL;
+}
+
 export function useSummonerSpells() {
   const [spells, setSpells] = useState<SpellMap | null>(clientCache);
-  const [loading, setLoading] = useState(!clientCache);
+  // Loading whenever a fetch will run on mount (no cache, or stale cache).
+  const [loading, setLoading] = useState(() => !isCacheFresh());
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const now = Date.now();
-    if (clientCache && now - cacheTime < TTL) {
-      setSpells(clientCache);
-      setLoading(false);
+    if (isCacheFresh()) {
+      // State was already initialized from the fresh cache.
       return;
     }
 
     (async () => {
       try {
-        setLoading(true);
         const res = await fetch('/api/data-dragon/summoner-spells', {
           cache: 'no-store',
         });

@@ -132,13 +132,14 @@ export function ChallengesTab({
   selectedPlayerData?: ExtendedMatchParticipant | null | undefined;
 }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const challenges = selectedPlayerData?.challenges;
 
   const normalizedEntries = useMemo<ChallengeEntry[]>(() => {
-    if (!selectedPlayerData?.challenges) {
+    if (!challenges) {
       return [];
     }
 
-    return Object.entries(selectedPlayerData.challenges)
+    return Object.entries(challenges)
       .filter(
         ([, value]) => typeof value === 'number' && Number.isFinite(value)
       )
@@ -152,7 +153,7 @@ export function ChallengesTab({
         };
       })
       .sort((a, b) => (b.numericValue ?? 0) - (a.numericValue ?? 0));
-  }, [selectedPlayerData?.challenges]);
+  }, [challenges]);
 
   const filteredEntries = useMemo(() => {
     if (!searchTerm) {

@@ -99,35 +99,34 @@ export function useMatchData(matchId: string) {
   }, [data]);
 
   // Process raw timeline data
+  const timelineData = data?.timelineData;
   const rawTimelineData = useMemo<RawTimelineData | null>(() => {
     if (
-      !data?.timelineData?.info ||
-      !Array.isArray(data.timelineData.info.frames) ||
-      data.timelineData.info.frames.length === 0
+      !timelineData?.info ||
+      !Array.isArray(timelineData.info.frames) ||
+      timelineData.info.frames.length === 0
     ) {
       return null;
     }
 
     return {
       info: {
-        frameInterval: data.timelineData.info.frameInterval,
-        frames: data.timelineData.info.frames.map<RawTimelineFrame>(
-          (frame) => ({
-            timestamp: frame.timestamp,
-            events: (frame.events || []) as RawTimelineEvent[],
-          })
-        ),
+        frameInterval: timelineData.info.frameInterval,
+        frames: timelineData.info.frames.map<RawTimelineFrame>((frame) => ({
+          timestamp: frame.timestamp,
+          events: (frame.events || []) as RawTimelineEvent[],
+        })),
       },
     };
-  }, [data?.timelineData]);
+  }, [timelineData]);
 
   // Game mode information
+  const queueId = data?.matchData?.info?.queueId;
   const gameModeInfo = useMemo(() => {
-    if (!data?.matchData?.info?.queueId) {
+    if (!queueId) {
       return { gameMode: 'Unknown', gameModeColor: 'text-white' };
     }
 
-    const queueId = data.matchData.info.queueId;
     const gameMode = getGameModeDisplayName(queueId);
     const gameModeColor = getGameModeCategoryColor(
       queueId === 420 || queueId === 440
@@ -138,11 +137,12 @@ export function useMatchData(matchId: string) {
     );
 
     return { gameMode, gameModeColor };
-  }, [data?.matchData?.info?.queueId]);
+  }, [queueId]);
 
   // Team data
+  const matchInfo = data?.matchData?.info;
   const teams = useMemo(() => {
-    if (!data?.matchData?.info) {
+    if (!matchInfo) {
       return {
         blueTeam: [],
         redTeam: [],
@@ -151,21 +151,17 @@ export function useMatchData(matchId: string) {
       };
     }
 
-    const blueTeam = data.matchData.info.participants.filter(
-      (p) => p.teamId === 100
-    );
-    const redTeam = data.matchData.info.participants.filter(
-      (p) => p.teamId === 200
-    );
-    const blueTeamData = data.matchData.info.teams.find(
+    const blueTeam = matchInfo.participants.filter((p) => p.teamId === 100);
+    const redTeam = matchInfo.participants.filter((p) => p.teamId === 200);
+    const blueTeamData = matchInfo.teams.find(
       (team): team is ExtendedMatchTeam => team.teamId === 100
     );
-    const redTeamData = data.matchData.info.teams.find(
+    const redTeamData = matchInfo.teams.find(
       (team): team is ExtendedMatchTeam => team.teamId === 200
     );
 
     return { blueTeam, redTeam, blueTeamData, redTeamData };
-  }, [data?.matchData?.info]);
+  }, [matchInfo]);
 
   return {
     data,

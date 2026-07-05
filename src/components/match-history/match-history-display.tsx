@@ -43,26 +43,35 @@ export function MatchHistoryDisplay({
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<MatchFilter>('all');
 
-  const fetchMatches = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch(
-        `/api/summoners/${summonerId}/matches?limit=20`
-      );
+  // Reset loading/error during render when the summoner changes (the initial
+  // state already covers the first fetch), so the fetch effect below never
+  // calls setState synchronously.
+  const [prevSummonerId, setPrevSummonerId] = useState(summonerId);
+  if (prevSummonerId !== summonerId) {
+    setPrevSummonerId(summonerId);
+    setLoading(true);
+    setError(null);
+  }
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch matches');
-      }
+  // Promise-chain style (rather than async/await) so every setState happens
+  // inside an async callback, never synchronously when called from the effect.
+  const fetchMatches = useCallback(() => {
+    return fetch(`/api/summoners/${summonerId}/matches?limit=20`)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch matches');
+        }
 
-      const data = await response.json();
-      setMatches(data.matches || []);
-    } catch (error) {
-      console.error('Error fetching matches:', error);
-      setError('Failed to load match history');
-    } finally {
-      setLoading(false);
-    }
+        const data = await response.json();
+        setMatches(data.matches || []);
+      })
+      .catch((error) => {
+        console.error('Error fetching matches:', error);
+        setError('Failed to load match history');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [summonerId]);
 
   useEffect(() => {
@@ -232,7 +241,11 @@ export function MatchHistoryDisplay({
           <p className="mb-4 text-white/60">{error}</p>
           <Button
             variant="outline"
-            onClick={fetchMatches}
+            onClick={() => {
+              setLoading(true);
+              setError(null);
+              fetchMatches();
+            }}
             className="border-red-500/30 text-red-400 hover:bg-red-500/10"
           >
             <RefreshCw className="mr-2 h-4 w-4" />

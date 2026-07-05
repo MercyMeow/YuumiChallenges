@@ -265,6 +265,139 @@ const isSupportMatchupKey = (
 const isAdcMatchupKey = (value: string): value is keyof typeof ADC_MATCHUPS =>
   Object.prototype.hasOwnProperty.call(ADC_MATCHUPS, value);
 
+  const ChampionImage = ({
+    championName,
+    isSelected,
+    onClick,
+    size = 60,
+    interactive = true,
+    showLabel = true,
+  }: {
+    championName: string;
+    isSelected: boolean;
+    onClick?: () => void;
+    size?: number;
+    interactive?: boolean;
+    showLabel?: boolean;
+  }) => {
+    const label = formatChampionName(championName);
+    const containerStyle: CSSProperties = {
+      width: `${size}px`,
+      height: `${size}px`,
+    };
+
+    const content = (
+      <div
+        className={`relative overflow-hidden rounded-lg border-2 bg-black/30 transition-all duration-200 ${
+          isSelected
+            ? 'border-purple-400 shadow-lg shadow-purple-500/30 ring-2 ring-purple-400 ring-offset-2 ring-offset-black'
+            : 'border-white/20'
+        } ${interactive ? 'group-hover:border-purple-300/60' : ''}`}
+        style={containerStyle}
+      >
+        <DataDragonImage
+          championId={championName}
+          type="icon"
+          width={size}
+          height={size}
+          alt={label}
+          className="h-full w-full"
+        />
+        {showLabel && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 truncate bg-black/80 px-1 py-1 text-center text-[11px] font-medium text-white">
+            {label}
+          </div>
+        )}
+      </div>
+    );
+
+    if (!interactive) {
+      return (
+        <div
+          className={`flex flex-col items-center ${showLabel ? 'gap-1' : ''}`}
+        >
+          {content}
+        </div>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={`group flex flex-col items-center ${showLabel ? 'gap-1' : ''} text-white/80 transition-transform duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${isSelected ? 'scale-105' : 'hover:scale-105'}`}
+        aria-pressed={isSelected}
+        aria-label={`View matchup details for ${label}`}
+      >
+        {content}
+      </button>
+    );
+  };
+
+  // Skill Order Table Component
+  const SkillOrderTable = ({ levels }: { levels: string[] }) => {
+    const skillColors: Record<string, string> = {
+      Q: 'text-blue-300',
+      W: 'text-green-300',
+      E: 'text-yellow-300',
+      R: 'text-red-300',
+    };
+    const dotColors: Record<string, string> = {
+      Q: 'bg-blue-400',
+      W: 'bg-green-400',
+      E: 'bg-yellow-400',
+      R: 'bg-red-400',
+    };
+
+    return (
+      <div className="overflow-x-auto">
+        <table className="min-w-full border-collapse text-xs">
+          <thead>
+            <tr>
+              <th className="w-12 border-b border-white/20 pb-1 text-left text-white/60">
+                Skill
+              </th>
+              {Array.from({ length: 18 }, (_, i) => (
+                <th
+                  key={i}
+                  className="w-6 border-b border-white/20 pb-1 text-center text-white/60"
+                >
+                  {i + 1}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {['Q', 'W', 'E', 'R'].map((skill) => (
+              <tr key={skill}>
+                <td className="py-1">
+                  <div className="flex items-center gap-1">
+                    <AbilityIcon
+                      championId="Yuumi"
+                      ability={skill as 'Q' | 'W' | 'E' | 'R'}
+                      size={16}
+                    />
+                    <span className={`font-medium ${skillColors[skill]}`}>
+                      {skill}
+                    </span>
+                  </div>
+                </td>
+                {levels.map((levelSkill, idx) => (
+                  <td key={idx} className="py-1 text-center">
+                    {levelSkill === skill ? (
+                      <div
+                        className={`mx-auto h-2.5 w-2.5 rounded-full ${dotColors[skill]}`}
+                      />
+                    ) : null}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 export default function YuumiGuide() {
   const [selectedBuild, setSelectedBuild] = useState<string>(
     BUILDS[0]?.id ?? ''
@@ -434,139 +567,6 @@ export default function YuumiGuide() {
     }
   };
 
-  const ChampionImage = ({
-    championName,
-    isSelected,
-    onClick,
-    size = 60,
-    interactive = true,
-    showLabel = true,
-  }: {
-    championName: string;
-    isSelected: boolean;
-    onClick?: () => void;
-    size?: number;
-    interactive?: boolean;
-    showLabel?: boolean;
-  }) => {
-    const label = formatChampionName(championName);
-    const containerStyle: CSSProperties = {
-      width: `${size}px`,
-      height: `${size}px`,
-    };
-
-    const content = (
-      <div
-        className={`relative overflow-hidden rounded-lg border-2 bg-black/30 transition-all duration-200 ${
-          isSelected
-            ? 'border-purple-400 shadow-lg shadow-purple-500/30 ring-2 ring-purple-400 ring-offset-2 ring-offset-black'
-            : 'border-white/20'
-        } ${interactive ? 'group-hover:border-purple-300/60' : ''}`}
-        style={containerStyle}
-      >
-        <DataDragonImage
-          championId={championName}
-          type="icon"
-          width={size}
-          height={size}
-          alt={label}
-          className="h-full w-full"
-        />
-        {showLabel && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 truncate bg-black/80 px-1 py-1 text-center text-[11px] font-medium text-white">
-            {label}
-          </div>
-        )}
-      </div>
-    );
-
-    if (!interactive) {
-      return (
-        <div
-          className={`flex flex-col items-center ${showLabel ? 'gap-1' : ''}`}
-        >
-          {content}
-        </div>
-      );
-    }
-
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        className={`group flex flex-col items-center ${showLabel ? 'gap-1' : ''} text-white/80 transition-transform duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${isSelected ? 'scale-105' : 'hover:scale-105'}`}
-        aria-pressed={isSelected}
-        aria-label={`View matchup details for ${label}`}
-      >
-        {content}
-      </button>
-    );
-  };
-
-  // Skill Order Table Component
-  const SkillOrderTable = ({ levels }: { levels: string[] }) => {
-    const skillColors: Record<string, string> = {
-      Q: 'text-blue-300',
-      W: 'text-green-300',
-      E: 'text-yellow-300',
-      R: 'text-red-300',
-    };
-    const dotColors: Record<string, string> = {
-      Q: 'bg-blue-400',
-      W: 'bg-green-400',
-      E: 'bg-yellow-400',
-      R: 'bg-red-400',
-    };
-
-    return (
-      <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse text-xs">
-          <thead>
-            <tr>
-              <th className="w-12 border-b border-white/20 pb-1 text-left text-white/60">
-                Skill
-              </th>
-              {Array.from({ length: 18 }, (_, i) => (
-                <th
-                  key={i}
-                  className="w-6 border-b border-white/20 pb-1 text-center text-white/60"
-                >
-                  {i + 1}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {['Q', 'W', 'E', 'R'].map((skill) => (
-              <tr key={skill}>
-                <td className="py-1">
-                  <div className="flex items-center gap-1">
-                    <AbilityIcon
-                      championId="Yuumi"
-                      ability={skill as 'Q' | 'W' | 'E' | 'R'}
-                      size={16}
-                    />
-                    <span className={`font-medium ${skillColors[skill]}`}>
-                      {skill}
-                    </span>
-                  </div>
-                </td>
-                {levels.map((levelSkill, idx) => (
-                  <td key={idx} className="py-1 text-center">
-                    {levelSkill === skill ? (
-                      <div
-                        className={`mx-auto h-2.5 w-2.5 rounded-full ${dotColors[skill]}`}
-                      />
-                    ) : null}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-landing-bg-from via-landing-bg-via to-landing-bg-to">

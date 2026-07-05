@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { Clock, ExternalLink, Sparkles } from 'lucide-react';
 import { getNextResetForSection } from '@/lib/mythic-shop/reset-schedule';
 import type { MythicShopSectionId } from '@/lib/mythic-shop/types';
@@ -38,6 +38,23 @@ function formatCountdown(targetIso: string | null, nowMs: number): string {
   return `${minutes}m`;
 }
 
+// Minute-tick time store for useSyncExternalStore. The server snapshot is
+// `null` so SSR and the first client paint render the same placeholder, then
+// the real timestamp is picked up once React subscribes after hydration.
+let nowMsSnapshot: number | null = null;
+
+function subscribeToMinuteTick(onStoreChange: () => void): () => void {
+  nowMsSnapshot = Date.now();
+  const interval = setInterval(() => {
+    nowMsSnapshot = Date.now();
+    onStoreChange();
+  }, 60_000);
+  return () => clearInterval(interval);
+}
+
+const getNowMsSnapshot = () => nowMsSnapshot;
+const getServerNowMsSnapshot = () => null;
+
 /**
  * Site-wide top banner showing the Mythic Shop reset countdowns.
  *
@@ -45,15 +62,13 @@ function formatCountdown(targetIso: string | null, nowMs: number): string {
  * (see reset-schedule) and we link out for the live item list.
  */
 export function MythicShopResetBanner() {
-  // Render the same value on server and first client paint to avoid hydration
-  // mismatches, then start ticking once mounted.
-  const [nowMs, setNowMs] = useState<number | null>(null);
-
-  useEffect(() => {
-    setNowMs(Date.now());
-    const interval = setInterval(() => setNowMs(Date.now()), 60_000);
-    return () => clearInterval(interval);
-  }, []);
+  // Renders the same value on server and first client paint to avoid
+  // hydration mismatches, then ticks once a minute after subscribing.
+  const nowMs = useSyncExternalStore(
+    subscribeToMinuteTick,
+    getNowMsSnapshot,
+    getServerNowMsSnapshot
+  );
 
   const now = nowMs === null ? new Date() : new Date(nowMs);
   const referenceMs = nowMs ?? now.getTime();

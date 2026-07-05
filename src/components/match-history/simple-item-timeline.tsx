@@ -45,10 +45,7 @@ interface PlayerTimeline {
 
 interface ItemEvent {
   readonly type:
-    | 'ITEM_PURCHASED'
-    | 'ITEM_SOLD'
-    | 'ITEM_DESTROYED'
-    | 'ITEM_UNDO';
+    'ITEM_PURCHASED' | 'ITEM_SOLD' | 'ITEM_DESTROYED' | 'ITEM_UNDO';
   readonly timestamp: number;
   readonly timeFormatted: string;
   readonly itemId: number;
@@ -700,10 +697,11 @@ export function SimpleItemTimeline({
   maxHeight = 600,
 }: ItemTimelineProps) {
   const [showDestroyed, setShowDestroyed] = useState(false);
+  const timelineEvents = timeline?.events;
 
   // Calculate support quest completions and evolution chains
   const questAnalysis = useMemo(() => {
-    if (!timeline?.events) {
+    if (!timelineEvents) {
       return {
         completions: [],
         evolutionChains: new Map(),
@@ -711,12 +709,12 @@ export function SimpleItemTimeline({
       };
     }
 
-    const completions = detectSupportQuestCompletions(timeline.events);
-    const evolutionChains = detectEvolutionChains(timeline.events);
+    const completions = detectSupportQuestCompletions(timelineEvents);
+    const evolutionChains = detectEvolutionChains(timelineEvents);
     const hasQuestComplete = completions.some((c) => c.isQuestComplete);
 
     return { completions, evolutionChains, hasQuestComplete };
-  }, [timeline?.events]);
+  }, [timelineEvents]);
   // Handle loading state
   if (isLoading) {
     return (

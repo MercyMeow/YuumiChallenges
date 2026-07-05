@@ -3,16 +3,19 @@
  * Handles auto-selection of Yuumi and player comparison logic
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { MatchDetailsSuccessPayload } from '@/components/match-details';
 
 export function usePlayerSelection(data: MatchDetailsSuccessPayload | null) {
-  const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
+  const [selectedPlayerOverride, setSelectedPlayer] = useState<number | null>(
+    null
+  );
   const [comparePlayer, setComparePlayer] = useState<number | null>(null);
 
-  // Auto-select Yuumi player if present
-  useEffect(() => {
-    if (!data?.matchData?.info?.participants || selectedPlayer !== null) return;
+  // Auto-select Yuumi player if present (derived during render instead of
+  // setting state in an effect; an explicit selection always wins)
+  const autoSelectedPlayer = useMemo(() => {
+    if (!data?.matchData?.info?.participants) return null;
 
     const yuumiIndex = data.matchData.info.participants.findIndex(
       (participant) => participant.championName?.toLowerCase() === 'yuumi'
@@ -20,9 +23,12 @@ export function usePlayerSelection(data: MatchDetailsSuccessPayload | null) {
 
     if (yuumiIndex !== -1) {
       console.log('🐱 Auto-selecting Yuumi player at index:', yuumiIndex);
-      setSelectedPlayer(yuumiIndex);
+      return yuumiIndex;
     }
-  }, [data, selectedPlayer]);
+    return null;
+  }, [data]);
+
+  const selectedPlayer = selectedPlayerOverride ?? autoSelectedPlayer;
 
   // Get selected player data
   const selectedPlayerData = useMemo(() => {

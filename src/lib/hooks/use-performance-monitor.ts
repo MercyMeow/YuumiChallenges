@@ -63,18 +63,22 @@ export function usePerformanceMonitor(
   });
 
   const [warnings, setWarnings] = useState<string[]>([]);
-  const startTimeRef = useRef<number>(performance.now());
+  // Capture the first render's start time exactly once via a lazy state
+  // initializer (never updated, so it behaves like the previous ref).
+  const [startTime] = useState<number>(() => performance.now());
   const renderCountRef = useRef<number>(0);
   const lastRenderTimeRef = useRef<number>(0);
 
   // Track component mount time
   useEffect(() => {
-    const mountTime = performance.now() - startTimeRef.current;
+    const mountTime = performance.now() - startTime;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- performance monitor must publish effect-time measurements to state; deferring the update would change the reported timings
     setMetrics((prev) => ({
       ...prev,
       componentMountTime: mountTime,
     }));
-  }, []);
+    // startTime is set once by the lazy initializer and never changes.
+  }, [startTime]);
 
   // Track re-renders
   useEffect(() => {

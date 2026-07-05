@@ -49,43 +49,62 @@ export function EnhancedMatchHistoryDisplay({
   const [limit] = useState(50); // Show more matches by default
   const [hasMore, setHasMore] = useState(false);
 
+  // Reset loading/error during render when the summoner changes (the initial
+  // state already covers the first fetch), so the fetch effect below never
+  // calls setState synchronously.
+  const [prevSummonerId, setPrevSummonerId] = useState(summonerId);
+  if (prevSummonerId !== summonerId) {
+    setPrevSummonerId(summonerId);
+    setLoading(true);
+    setError(null);
+  }
+
+  // Promise-chain style (rather than async/await) so every setState happens
+  // inside an async callback, never synchronously when called from the effect.
   const fetchMatches = useCallback(
-    async (resetMatches = true) => {
-      try {
-        setLoading(resetMatches);
-        setError(null);
+    (resetMatches = true) => {
+      const offset = resetMatches ? 0 : matches.length;
 
-        const offset = resetMatches ? 0 : matches.length;
-        const response = await fetch(
-          `/api/summoners/${summonerId}/matches?limit=${limit}&offset=${offset}&detailed=true`
-        );
+      return fetch(
+        `/api/summoners/${summonerId}/matches?limit=${limit}&offset=${offset}&detailed=true`
+      )
+        .then(async (response) => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch matches');
+          }
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch matches');
-        }
+          const data = await response.json();
+          const newMatches = data.matches || [];
 
-        const data = await response.json();
-        const newMatches = data.matches || [];
+          if (resetMatches) {
+            setMatches(newMatches);
+          } else {
+            setMatches((prev) => [
+              ...(Array.isArray(prev) ? prev : []),
+              ...(Array.isArray(newMatches) ? newMatches : []),
+            ]);
+          }
 
-        if (resetMatches) {
-          setMatches(newMatches);
-        } else {
-          setMatches((prev) => [
-            ...(Array.isArray(prev) ? prev : []),
-            ...(Array.isArray(newMatches) ? newMatches : []),
-          ]);
-        }
-
-        setHasMore(data.pagination?.hasMore || false);
-      } catch (error) {
-        console.error('Error fetching matches:', error);
-        setError('Failed to load match history');
-      } finally {
-        setLoading(false);
-      }
+          setHasMore(data.pagination?.hasMore || false);
+        })
+        .catch((error) => {
+          console.error('Error fetching matches:', error);
+          setError('Failed to load match history');
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     },
     [summonerId, limit, matches.length]
   );
+
+  // Event-handler entry point: applies the synchronous loading/error reset
+  // that fetchMatches previously did itself.
+  const startFetch = (resetMatches = true) => {
+    setLoading(resetMatches);
+    setError(null);
+    fetchMatches(resetMatches);
+  };
 
   useEffect(() => {
     fetchMatches(true);
@@ -271,7 +290,7 @@ export function EnhancedMatchHistoryDisplay({
           <p className="mb-4 text-white/60">{error}</p>
           <Button
             variant="outline"
-            onClick={() => fetchMatches(true)}
+            onClick={() => startFetch(true)}
             className="border-red-500/30 text-red-400 hover:bg-red-500/10"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
@@ -308,7 +327,7 @@ export function EnhancedMatchHistoryDisplay({
               variant="outline"
               onClick={() => {
                 onRefresh();
-                fetchMatches(true);
+                startFetch(true);
               }}
               disabled={isRefreshing}
               className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
@@ -445,7 +464,7 @@ export function EnhancedMatchHistoryDisplay({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => fetchMatches(false)}
+                      onClick={() => startFetch(false)}
                       disabled={loading}
                       className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
                     >
