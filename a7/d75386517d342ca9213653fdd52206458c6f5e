@@ -1,0 +1,30 @@
+convex/_generated/server.d.ts
+  s_7e86a87772aad7::t_74a98ec91d553e 7-9,13-16,21,26,31,36-37
+convex/scraper.ts
+  s_7e86a87772aad7::t_dcfce0b1af6ba2 4-10,14,16,19,26,54-61,160-168,196,283,285-288,324,350-354,390,416-420,454,480-484,517,543-547,579,606-610
+src/components/match-details/TimelineTab.tsx
+  s_7e86a87772aad7::t_dcfce0b1af6ba2 16,25,186
+CLAUDE.md
+  s_7e86a87772aad7::t_646768a0b8c2c7 243,351
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a7d75386517d342ca9213653fdd52206458c6f5e",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_7e86a87772aad7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6bc66787-22e6-4f67-9489-ed5601fe7f02",
+        "model": "claude-fable-5"
+      },
+      "human_author": null
+    }
+  }
+}
