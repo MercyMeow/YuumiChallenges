@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,11 @@ import {
 import { ItemSlot } from '@/components/match-history/item-slots';
 import { BuildRunes } from '@/components/BuildRunes';
 import { BEST_ITEMS } from '@/lib/builds/yuumi';
+import {
+  fetchAutoBuild,
+  RUNE_STYLE_NAMES,
+  type AutoBuild,
+} from '@/lib/builds/auto-build';
 import {
   SUPPORT_CHAMPIONS,
   ADC_CHAMPIONS,
@@ -268,6 +273,7 @@ export default function YuumiGuide() {
   const [selectedADC, setSelectedADC] = useState<string>('');
   const [matchupType, setMatchupType] = useState<'enemy' | 'ally'>('enemy');
   const [livePatch, setLivePatch] = useState<string | null>(null);
+  const [autoBuild, setAutoBuild] = useState<AutoBuild | null>(null);
 
   // Follow the live patch from Data Dragon; PATCH stays as the patch the
   // build data was last verified against.
@@ -286,9 +292,66 @@ export default function YuumiGuide() {
     };
   }, []);
 
-  const currentBuild = BUILDS.find((b) => b.id === selectedBuild) ?? BUILDS[0];
+  // Auto-scraped build from Convex (daily cron); static data is the fallback.
+  useEffect(() => {
+    let cancelled = false;
+    fetchAutoBuild().then((build) => {
+      if (!cancelled && build) setAutoBuild(build);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Overlay the auto build onto the recommended build only; the alternative
+  // builds stay hand-curated.
+  const displayBuilds = useMemo(() => {
+    if (!autoBuild) return BUILDS;
+    return BUILDS.map((build) => {
+      if (!build.isRecommended) return build;
+      return {
+        ...build,
+        runes: {
+          ...build.runes,
+          name: autoBuild.runes.keystone.name,
+          primaryTree:
+            (autoBuild.runes.primaryStyleId !== null
+              ? RUNE_STYLE_NAMES[autoBuild.runes.primaryStyleId]
+              : undefined) ?? build.runes.primaryTree,
+          keystone: autoBuild.runes.keystone.key,
+          primary: autoBuild.runes.primary.map((rune) => rune.key),
+          secondaryTree:
+            (autoBuild.runes.secondaryStyleId !== null
+              ? RUNE_STYLE_NAMES[autoBuild.runes.secondaryStyleId]
+              : undefined) ?? build.runes.secondaryTree,
+          secondary: autoBuild.runes.secondary.map((rune) => rune.key),
+          shards:
+            autoBuild.runes.shardKeys.length === 3
+              ? autoBuild.runes.shardKeys
+              : build.runes.shards,
+        },
+        items: {
+          ...build.items,
+          core: autoBuild.coreItems.map((item) => ({
+            id: item.id,
+            name: item.name,
+            reason: `Most-picked core item (${autoBuild.source}).`,
+          })),
+        },
+        skillOrder: {
+          ...build.skillOrder,
+          priority: autoBuild.skillPriority.join(' > '),
+          levels: autoBuild.skillOrder ?? build.skillOrder.levels,
+        },
+      };
+    });
+  }, [autoBuild]);
+
+  const currentBuild =
+    displayBuilds.find((b) => b.id === selectedBuild) ?? displayBuilds[0];
   const currentPatch = livePatch ?? PATCH;
-  const buildDataOutdated = livePatch !== null && livePatch !== PATCH;
+  const buildDataOutdated =
+    autoBuild === null && livePatch !== null && livePatch !== PATCH;
 
   const supportMatchup = isSupportMatchupKey(selectedSupport)
     ? SUPPORT_MATCHUPS[selectedSupport]
@@ -528,6 +591,15 @@ export default function YuumiGuide() {
             >
               Patch {currentPatch}
             </Badge>
+            {autoBuild && (
+              <Badge
+                variant="outline"
+                className="border-green-400/40 text-green-300"
+                title={`Recommended build auto-updated from ${autoBuild.source} on ${new Date(autoBuild.updatedAt).toLocaleDateString()}.`}
+              >
+                Live build · {autoBuild.patch}
+              </Badge>
+            )}
             {buildDataOutdated && (
               <Badge
                 variant="outline"
@@ -572,7 +644,7 @@ export default function YuumiGuide() {
           <TabsContent value="builds" className="space-y-6">
             {/* Build Selector */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              {BUILDS.map((build) => (
+              {displayBuilds.map((build) => (
                 <button
                   key={build.id}
                   onClick={() => setSelectedBuild(build.id)}

@@ -21,14 +21,29 @@ import type { DataModel } from './dataModel.js';
 export declare const query: QueryBuilder<DataModel, 'public'>;
 
 /**
+ * Define a query that is only accessible from other Convex functions.
+ */
+export declare const internalQuery: QueryBuilder<DataModel, 'internal'>;
+
+/**
  * Define a mutation in this Convex app's public API.
  */
 export declare const mutation: MutationBuilder<DataModel, 'public'>;
 
 /**
+ * Define a mutation that is only accessible from other Convex functions.
+ */
+export declare const internalMutation: MutationBuilder<DataModel, 'internal'>;
+
+/**
  * Define an action in this Convex app's public API.
  */
 export declare const action: ActionBuilder<DataModel, 'public'>;
+
+/**
+ * Define an action that is only accessible from other Convex functions.
+ */
+export declare const internalAction: ActionBuilder<DataModel, 'internal'>;
 
 export type QueryCtx = GenericQueryCtx<DataModel>;
 export type MutationCtx = GenericMutationCtx<DataModel>;

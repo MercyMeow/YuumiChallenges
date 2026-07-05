@@ -1,11 +1,12 @@
+/* eslint-disable @next/next/no-img-element -- next/og (satori) renders plain
+   JSX to a PNG; next/image cannot be used here. */
 import { ImageResponse } from 'next/og';
 import {
-  getPrimaryRuneNames,
-  getSecondaryRuneNames,
+  getEmbedRunes,
   getCoreItems,
-  RUNE_ICON_PATHS,
-  SKILL_ORDER,
+  getSkillPriority,
 } from '@/lib/builds/embed-summary';
+import { fetchAutoBuild } from '@/lib/builds/auto-build';
 import { getLiveDdragonVersion, toGuidePatch } from '@/lib/utils/live-patch';
 
 export const alt = 'Yuumi recommended build, runes, and skill order';
@@ -21,10 +22,14 @@ const SKILL_COLORS: Record<string, string> = {
 };
 
 export default async function OpengraphImage() {
-  const version = await getLiveDdragonVersion();
+  const [version, auto] = await Promise.all([
+    getLiveDdragonVersion(),
+    fetchAutoBuild(),
+  ]);
   const patch = toGuidePatch(version);
-  const runeNames = [...getPrimaryRuneNames(), ...getSecondaryRuneNames()];
-  const coreItems = getCoreItems();
+  const runes = getEmbedRunes(auto);
+  const coreItems = getCoreItems(auto);
+  const skillPriority = getSkillPriority(auto);
 
   return new ImageResponse(
     (
@@ -65,7 +70,9 @@ export default async function OpengraphImage() {
                 color: '#c4b5fd',
               }}
             >
-              Recommended Build · Patch {patch} · yuumi.quest
+              {auto
+                ? `Live Build · Patch ${patch} · yuumi.quest`
+                : `Recommended Build · Patch ${patch} · yuumi.quest`}
             </div>
           </div>
         </div>
@@ -91,43 +98,40 @@ export default async function OpengraphImage() {
               marginBottom: 12,
             }}
           >
-            RUNES — SORCERY + RESOLVE
+            RECOMMENDED RUNES
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
-            {runeNames.map((name) => {
-              const path = RUNE_ICON_PATHS[name];
-              return (
+            {runes.map((rune) => (
+              <div
+                key={rune.name}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  width: 150,
+                }}
+              >
+                {rune.icon ? (
+                  <img
+                    alt={rune.name}
+                    src={`${DDRAGON}/img/${rune.icon}`}
+                    width={56}
+                    height={56}
+                  />
+                ) : null}
                 <div
-                  key={name}
                   style={{
                     display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    width: 150,
+                    fontSize: 17,
+                    color: '#e5e7eb',
+                    marginTop: 6,
+                    textAlign: 'center',
                   }}
                 >
-                  {path ? (
-                    <img
-                      alt={name}
-                      src={`${DDRAGON}/img/${path}`}
-                      width={56}
-                      height={56}
-                    />
-                  ) : null}
-                  <div
-                    style={{
-                      display: 'flex',
-                      fontSize: 17,
-                      color: '#e5e7eb',
-                      marginTop: 6,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {name}
-                  </div>
+                  {rune.name}
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -209,7 +213,7 @@ export default async function OpengraphImage() {
               SKILL ORDER
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {SKILL_ORDER.map((skill, index) => (
+              {skillPriority.map((skill, index) => (
                 <div
                   key={skill}
                   style={{ display: 'flex', alignItems: 'center', gap: 12 }}

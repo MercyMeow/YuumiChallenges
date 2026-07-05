@@ -4,6 +4,7 @@ import { ClientProviders } from '@/providers/ClientProviders';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { yuumiDiscordEmbed } from '@/lib/embeds/yuumi';
 import { buildShareDescription } from '@/lib/builds/embed-summary';
+import { fetchAutoBuild } from '@/lib/builds/auto-build';
 import { getLiveDdragonVersion, toGuidePatch } from '@/lib/utils/live-patch';
 import { MythicShopResetBanner } from '@/components/mythic-shop/MythicShopResetBanner';
 
@@ -20,9 +21,13 @@ const embedColorHex = primaryEmbed?.color
 // The og:image comes from src/app/opengraph-image.tsx (file convention),
 // which renders runes, core items, and skill order from the same data.
 export async function generateMetadata(): Promise<Metadata> {
-  const patch = toGuidePatch(await getLiveDdragonVersion());
+  const [version, autoBuild] = await Promise.all([
+    getLiveDdragonVersion(),
+    fetchAutoBuild(),
+  ]);
+  const patch = toGuidePatch(version);
   const shareTitle = `Yuumi Guide · Patch ${patch}`;
-  const shareDescription = buildShareDescription(patch);
+  const shareDescription = buildShareDescription(patch, autoBuild);
 
   return {
     metadataBase: new URL(siteUrlFromEnv),
