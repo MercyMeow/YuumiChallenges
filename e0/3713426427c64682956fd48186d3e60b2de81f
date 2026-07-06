@@ -1,0 +1,24 @@
+.gitignore
+  s_655f4567a62a1d::t_ebfb6495598ac9 51-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "e03713426427c64682956fd48186d3e60b2de81f",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_655f4567a62a1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7810e78-844d-4500-94ab-36db1a62895a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
