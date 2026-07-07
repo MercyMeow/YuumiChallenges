@@ -1,0 +1,355 @@
+src/lib/matchups/supports/Neeko.ts
+  s_90d9c1d84ee3a8::t_9f24e53348ef2c 7-10
+  s_90d9c1d84ee3a8::t_009e337ef113f6 15
+  s_90d9c1d84ee3a8::t_a6f8eb2a1b159e 6
+src/lib/matchups/adcs/Senna.ts
+  s_90d9c1d84ee3a8::t_7efedd62fabe4a 1-4,9-10,12-20
+  s_90d9c1d84ee3a8::t_7374b8e395040d 5-8,11
+src/lib/matchups/supports/Camille.ts
+  s_90d9c1d84ee3a8::t_edb21872408c59 1-7,9-12,14-15,20-22
+  s_90d9c1d84ee3a8::t_dd6a985a14d8de 8,13,16-19
+src/lib/matchups/supports/index.ts
+  s_90d9c1d84ee3a8::t_aa06fc027bf343 22,28-29
+  s_90d9c1d84ee3a8::t_75c5b8cf5073a4 38
+  s_90d9c1d84ee3a8::t_b16d5589f30793 10,15
+src/lib/matchups/adcs/Vayne.ts
+  s_90d9c1d84ee3a8::t_20e04c577ad141 7-9,13-14
+  s_90d9c1d84ee3a8::t_9b27ac755fe5e6 10
+src/lib/matchups/supports/Blitzcrank.ts
+  s_90d9c1d84ee3a8::t_9d6a34c2485222 6-7,9-10,15
+  s_90d9c1d84ee3a8::t_7eefe70cf8d0e8 16-19
+  s_90d9c1d84ee3a8::t_94fde61b818198 8
+src/lib/matchups/supports/Nautilus.ts
+  s_90d9c1d84ee3a8::t_9d42af7c3343cf 9
+  s_90d9c1d84ee3a8::t_7f5427e3ddfc89 6-8,10,15
+src/lib/matchups/adcs/Aphelios.ts
+  s_90d9c1d84ee3a8::t_d8ad7eda265048 11
+  s_90d9c1d84ee3a8::t_2a7183ea9366aa 14
+  s_90d9c1d84ee3a8::t_f684b9c2e72b6c 9
+src/lib/matchups/adcs/Yone.ts
+  s_90d9c1d84ee3a8::t_7185bb25172b07 5-6
+  s_90d9c1d84ee3a8::t_d634fabb98adc1 8-9,11,14-15
+src/lib/matchups/supports/Seraphine.ts
+  s_90d9c1d84ee3a8::t_0c32a83e2b0975 6-10
+src/lib/matchups/supports/Rakan.ts
+  s_90d9c1d84ee3a8::t_46fa442830da1d 6-10
+src/lib/matchups/adcs/Cassiopeia.ts
+  s_90d9c1d84ee3a8::t_2efe25afaa1492 5-6,8-12,15
+src/lib/matchups/adcs/Corki.ts
+  s_90d9c1d84ee3a8::t_1c280bdc1031c8 1-17
+src/lib/matchups/supports/Morgana.ts
+  s_90d9c1d84ee3a8::t_1c337e62e5bead 6-10,15
+src/lib/matchups/supports/Fiddlesticks.ts
+  s_90d9c1d84ee3a8::t_a9bd9a30175291 6-7,9-10,15
+  s_90d9c1d84ee3a8::t_97f8fa27b7a72e 16-19
+  s_90d9c1d84ee3a8::t_ba091dfc391c35 8
+src/lib/matchups/supports/Ivern.ts
+  s_90d9c1d84ee3a8::t_d4ef27b13355ba 1-6,9,11-15,20-22
+  s_90d9c1d84ee3a8::t_dd6a985a14d8de 7-8,10,16-19
+src/lib/matchups/supports/Karma.ts
+  s_90d9c1d84ee3a8::t_32647159fa88a0 7-10,15
+  s_90d9c1d84ee3a8::t_00b520625ca364 6
+src/lib/matchups/adcs/Varus.ts
+  s_90d9c1d84ee3a8::t_db4ce7971f06b7 9-10,14-15
+src/lib/matchups/supports/Zilean.ts
+  s_90d9c1d84ee3a8::t_b506ff8b5de519 6-10
+src/lib/matchups/supports/Renata.ts
+  s_90d9c1d84ee3a8::t_5ca23b198e1db0 6-10,15-19
+src/lib/matchups/supports/Bard.ts
+  s_90d9c1d84ee3a8::t_6656bb93a67d93 6-10,15
+  s_90d9c1d84ee3a8::t_7eefe70cf8d0e8 16-19
+src/lib/matchups/supports/Ashe.ts
+  s_90d9c1d84ee3a8::t_7eefe70cf8d0e8 16-19
+  s_90d9c1d84ee3a8::t_30e770ac335273 6-10,15
+src/lib/matchups/supports/Orianna.ts
+  s_90d9c1d84ee3a8::t_33491a7a4a28bd 1-9,11-15,20-22
+  s_90d9c1d84ee3a8::t_dd6a985a14d8de 10,16-19
+src/lib/matchups/types.ts
+  s_90d9c1d84ee3a8::t_e9876510f03196 12
+src/lib/matchups/supports/Yuumi.ts
+  s_90d9c1d84ee3a8::t_b49654c3b2e43c 6-10
+src/lib/matchups/championLists.ts
+  s_90d9c1d84ee3a8::t_58bf6223fb283d 58
+  s_90d9c1d84ee3a8::t_1b17c1635369ad 11
+  s_90d9c1d84ee3a8::t_34b0401dc10622 30
+  s_90d9c1d84ee3a8::t_f7188e581bad58 39
+src/lib/guide/spell-tips.ts
+  s_90d9c1d84ee3a8::t_9d6d986fb6d86c 129,133,136-137
+  s_90d9c1d84ee3a8::t_7cc356a92579e7 61
+  s_90d9c1d84ee3a8::t_d1c57e302b81d7 3-11,17,27-32,34-36,38-42,51-60,62-66,75-76,78-80,82-90,99-114,123-128,130-132,134-135,138
+  s_90d9c1d84ee3a8::t_46b0d592bf09fa 33,37
+  s_90d9c1d84ee3a8::t_4a1a8bc8b810e2 77,81
+src/lib/matchups/supports/Sett.ts
+  s_90d9c1d84ee3a8::t_bb4c647352ac9d 6-10
+src/lib/matchups/adcs/Vladimir.ts
+  s_90d9c1d84ee3a8::t_b07f0b55ddc1d3 7-10,13-14
+src/lib/matchups/supports/Leona.ts
+  s_90d9c1d84ee3a8::t_f746c75b83f543 6-10,15
+src/app/guide-client.tsx
+  s_90d9c1d84ee3a8::t_dab08afc477487 282
+  s_90d9c1d84ee3a8::t_b5e3ad288834fb 16-17
+  s_90d9c1d84ee3a8::t_16b5db83a4dfa9 908-925
+  s_90d9c1d84ee3a8::t_edd7c4dec78dc3 393
+  s_90d9c1d84ee3a8::t_1d6df7e6bcfc04 335-338
+  s_90d9c1d84ee3a8::t_58ed79239f0321 962
+  s_90d9c1d84ee3a8::t_85355fd7b4b88f 255-262,264-266,272,279,284-303,305,308-309,311-314,319,321-322,324-334,339-352,357-374,392,394
+  s_90d9c1d84ee3a8::t_2d77e4b3cd9219 725-728
+  s_90d9c1d84ee3a8::t_6aaa848480fa88 304
+  s_90d9c1d84ee3a8::t_f7879e4184e75e 18-20
+  s_90d9c1d84ee3a8::t_46e4298ca0bdd5 11,15,592,766-769
+  s_90d9c1d84ee3a8::t_90a61a62dbe9b4 837-854
+  s_90d9c1d84ee3a8::t_8a01619e1fe5bd 320
+  s_90d9c1d84ee3a8::t_c942315f36c520 353-356
+  s_90d9c1d84ee3a8::t_d6348613831871 577-579
+src/lib/matchups/adcs/MissFortune.ts
+  s_90d9c1d84ee3a8::t_bfdc24f7f1b760 8-9,11,14
+  s_90d9c1d84ee3a8::t_9ad0dbccb79bf4 10
+src/lib/matchups/adcs/Ezreal.ts
+  s_90d9c1d84ee3a8::t_79487dc352c55f 13-14
+  s_90d9c1d84ee3a8::t_9d809f3f9a5dda 7
+src/lib/matchups/supports/Amumu.ts
+  s_90d9c1d84ee3a8::t_3451435c6af92f 6-10,15-16
+src/lib/matchups/supports/Taliyah.ts
+  s_90d9c1d84ee3a8::t_6297e5a19c7b46 6-10,15-19
+src/lib/matchups/adcs/Heimerdinger.ts
+  s_90d9c1d84ee3a8::t_ba091dfc391c35 7,9
+  s_90d9c1d84ee3a8::t_d9fbbc5ef5002a 1-6,8,10-17
+src/lib/matchups/supports/Brand.ts
+  s_90d9c1d84ee3a8::t_fef780cb6d8c35 6-10,15
+  s_90d9c1d84ee3a8::t_7eefe70cf8d0e8 16-19
+src/lib/matchups/adcs/Ashe.ts
+  s_90d9c1d84ee3a8::t_b2bd488a2c5c88 11
+  s_90d9c1d84ee3a8::t_80010b2cef2553 14
+src/lib/matchups/adcs/TwistedFate.ts
+  s_90d9c1d84ee3a8::t_a03575f32bae83 8-9
+  s_90d9c1d84ee3a8::t_e0fead08ce66f6 5
+src/components/guide/guide-panels.tsx
+  s_90d9c1d84ee3a8::t_1d075f7e6d7864 10
+  s_90d9c1d84ee3a8::t_46e4298ca0bdd5 12,38-47,49-55,57-67,69-71,73,75-79,125-129
+  s_90d9c1d84ee3a8::t_4f83127e868b90 8,14
+  s_90d9c1d84ee3a8::t_b3e4aadd73dd22 22
+  s_90d9c1d84ee3a8::t_1c268f53641b4c 72
+  s_90d9c1d84ee3a8::t_8b3521a0a695a1 171
+  s_90d9c1d84ee3a8::t_e91741963e1aaf 119
+src/lib/matchups/adcs/Kindred.ts
+  s_90d9c1d84ee3a8::t_7374b8e395040d 5-6,10,12
+  s_90d9c1d84ee3a8::t_1f0f7872522d55 1-4,7-9,11,13-18
+src/lib/matchups/adcs/Karthus.ts
+  s_90d9c1d84ee3a8::t_deac84db1866a1 13-14
+  s_90d9c1d84ee3a8::t_f1bd8571a8a263 10
+src/lib/matchups/supports/Janna.ts
+  s_90d9c1d84ee3a8::t_f214bc4a1ee034 6-10,15
+  s_90d9c1d84ee3a8::t_e9876510f03196 16-19
+src/lib/matchups/supports/Milio.ts
+  s_90d9c1d84ee3a8::t_e9876510f03196 7
+  s_90d9c1d84ee3a8::t_fffbce9039cff3 6,8-9,15-19
+src/lib/matchups/supports/Alistar.ts
+  s_90d9c1d84ee3a8::t_7eefe70cf8d0e8 8
+  s_90d9c1d84ee3a8::t_97f8fa27b7a72e 10
+  s_90d9c1d84ee3a8::t_106ff7b0ab0d89 6-7,9,15
+src/components/shell/TopNav.tsx
+  s_90d9c1d84ee3a8::t_7388c3b670fa6f 8-9,16,26,63-67,123-127
+src/lib/matchups/adcs/Jhin.ts
+  s_90d9c1d84ee3a8::t_c4da81b60d5f9e 13
+src/lib/matchups/supports/Hwei.ts
+  s_90d9c1d84ee3a8::t_8906bef121dd74 6-10,15-20
+src/lib/matchups/adcs/Zeri.ts
+  s_90d9c1d84ee3a8::t_5d55b10b177f9f 5,13-14
+  s_90d9c1d84ee3a8::t_47e11e06ed88b7 7-9
+src/lib/matchups/supports/Poppy.ts
+  s_90d9c1d84ee3a8::t_a091c5713e4605 6-10
+src/lib/matchups/supports/Nami.ts
+  s_90d9c1d84ee3a8::t_9020d66a7dff21 6-10,15
+src/lib/matchups/supports/Taric.ts
+  s_90d9c1d84ee3a8::t_7bc7e74d8a7e64 6-8,10
+src/lib/matchups/adcs/Velkoz.ts
+  s_90d9c1d84ee3a8::t_f2287beabc3bb4 1-4,7,9-10,12-18
+  s_90d9c1d84ee3a8::t_7374b8e395040d 5-6,8,11
+src/lib/matchups/adcs/Taliyah.ts
+  s_90d9c1d84ee3a8::t_7e5ae1caf29f3e 5
+src/lib/matchups/adcs/Graves.ts
+  s_90d9c1d84ee3a8::t_53b6ff83a178b7 1-17
+src/lib/matchups/supports/Senna.ts
+  s_90d9c1d84ee3a8::t_0ca65a1d8a892c 6-10
+src/components/shell/SideRail.tsx
+  s_90d9c1d84ee3a8::t_e522615d5aabae 36
+  s_90d9c1d84ee3a8::t_ef3e40e8664de6 68
+  s_90d9c1d84ee3a8::t_5d116c7e893d31 12,15-16,22
+src/lib/matchups/adcs/index.ts
+  s_90d9c1d84ee3a8::t_1661781604241f 27,30,40,43
+  s_90d9c1d84ee3a8::t_829fb5c96ea80f 2,5,8,11-13,19-20
+src/lib/matchups/supports/Sona.ts
+  s_90d9c1d84ee3a8::t_5ca23b198e1db0 6-10,15-19
+src/lib/matchups/adcs/Swain.ts
+  s_90d9c1d84ee3a8::t_d7eda9e7f15d76 1-6,8-17
+  s_90d9c1d84ee3a8::t_7374b8e395040d 7
+src/lib/matchups/supports/Pyke.ts
+  s_90d9c1d84ee3a8::t_6e7e889ff94568 6-10
+convex/seed.ts
+  s_90d9c1d84ee3a8::t_43169c116dd59d 3
+  s_90d9c1d84ee3a8::t_05e521a3b5c280 92-93
+src/lib/matchups/adcs/Lucian.ts
+  s_90d9c1d84ee3a8::t_803827a0b345db 7-8
+  s_90d9c1d84ee3a8::t_83dfac8559b15f 9-10,14-15
+src/lib/matchups/adcs/Xayah.ts
+  s_90d9c1d84ee3a8::t_ec73bfb4dc5e6f 9,13-14
+  s_90d9c1d84ee3a8::t_9d044251aae35a 7
+src/lib/matchups/adcs/Twitch.ts
+  s_90d9c1d84ee3a8::t_659e4fd0ad86eb 7,9
+  s_90d9c1d84ee3a8::t_3c862fc9e1e57f 8,10,13-14
+src/lib/matchups/supports/Swain.ts
+  s_90d9c1d84ee3a8::t_626e80a32cb936 6-10,15
+src/lib/matchups/supports/Shaco.ts
+  s_90d9c1d84ee3a8::t_3f88bb67e11dd4 15
+  s_90d9c1d84ee3a8::t_e1ef231a6d9e36 1-5,7-8,11-14,20-22
+  s_90d9c1d84ee3a8::t_dd6a985a14d8de 9-10,16-19
+  s_90d9c1d84ee3a8::t_179205a4083921 6
+src/lib/hooks/use-active-section.ts
+  s_90d9c1d84ee3a8::t_f492a7682c81cb 1-48
+src/lib/matchups/adcs/Quinn.ts
+  s_90d9c1d84ee3a8::t_6869bb3f778f98 7-10,14
+src/lib/matchups/adcs/Azir.ts
+  s_90d9c1d84ee3a8::t_62b6dbd7467340 1-13,15-17
+  s_90d9c1d84ee3a8::t_4cc263425548db 14
+src/components/shell/nav.ts
+  s_90d9c1d84ee3a8::t_cc049dd2564d22 11-31
+src/lib/matchups/adcs/Xerath.ts
+  s_90d9c1d84ee3a8::t_ac17b5ca2a0ef5 1-4,7-18
+  s_90d9c1d84ee3a8::t_7374b8e395040d 5-6
+README.md
+  s_90d9c1d84ee3a8::t_13cb013a49e7a0 87
+  s_90d9c1d84ee3a8::t_3483aa7ec3b296 49
+  s_90d9c1d84ee3a8::t_c8565b125b3206 153
+  s_90d9c1d84ee3a8::t_33aee1c5888ed3 1,5,8,13-19,23-25,29,31,33,37,39,45,47-48,50-52,57,59-65,81-82,85-86,93,95,99-103,105,108-111,113,115,120-121,123-124,127,129,139,148,150-152,154,156-160,169,171-175,177,181,183,188-203,206,208,214-218,222,224,228-229,231,235,237,242-244,248,250,252,258-260,262
+  s_90d9c1d84ee3a8::t_bae09abc480830 35
+  s_90d9c1d84ee3a8::t_5bd1ff083de736 72-74,76
+  s_90d9c1d84ee3a8::t_c837c5caaff84e 116,122
+  s_90d9c1d84ee3a8::t_0ec303802131c1 246
+src/components/guide/ability-guide.tsx
+  s_90d9c1d84ee3a8::t_2c3d62b1c45a7c 46-49
+  s_90d9c1d84ee3a8::t_a37393336a97ca 1-6,8-10,12-45,50-165,167-178,180-187
+  s_90d9c1d84ee3a8::t_46e4298ca0bdd5 166
+  s_90d9c1d84ee3a8::t_b6c4b5f64cd66d 7
+  s_90d9c1d84ee3a8::t_13573fe7343e87 179
+  s_90d9c1d84ee3a8::t_f1c78ece9025f8 11
+src/lib/matchups/adcs/Jinx.ts
+  s_90d9c1d84ee3a8::t_afb41f822e8f3b 7
+  s_90d9c1d84ee3a8::t_d3f419201c89e4 13-14
+src/lib/matchups/supports/Soraka.ts
+  s_90d9c1d84ee3a8::t_8046e92a3a0b1d 6-10
+src/lib/matchups/supports/Zyra.ts
+  s_90d9c1d84ee3a8::t_d35de3da5a985f 6-9,15
+src/lib/matchups/adcs/Akshan.ts
+  s_90d9c1d84ee3a8::t_97bf3a5902f130 1-17
+src/lib/matchups/supports/Pantheon.ts
+  s_90d9c1d84ee3a8::t_dd6a985a14d8de 6-7,16-19
+  s_90d9c1d84ee3a8::t_614a087956d64c 1-5,8,10-15,20,22
+  s_90d9c1d84ee3a8::t_16f63371db7131 9,21
+src/lib/matchups/supports/Annie.ts
+  s_90d9c1d84ee3a8::t_7eefe70cf8d0e8 16-19
+  s_90d9c1d84ee3a8::t_d80b4fe66faf73 6-10,15
+src/lib/matchups/adcs/Kaisa.ts
+  s_90d9c1d84ee3a8::t_d7e61c29a1513c 9-10
+  s_90d9c1d84ee3a8::t_4472411da86cbe 13-14
+src/lib/matchups/adcs/Syndra.ts
+  s_90d9c1d84ee3a8::t_7c5840e15a9821 10
+src/lib/matchups/adcs/Kalista.ts
+  s_90d9c1d84ee3a8::t_935f4ff169eab5 13
+src/app/opengraph-image.tsx
+  s_90d9c1d84ee3a8::t_780a6453487984 6
+  s_90d9c1d84ee3a8::t_ce41cb978bbf06 158,160-161,164,170,174-175,181-182,185-189
+  s_90d9c1d84ee3a8::t_55bb73872b936c 32
+src/lib/builds/embed-summary.ts
+  s_90d9c1d84ee3a8::t_80e1949ac95613 57-87
+src/components/mythic-shop/MythicShopResetBanner.tsx
+  s_90d9c1d84ee3a8::t_b6251e1a8086f2 3,21-23,34-37,45-48
+src/lib/matchups/supports/Thresh.ts
+  s_90d9c1d84ee3a8::t_59c6856487ae4f 7-9
+src/lib/matchups/supports/TahmKench.ts
+  s_90d9c1d84ee3a8::t_f2157c78e80def 6-10,15
+src/lib/matchups/adcs/Yunara.ts
+  s_90d9c1d84ee3a8::t_b2fc1243abac67 7-9
+  s_90d9c1d84ee3a8::t_7185bb25172b07 11
+  s_90d9c1d84ee3a8::t_fda2f38d5f2b37 5,10,14
+  s_90d9c1d84ee3a8::t_31c0d1df6346f6 15
+src/lib/matchups/adcs/Draven.ts
+  s_90d9c1d84ee3a8::t_242b72ec53957a 13
+  s_90d9c1d84ee3a8::t_a32bae7f353384 7-9
+src/lib/matchups/supports/Galio.ts
+  s_90d9c1d84ee3a8::t_7eefe70cf8d0e8 6-10,15
+src/lib/matchups/supports/Lux.ts
+  s_90d9c1d84ee3a8::t_e52a532f62183f 6-10,15-20
+src/lib/matchups/adcs/Tristana.ts
+  s_90d9c1d84ee3a8::t_275eae1addb35e 13
+src/components/guide/game-terms.tsx
+  s_90d9c1d84ee3a8::t_07c30706777eee 1-43,52-73,76-85,89-185,191-193,204,210-211,217-227,233-296,298-381,391-406,408-481,487-495,499-579
+  s_90d9c1d84ee3a8::t_9b081f7149bd50 74-75
+  s_90d9c1d84ee3a8::t_c13108ed5691da 86-88,186-190,194-203,205-209,212-216,228-232,297,382-390,482-486,496-498
+  s_90d9c1d84ee3a8::t_868a4b13615844 407
+  s_90d9c1d84ee3a8::t_db0a6a38e06fe5 44-51
+src/lib/matchups/adcs/Caitlyn.ts
+  s_90d9c1d84ee3a8::t_e32dc1a956fa6f 14
+  s_90d9c1d84ee3a8::t_6c618b83a6e2c1 8-11
+  s_90d9c1d84ee3a8::t_ba091dfc391c35 7
+src/lib/matchups/adcs/Nilah.ts
+  s_90d9c1d84ee3a8::t_37e93491ba9380 4-6,8-12,15-16
+src/lib/matchups/supports/Maokai.ts
+  s_90d9c1d84ee3a8::t_e9876510f03196 8
+  s_90d9c1d84ee3a8::t_5fc091137f7913 6-7,9-10,15
+src/lib/matchups/supports/Heimerdinger.ts
+  s_90d9c1d84ee3a8::t_ba091dfc391c35 6-7
+  s_90d9c1d84ee3a8::t_7eefe70cf8d0e8 8-10,15
+src/lib/matchups/supports/Lulu.ts
+  s_90d9c1d84ee3a8::t_b05744bb2bdca7 6-10,15
+src/lib/matchups/supports/Mel.ts
+  s_90d9c1d84ee3a8::t_dd6a985a14d8de 6,8,10,16-19
+  s_90d9c1d84ee3a8::t_e7da69b10e3a05 1-5,7,9,11-15,20-22
+src/lib/matchups/adcs/Yasuo.ts
+  s_90d9c1d84ee3a8::t_f131cb6ce247b3 8,13-14
+  s_90d9c1d84ee3a8::t_358838caa6419a 7,10
+src/lib/matchups/adcs/KogMaw.ts
+  s_90d9c1d84ee3a8::t_68b4d9f8795e2a 7
+  s_90d9c1d84ee3a8::t_58917c76ab4b58 13-14
+src/lib/matchups/adcs/Ziggs.ts
+  s_90d9c1d84ee3a8::t_4628c76afe792b 7-9,11,14-15
+src/lib/matchups/adcs/Veigar.ts
+  s_90d9c1d84ee3a8::t_c0692ce9f6b056 7-10,14-15
+src/lib/matchups/supports/Braum.ts
+  s_90d9c1d84ee3a8::t_7eefe70cf8d0e8 6,16-19
+  s_90d9c1d84ee3a8::t_fc42961bd33738 7-10,15
+src/lib/matchups/adcs/Jayce.ts
+  s_90d9c1d84ee3a8::t_df7369aea5acde 1-17
+src/lib/matchups/supports/Velkoz.ts
+  s_90d9c1d84ee3a8::t_d35de3da5a985f 6-10,15
+src/lib/matchups/supports/Xerath.ts
+  s_90d9c1d84ee3a8::t_d35de3da5a985f 6-9,15-19
+src/lib/matchups/supports/Rell.ts
+  s_90d9c1d84ee3a8::t_66a51bacebe7bc 8-10
+  s_90d9c1d84ee3a8::t_ba091dfc391c35 6-7
+src/lib/matchups/adcs/Kayle.ts
+  s_90d9c1d84ee3a8::t_7374b8e395040d 5-8
+  s_90d9c1d84ee3a8::t_85764f4e023891 1-4,9-20
+src/components/shell/SiteShell.tsx
+  s_90d9c1d84ee3a8::t_2e3e51aa036138 32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "20e54264961cb02faf8321a2ac4cd1d7cd62c272",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_90d9c1d84ee3a8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cea611b-8896-437c-b450-c9bc672972f6",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
