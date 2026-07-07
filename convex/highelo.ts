@@ -17,8 +17,8 @@ import type { Doc, Id } from './_generated/dataModel';
 //    Yuumi, keep them in yuumiRoster.
 //  - pollRosterMatches (5 min): check roster players' new ranked games,
 //    store card-sized rows in yuumiGames.
-//  - pruneOldGames (daily): drop games outside the current+last patch
-//    window and roster entries that went inactive.
+//  - pruneOldGames (daily): drop games from before the current season and
+//    roster entries that went inactive.
 
 const YUUMI_CHAMPION_ID = 350;
 const RANKED_SOLO_QUEUE = 420;
@@ -64,6 +64,8 @@ const POLL_LOOKBACK_MS = 3 * 60 * 60 * 1000;
 const POLL_FLUSH_EVERY = 150;
 // Games shorter than this are remakes (early surrender), not real games.
 const REMAKE_MAX_DURATION_S = 300;
+// Season retention fallback when the seasonStart metadata key is unset.
+const DEFAULT_SEASON_LOOKBACK_MS = 90 * 24 * 60 * 60 * 1000;
 
 // ---------- generic helpers ----------
 
@@ -139,17 +141,78 @@ function isOlderPatch(a: string, b: string): boolean {
   return aMajor !== bMajor ? aMajor < bMajor : aMinor < bMinor;
 }
 
+// ---------- season metadata ----------
+
+export const getMetadataValue = internalQuery({
+  args: { key: v.string() },
+  handler: async (ctx, args) => {
+    const row = await ctx.db
+      .query('guideMetadata')
+      .withIndex('by_key', (q) => q.eq('key', args.key))
+      .unique();
+    return row?.value ?? null;
+  },
+});
+
+export const setMetadataValue = internalMutation({
+  args: { key: v.string(), value: v.string() },
+  handler: async (ctx, args) => {
+    const row = await ctx.db
+      .query('guideMetadata')
+      .withIndex('by_key', (q) => q.eq('key', args.key))
+      .unique();
+    if (row) {
+      await ctx.db.patch(row._id, { value: args.value, updatedAt: Date.now() });
+    } else {
+      await ctx.db.insert('guideMetadata', { ...args, updatedAt: Date.now() });
+    }
+  },
+});
+
+/** Season start (ms). Falls back to a 90-day lookback if unconfigured. */
+async function getSeasonStart(ctx: ActionCtx): Promise<number> {
+  const raw = await ctx.runQuery(internal.highelo.getMetadataValue, {
+    key: 'seasonStart',
+  });
+  const parsed = raw === null ? NaN : Number(raw);
+  if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  console.warn('seasonStart metadata missing — defaulting to 90-day window');
+  return Date.now() - DEFAULT_SEASON_LOOKBACK_MS;
+}
+
 // ---------- public query ----------
 
 export const listGames = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const limit = Math.min(Math.max(args.limit ?? 50, 1), 500);
-    return await ctx.db
+    // Games are retained all season for profiles; the feed shows only the
+    // stored current+last patch window. Games newer than the stored window
+    // (ddragon lag) are hidden for at most hours until the next poll run.
+    const meta = await ctx.db
+      .query('guideMetadata')
+      .withIndex('by_key', (q) => q.eq('key', 'patchWindow'))
+      .unique();
+    let window: string[] = [];
+    try {
+      const parsed: unknown = meta ? JSON.parse(meta.value) : [];
+      if (Array.isArray(parsed)) {
+        window = parsed.filter((p): p is string => typeof p === 'string');
+      }
+    } catch {
+      window = [];
+    }
+    const results = await ctx.db
       .query('yuumiGames')
       .withIndex('by_gameCreation')
       .order('desc')
+      .filter((q) =>
+        window.length === 0
+          ? true
+          : q.or(...window.map((p) => q.eq(q.field('patch'), p)))
+      )
       .take(limit);
+    return results;
   },
 });
 
@@ -407,30 +470,20 @@ export const recomputePlayerStats = internalMutation({
 
 // ---------- internal plumbing (prune) ----------
 
-/**
- * Deletes up to 2000 games outside the patch window; returns count.
- * Mirrors the lenient ingest gate: games on patches NEWER than the window
- * (ddragon versions.json lag on day one) are kept; a game is deleted only
- * when its patch is strictly older than the window, or when its patch is
- * unrecognized junk and the game is older than 48h.
- */
-export const deleteGamesOutsidePatches = internalMutation({
-  args: { patches: v.array(v.string()) },
+/** Deletes up to 2000 games that started before the season; returns count. */
+export const deleteGamesBeforeSeason = internalMutation({
+  args: { seasonStart: v.number() },
   handler: async (ctx, args) => {
-    const oldestPatch = args.patches[args.patches.length - 1];
-    const junkCutoff = Date.now() - 48 * 60 * 60 * 1000;
-    const games = await ctx.db.query('yuumiGames').take(4000);
+    const games = await ctx.db
+      .query('yuumiGames')
+      .withIndex('by_gameCreation')
+      .order('asc')
+      .take(2000);
     let deleted = 0;
     for (const game of games) {
-      const tooOld =
-        oldestPatch !== undefined && isOlderPatch(game.patch, oldestPatch);
-      const junk =
-        !args.patches.includes(game.patch) && game.gameCreation < junkCutoff;
-      if (tooOld || junk) {
-        await ctx.db.delete(game._id);
-        deleted++;
-        if (deleted >= 2000) break;
-      }
+      if (game.gameCreation >= args.seasonStart) break; // index-ordered
+      await ctx.db.delete(game._id);
+      deleted++;
     }
     return deleted;
   },
@@ -819,6 +872,11 @@ export const pollRosterMatches = internalAction({
     });
     if (roster.length === 0) return;
     const patchWindow = await fetchPatchWindow();
+    // Persist the window so listGames can scope the feed without a fetch.
+    await ctx.runMutation(internal.highelo.setMetadataValue, {
+      key: 'patchWindow',
+      value: JSON.stringify(patchWindow),
+    });
 
     const byCluster = new Map<string, Doc<'yuumiRoster'>[]>();
     const unknownPlatformIds: Id<'yuumiRoster'>[] = [];
@@ -855,16 +913,16 @@ export const pollRosterMatches = internalAction({
   },
 });
 
-/** Daily cleanup: keep only current+last patch games and an active roster. */
+/** Daily cleanup: keep only this season's games and an active roster. */
 export const pruneOldGames = internalAction({
   args: {},
   handler: async (ctx) => {
-    const patches = await fetchPatchWindow();
+    const seasonStart = await getSeasonStart(ctx);
     let deleted = 0;
     do {
       deleted = await ctx.runMutation(
-        internal.highelo.deleteGamesOutsidePatches,
-        { patches }
+        internal.highelo.deleteGamesBeforeSeason,
+        { seasonStart }
       );
     } while (deleted > 0);
     await ctx.runMutation(internal.highelo.pruneInactiveRoster, {
