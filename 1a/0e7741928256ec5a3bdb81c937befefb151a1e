@@ -1,0 +1,19 @@
+convex/schema.ts
+  s_655f4567a62a1d::t_9174836838cb11 193-241
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "1a0e7741928256ec5a3bdb81c937befefb151a1e",
+  "prompts": {},
+  "sessions": {
+    "s_655f4567a62a1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7810e78-844d-4500-94ab-36db1a62895a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
