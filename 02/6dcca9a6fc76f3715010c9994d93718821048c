@@ -1,0 +1,22 @@
+src/app/players/players-client.tsx
+  s_655f4567a62a1d::t_acde87c5f0d9d9 61-62,132,213-214
+  s_655f4567a62a1d::t_532d395c886600 1-60,63-131,133-212,215-219
+src/app/players/page.tsx
+  s_655f4567a62a1d::t_191d57d5d0c2bc 1-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "026dcca9a6fc76f3715010c9994d93718821048c",
+  "prompts": {},
+  "sessions": {
+    "s_655f4567a62a1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7810e78-844d-4500-94ab-36db1a62895a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
