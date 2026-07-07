@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   BookOpen,
+  Crown,
   Home,
   ImageIcon,
   Layers,
@@ -24,6 +25,7 @@ const GUIDE_LINKS = [
 
 const RESOURCE_LINKS = [
   { label: 'High Elo Games', href: '/games', icon: Trophy },
+  { label: 'Yuumi Players', href: '/players', icon: Crown },
   { label: 'Match Viewer', href: '/match', icon: Swords },
   { label: 'Mythic Shop', href: '/mythic-shop', icon: Sparkles },
   { label: 'Rule Gallery', href: '/gallery', icon: ImageIcon },
