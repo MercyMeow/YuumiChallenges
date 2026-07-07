@@ -1,0 +1,19 @@
+docs/plans/2026-07-07-yuumi-player-profiles.md
+  s_655f4567a62a1d::t_41ecb1e7088d0f 1-965
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "2c8bca748dc275f282904d4bfed9555929353eaa",
+  "prompts": {},
+  "sessions": {
+    "s_655f4567a62a1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7810e78-844d-4500-94ab-36db1a62895a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
