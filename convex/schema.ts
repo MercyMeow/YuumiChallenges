@@ -201,6 +201,17 @@ export default defineSchema({
     lp: v.number(),
     yuumiLastPlayTime: v.number(), // ms epoch, from champion mastery
     lastCheckedAt: v.number(), // ms epoch of last match-ids poll
+    // Riot ID (from the newest ingested game; profiles resolve by these)
+    gameName: v.optional(v.string()),
+    tagLine: v.optional(v.string()),
+    // Denormalized season stats, maintained on game insert + recount
+    gamesCount: v.optional(v.number()),
+    wins: v.optional(v.number()),
+    killsTotal: v.optional(v.number()),
+    deathsTotal: v.optional(v.number()),
+    assistsTotal: v.optional(v.number()),
+    // Season backfill bookkeeping (ms epoch when completed)
+    backfilledAt: v.optional(v.number()),
   })
     .index('by_puuid', ['puuid'])
     .index('by_platform', ['platform'])
@@ -223,9 +234,17 @@ export default defineSchema({
     assists: v.number(),
     allyChampions: v.array(v.string()), // 5 ddragon ids incl. Yuumi
     enemyChampions: v.array(v.string()), // 5 ddragon ids
+    // Build snapshot for player profiles (optional: pre-profile rows lack it)
+    puuid: v.optional(v.string()),
+    items: v.optional(v.array(v.number())), // 7 slots, 0 = empty
+    keystoneId: v.optional(v.number()),
+    secondaryStyleId: v.optional(v.number()),
+    summonerSpells: v.optional(v.array(v.number())), // 2 ids
+    duoChampion: v.optional(v.string()), // ADC on Yuumi's team (BOTTOM)
   })
     .index('by_matchId', ['matchId'])
-    .index('by_gameCreation', ['gameCreation']),
+    .index('by_gameCreation', ['gameCreation'])
+    .index('by_puuid', ['puuid']),
 
   // Pending mastery checks from the last ladder refresh (rolling sweep).
   sweepQueue: defineTable({
