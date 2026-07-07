@@ -1,0 +1,28 @@
+src/app/players/[region]/[riotId]/page.tsx
+  s_655f4567a62a1d::t_5db68931dcf806 1-38
+src/app/players/[region]/[riotId]/profile-data.ts
+  s_655f4567a62a1d::t_a9b457a3253a3a 1-35,37-47
+  s_655f4567a62a1d::t_61f8d0f5d4b238 36
+src/app/players/[region]/[riotId]/profile-client.tsx
+  s_655f4567a62a1d::t_61f8d0f5d4b238 73,127-130,191-195,262-263
+  s_655f4567a62a1d::t_ae173f2dfca2cb 1-72,74-126,131-190,196-261,264-291
+src/app/players/[region]/[riotId]/opengraph-image.tsx
+  s_655f4567a62a1d::t_9e51dbca5d2b8d 1-89,94-163
+  s_655f4567a62a1d::t_61f8d0f5d4b238 90-93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "9d3f216f82f887d70886b937ce5ee1d3ee0d2e26",
+  "prompts": {},
+  "sessions": {
+    "s_655f4567a62a1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7810e78-844d-4500-94ab-36db1a62895a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
