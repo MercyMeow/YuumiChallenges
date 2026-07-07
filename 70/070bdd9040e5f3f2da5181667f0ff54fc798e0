@@ -1,0 +1,32 @@
+convex/highelo.ts
+  s_655f4567a62a1d::t_29f3db3a7dbff4 176-177,184-189
+  s_655f4567a62a1d::t_daff4d9b5bff01 616-624,628
+  s_90d9c1d84ee3a8::t_4445cb6ef3e25d 190-191
+docs/plans/2026-07-07-yuumi-player-profiles.md
+  s_655f4567a62a1d::t_d09390f0625a7f 974
+  s_655f4567a62a1d::t_98b7459f76a98d 964
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "70070bdd9040e5f3f2da5181667f0ff54fc798e0",
+  "prompts": {},
+  "sessions": {
+    "s_655f4567a62a1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7810e78-844d-4500-94ab-36db1a62895a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    },
+    "s_90d9c1d84ee3a8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cea611b-8896-437c-b450-c9bc672972f6",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
