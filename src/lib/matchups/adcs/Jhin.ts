@@ -10,6 +10,6 @@ export const Jhin: BotLaneSynergy = {
     'Stay attached during reload windows; detach only to ward when four shots are available.',
   ],
   buildAdjustments: [
-    'Ardent solid but not mandatory; Redemption synergizes with pick comps for longer sieges.',
+    'Ardent Censer is solid but not mandatory; Redemption synergizes with pick comps for longer sieges.',
   ],
 };

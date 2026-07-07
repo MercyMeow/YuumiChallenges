@@ -1,7 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-import { ArrowRight, Clock, Sparkles } from 'lucide-react';
+import { Clock, Sparkles } from 'lucide-react';
 import { getNextResetForSection } from '@/lib/mythic-shop/reset-schedule';
 import { formatCountdown, useNowMs } from '@/lib/mythic-shop/countdown';
 import type { MythicShopSectionId } from '@/lib/mythic-shop/types';
@@ -11,7 +10,6 @@ interface SectionMeta {
   label: string;
 }
 
-// Compact labels for the top banner; full descriptions live behind the link.
 const SECTIONS: SectionMeta[] = [
   { id: 'featured', label: 'Featured' },
   { id: 'biweekly', label: 'Bi-weekly' },
@@ -20,10 +18,9 @@ const SECTIONS: SectionMeta[] = [
 ];
 
 /**
- * Site-wide top banner showing the Mythic Shop reset countdowns.
- *
- * Riot has no public shop API, so the per-section timers are computed locally
- * (see reset-schedule) and the curated item list lives at /mythic-shop.
+ * Site-wide top banner showing the Mythic Shop reset countdowns. Riot has no
+ * public shop API, so the per-section timers are computed locally
+ * (see reset-schedule).
  */
 export function MythicShopResetBanner() {
   // Renders the same value on server and first client paint to avoid
@@ -34,10 +31,10 @@ export function MythicShopResetBanner() {
   const referenceMs = nowMs ?? now.getTime();
 
   return (
-    <div className="relative z-40 border-b border-purple-500/20 bg-black/40 backdrop-blur-sm">
-      <div className="container mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-6 py-2 text-sm">
-        <span className="flex items-center gap-1.5 font-semibold text-purple-200">
-          <Sparkles className="h-4 w-4 text-purple-300" />
+    <div className="relative z-40 border-b border-hx-gold-dark/40 bg-hx-black/70 backdrop-blur-sm">
+      <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 text-sm md:px-6">
+        <span className="flex items-center gap-1.5 hex-label">
+          <Sparkles className="h-3.5 w-3.5 text-hx-magic" />
           Mythic Shop Resets
         </span>
         <ul className="flex flex-1 flex-wrap items-center gap-x-3 gap-y-1.5">
@@ -45,8 +42,10 @@ export function MythicShopResetBanner() {
             const nextReset = getNextResetForSection(section.id, now);
             return (
               <li key={section.id} className="flex items-center gap-1.5">
-                <span className="text-white/60">{section.label}</span>
-                <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                <span className="text-xs text-hx-parchment/60">
+                  {section.label}
+                </span>
+                <span className="hex-chip-magic">
                   <Clock className="h-3 w-3" />
                   {nowMs === null
                     ? '—'
@@ -56,13 +55,6 @@ export function MythicShopResetBanner() {
             );
           })}
         </ul>
-        <Link
-          href="/mythic-shop"
-          className="flex items-center gap-1 text-xs text-white/60 transition-colors hover:text-white"
-        >
-          View rotation
-          <ArrowRight className="h-3 w-3" />
-        </Link>
       </div>
     </div>
   );

@@ -10,6 +10,6 @@ export const Kalista: BotLaneSynergy = {
     'Curve Q (Prowling Projectile) from brush to force low-HP trades so Kalista can Rend safely.',
   ],
   buildAdjustments: [
-    'Ardent high value with on-hit builds; Mikael’s vs hard CC to keep her hopping.',
+    'Ardent Censer is high value with on-hit builds; Mikael’s Blessing vs hard CC to keep her hopping.',
   ],
 };

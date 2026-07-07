@@ -3,11 +3,11 @@ import { SupportMatchup } from '../types';
 export const Pyke: SupportMatchup = {
   difficulty: 'Hard',
   tips: [
-    'Never detach in his Q range — channel time is short and hook into E is lethal. Ward only when he shows on wave.',
-    'Exhaust him on E engage or pre-R execute to deny resets and gold share.',
-    'Save R to repeatedly slow him after his E dash; multi-wave roots stop follow-up kills.',
-    'Punish misses — empowered Q from brush forces him back when Q/E are down.',
-    'Pre-shield with E before predictable hook angles; shield + MS helps your host sidestep the channel.',
+    'Never detach in his Bone Skewer (Q) range — he can charge the hook up to 1100 range, and a landed pull into Phantom Undertow (E) is lethal. Ward only when he shows on wave.',
+    'Exhaust him on his Phantom Undertow (E) engage or pre-Death from Below (R) to deny his execute and reduce his all-in damage.',
+    'Save R for right after his Phantom Undertow (E) dash-and-return stun; multi-wave slows stop his follow-up kill.',
+    'Punish whiffed Bone Skewer (Q) charges — long cooldown when he releases without a hit — with empowered Q from brush while Q and E are both down.',
+    'Pre-shield with E before predictable Bone Skewer (Q) angles; the shield and move speed help your host sidestep the charge-up hook.',
   ],
   recommendedRunes:
     'Guardian or Aery; Resolve secondary Bone Plating + Revitalize. Guardian if protecting immobile hyper-carry.',

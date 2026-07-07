@@ -3,7 +3,7 @@
 import { ImageResponse } from 'next/og';
 import {
   getEmbedRunes,
-  getCoreItems,
+  getEmbedItems,
   getSkillPriority,
 } from '@/lib/builds/embed-summary';
 import { fetchAutoBuild } from '@/lib/builds/auto-build';
@@ -29,7 +29,7 @@ export default async function OpengraphImage() {
   // Show the patch the rendered build belongs to (auto build wins).
   const patch = auto?.patch ?? toGuidePatch(version);
   const runes = getEmbedRunes(auto);
-  const coreItems = getCoreItems(auto);
+  const embedItems = getEmbedItems(auto);
   const skillPriority = getSkillPriority(auto);
 
   return new ImageResponse(
@@ -155,33 +155,38 @@ export default async function OpengraphImage() {
               marginBottom: 12,
             }}
           >
-            CORE ITEMS
+            ITEM PATH
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            {coreItems.map((item, index) => (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {embedItems.map((item, index) => (
               <div
                 key={item.id}
-                style={{ display: 'flex', alignItems: 'center', gap: 14 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 12 }}
               >
                 {index > 0 ? (
                   <div
                     style={{
                       display: 'flex',
-                      fontSize: 30,
+                      fontSize: item.slot === 'situational' ? 26 : 30,
                       color: '#9ca3af',
                     }}
                   >
-                    →
+                    {/* Arrows walk the buy order; '+' marks situational picks. */}
+                    {item.slot === 'situational' ? '+' : '→'}
                   </div>
                 ) : null}
                 <img
                   alt={item.name}
                   src={`${DDRAGON}/${version}/img/item/${item.id}.png`}
-                  width={64}
-                  height={64}
+                  width={60}
+                  height={60}
                   style={{
                     borderRadius: 12,
-                    border: '1px solid #C8AA6E66',
+                    border:
+                      item.slot === 'situational'
+                        ? '1px solid #78552866'
+                        : '1px solid #C8AA6E66',
+                    opacity: item.slot === 'situational' ? 0.85 : 1,
                   }}
                 />
               </div>

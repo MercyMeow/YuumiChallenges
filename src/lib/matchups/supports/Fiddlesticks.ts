@@ -3,15 +3,18 @@ import { SupportMatchup } from '../types';
 export const Fiddlesticks: SupportMatchup = {
   difficulty: 'Medium',
   tips: [
-    'Ward deep flanks and sweep common Crowstorm angles post-6 — his R over walls decides fights before you can react.',
-    'Mikaels cleanses fear; use it immediately on your carry if they are targeted in the ultimate channel.',
-    'Harass when Drain (W) is on cooldown — empowered Q poke forces him to waste W defensively or retreat.',
-    'Do not commit R into his channel; peel back and layer slow waves on divers after his initial burst ends.',
-    'Detach only to ward when he shows on wave — fear from fog punishes careless passive procs on detached Yuumi.',
+    'Ward deep flanks and sweep common Crowstorm (R) angles post-6 — his global-range channel decides fights before you can react, and it still lands even if he Flashes mid-channel.',
+    "Mikael's Blessing cleanses the Terrify (Q) fear immediately — use it the instant your carry is feared during his Crowstorm (R) channel so they can keep kiting.",
+    'Harass when Bountiful Harvest (W) is on cooldown — empowered Q poke forces him to waste W defensively or disengage instead of sustaining through your trade.',
+    'If Reap (E) centers on your host, expect a silence on top of the slow — pre-cast E shield before he can line it up, since a silenced ally cannot Flash out.',
+    'Detach only to ward when he shows on the wave — a feared, detached Yuumi cannot reattach on command, so stay attached through any period he could be stealthed nearby.',
   ],
   recommendedRunes:
     'Aery default. Resolve Bone Plating + Revitalize vs all-in; Font of Life if fights run longer.',
   recommendedItems:
-    'Moonstone into early Mikaels — fear is fight-deciding. Redemption mitigates AoE burst; Stopwatch for clutch R peel.',
-  earlyItems: ['Control Wards for flank angles', 'Forbidden Idol vs poke attrition'],
+    "Moonstone Renewer into early Mikael's Blessing — the Terrify fear is fight-deciding. Redemption or Locket of the Iron Solari mitigates the Crowstorm AoE burst; staying attached keeps you safe through the channel.",
+  earlyItems: [
+    'Control Wards for flank angles',
+    'Forbidden Idol vs poke attrition',
+  ],
 };

@@ -2,14 +2,16 @@ import { BotLaneSynergy } from '../types';
 
 export const Cassiopeia: BotLaneSynergy = {
   synergy: 'Good',
-  playstyle: 'Scaling DPS mage; extended kiting fights in Miasma',
+  playstyle:
+    'Scaling DPS mage with zero self-mobility; needs peel to stand and fight',
   tips: [
-    'Attach during extended trades; E (Zoomies) shield and MS help her kite while spamming Twin Fang.',
-    'Use R (Final Chapter) to peel divers with repeated slows so she can DPS in Miasma; avoid overlapping with Petrifying Gaze.',
-    'Curve Q (Prowling Projectile) from brush to soften targets for all-ins; vision protects her immobility.',
-    'Putrifier early vs heavy sustain lanes; your passive heal on hit still applies anti-heal.',
+    'She has no dash or blink—stay attached during extended trades so E (Zoomies) move speed covers her positioning while she spams Twin Fang (E).',
+    'Use R (Final Chapter) to peel divers with repeated slows so she can keep DPSing from Miasma (W); avoid overlapping your wave with her Petrifying Gaze (R) cone.',
+    'Curve Q (Prowling Projectile) from brush to soften targets for all-ins; ward proactively since she cannot escape ganks on her own.',
+    'Chemtech Putrifier early vs heavy sustain lanes; landing Q still applies the Grievous Wounds even though her own damage is magic.',
+    'Pre-cast E (Zoomies) shield the instant she gets flanked—without a dash, a single hard CC chain can kill her outright.',
   ],
   buildAdjustments: [
-    'Staff preferred; Mikael’s vs point-and-click CC. Redemption later for grouped fights.',
+    'Staff of Flowing Water preferred; Mikael’s Blessing vs point-and-click CC. Redemption later for grouped fights.',
   ],
 };

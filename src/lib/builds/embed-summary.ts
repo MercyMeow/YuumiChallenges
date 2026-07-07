@@ -54,6 +54,37 @@ export function getSkillPriority(auto?: AutoBuild | null): readonly string[] {
   return auto?.skillPriority ?? SKILL_ORDER;
 }
 
+export interface EmbedItem {
+  id: number;
+  name: string;
+  slot: 'core' | 'boots' | 'situational';
+}
+
+// The auto build carries no boots fallback of its own when OP.GG omits them,
+// and the static build stores boots as names only — pin the id here.
+const STATIC_BOOTS = { id: 3158, name: 'Ionian Boots of Lucidity' } as const;
+
+/**
+ * Full item row for the share image: the core path, boots, then situational
+ * picks to fill up to `max` slots (deduped by id).
+ */
+export function getEmbedItems(auto?: AutoBuild | null, max = 6): EmbedItem[] {
+  const items: EmbedItem[] = getCoreItems(auto).map((item) => ({
+    ...item,
+    slot: 'core' as const,
+  }));
+  const boots = auto ? auto.boots : STATIC_BOOTS;
+  if (boots) items.push({ ...boots, slot: 'boots' });
+  const seen = new Set(items.map((item) => item.id));
+  for (const item of BEST_ITEMS.situational) {
+    if (items.length >= max) break;
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+    items.push({ id: item.id, name: item.name, slot: 'situational' });
+  }
+  return items.slice(0, max);
+}
+
 /** One-line share description for og:description / twitter:description. */
 export function buildShareDescription(
   patch: string,

@@ -3,11 +3,11 @@ import { SupportMatchup } from '../types';
 export const Taric: SupportMatchup = {
   difficulty: 'Medium',
   tips: [
-    'Avoid extended melees around minions where he can stun through E geometry. Fight on open ground or disengage.',
-    'Punish cooldowns — his E and W aura have long timers early. Poke with empowered Q when E is down.',
-    'Do not blow R into his R; bait Cosmic Radiance then re-engage with slow waves as invulnerability ends.',
+    'Dazzle (E) is a narrow line stun with a 16s cooldown early — avoid standing in a straight line with your host so one cast cannot clip you both.',
+    'Punish cooldowns — Dazzle (E) and the Bastion (W) shield/tether are both slow to come back early. Poke with empowered Q while Dazzle is down.',
+    'Cosmic Radiance (R) has a 2.5s cast delay before invulnerability applies — bait it out, then re-engage with slow waves right as the window ends.',
     'Detach to ward only when he shows on wave. His jungle-assisted dives are strong — track enemy jungler.',
-    'Exhaust the highest DPS diver rather than Taric; your R slow waves keep him in place after stun resolves.',
+    'Exhaust the highest DPS diver rather than Taric; your R slow waves keep him in place after Dazzle stun resolves.',
   ],
   recommendedRunes:
     'Aery default. Resolve secondary Bone Plating + Revitalize if enemy comp has reliable engage.',

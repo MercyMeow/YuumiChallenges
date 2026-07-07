@@ -3,11 +3,11 @@ import { SupportMatchup } from '../types';
 export const Senna: SupportMatchup = {
   difficulty: 'Medium',
   tips: [
-    'Keep a minion between you and Senna to block W root; attach at a side angle to break her line.',
-    'Trade when her Q is on cooldown — poke windows are short early. Empowered Q from brush punishes her wind-up.',
-    "Save R to peel dives after she sets up with W; multi-wave slows trap divers in your ADC's DPS.",
-    'Proc passive on Senna herself to drain her HP — she must spend resources healing herself instead of her ADC.',
-    'E shield + AS after her Q poke lands so your host can trade back before her next auto-cannon.',
+    'Keep a minion between you and Senna to block Last Embrace (W) — it sticks to the first thing hit before spreading into a root, so a minion soaks it. Attach at a side angle to break her line.',
+    'Trade when her Piercing Darkness (Q) is on cooldown — it has a slow wind-up and no CC, so punish the gap. Empowered Q from brush adds free damage.',
+    "Save R for right after she lands Last Embrace (W); multi-wave slows trap the rooted target in your ADC's DPS.",
+    'Curve empowered Q onto Senna herself when she over-extends for Piercing Darkness (Q) poke — she has no self-heal outside Mist stacking, so forcing trades drains her HP pool for real.',
+    'E shield + AS after her Piercing Darkness (Q) poke lands so your host can trade back before her next auto.',
   ],
   recommendedRunes:
     'Aery + Scorch; Resolve secondary Font of Life + Revitalize. Second Wind if ADC + Senna both poke.',
