@@ -63,7 +63,7 @@ function GameCard({ game }: { game: YuumiGame }) {
     <Link
       href={`/match/${game.matchId}`}
       className={cn(
-        'group hex-card relative block rounded-sm border-l-2 transition-all duration-200 hover:-translate-y-0.5 hover:border-hx-gold',
+        'group hex-card relative block rounded-sm border-l-2 transition-all duration-200 hover:-translate-y-0.5 hover:border-hx-gold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-hx-gold',
         game.win ? 'border-l-emerald-400/70' : 'border-l-red-400/60'
       )}
     >
@@ -169,27 +169,38 @@ export function GamesClient() {
     return () => clearTimeout(timer);
   }, [games]);
 
+  // Hold the last defined result so "Load more" (which makes useQuery return
+  // undefined while the bigger page loads) keeps existing cards visible, and
+  // reset the timeout notice once data arrives. Render-time adjustment keeps
+  // the React Compiler happy (same pattern as TopNav).
+  const [prevGames, setPrevGames] = useState<typeof games>(undefined);
+  if (games !== undefined) {
+    if (games !== prevGames) setPrevGames(games);
+    if (timedOut) setTimedOut(false);
+  }
+  const shown = games ?? prevGames;
+
   const regions = useMemo(
-    () => [...new Set((games ?? []).map((g) => g.platform))].sort(),
-    [games]
+    () => [...new Set((shown ?? []).map((g) => g.platform))].sort(),
+    [shown]
   );
   const patches = useMemo(
     () =>
-      [...new Set((games ?? []).map((g) => g.patch))].sort((a, b) =>
+      [...new Set((shown ?? []).map((g) => g.patch))].sort((a, b) =>
         b.localeCompare(a, undefined, { numeric: true })
       ),
-    [games]
+    [shown]
   );
 
   const filtered = useMemo(
     () =>
-      (games ?? []).filter(
+      (shown ?? []).filter(
         (g) =>
           (region === 'all' || g.platform === region) &&
           (patchFilter === 'all' || g.patch === patchFilter) &&
           (winFilter === 'all' || (winFilter === 'wins') === g.win)
       ),
-    [games, region, patchFilter, winFilter]
+    [shown, region, patchFilter, winFilter]
   );
 
   return (
@@ -208,7 +219,7 @@ export function GamesClient() {
         className="mt-8"
         action={
           <span className="hex-label">
-            {games ? `${filtered.length} games` : '…'}
+            {shown ? `${filtered.length} games` : '…'}
           </span>
         }
       >
@@ -260,7 +271,7 @@ export function GamesClient() {
         </div>
 
         {/* Feed */}
-        {games === undefined ? (
+        {shown === undefined ? (
           timedOut ? (
             <p className="py-10 text-center text-sm text-hx-gold/60">
               The game feed is unavailable right now — please try again later.
@@ -277,7 +288,9 @@ export function GamesClient() {
           )
         ) : filtered.length === 0 ? (
           <p className="py-10 text-center text-sm text-hx-gold/60">
-            No games found yet — the ladder sweep may still be warming up.
+            {shown.length > 0
+              ? 'No games match these filters.'
+              : 'No games found yet — the ladder sweep may still be warming up.'}
           </p>
         ) : (
           <div className="space-y-2">
