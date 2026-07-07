@@ -1,0 +1,31 @@
+convex/highelo.ts
+  s_655f4567a62a1d::t_3d6e2f5deccc25 476-486
+  s_655f4567a62a1d::t_d5ddcf52cb287a 568-573,575-577
+  s_655f4567a62a1d::t_a79f0d9838e39c 701-710
+  s_655f4567a62a1d::t_e53173592b0058 447-452
+  s_655f4567a62a1d::t_bc2ece7de99215 62-66
+  s_655f4567a62a1d::t_22e1eadfb6aa4d 265-285
+  s_655f4567a62a1d::t_cbe16778d1c9b3 404-407
+  s_655f4567a62a1d::t_dd32d990369356 627-640,642-647,649-680,683
+  s_655f4567a62a1d::t_c93e4a8d1268e7 601
+  s_655f4567a62a1d::t_cba5716ddca871 135-141
+  s_655f4567a62a1d::t_7fe6f2028d6df3 89-92,101-105
+convex/schema.ts
+  s_655f4567a62a1d::t_3c862c9d2ec5be 206
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "3c6f33be65a3f72088751dc64c3eedd083142856",
+  "prompts": {},
+  "sessions": {
+    "s_655f4567a62a1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7810e78-844d-4500-94ab-36db1a62895a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
