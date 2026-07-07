@@ -1,0 +1,27 @@
+convex/highelo.ts
+  s_655f4567a62a1d::t_2b0bdd4225b149 739-741
+  s_655f4567a62a1d::t_a1d9a528175936 734-738
+  s_655f4567a62a1d::t_7a6d6de8cfd6f5 384-407
+  s_655f4567a62a1d::t_8e853e3650d762 655-658
+  s_655f4567a62a1d::t_d7a349f8d559c5 357-371
+  s_655f4567a62a1d::t_d55fed2120be71 331-336
+  s_655f4567a62a1d::t_44f518b7646c91 616-621
+  s_655f4567a62a1d::t_2e3db49c3d9e8e 633-636,640
+  s_655f4567a62a1d::t_7f95a138b4fecd 680-710
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "0fd71bf48eb8cb8260226d4e713763838aec45bb",
+  "prompts": {},
+  "sessions": {
+    "s_655f4567a62a1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7810e78-844d-4500-94ab-36db1a62895a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
