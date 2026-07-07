@@ -173,15 +173,20 @@ export const setMetadataValue = internalMutation({
   },
 });
 
-/** Season start (ms). Falls back to a 90-day lookback if unconfigured. */
-async function getSeasonStart(ctx: ActionCtx): Promise<number> {
-  const raw = await ctx.runQuery(internal.highelo.getMetadataValue, {
-    key: 'seasonStart',
-  });
+/** Parse a raw seasonStart metadata value (ms); 90-day fallback if unset. */
+function parseSeasonStart(raw: string | null): number {
   const parsed = raw === null ? NaN : Number(raw);
   if (Number.isFinite(parsed) && parsed > 0) return parsed;
   console.warn('seasonStart metadata missing — defaulting to 90-day window');
   return Date.now() - DEFAULT_SEASON_LOOKBACK_MS;
+}
+
+/** Season start (ms) for actions. Same fallback semantics as the parser. */
+async function getSeasonStart(ctx: ActionCtx): Promise<number> {
+  const raw = await ctx.runQuery(internal.highelo.getMetadataValue, {
+    key: 'seasonStart',
+  });
+  return parseSeasonStart(raw);
 }
 
 // ---------- public queries ----------
@@ -608,10 +613,19 @@ export const recomputePlayerStats = internalMutation({
       .withIndex('by_puuid', (q) => q.eq('puuid', args.puuid))
       .unique();
     if (!rosterRow) return;
-    const games = await ctx.db
+    // Season-aware: ignore pre-season rows still awaiting the daily prune,
+    // so a backfill racing a season rollover can't bake old-season games
+    // into the totals (makes the rollover runbook order-independent).
+    const meta = await ctx.db
+      .query('guideMetadata')
+      .withIndex('by_key', (q) => q.eq('key', 'seasonStart'))
+      .unique();
+    const seasonStart = parseSeasonStart(meta?.value ?? null);
+    const allGames = await ctx.db
       .query('yuumiGames')
       .withIndex('by_puuid', (q) => q.eq('puuid', args.puuid))
       .collect();
+    const games = allGames.filter((g) => g.gameCreation >= seasonStart);
     const stats = {
       gamesCount: games.length,
       wins: games.filter((g) => g.win).length,

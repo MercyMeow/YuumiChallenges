@@ -961,7 +961,7 @@ git commit -m "feat: add Yuumi Players to side rail navigation"
 ### Task 10: Deploy + bootstrap (coordinator-run, needs user-approved permissions)
 
 1. `npx convex deploy` from the worktree (schema + functions).
-2. Drop legacy game rows that predate build snapshots (no `puuid`; their matchIds would dedupe the backfill's re-ingest forever): `npx convex run highelo:deleteLegacyGames` — the season backfill re-ingests those matches with full build snapshots.
+2. Drop legacy game rows that predate build snapshots (no `puuid`; their matchIds would dedupe the backfill's re-ingest forever): `npx convex run highelo:deleteLegacyGames` — the season backfill re-ingests those matches with full build snapshots. This is a one-shot deploy bootstrap: do NOT re-run it once the table is season-sized — its full-table `collect()` would exceed Convex mutation read limits.
 3. Set season start (ms epoch — confirm the actual current ranked season/split start date with the user, do not guess): `npx convex run highelo:setMetadataValue '{"key":"seasonStart","value":"<ms>"}'`.
 4. Backfill cron begins automatically; kick one run early: `npx convex run highelo:backfillSeason` (expect Cloudflare 524 on the CLI after 100s — the action continues server-side; verify via `npx convex data yuumiGames --limit 3 --order desc` and `npx convex logs`).
 5. Browser verification per Task 7/8 steps + `/games` regression (feed still shows only current+last patch).
@@ -971,4 +971,4 @@ git commit -m "feat: add Yuumi Players to side rail navigation"
 
 1. Update the season start: `npx convex run highelo:setMetadataValue '{"key":"seasonStart","value":"<new ms>"}'`.
 2. Reset roster stats + backfill markers: `npx convex run highelo:resetSeasonStats` (otherwise old-season totals keep accumulating new-season increments forever).
-3. Nothing else — the daily prune clears the old season's games and the backfill cron rebuilds history from the new seasonStart.
+3. Nothing else — the daily prune clears the old season's games and the backfill cron rebuilds history from the new seasonStart. The backfill racing the prune is harmless: `recomputePlayerStats` is season-aware and ignores pre-season rows still awaiting the prune.
