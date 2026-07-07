@@ -1,0 +1,26 @@
+src/lib/highelo/regions.ts
+  s_655f4567a62a1d::t_4c7254a089bc60 1-37
+src/components/highelo/game-card.tsx
+  s_655f4567a62a1d::t_011d4c501f1a08 1-123
+src/components/highelo/high-elo-tabs.tsx
+  s_655f4567a62a1d::t_83fa2ee4f900c2 1-37
+src/app/games/games-client.tsx
+  s_655f4567a62a1d::t_585cdde1339d55 5
+  s_655f4567a62a1d::t_f6b505aca9dbb5 8-10,79-80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "64296da1518c471198ba60fc9002699e949ddecb",
+  "prompts": {},
+  "sessions": {
+    "s_655f4567a62a1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7810e78-844d-4500-94ab-36db1a62895a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
