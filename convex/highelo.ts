@@ -184,7 +184,7 @@ async function getSeasonStart(ctx: ActionCtx): Promise<number> {
   return Date.now() - DEFAULT_SEASON_LOOKBACK_MS;
 }
 
-// ---------- public query ----------
+// ---------- public queries ----------
 
 export const listGames = query({
   args: { limit: v.optional(v.number()) },
@@ -217,6 +217,156 @@ export const listGames = query({
       )
       .take(limit);
     return results;
+  },
+});
+
+const TIER_ORDER: Record<string, number> = {
+  CHALLENGER: 0,
+  GRANDMASTER: 1,
+  MASTER: 2,
+};
+
+/** LP-ranked Master+ Yuumi players with season stats (small table). */
+export const listPlayers = query({
+  args: {},
+  handler: async (ctx) => {
+    const roster = await ctx.db.query('yuumiRoster').collect();
+    return roster
+      .filter((p) => (p.gamesCount ?? 0) > 0 && p.gameName)
+      .sort(
+        (a, b) =>
+          (TIER_ORDER[a.tier] ?? 9) - (TIER_ORDER[b.tier] ?? 9) || b.lp - a.lp
+      )
+      .map((p) => ({
+        puuid: p.puuid,
+        platform: p.platform,
+        tier: p.tier,
+        lp: p.lp,
+        gameName: p.gameName ?? 'Unknown',
+        tagLine: p.tagLine ?? '',
+        gamesCount: p.gamesCount ?? 0,
+        wins: p.wins ?? 0,
+        killsTotal: p.killsTotal ?? 0,
+        deathsTotal: p.deathsTotal ?? 0,
+        assistsTotal: p.assistsTotal ?? 0,
+      }));
+  },
+});
+
+export const getPlayerProfile = query({
+  args: { platform: v.string(), gameName: v.string(), tagLine: v.string() },
+  handler: async (ctx, args) => {
+    const candidates = await ctx.db
+      .query('yuumiRoster')
+      .withIndex('by_platform', (q) => q.eq('platform', args.platform))
+      .collect();
+    const nameLc = args.gameName.toLowerCase();
+    const tagLc = args.tagLine.toLowerCase();
+    const player = candidates.find(
+      (p) =>
+        (p.gameName ?? '').toLowerCase() === nameLc &&
+        (p.tagLine ?? '').toLowerCase() === tagLc
+    );
+    if (!player) return null;
+
+    const games = await ctx.db
+      .query('yuumiGames')
+      .withIndex('by_puuid', (q) => q.eq('puuid', player.puuid))
+      .collect();
+    games.sort((a, b) => b.gameCreation - a.gameCreation);
+
+    // Ladder position among Yuumi players with games (global).
+    const roster = await ctx.db.query('yuumiRoster').collect();
+    const ranked = roster
+      .filter((p) => (p.gamesCount ?? 0) > 0)
+      .sort(
+        (a, b) =>
+          (TIER_ORDER[a.tier] ?? 9) - (TIER_ORDER[b.tier] ?? 9) || b.lp - a.lp
+      );
+    const position = ranked.findIndex((p) => p.puuid === player.puuid) + 1;
+
+    // Common builds: completed items (exclude empties + trinkets), sorted
+    // signature -> occurrences. Trinkets: 3340/3363/3364; wards 2055.
+    const EXCLUDED_ITEMS = new Set([0, 2055, 3340, 3363, 3364]);
+    const buildGroups = new Map<
+      string,
+      { items: number[]; games: number; wins: number }
+    >();
+    const runeGroups = new Map<
+      string,
+      {
+        keystoneId: number;
+        secondaryStyleId: number;
+        summonerSpells: number[];
+        games: number;
+        wins: number;
+      }
+    >();
+    const duoGroups = new Map<string, { games: number; wins: number }>();
+    for (const game of games) {
+      if (game.items) {
+        const core = game.items
+          .filter((id) => !EXCLUDED_ITEMS.has(id))
+          .sort((a, b) => a - b);
+        if (core.length >= 3) {
+          const key = core.join(',');
+          const group = buildGroups.get(key) ?? {
+            items: core,
+            games: 0,
+            wins: 0,
+          };
+          group.games++;
+          if (game.win) group.wins++;
+          buildGroups.set(key, group);
+        }
+      }
+      if (game.keystoneId && game.secondaryStyleId && game.summonerSpells) {
+        const spells = [...game.summonerSpells].sort((a, b) => a - b);
+        const key = `${game.keystoneId}:${game.secondaryStyleId}:${spells.join(',')}`;
+        const group = runeGroups.get(key) ?? {
+          keystoneId: game.keystoneId,
+          secondaryStyleId: game.secondaryStyleId,
+          summonerSpells: spells,
+          games: 0,
+          wins: 0,
+        };
+        group.games++;
+        if (game.win) group.wins++;
+        runeGroups.set(key, group);
+      }
+      if (game.duoChampion) {
+        const group = duoGroups.get(game.duoChampion) ?? { games: 0, wins: 0 };
+        group.games++;
+        if (game.win) group.wins++;
+        duoGroups.set(game.duoChampion, group);
+      }
+    }
+    const byGames = <T extends { games: number }>(a: T, b: T) =>
+      b.games - a.games;
+
+    return {
+      player: {
+        puuid: player.puuid,
+        platform: player.platform,
+        tier: player.tier,
+        lp: player.lp,
+        gameName: player.gameName ?? 'Unknown',
+        tagLine: player.tagLine ?? '',
+        gamesCount: player.gamesCount ?? 0,
+        wins: player.wins ?? 0,
+        killsTotal: player.killsTotal ?? 0,
+        deathsTotal: player.deathsTotal ?? 0,
+        assistsTotal: player.assistsTotal ?? 0,
+        position,
+      },
+      builds: [...buildGroups.values()].sort(byGames).slice(0, 3),
+      runePages: [...runeGroups.values()].sort(byGames).slice(0, 2),
+      duos: [...duoGroups.entries()]
+        .map(([champion, stats]) => ({ champion, ...stats }))
+        .sort(byGames)
+        .slice(0, 5),
+      recentGames: games.slice(0, 20),
+    };
   },
 });
 
