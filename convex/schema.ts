@@ -190,4 +190,53 @@ export default defineSchema({
     value: v.string(),
     updatedAt: v.number(),
   }).index('by_key', ['key']),
+
+  // ===== High-elo Yuumi games feed =====
+
+  // Master+ players known to play Yuumi; polled every 5 minutes.
+  yuumiRoster: defineTable({
+    puuid: v.string(),
+    platform: v.string(), // 'euw1', 'kr', ...
+    tier: v.string(), // 'MASTER' | 'GRANDMASTER' | 'CHALLENGER'
+    lp: v.number(),
+    yuumiLastPlayTime: v.number(), // ms epoch, from champion mastery
+    lastCheckedAt: v.number(), // ms epoch of last match-ids poll
+  })
+    .index('by_puuid', ['puuid'])
+    .index('by_lastCheckedAt', ['lastCheckedAt']),
+
+  // Found games — card data only; the match viewer fetches full details.
+  yuumiGames: defineTable({
+    matchId: v.string(), // 'EUW1_1234567890'
+    platform: v.string(),
+    patch: v.string(), // '16.13'
+    gameCreation: v.number(), // ms epoch
+    gameDuration: v.number(), // seconds
+    win: v.boolean(),
+    playerName: v.string(), // Riot ID game name of the Yuumi player
+    playerTag: v.string(),
+    tier: v.string(),
+    lp: v.number(),
+    kills: v.number(),
+    deaths: v.number(),
+    assists: v.number(),
+    allyChampions: v.array(v.string()), // 5 ddragon ids incl. Yuumi
+    enemyChampions: v.array(v.string()), // 5 ddragon ids
+  })
+    .index('by_matchId', ['matchId'])
+    .index('by_gameCreation', ['gameCreation']),
+
+  // Pending mastery checks from the last ladder refresh (rolling sweep).
+  sweepQueue: defineTable({
+    platform: v.string(),
+    puuid: v.string(),
+    tier: v.string(),
+    lp: v.number(),
+  }).index('by_platform', ['platform']),
+
+  // Per-platform sweep bookkeeping.
+  sweepState: defineTable({
+    platform: v.string(),
+    lastLeagueRefreshAt: v.number(),
+  }).index('by_platform', ['platform']),
 });
