@@ -1,0 +1,26 @@
+docs/plans/2026-07-07-yuumi-player-profiles.md
+  s_655f4567a62a1d::t_36f861a123b7ee 964-974
+  s_655f4567a62a1d::t_81cfe1ffa1e360 451-452
+docs/plans/2026-07-07-yuumi-player-profiles-design.md
+  s_655f4567a62a1d::t_c23edc70ad1ba0 83-87
+convex/highelo.ts
+  s_655f4567a62a1d::t_b9ba90951c6d1f 685-731
+  s_655f4567a62a1d::t_b1f36b8cc6f814 360-361
+  s_655f4567a62a1d::t_8c4afeb3f960b3 732
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "001ce365b71df63c012caf2a03759b9208d76132",
+  "prompts": {},
+  "sessions": {
+    "s_655f4567a62a1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7810e78-844d-4500-94ab-36db1a62895a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
