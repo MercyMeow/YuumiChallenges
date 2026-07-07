@@ -328,6 +328,12 @@ const gameValidator = v.object({
   assists: v.number(),
   allyChampions: v.array(v.string()),
   enemyChampions: v.array(v.string()),
+  puuid: v.string(),
+  items: v.array(v.number()),
+  keystoneId: v.number(),
+  secondaryStyleId: v.number(),
+  summonerSpells: v.array(v.number()),
+  duoChampion: v.optional(v.string()),
 });
 
 /** Batch-record a poll run: insert new games, stamp roster lastCheckedAt. */
@@ -348,6 +354,21 @@ export const recordPollResults = internalMutation({
         .unique();
       if (!existing) {
         await ctx.db.insert('yuumiGames', game);
+        const rosterRow = await ctx.db
+          .query('yuumiRoster')
+          .withIndex('by_puuid', (q) => q.eq('puuid', game.puuid))
+          .unique();
+        if (rosterRow) {
+          await ctx.db.patch(rosterRow._id, {
+            gameName: game.playerName,
+            tagLine: game.playerTag,
+            gamesCount: (rosterRow.gamesCount ?? 0) + 1,
+            wins: (rosterRow.wins ?? 0) + (game.win ? 1 : 0),
+            killsTotal: (rosterRow.killsTotal ?? 0) + game.kills,
+            deathsTotal: (rosterRow.deathsTotal ?? 0) + game.deaths,
+            assistsTotal: (rosterRow.assistsTotal ?? 0) + game.assists,
+          });
+        }
       }
     }
     for (const id of args.rosterIds) {
@@ -357,6 +378,30 @@ export const recordPollResults = internalMutation({
         await ctx.db.patch(id, { lastCheckedAt: args.checkedAt });
       }
     }
+  },
+});
+
+/** Recompute a player's denormalized season stats from their game rows. */
+export const recomputePlayerStats = internalMutation({
+  args: { puuid: v.string() },
+  handler: async (ctx, args) => {
+    const rosterRow = await ctx.db
+      .query('yuumiRoster')
+      .withIndex('by_puuid', (q) => q.eq('puuid', args.puuid))
+      .unique();
+    if (!rosterRow) return;
+    const games = await ctx.db
+      .query('yuumiGames')
+      .withIndex('by_puuid', (q) => q.eq('puuid', args.puuid))
+      .collect();
+    const stats = {
+      gamesCount: games.length,
+      wins: games.filter((g) => g.win).length,
+      killsTotal: games.reduce((sum, g) => sum + g.kills, 0),
+      deathsTotal: games.reduce((sum, g) => sum + g.deaths, 0),
+      assistsTotal: games.reduce((sum, g) => sum + g.assists, 0),
+    };
+    await ctx.db.patch(rosterRow._id, stats);
   },
 });
 
@@ -568,6 +613,12 @@ type GameRow = {
   assists: number;
   allyChampions: string[];
   enemyChampions: string[];
+  puuid: string;
+  items: number[];
+  keystoneId: number;
+  secondaryStyleId: number;
+  summonerSpells: number[];
+  duoChampion?: string;
 };
 
 // match-v5 keeps a couple of legacy champion spellings Data Dragon rejects.
@@ -579,11 +630,14 @@ function fixChampionName(name: string): string {
   return CHAMPION_NAME_FIXES[name] ?? name;
 }
 
-/** Card row from a match-v5 payload, or null if it doesn't qualify. */
+/**
+ * Card row from a match-v5 payload, or null if it doesn't qualify.
+ * `patchWindow: null` skips the patch gate (season backfill spans patches).
+ */
 function extractGame(
   match: unknown,
   player: Doc<'yuumiRoster'>,
-  patchWindow: string[]
+  patchWindow: string[] | null
 ): GameRow | null {
   if (!isRecord(match) || !isRecord(match.metadata) || !isRecord(match.info)) {
     return null;
@@ -598,8 +652,10 @@ function extractGame(
   // ddragon's versions.json lags new patch releases, so reject only games
   // strictly OLDER than the window — current, last, and anything newer all
   // qualify. pruneOldGames stays strict and cleans up oddities later.
-  const oldestPatch = patchWindow[patchWindow.length - 1];
-  if (!oldestPatch || isOlderPatch(patch, oldestPatch)) return null;
+  if (patchWindow !== null) {
+    const oldestPatch = patchWindow[patchWindow.length - 1];
+    if (!oldestPatch || isOlderPatch(patch, oldestPatch)) return null;
+  }
   if (!Array.isArray(info.participants)) return null;
   const gameDuration =
     typeof info.gameDuration === 'number' ? info.gameDuration : 0;
@@ -620,6 +676,37 @@ function extractGame(
     else enemyChampions.push(name);
   }
   if (allyChampions.length !== 5 || enemyChampions.length !== 5) return null;
+
+  const items: number[] = [];
+  for (let slot = 0; slot <= 6; slot++) {
+    const value = yuumi[`item${slot}`];
+    items.push(typeof value === 'number' ? value : 0);
+  }
+  let keystoneId = 0;
+  let secondaryStyleId = 0;
+  if (isRecord(yuumi.perks) && Array.isArray(yuumi.perks.styles)) {
+    const styles = yuumi.perks.styles.filter(isRecord);
+    const primary = styles.find((s) => s.description === 'primaryStyle');
+    const secondary = styles.find((s) => s.description === 'subStyle');
+    if (primary && Array.isArray(primary.selections)) {
+      const first = primary.selections.filter(isRecord)[0];
+      if (first && typeof first.perk === 'number') keystoneId = first.perk;
+    }
+    if (secondary && typeof secondary.style === 'number') {
+      secondaryStyleId = secondary.style;
+    }
+  }
+  const summonerSpells = [
+    typeof yuumi.summoner1Id === 'number' ? yuumi.summoner1Id : 0,
+    typeof yuumi.summoner2Id === 'number' ? yuumi.summoner2Id : 0,
+  ];
+  const duo = participants.find(
+    (p) =>
+      p.teamId === yuumi.teamId &&
+      p.puuid !== yuumi.puuid &&
+      p.teamPosition === 'BOTTOM' &&
+      typeof p.championName === 'string'
+  );
 
   return {
     matchId: metadata.matchId,
@@ -644,6 +731,14 @@ function extractGame(
     assists: typeof yuumi.assists === 'number' ? yuumi.assists : 0,
     allyChampions,
     enemyChampions,
+    puuid: player.puuid,
+    items,
+    keystoneId,
+    secondaryStyleId,
+    summonerSpells,
+    ...(duo
+      ? { duoChampion: fixChampionName(duo.championName as string) }
+      : {}),
   };
 }
 
