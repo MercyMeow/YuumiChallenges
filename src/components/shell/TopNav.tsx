@@ -13,6 +13,7 @@ const NAV_LINKS: ReadonlyArray<{ label: string; href: string }> = [
   { label: 'Overview', href: '/' },
   { label: 'Builds', href: '/#builds' },
   { label: 'Matchups', href: '/#matchups' },
+  { label: 'High Elo', href: '/games' },
   { label: 'Match Viewer', href: '/match' },
   { label: 'Mythic Shop', href: '/mythic-shop' },
   { label: 'Gallery', href: '/gallery' },

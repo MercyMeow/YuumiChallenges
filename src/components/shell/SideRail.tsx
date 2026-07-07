@@ -9,6 +9,7 @@ import {
   Layers,
   Sparkles,
   Swords,
+  Trophy,
   Users,
 } from 'lucide-react';
 import { PawEmblem } from './PawEmblem';
@@ -22,6 +23,7 @@ const GUIDE_LINKS = [
 ] as const;
 
 const RESOURCE_LINKS = [
+  { label: 'High Elo Games', href: '/games', icon: Trophy },
   { label: 'Match Viewer', href: '/match', icon: Swords },
   { label: 'Mythic Shop', href: '/mythic-shop', icon: Sparkles },
   { label: 'Rule Gallery', href: '/gallery', icon: ImageIcon },
