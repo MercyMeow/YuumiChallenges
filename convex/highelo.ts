@@ -262,23 +262,24 @@ export const finishSweepChunk = internalMutation({
   },
 });
 
-/**
- * Drops roster rows for a platform whose puuid is no longer on the fresh
- * Master+ ladder, so demoted players stop producing stale-tier cards.
- * Ladders are ~3-6k puuids (~500KB of args) — well under Convex's 8MiB cap.
- */
-export const pruneDemotedRoster = internalMutation({
-  args: { platform: v.string(), activePuuids: v.array(v.string()) },
+/** Roster rows for one platform (a few hundred max) — id + puuid only. */
+export const getRosterPuuidsByPlatform = internalQuery({
+  args: { platform: v.string() },
   handler: async (ctx, args) => {
-    const active = new Set(args.activePuuids);
     const roster = await ctx.db
       .query('yuumiRoster')
       .withIndex('by_platform', (q) => q.eq('platform', args.platform))
       .collect();
-    for (const entry of roster) {
-      if (!active.has(entry.puuid)) {
-        await ctx.db.delete(entry._id);
-      }
+    return roster.map((entry) => ({ _id: entry._id, puuid: entry.puuid }));
+  },
+});
+
+/** Deletes roster rows by id. Callers chunk (Convex caps arrays at 8192). */
+export const deleteRosterEntries = internalMutation({
+  args: { ids: v.array(v.id('yuumiRoster')) },
+  handler: async (ctx, args) => {
+    for (const id of args.ids) {
+      await ctx.db.delete(id);
     }
   },
 });
@@ -350,21 +351,37 @@ export const recordPollResults = internalMutation({
       }
     }
     for (const id of args.rosterIds) {
-      await ctx.db.patch(id, { lastCheckedAt: args.checkedAt });
+      // The row may have been deleted by a prune mid-poll — don't throw.
+      const row = await ctx.db.get(id);
+      if (row) {
+        await ctx.db.patch(id, { lastCheckedAt: args.checkedAt });
+      }
     }
   },
 });
 
 // ---------- internal plumbing (prune) ----------
 
-/** Deletes up to 2000 games outside the patch window; returns count. */
+/**
+ * Deletes up to 2000 games outside the patch window; returns count.
+ * Mirrors the lenient ingest gate: games on patches NEWER than the window
+ * (ddragon versions.json lag on day one) are kept; a game is deleted only
+ * when its patch is strictly older than the window, or when its patch is
+ * unrecognized junk and the game is older than 48h.
+ */
 export const deleteGamesOutsidePatches = internalMutation({
   args: { patches: v.array(v.string()) },
   handler: async (ctx, args) => {
+    const oldestPatch = args.patches[args.patches.length - 1];
+    const junkCutoff = Date.now() - 48 * 60 * 60 * 1000;
     const games = await ctx.db.query('yuumiGames').take(4000);
     let deleted = 0;
     for (const game of games) {
-      if (!args.patches.includes(game.patch)) {
+      const tooOld =
+        oldestPatch !== undefined && isOlderPatch(game.patch, oldestPatch);
+      const junk =
+        !args.patches.includes(game.patch) && game.gameCreation < junkCutoff;
+      if (tooOld || junk) {
         await ctx.db.delete(game._id);
         deleted++;
         if (deleted >= 2000) break;
@@ -445,11 +462,23 @@ async function sweepPlatform(
         });
       }
       // Demotions: drop roster rows that fell off the fresh Master+ ladder
-      // so they stop producing cards with frozen tier/LP.
-      await ctx.runMutation(internal.highelo.pruneDemotedRoster, {
-        platform,
-        activePuuids: ladder.map((entry) => entry.puuid),
-      });
+      // so they stop producing cards with frozen tier/LP. The delete list
+      // is computed here in the action: full ladders can exceed Convex's
+      // 8192-element array cap (KR Master+ is >10k), but the per-platform
+      // roster — let alone its demoted subset — never will.
+      const ladderPuuids = new Set(ladder.map((entry) => entry.puuid));
+      const rosterRows = await ctx.runQuery(
+        internal.highelo.getRosterPuuidsByPlatform,
+        { platform }
+      );
+      const demotedIds = rosterRows
+        .filter((row) => !ladderPuuids.has(row.puuid))
+        .map((row) => row._id);
+      for (let i = 0; i < demotedIds.length; i += 1000) {
+        await ctx.runMutation(internal.highelo.deleteRosterEntries, {
+          ids: demotedIds.slice(i, i + 1000),
+        });
+      }
       await ctx.runMutation(internal.highelo.setSweepState, {
         platform,
         lastLeagueRefreshAt: now,
@@ -697,20 +726,28 @@ export const pollRosterMatches = internalAction({
     const patchWindow = await fetchPatchWindow();
 
     const byCluster = new Map<string, Doc<'yuumiRoster'>[]>();
+    const unknownPlatformIds: Id<'yuumiRoster'>[] = [];
     for (const player of roster) {
       const cluster = (PLATFORM_TO_CLUSTER as Record<string, string>)[
         player.platform
       ];
       if (!cluster) {
-        // Skip (and don't stamp) rather than guessing a cluster.
+        // Unpollable, and stalest-first would resurface it every run —
+        // drop the row instead of guessing a cluster.
         console.warn(
           `poll: unknown platform ${player.platform} for ${player.puuid}`
         );
+        unknownPlatformIds.push(player._id);
         continue;
       }
       const list = byCluster.get(cluster) ?? [];
       list.push(player);
       byCluster.set(cluster, list);
+    }
+    if (unknownPlatformIds.length > 0) {
+      await ctx.runMutation(internal.highelo.deleteRosterEntries, {
+        ids: unknownPlatformIds,
+      });
     }
 
     await Promise.all(
