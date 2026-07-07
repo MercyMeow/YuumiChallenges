@@ -203,6 +203,7 @@ export default defineSchema({
     lastCheckedAt: v.number(), // ms epoch of last match-ids poll
   })
     .index('by_puuid', ['puuid'])
+    .index('by_platform', ['platform'])
     .index('by_lastCheckedAt', ['lastCheckedAt']),
 
   // Found games — card data only; the match viewer fetches full details.

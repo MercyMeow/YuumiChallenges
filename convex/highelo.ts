@@ -59,6 +59,11 @@ const POLL_PLAYERS_PER_RUN = 1500;
 // match-ids lookback: startTime filters by game START, so a game that began
 // before the last poll but ended after it needs the buffer to be caught.
 const POLL_LOOKBACK_MS = 3 * 60 * 60 * 1000;
+// Flush poll results to the DB every N players so a late failure or an
+// action timeout can't discard a whole cluster's progress.
+const POLL_FLUSH_EVERY = 150;
+// Games shorter than this are remakes (early surrender), not real games.
+const REMAKE_MAX_DURATION_S = 300;
 
 // ---------- generic helpers ----------
 
@@ -81,6 +86,10 @@ function riotApiKey(): string {
 /**
  * GET a Riot API URL. Returns parsed JSON, or null on 404. Retries twice on
  * 429 honoring Retry-After; throws on other errors so callers can decide.
+ *
+ * No token bucket: pacing relies on the chunk-size constants above plus
+ * these 429 retries. If Riot tightens app limits, a shared limiter per
+ * platform/cluster would be the next step.
  */
 async function riotFetch(url: string): Promise<unknown> {
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -89,8 +98,11 @@ async function riotFetch(url: string): Promise<unknown> {
     });
     if (res.status === 404) return null;
     if (res.status === 429) {
-      const retryAfter = Number(res.headers.get('Retry-After') ?? '2');
-      await sleep(Math.min(retryAfter, 20) * 1000);
+      // Riot's app-limit windows go up to ~120s; a missing or malformed
+      // Retry-After falls back to a short pause instead of a hot retry.
+      const parsed = Number(res.headers.get('Retry-After'));
+      const retryAfter = Number.isFinite(parsed) && parsed > 0 ? parsed : 2;
+      await sleep(Math.min(retryAfter, 120) * 1000);
       continue;
     }
     if (!res.ok) throw new Error(`Riot API ${res.status}: ${url}`);
@@ -118,6 +130,13 @@ async function fetchPatchWindow(): Promise<string[]> {
   }
   if (patches.length < 2) throw new Error('could not derive patch window');
   return patches;
+}
+
+/** True when patch `a` is strictly older than `b` ('major.minor' strings). */
+function isOlderPatch(a: string, b: string): boolean {
+  const [aMajor = 0, aMinor = 0] = a.split('.').map(Number);
+  const [bMajor = 0, bMinor = 0] = b.split('.').map(Number);
+  return aMajor !== bMajor ? aMajor < bMajor : aMinor < bMinor;
 }
 
 // ---------- public query ----------
@@ -243,6 +262,27 @@ export const finishSweepChunk = internalMutation({
   },
 });
 
+/**
+ * Drops roster rows for a platform whose puuid is no longer on the fresh
+ * Master+ ladder, so demoted players stop producing stale-tier cards.
+ * Ladders are ~3-6k puuids (~500KB of args) — well under Convex's 8MiB cap.
+ */
+export const pruneDemotedRoster = internalMutation({
+  args: { platform: v.string(), activePuuids: v.array(v.string()) },
+  handler: async (ctx, args) => {
+    const active = new Set(args.activePuuids);
+    const roster = await ctx.db
+      .query('yuumiRoster')
+      .withIndex('by_platform', (q) => q.eq('platform', args.platform))
+      .collect();
+    for (const entry of roster) {
+      if (!active.has(entry.puuid)) {
+        await ctx.db.delete(entry._id);
+      }
+    }
+  },
+});
+
 // ---------- internal plumbing (poll) ----------
 
 export const takeRosterForPoll = internalQuery({
@@ -361,7 +401,10 @@ async function fetchLadder(platform: Platform): Promise<LadderEntry[]> {
   const entries: LadderEntry[] = [];
   for (const [path, tier] of tiers) {
     const data = await riotFetch(`${base}/${path}/by-queue/RANKED_SOLO_5x5`);
-    if (!isRecord(data) || !Array.isArray(data.entries)) continue;
+    if (!isRecord(data) || !Array.isArray(data.entries)) {
+      console.warn(`ladder ${platform}/${path}: unexpected response shape`);
+      continue;
+    }
     for (const entry of data.entries) {
       if (isRecord(entry) && typeof entry.puuid === 'string') {
         entries.push({
@@ -401,6 +444,12 @@ async function sweepPlatform(
           entries: ladder.slice(i, i + 500),
         });
       }
+      // Demotions: drop roster rows that fell off the fresh Master+ ladder
+      // so they stop producing cards with frozen tier/LP.
+      await ctx.runMutation(internal.highelo.pruneDemotedRoster, {
+        platform,
+        activePuuids: ladder.map((entry) => entry.puuid),
+      });
       await ctx.runMutation(internal.highelo.setSweepState, {
         platform,
         lastLeagueRefreshAt: now,
@@ -424,9 +473,17 @@ async function sweepPlatform(
     yuumiLastPlayTime: number;
   }[] = [];
   for (const item of pending) {
-    const mastery = await riotFetch(
-      `https://${platform}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${item.puuid}/by-champion/${YUUMI_CHAMPION_ID}`
-    );
+    // A failed check stays in the queue for the next run; one flaky call
+    // must not abort the whole platform's chunk.
+    let mastery: unknown;
+    try {
+      mastery = await riotFetch(
+        `https://${platform}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${item.puuid}/by-champion/${YUUMI_CHAMPION_ID}`
+      );
+    } catch (error) {
+      console.error(`sweep ${platform}: mastery ${item.puuid} failed:`, error);
+      continue;
+    }
     queueIds.push(item._id);
     const lastPlayTime =
       isRecord(mastery) && typeof mastery.lastPlayTime === 'number'
@@ -508,8 +565,16 @@ function extractGame(
   if (typeof info.gameVersion !== 'string') return null;
   const [major, minor] = info.gameVersion.split('.');
   const patch = major && minor ? `${major}.${minor}` : '';
-  if (!patchWindow.includes(patch)) return null;
+  if (!patch) return null;
+  // ddragon's versions.json lags new patch releases, so reject only games
+  // strictly OLDER than the window — current, last, and anything newer all
+  // qualify. pruneOldGames stays strict and cleans up oddities later.
+  const oldestPatch = patchWindow[patchWindow.length - 1];
+  if (!oldestPatch || isOlderPatch(patch, oldestPatch)) return null;
   if (!Array.isArray(info.participants)) return null;
+  const gameDuration =
+    typeof info.gameDuration === 'number' ? info.gameDuration : 0;
+  if (gameDuration < REMAKE_MAX_DURATION_S) return null;
 
   const participants = info.participants.filter(isRecord);
   const yuumi = participants.find(
@@ -533,7 +598,7 @@ function extractGame(
     patch,
     gameCreation:
       typeof info.gameCreation === 'number' ? info.gameCreation : Date.now(),
-    gameDuration: typeof info.gameDuration === 'number' ? info.gameDuration : 0,
+    gameDuration,
     win: yuumi.win === true,
     playerName:
       typeof yuumi.riotIdGameName === 'string' && yuumi.riotIdGameName !== ''
@@ -559,37 +624,63 @@ async function pollCluster(
   players: Doc<'yuumiRoster'>[],
   patchWindow: string[]
 ): Promise<void> {
-  const now = Date.now();
-  const games: GameRow[] = [];
-  const rosterIds: Id<'yuumiRoster'>[] = [];
+  let games: GameRow[] = [];
+  let rosterIds: Id<'yuumiRoster'>[] = [];
+
+  const flush = async () => {
+    if (games.length === 0 && rosterIds.length === 0) return;
+    await ctx.runMutation(internal.highelo.recordPollResults, {
+      rosterIds,
+      checkedAt: Date.now(),
+      games,
+    });
+    games = [];
+    rosterIds = [];
+  };
+
   for (const player of players) {
-    const startTime = Math.max(
-      Math.floor((player.lastCheckedAt - POLL_LOOKBACK_MS) / 1000),
-      0
-    );
-    const ids = await riotFetch(
-      `https://${cluster}.api.riotgames.com/lol/match/v5/matches/by-puuid/${player.puuid}/ids?queue=${RANKED_SOLO_QUEUE}&startTime=${startTime}&count=10`
-    );
-    rosterIds.push(player._id);
-    if (!Array.isArray(ids) || ids.length === 0) continue;
-    const matchIds = ids.filter((id): id is string => typeof id === 'string');
-    const existing = new Set(
-      await ctx.runQuery(internal.highelo.getExistingMatchIds, { matchIds })
-    );
-    for (const matchId of matchIds) {
-      if (existing.has(matchId)) continue;
-      const match = await riotFetch(
-        `https://${cluster}.api.riotgames.com/lol/match/v5/matches/${matchId}`
+    // Per-player isolation: on failure, skip the player WITHOUT stamping
+    // lastCheckedAt (so the next run retries them) and keep the batch.
+    try {
+      const startTime = Math.max(
+        Math.floor((player.lastCheckedAt - POLL_LOOKBACK_MS) / 1000),
+        0
       );
-      const game = extractGame(match, player, patchWindow);
-      if (game) games.push(game);
+      // count=10 bounds request cost; a roster player logging >10 ranked
+      // games inside one poll window is implausible enough to accept.
+      const ids = await riotFetch(
+        `https://${cluster}.api.riotgames.com/lol/match/v5/matches/by-puuid/${player.puuid}/ids?queue=${RANKED_SOLO_QUEUE}&startTime=${startTime}&count=10`
+      );
+      const playerGames: GameRow[] = [];
+      if (Array.isArray(ids) && ids.length > 0) {
+        const matchIds = ids.filter(
+          (id): id is string => typeof id === 'string'
+        );
+        const existing = new Set(
+          await ctx.runQuery(internal.highelo.getExistingMatchIds, {
+            matchIds,
+          })
+        );
+        for (const matchId of matchIds) {
+          if (existing.has(matchId)) continue;
+          const match = await riotFetch(
+            `https://${cluster}.api.riotgames.com/lol/match/v5/matches/${matchId}`
+          );
+          const game = extractGame(match, player, patchWindow);
+          if (game) playerGames.push(game);
+        }
+      }
+      rosterIds.push(player._id);
+      games.push(...playerGames);
+    } catch (error) {
+      console.error(`poll ${cluster}: player ${player.puuid} failed:`, error);
+      continue;
+    }
+    if (rosterIds.length >= POLL_FLUSH_EVERY) {
+      await flush();
     }
   }
-  await ctx.runMutation(internal.highelo.recordPollResults, {
-    rosterIds,
-    checkedAt: now,
-    games,
-  });
+  await flush();
 }
 
 /**
@@ -607,8 +698,16 @@ export const pollRosterMatches = internalAction({
 
     const byCluster = new Map<string, Doc<'yuumiRoster'>[]>();
     for (const player of roster) {
-      const cluster =
-        PLATFORM_TO_CLUSTER[player.platform as Platform] ?? 'europe';
+      const cluster = (PLATFORM_TO_CLUSTER as Record<string, string>)[
+        player.platform
+      ];
+      if (!cluster) {
+        // Skip (and don't stamp) rather than guessing a cluster.
+        console.warn(
+          `poll: unknown platform ${player.platform} for ${player.puuid}`
+        );
+        continue;
+      }
       const list = byCluster.get(cluster) ?? [];
       list.push(player);
       byCluster.set(cluster, list);
