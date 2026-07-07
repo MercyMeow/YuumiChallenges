@@ -1,0 +1,23 @@
+convex/tsconfig.json
+  s_655f4567a62a1d::t_26334438421f08 14-15
+convex/highelo.ts
+  s_655f4567a62a1d::t_cb70e7eb53ed1e 1-643
+convex/_generated/api.d.ts
+  s_655f4567a62a1d::t_191bcb37412000 14,28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "c0a11c08db2a3e02043d57634b8b5fdadff2343a",
+  "prompts": {},
+  "sessions": {
+    "s_655f4567a62a1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7810e78-844d-4500-94ab-36db1a62895a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
