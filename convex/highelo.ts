@@ -66,6 +66,10 @@ const POLL_FLUSH_EVERY = 150;
 const REMAKE_MAX_DURATION_S = 300;
 // Season retention fallback when the seasonStart metadata key is unset.
 const DEFAULT_SEASON_LOOKBACK_MS = 90 * 24 * 60 * 60 * 1000;
+// Backfill: fetch budget per cluster per run; matches checked per player.
+const BACKFILL_MATCH_FETCH_BUDGET = 250;
+const BACKFILL_MATCHES_PER_PLAYER = 200;
+const BACKFILL_PLAYERS_PER_RUN = 40; // per cluster, upper bound
 
 // ---------- generic helpers ----------
 
@@ -465,6 +469,32 @@ export const recomputePlayerStats = internalMutation({
       assistsTotal: games.reduce((sum, g) => sum + g.assists, 0),
     };
     await ctx.db.patch(rosterRow._id, stats);
+  },
+});
+
+// ---------- internal plumbing (backfill) ----------
+
+/** Unbackfilled roster players, most recently active first. */
+export const takeRosterForBackfill = internalQuery({
+  args: { limit: v.number() },
+  handler: async (ctx, args) => {
+    // Roster is small — collect() + in-memory filter avoids an index on an
+    // optional field.
+    const roster = await ctx.db.query('yuumiRoster').collect();
+    return roster
+      .filter((entry) => entry.backfilledAt === undefined)
+      .sort((a, b) => b.yuumiLastPlayTime - a.yuumiLastPlayTime)
+      .slice(0, args.limit);
+  },
+});
+
+export const markBackfilled = internalMutation({
+  args: { ids: v.array(v.id('yuumiRoster')), at: v.number() },
+  handler: async (ctx, args) => {
+    for (const id of args.ids) {
+      const row = await ctx.db.get(id);
+      if (row) await ctx.db.patch(id, { backfilledAt: args.at });
+    }
   },
 });
 
@@ -907,6 +937,103 @@ export const pollRosterMatches = internalAction({
       [...byCluster.entries()].map(([cluster, players]) =>
         pollCluster(ctx, cluster, players, patchWindow).catch((error) => {
           console.error(`poll ${cluster} failed:`, error);
+        })
+      )
+    );
+  },
+});
+
+async function backfillCluster(
+  ctx: ActionCtx,
+  cluster: string,
+  players: Doc<'yuumiRoster'>[],
+  seasonStart: number
+): Promise<void> {
+  let budget = BACKFILL_MATCH_FETCH_BUDGET;
+  for (const player of players) {
+    if (budget <= 0) return;
+    try {
+      const startTime = Math.floor(seasonStart / 1000);
+      const matchIds: string[] = [];
+      for (let start = 0; start < BACKFILL_MATCHES_PER_PLAYER; start += 100) {
+        const page = await riotFetch(
+          `https://${cluster}.api.riotgames.com/lol/match/v5/matches/by-puuid/${player.puuid}/ids?queue=${RANKED_SOLO_QUEUE}&startTime=${startTime}&start=${start}&count=100`
+        );
+        if (!Array.isArray(page) || page.length === 0) break;
+        matchIds.push(
+          ...page.filter((id): id is string => typeof id === 'string')
+        );
+        if (page.length < 100) break;
+      }
+      const existing = new Set(
+        await ctx.runQuery(internal.highelo.getExistingMatchIds, { matchIds })
+      );
+      const pending = matchIds.filter((id) => !existing.has(id));
+      if (pending.length > budget) {
+        // Not enough budget to finish this player — leave them unmarked so
+        // the next run resumes (dedup makes the redo cheap).
+        return;
+      }
+      const games: GameRow[] = [];
+      for (const matchId of pending) {
+        budget--;
+        const match = await riotFetch(
+          `https://${cluster}.api.riotgames.com/lol/match/v5/matches/${matchId}`
+        );
+        const game = extractGame(match, player, null);
+        if (game) games.push(game);
+      }
+      if (games.length > 0) {
+        await ctx.runMutation(internal.highelo.recordPollResults, {
+          rosterIds: [],
+          checkedAt: Date.now(),
+          games,
+        });
+      }
+      await ctx.runMutation(internal.highelo.markBackfilled, {
+        ids: [player._id],
+        at: Date.now(),
+      });
+      await ctx.runMutation(internal.highelo.recomputePlayerStats, {
+        puuid: player.puuid,
+      });
+    } catch (error) {
+      console.error(
+        `backfill ${cluster}: player ${player.puuid} failed:`,
+        error
+      );
+    }
+  }
+}
+
+/**
+ * Season history backfill (every 15 min): budget-paced so the shared Riot
+ * key's 5-minute poll and the site's match viewer never starve. Goes
+ * dormant once every roster player is marked backfilled; newly swept
+ * players get picked up automatically.
+ */
+export const backfillSeason = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const players = await ctx.runQuery(internal.highelo.takeRosterForBackfill, {
+      limit: BACKFILL_PLAYERS_PER_RUN * 4,
+    });
+    if (players.length === 0) return;
+    const seasonStart = await getSeasonStart(ctx);
+    const byCluster = new Map<string, Doc<'yuumiRoster'>[]>();
+    for (const player of players) {
+      const cluster = (PLATFORM_TO_CLUSTER as Record<string, string>)[
+        player.platform
+      ];
+      if (!cluster) continue; // poll cron handles unknown-platform cleanup
+      const list = byCluster.get(cluster) ?? [];
+      if (list.length < BACKFILL_PLAYERS_PER_RUN) list.push(player);
+      byCluster.set(cluster, list);
+    }
+    await Promise.all(
+      [...byCluster.entries()].map(([cluster, list]) =>
+        backfillCluster(ctx, cluster, list, seasonStart).catch((error) => {
+          console.error(`backfill ${cluster} failed:`, error);
         })
       )
     );
