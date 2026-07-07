@@ -1,0 +1,22 @@
+src/components/shell/SideRail.tsx
+  s_655f4567a62a1d::t_3592fed55a4617 12
+  s_655f4567a62a1d::t_1ba9976a13afa1 26
+src/components/shell/TopNav.tsx
+  s_655f4567a62a1d::t_62d9a123276f8e 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b350844b1c37ef05fcc477c6199ca01430882e55",
+  "prompts": {},
+  "sessions": {
+    "s_655f4567a62a1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7810e78-844d-4500-94ab-36db1a62895a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
