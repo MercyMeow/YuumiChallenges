@@ -357,7 +357,8 @@ export const getPlayerProfile = query({
         killsTotal: player.killsTotal ?? 0,
         deathsTotal: player.deathsTotal ?? 0,
         assistsTotal: player.assistsTotal ?? 0,
-        position,
+        // null when the player isn't in the ranked list (no counted games).
+        position: position > 0 ? position : null,
       },
       builds: [...buildGroups.values()].sort(byGames).slice(0, 3),
       runePages: [...runeGroups.values()].sort(byGames).slice(0, 2),
@@ -677,6 +678,54 @@ export const pruneInactiveRoster = internalMutation({
       if (entry.yuumiLastPlayTime < args.cutoff) {
         await ctx.db.delete(entry._id);
       }
+    }
+  },
+});
+
+// ---------- one-shot ops (deploy bootstrap / season rollover) ----------
+
+/**
+ * One-shot deploy bootstrap: delete game rows ingested before build
+ * snapshots existed (no puuid). Their matchIds would otherwise dedupe the
+ * backfill's re-fetch forever, leaving them invisible to profiles — the
+ * season backfill re-ingests them with full build snapshots. The table is
+ * small at deploy time, so collect() is fine. Returns the deleted count.
+ */
+export const deleteLegacyGames = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const games = await ctx.db.query('yuumiGames').collect();
+    let deleted = 0;
+    for (const game of games) {
+      if (game.puuid === undefined) {
+        await ctx.db.delete(game._id);
+        deleted++;
+      }
+    }
+    return deleted;
+  },
+});
+
+/**
+ * Season rollover: zero every roster row's denormalized stats and clear
+ * the backfill marker so the backfill cron rebuilds history from the new
+ * seasonStart. Run AFTER updating the seasonStart metadata key; the daily
+ * prune then clears the old season's games.
+ */
+export const resetSeasonStats = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const roster = await ctx.db.query('yuumiRoster').collect();
+    for (const entry of roster) {
+      await ctx.db.patch(entry._id, {
+        gamesCount: 0,
+        wins: 0,
+        killsTotal: 0,
+        deathsTotal: 0,
+        assistsTotal: 0,
+        // Patching undefined removes the field (Convex patch semantics).
+        backfilledAt: undefined,
+      });
     }
   },
 });

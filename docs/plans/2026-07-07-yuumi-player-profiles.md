@@ -448,6 +448,8 @@ export const backfillSeason = internalAction({
 
 NOTE: `recordPollResults` stats-increments cover inserts, and `recomputePlayerStats` immediately after makes the player's stats exact regardless — order matters: recompute AFTER the insert mutation.
 
+**Known limitation (accepted in design review):** the 200-matches-per-player bound means launch-time season stats undercount players whose season history predates their last 200 ranked games. Stats are exact from launch onward — the 5-minute poll catches everything new.
+
 **Step 4: Cron** — in `convex/crons.ts`:
 
 ```typescript
@@ -959,7 +961,14 @@ git commit -m "feat: add Yuumi Players to side rail navigation"
 ### Task 10: Deploy + bootstrap (coordinator-run, needs user-approved permissions)
 
 1. `npx convex deploy` from the worktree (schema + functions).
-2. Set season start (ms epoch — confirm the actual current ranked season/split start date with the user, do not guess): `npx convex run highelo:setMetadataValue '{"key":"seasonStart","value":"<ms>"}'`.
-3. Backfill cron begins automatically; kick one run early: `npx convex run highelo:backfillSeason` (expect Cloudflare 524 on the CLI after 100s — the action continues server-side; verify via `npx convex data yuumiGames --limit 3 --order desc` and `npx convex logs`).
-4. Browser verification per Task 7/8 steps + `/games` regression (feed still shows only current+last patch).
-5. Watch for 429 contention on the match viewer while backfill runs; if severe, halve `BACKFILL_MATCH_FETCH_BUDGET`.
+2. Drop legacy game rows that predate build snapshots (no `puuid`; their matchIds would dedupe the backfill's re-ingest forever): `npx convex run highelo:deleteLegacyGames` — the season backfill re-ingests those matches with full build snapshots.
+3. Set season start (ms epoch — confirm the actual current ranked season/split start date with the user, do not guess): `npx convex run highelo:setMetadataValue '{"key":"seasonStart","value":"<ms>"}'`.
+4. Backfill cron begins automatically; kick one run early: `npx convex run highelo:backfillSeason` (expect Cloudflare 524 on the CLI after 100s — the action continues server-side; verify via `npx convex data yuumiGames --limit 3 --order desc` and `npx convex logs`).
+5. Browser verification per Task 7/8 steps + `/games` regression (feed still shows only current+last patch).
+6. Watch for 429 contention on the match viewer while backfill runs; if severe, halve `BACKFILL_MATCH_FETCH_BUDGET`.
+
+**Season rollover runbook (next split):**
+
+1. Update the season start: `npx convex run highelo:setMetadataValue '{"key":"seasonStart","value":"<new ms>"}'`.
+2. Reset roster stats + backfill markers: `npx convex run highelo:resetSeasonStats` (otherwise old-season totals keep accumulating new-season increments forever).
+3. Nothing else — the daily prune clears the old season's games and the backfill cron rebuilds history from the new seasonStart.

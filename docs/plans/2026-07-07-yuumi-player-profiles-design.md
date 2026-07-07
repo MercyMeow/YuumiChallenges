@@ -80,6 +80,11 @@ details to check. Bounds and pacing:
   are safe. Completed cursor → job dormant. Newly discovered roster players
   get the same bounded backfill on first sight.
 
+**Known limitation (accepted):** the 200-matches-per-player bound means
+launch-time season stats undercount players whose season history predates
+their last 200 ranked games. Stats are exact from launch onward — the
+5-minute poll catches every new game.
+
 ## Pages
 
 ### Navigation
