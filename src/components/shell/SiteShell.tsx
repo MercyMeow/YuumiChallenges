@@ -26,7 +26,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <footer className="mt-auto border-t border-hx-gold-dark/40 bg-hx-black/60">
         <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-hx-gold/50 md:px-6">
           <span>
-            Made with <span className="text-hx-magic">✦</span> for Yuumi mains
+            Made with <span className="text-hx-magic">♥</span> for Yuumi mains
             worldwide · yuumi.quest
           </span>
           <span>Not affiliated with Riot Games</span>

@@ -257,7 +257,7 @@ Released under the **[MIT License](LICENSE)**.
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0A323C,55:091428,100:010A13&height=130&section=footer&text=%E2%80%9CWe%E2%80%99ll%20be%20the%20best%20of%20friends%2C%20forever%20and%20ever!%E2%80%9D&fontSize=17&fontColor=C8AA6E&fontAlignY=72" width="100%" alt="footer" />
 
-**Made with ✦ for Yuumi mains worldwide**
+**Made with ♥ for Yuumi mains worldwide**
 
 <a href="https://yuumi.quest"><b>Visit the site</b></a> · <a href="https://discord.gg/yuumi"><b>Join the Discord</b></a>
 
