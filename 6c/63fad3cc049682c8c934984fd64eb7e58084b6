@@ -1,0 +1,23 @@
+docs/cloudflare-migration-checklist.md
+  s_87c6c9224ee869::t_1c77347f0e26c1 1-59
+.github/workflows/deploy-cloudflare.yml
+  s_87c6c9224ee869::t_6415fa5e38719c 35-45
+wrangler.jsonc
+  s_87c6c9224ee869::t_265a85ae3980e7 15-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "6c63fad3cc049682c8c934984fd64eb7e58084b6",
+  "prompts": {},
+  "sessions": {
+    "s_87c6c9224ee869": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "20fff618-2227-4378-9c1f-c0f483280360",
+        "model": "grok-composer-2.5-fast"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
