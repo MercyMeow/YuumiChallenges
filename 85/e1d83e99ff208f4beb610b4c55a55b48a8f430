@@ -1,0 +1,19 @@
+public/riot.txt
+  s_87c6c9224ee869::t_1dfae264545a33 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "85e1d83e99ff208f4beb610b4c55a55b48a8f430",
+  "prompts": {},
+  "sessions": {
+    "s_87c6c9224ee869": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "20fff618-2227-4378-9c1f-c0f483280360",
+        "model": "grok-composer-2.5-fast"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
