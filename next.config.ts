@@ -20,10 +20,13 @@ const nextConfig: NextConfig = {
     // optimizeCss: true,
   },
 
-  // Image optimization
+  // Image optimization is disabled: nearly every image is a pre-sized Data
+  // Dragon CDN asset (or a tiny local PNG), so Vercel transformations only
+  // burned free-tier quota without shrinking anything. Unoptimized remote
+  // images also load straight from the Riot CDN instead of proxying
+  // through Vercel.
   images: {
-    formats: ['image/avif', 'image/webp'], // Modern image formats
-    minimumCacheTTL: 60, // Cache images for 60 seconds
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
