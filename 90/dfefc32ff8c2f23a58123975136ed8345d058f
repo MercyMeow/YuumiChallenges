@@ -1,0 +1,26 @@
+package.json
+  s_87c6c9224ee869::t_35c62cf21a5f8e 16
+scripts/attach-cloudflare-custom-domains.mjs
+  s_87c6c9224ee869::t_e9cfacadb2fd65 1-91
+docs/cloudflare-migration-checklist.md
+  s_87c6c9224ee869::t_4319ba6af01ece 9
+  s_87c6c9224ee869::t_7b70a14e1bdec0 34,36,38-41,43-45
+docs/cloudflare-deploy.md
+  s_87c6c9224ee869::t_e4d472483443df 41,43-45,59-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "90dfefc32ff8c2f23a58123975136ed8345d058f",
+  "prompts": {},
+  "sessions": {
+    "s_87c6c9224ee869": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "20fff618-2227-4378-9c1f-c0f483280360",
+        "model": "grok-composer-2.5-fast"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
