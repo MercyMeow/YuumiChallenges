@@ -48,3 +48,6 @@ next-env.d.ts
 
 # Development/example files
 example*.json
+
+# Git worktrees
+.worktrees/

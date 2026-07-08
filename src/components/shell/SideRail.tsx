@@ -4,10 +4,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   BookOpen,
+  Crown,
   Home,
   ImageIcon,
   Layers,
   Swords,
+  Trophy,
   Users,
   Zap,
 } from 'lucide-react';
@@ -24,6 +26,8 @@ const GUIDE_LINKS = [
 ] as const;
 
 const RESOURCE_LINKS = [
+  { label: 'High Elo Games', href: '/games', icon: Trophy },
+  { label: 'Yuumi Players', href: '/players', icon: Crown },
   { label: 'Match Viewer', href: '/match', icon: Swords },
   { label: 'Rule Gallery', href: '/gallery', icon: ImageIcon },
   { label: 'Guide Admin', href: '/admin', icon: BookOpen },

@@ -15,6 +15,7 @@ const NAV_LINKS: ReadonlyArray<{ label: string; href: string }> = [
   { label: 'Builds', href: '/#builds' },
   { label: 'Spells', href: '/#abilities' },
   { label: 'Matchups', href: '/#matchups' },
+  { label: 'High Elo', href: '/games' },
   { label: 'Match Viewer', href: '/match' },
   { label: 'Gallery', href: '/gallery' },
 ];

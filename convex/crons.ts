@@ -11,4 +11,28 @@ crons.daily(
   internal.scraper.autoUpdateBuild
 );
 
+// High-elo Yuumi feed: fast game polling, rolling ladder sweep, and a daily
+// prune to the current season. See convex/highelo.ts.
+crons.interval(
+  'poll high elo yuumi games',
+  { minutes: 5 },
+  internal.highelo.pollRosterMatches
+);
+crons.interval(
+  'sweep high elo ladder',
+  { minutes: 15 },
+  internal.highelo.sweepLadderChunk
+);
+crons.daily(
+  'prune high elo feed',
+  { hourUTC: 5, minuteUTC: 45 },
+  internal.highelo.pruneOldGames
+);
+// Season history backfill for profile stats; dormant when caught up.
+crons.interval(
+  'backfill season yuumi games',
+  { minutes: 15 },
+  internal.highelo.backfillSeason
+);
+
 export default crons;
