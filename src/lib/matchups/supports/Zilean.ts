@@ -3,11 +3,11 @@ import { SupportMatchup } from '../types';
 export const Zilean: SupportMatchup = {
   difficulty: 'Medium',
   tips: [
-    'Avoid detaching into his double-bomb stun zones; ward only when he is visible or bombs are on cooldown.',
-    'Trade around his cooldowns — punish after double bomb or speed-up; empowered Q from brush is effective.',
-    'Do not commit R until his ult is forced or down; layer slow waves to slow backline after revive ends.',
-    'Exhaust the diver he speeds up rather than Zilean himself.',
-    'E shield + MS after his E speed boost connects — AS helps your host match his accelerated ally.',
+    'Avoid detaching near a lone Time Bomb (Q) — a second bomb landing on the same target detonates both instantly for a stun. Ward only when he is visible or both bombs are down.',
+    'Trade around his cooldowns — punish right after he throws Time Bomb (Q) or uses Time Warp (E); empowered Q from brush is effective while he has no answer.',
+    'Do not commit R into a fight where Chronoshift (R) is up; it revives whoever it is on, so wait for it to be forced or spent before all-in-ing.',
+    'Exhaust the ally he speeds up with Time Warp (E) rather than Zilean himself — he has no escape of his own once engaged.',
+    'E Zoomies your host for the extra move speed the moment Time Warp (E) accelerates a diver at you; the added speed helps your host disengage before the diver closes in.',
   ],
   recommendedRunes:
     'Aery default; Resolve secondary Font of Life + Revitalize. Second Wind if both support and ADC poke heavily.',

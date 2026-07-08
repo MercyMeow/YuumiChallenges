@@ -2,7 +2,7 @@ import { BotLaneSynergy } from '../types';
 
 export const Taliyah: BotLaneSynergy = {
   synergy: 'Good',
-  playstyle: 'Roam-heavy shove with Weaver Wall picks',
+  playstyle: "Roam-heavy shove with Weaver's Wall picks",
   tips: [
     'Pre-cast E (Zoomies) before she walls or roams so she has shield, movement speed, and mana for the play.',
     'Land Q on enemies knocked into Unraveled Earth; Best Friend on-hit magic damage spikes if she follows with autos.',

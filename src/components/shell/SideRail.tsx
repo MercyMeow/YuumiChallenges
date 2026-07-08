@@ -8,18 +8,20 @@ import {
   Home,
   ImageIcon,
   Layers,
-  Sparkles,
   Swords,
   Trophy,
   Users,
+  Zap,
 } from 'lucide-react';
 import { PawEmblem } from './PawEmblem';
-import { isActiveLink } from './nav';
+import { HOME_SECTION_IDS, isActiveLink, isGuideLinkActive } from './nav';
+import { useActiveSection } from '@/lib/hooks/use-active-section';
 import { useLivePatch } from '@/lib/hooks/use-live-patch';
 
 const GUIDE_LINKS = [
   { label: 'Overview', href: '/', icon: Home },
   { label: 'Builds & Runes', href: '/#builds', icon: Layers },
+  { label: 'Spell Tips', href: '/#abilities', icon: Zap },
   { label: 'Matchups', href: '/#matchups', icon: Users },
 ] as const;
 
@@ -27,7 +29,6 @@ const RESOURCE_LINKS = [
   { label: 'High Elo Games', href: '/games', icon: Trophy },
   { label: 'Yuumi Players', href: '/players', icon: Crown },
   { label: 'Match Viewer', href: '/match', icon: Swords },
-  { label: 'Mythic Shop', href: '/mythic-shop', icon: Sparkles },
   { label: 'Rule Gallery', href: '/gallery', icon: ImageIcon },
   { label: 'Guide Admin', href: '/admin', icon: BookOpen },
 ] as const;
@@ -36,6 +37,7 @@ const RESOURCE_LINKS = [
 export function SideRail() {
   const pathname = usePathname();
   const patch = useLivePatch();
+  const activeSection = useActiveSection(HOME_SECTION_IDS, pathname === '/');
 
   return (
     <aside className="sticky top-[4.5rem] hidden max-h-[calc(100vh-4.5rem)] w-60 shrink-0 hex-scroll self-start overflow-y-auto py-6 pr-1 xl:block">
@@ -67,7 +69,7 @@ export function SideRail() {
               key={href}
               href={href}
               className="hex-rail-link rounded-sm"
-              data-active={isActiveLink(pathname, href)}
+              data-active={isGuideLinkActive(pathname, href, activeSection)}
             >
               <Icon className="h-3.5 w-3.5 opacity-80" aria-hidden />
               {label}

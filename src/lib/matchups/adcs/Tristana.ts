@@ -10,7 +10,7 @@ export const Tristana: BotLaneSynergy = {
     'Only detach for vision when Explosive Charge is not mid-detonation; dropping host mid-burst wastes Best Friend bonuses.',
   ],
   buildAdjustments: [
-    "Ardent is top priority second—Tristana attack speed multiplies W and Q Best Friend value.",
+    'Ardent is top priority second—Tristana attack speed multiplies W and Q Best Friend value.',
     "Mikael's early vs point-and-click CC that stops her mid-jump.",
   ],
 };

@@ -5,17 +5,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, Settings, X } from 'lucide-react';
 import { PawEmblem } from './PawEmblem';
-import { isActiveLink } from './nav';
+import { HOME_SECTION_IDS, isGuideLinkActive } from './nav';
+import { useActiveSection } from '@/lib/hooks/use-active-section';
 import { useLivePatch } from '@/lib/hooks/use-live-patch';
 import { cn } from '@/lib/utils';
 
 const NAV_LINKS: ReadonlyArray<{ label: string; href: string }> = [
   { label: 'Overview', href: '/' },
   { label: 'Builds', href: '/#builds' },
+  { label: 'Spells', href: '/#abilities' },
   { label: 'Matchups', href: '/#matchups' },
   { label: 'High Elo', href: '/games' },
   { label: 'Match Viewer', href: '/match' },
-  { label: 'Mythic Shop', href: '/mythic-shop' },
   { label: 'Gallery', href: '/gallery' },
 ];
 
@@ -23,6 +24,7 @@ const NAV_LINKS: ReadonlyArray<{ label: string; href: string }> = [
 export function TopNav() {
   const pathname = usePathname();
   const patch = useLivePatch();
+  const activeSection = useActiveSection(HOME_SECTION_IDS, pathname === '/');
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Close the mobile drawer on any route change (incl. back/forward), not
@@ -59,7 +61,11 @@ export function TopNav() {
                 key={link.href}
                 href={link.href}
                 className="hex-nav-link"
-                data-active={isActiveLink(pathname, link.href)}
+                data-active={isGuideLinkActive(
+                  pathname,
+                  link.href,
+                  activeSection
+                )}
               >
                 {link.label}
               </Link>
@@ -115,7 +121,11 @@ export function TopNav() {
               key={link.href}
               href={link.href}
               className="hex-rail-link"
-              data-active={isActiveLink(pathname, link.href)}
+              data-active={isGuideLinkActive(
+                pathname,
+                link.href,
+                activeSection
+              )}
               onClick={() => setMenuOpen(false)}
             >
               {link.label}

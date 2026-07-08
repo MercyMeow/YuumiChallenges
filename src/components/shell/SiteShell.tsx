@@ -29,9 +29,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
             Made with <span className="text-hx-magic">✦</span> for Yuumi mains
             worldwide · yuumi.quest
           </span>
-          <span>
-            Not affiliated with Riot Games · Data from OP.GG, Lolalytics, U.GG
-          </span>
+          <span>Not affiliated with Riot Games</span>
         </div>
       </footer>
     </div>
