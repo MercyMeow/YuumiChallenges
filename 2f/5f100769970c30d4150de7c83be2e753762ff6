@@ -1,0 +1,21 @@
+wrangler.jsonc
+  s_87c6c9224ee869::t_b4e77cb1aac4c3 14
+docs/cloudflare-deploy.md
+  s_87c6c9224ee869::t_92e014b60aa4e8 41-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "2f5f100769970c30d4150de7c83be2e753762ff6",
+  "prompts": {},
+  "sessions": {
+    "s_87c6c9224ee869": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "20fff618-2227-4378-9c1f-c0f483280360",
+        "model": "grok-composer-2.5-fast"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
