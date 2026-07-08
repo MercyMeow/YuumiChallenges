@@ -11,10 +11,7 @@
   "observability": {
     "enabled": true,
   },
-  "routes": [
-    { "pattern": "yuumi.quest", "custom_domain": true },
-    { "pattern": "www.yuumi.quest", "custom_domain": true }
-  ],
+  "workers_dev": true,
   "vars": {
     "NODE_ENV": "production",
     "NEXT_PUBLIC_SITE_URL": "https://yuumi.quest",
