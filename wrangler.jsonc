@@ -1,0 +1,26 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "yuumi-challenges",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-07-08",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "observability": {
+    "enabled": true,
+  },
+  "routes": [
+    { "pattern": "yuumi.quest", "custom_domain": true },
+    { "pattern": "www.yuumi.quest", "custom_domain": true }
+  ],
+  "vars": {
+    "NODE_ENV": "production",
+    "NEXT_PUBLIC_SITE_URL": "https://yuumi.quest",
+    "NEXT_PUBLIC_APP_URL": "https://yuumi.quest",
+    "NEXTAUTH_URL": "https://yuumi.quest",
+    "YUUMI_DISCORD_SERVER_ID": "570702412428476438",
+    "NEXT_PUBLIC_CONVEX_URL": "https://convex-yuumi-challenges.veiledcat.de",
+  },
+}

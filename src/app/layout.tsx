@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next';
 import { Cinzel, Source_Sans_3 } from 'next/font/google';
 import './globals.css';
 import { ClientProviders } from '@/providers/ClientProviders';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 import { yuumiDiscordEmbed } from '@/lib/embeds/yuumi';
 import { buildShareDescription } from '@/lib/builds/embed-summary';
 import { fetchAutoBuild } from '@/lib/builds/auto-build';
@@ -117,7 +116,6 @@ export default function RootLayout({
         <ClientProviders>
           <SiteShell>{children}</SiteShell>
         </ClientProviders>
-        <SpeedInsights />
       </body>
     </html>
   );

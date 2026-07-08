@@ -61,7 +61,10 @@ const nextConfig: NextConfig = {
 
   // Environment variables
   env: {
-    CUSTOM_BUILD_ID: process.env.VERCEL_GIT_COMMIT_SHA || 'development',
+    CUSTOM_BUILD_ID:
+      process.env.CF_PAGES_COMMIT_SHA ||
+      process.env.VERCEL_GIT_COMMIT_SHA ||
+      'development',
   },
 
   // Headers for better caching and security

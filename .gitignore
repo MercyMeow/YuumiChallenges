@@ -16,6 +16,8 @@
 # next.js
 /.next/
 /out/
+.open-next/
+.wrangler/
 
 # production
 /build
@@ -35,6 +37,8 @@ yarn-error.log*
 
 # vercel
 .vercel
+.env.vercel.pull
+.tmp-cf-secrets.json
 
 # claude
 .claude/
