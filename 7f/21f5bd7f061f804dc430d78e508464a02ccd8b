@@ -1,0 +1,34 @@
+src/components/shell/SiteShell.tsx
+  s_db52cda2fde068::t_aaa2ee9b260ec2 29
+README.md
+  s_c43c79ea51eef0::t_7f9c1f7016b9f5 260
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "7f21f5bd7f061f804dc430d78e508464a02ccd8b",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_c43c79ea51eef0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8a9fa6db-e1ca-4a0e-a5f5-217851076aad",
+        "model": "unknown"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    },
+    "s_db52cda2fde068": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fa27717b-528c-4569-b1a9-02e9f8abe7fd",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
