@@ -19,6 +19,12 @@ export const PLATFORM_LABELS: Record<string, string> = {
   vn2: 'VN',
 };
 
+/**
+ * The high-population "major" regions the game feed shows by default;
+ * everything else appears once "All regions" is toggled on.
+ */
+export const MAJOR_PLATFORMS = ['euw1', 'eun1', 'kr', 'na1'];
+
 export function platformLabel(platform: string): string {
   return PLATFORM_LABELS[platform] ?? platform.toUpperCase();
 }
