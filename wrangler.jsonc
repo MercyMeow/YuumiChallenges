@@ -12,6 +12,18 @@
     "enabled": true,
   },
   "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "yuumi.quest",
+      "custom_domain": true,
+      "zone_name": "yuumi.quest"
+    },
+    {
+      "pattern": "www.yuumi.quest",
+      "custom_domain": true,
+      "zone_name": "yuumi.quest"
+    }
+  ],
   "vars": {
     "NODE_ENV": "production",
     "NEXT_PUBLIC_SITE_URL": "https://yuumi.quest",
