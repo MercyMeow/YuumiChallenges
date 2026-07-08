@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:010A13,45:091428,100:0A323C&height=240&section=header&text=yuumi.quest&fontSize=74&fontColor=C8AA6E&fontAlignY=36&desc=The%20Magical%20Cat%E2%80%99s%20grimoire%20%E2%80%94%20self-updating%20builds%2C%20high-elo%20games%20%26%20deep%20match%20analysis&descAlignY=58&descSize=16&animation=fadeIn" width="100%" alt="yuumi.quest banner" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:010A13,45:091428,100:0A323C&height=240&section=header&text=yuumi.quest&fontSize=74&fontColor=C8AA6E&fontAlignY=36&desc=The%20Magical%20Cat%E2%80%99s%20grimoire%20%E2%80%94%20self-updating%20builds%20%C2%B7%20high-elo%20games%20%C2%B7%20deep%20match%20analysis&descAlignY=58&descSize=16&animation=fadeIn" width="100%" alt="yuumi.quest banner" />
 
 <a href="https://yuumi.quest">
   <img src="https://readme-typing-svg.demolab.com?font=Cinzel&weight=600&size=20&duration=3400&pause=900&color=C8AA6E&center=true&vCenter=true&width=780&lines=Self-updating+builds+%E2%9C%A6+ability+guide+%E2%9C%A6+matchup+scrolls;Master%2B+Yuumi+games+from+every+region%2C+every+5+minutes;Paste+any+%7BREGION%7D_%7BMATCH_ID%7D+and+dive+the+timeline" alt="An enchanted intro" />
