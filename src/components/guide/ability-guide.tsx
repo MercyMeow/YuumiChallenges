@@ -87,7 +87,8 @@ export function AbilityGuidePanel() {
                   : 'hex-card hover:border-hx-gold/70'
               )}
             >
-              <span className="relative">
+              {/* Decorative: the button's aria-label is the accessible name. */}
+              <span className="relative" aria-hidden>
                 <AbilityIcon
                   championId="Yuumi"
                   ability={spell.key}

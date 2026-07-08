@@ -73,8 +73,10 @@ export function getEmbedItems(auto?: AutoBuild | null, max = 6): EmbedItem[] {
     ...item,
     slot: 'core' as const,
   }));
-  const boots = auto ? auto.boots : STATIC_BOOTS;
-  if (boots) items.push({ ...boots, slot: 'boots' });
+  // Live scrapes occasionally omit the boots row; fall back to the static
+  // pick so the path stays core → boots → situational either way.
+  const boots = auto?.boots ?? STATIC_BOOTS;
+  items.push({ ...boots, slot: 'boots' });
   const seen = new Set(items.map((item) => item.id));
   for (const item of BEST_ITEMS.situational) {
     if (items.length >= max) break;

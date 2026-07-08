@@ -3,7 +3,7 @@ import { SupportMatchup } from '../types';
 export const Fiddlesticks: SupportMatchup = {
   difficulty: 'Medium',
   tips: [
-    'Ward deep flanks and sweep common Crowstorm (R) angles post-6 — his global-range channel decides fights before you can react, and it still lands even if he Flashes mid-channel.',
+    'Ward deep flanks and sweep common Crowstorm (R) angles post-6 — the channel blinks him up to 800 units, so from fog or over a wall it decides fights before you can react, and he can still Flash mid-channel.',
     "Mikael's Blessing cleanses the Terrify (Q) fear immediately — use it the instant your carry is feared during his Crowstorm (R) channel so they can keep kiting.",
     'Harass when Bountiful Harvest (W) is on cooldown — empowered Q poke forces him to waste W defensively or disengage instead of sustaining through your trade.',
     'If Reap (E) centers on your host, expect a silence on top of the slow — pre-cast E shield before he can line it up, since a silenced ally cannot Flash out.',

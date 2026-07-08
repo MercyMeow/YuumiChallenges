@@ -279,12 +279,11 @@ function MatchupScroll({
   sections: readonly MatchupSection[];
   note?: { label: string; text: string; accent: 'gold' | 'magic' } | undefined;
 }) {
+  // Callers remount this component per champion via key, so hook state
+  // (championSpells) can never leak from the previous selection.
   const championSpells = useChampionSpells(champion);
   return (
-    <div
-      key={champion}
-      className="rounded-sm p-5 hex-card-inset duration-300 animate-in fade-in slide-in-from-bottom-2"
-    >
+    <div className="rounded-sm p-5 hex-card-inset duration-300 animate-in fade-in slide-in-from-bottom-2">
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <ChampionImage
           championName={champion}
@@ -821,6 +820,7 @@ export function YuumiGuide({
 
                   {selectedSupport && supportMatchup ? (
                     <MatchupScroll
+                      key={selectedSupport}
                       champion={selectedSupport}
                       relation="Versus"
                       chip={
@@ -891,6 +891,7 @@ export function YuumiGuide({
 
                   {selectedADC && adcMatchup ? (
                     <MatchupScroll
+                      key={selectedADC}
                       champion={selectedADC}
                       relation="With"
                       chip={

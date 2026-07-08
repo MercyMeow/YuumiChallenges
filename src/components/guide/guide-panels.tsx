@@ -63,6 +63,8 @@ export function BuildUpdatedStamp({
 }: {
   autoBuild: AutoBuild | null;
 }) {
+  // useNowMs is null during SSR/hydration, so the locale-dependent stamp only
+  // renders client-side — no server/client timezone mismatch to suppress.
   const nowMs = useNowMs();
   const updatedMs = autoBuild?.updatedAt ?? Date.parse(yuumiBuild.updatedAt);
   return (
@@ -70,11 +72,11 @@ export function BuildUpdatedStamp({
       <span
         className="hex-chip"
         title={autoBuild ? 'Auto-updated daily' : 'Curated build data'}
-        suppressHydrationWarning
       >
         <Clock className="h-3 w-3" />
-        Updated {formatUpdatedStamp(updatedMs)}
-        {nowMs !== null && ` · ${formatRelativeAge(updatedMs, nowMs)}`}
+        {nowMs === null
+          ? 'Updated …'
+          : `Updated ${formatUpdatedStamp(updatedMs)} · ${formatRelativeAge(updatedMs, nowMs)}`}
       </span>
     </div>
   );
@@ -89,6 +91,8 @@ export function PatchPanel({
   autoBuild: AutoBuild | null;
   outdated: boolean;
 }) {
+  // Locale-dependent timestamp renders only after mount (see BuildUpdatedStamp).
+  const nowMs = useNowMs();
   return (
     <HextechPanel
       title="Patch Status"
@@ -122,11 +126,8 @@ export function PatchPanel({
         {autoBuild && (
           <div className="flex items-center justify-between gap-2">
             <dt className="text-hx-gold/60">Updated</dt>
-            <dd
-              className="font-semibold text-hx-parchment"
-              suppressHydrationWarning
-            >
-              {formatUpdatedStamp(autoBuild.updatedAt)}
+            <dd className="font-semibold text-hx-parchment">
+              {nowMs === null ? '…' : formatUpdatedStamp(autoBuild.updatedAt)}
             </dd>
           </div>
         )}

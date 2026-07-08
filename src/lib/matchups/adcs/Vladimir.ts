@@ -10,7 +10,7 @@ export const Vladimir: BotLaneSynergy = {
     'Attach for mid-game skirmishes; Staff of Flowing Water hands Vladimir bonus AP whenever you heal or shield him, worth more than W auto sustain on a caster.',
   ],
   buildAdjustments: [
-    'Staff of Flowing Water preferred; Chemtech Putrifier early into heavy healing comps.',
+    'Staff of Flowing Water preferred; ask Vladimir to slot an early Oblivion Orb into heavy healing comps.',
     'Redemption later when Vladimir groups for five-man Hemoplague (R) fights.',
   ],
 };

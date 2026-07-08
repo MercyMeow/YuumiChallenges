@@ -12,6 +12,6 @@ export const Swain: BotLaneSynergy = {
   ],
   buildAdjustments: [
     'Staff of Flowing Water over Ardent Censer—Swain is a drain tank, not an auto-attacker, so on-hit attack speed does little for him.',
-    "Chemtech Putrifier or Mikael's Blessing to protect the Demonic Ascension (R) channel from being cut short by CC.",
+    "Mikael's Blessing to strip the CC that would cut Demonic Ascension (R) short.",
   ],
 };

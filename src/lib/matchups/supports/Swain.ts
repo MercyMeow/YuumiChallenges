@@ -12,6 +12,6 @@ export const Swain: SupportMatchup = {
   recommendedRunes:
     'Aery + Scorch for lane. Resolve secondary Font of Life + Revitalize; Bone Plating if duo is bursty.',
   recommendedItems:
-    "Dream Maker into Moonstone Renewer. Imperial Mandate amplifies Q slow trades. Chemtech Putrifier cuts his Demonic Ascension drain; Mikael's Blessing cleanses the Nevermove root if he chains it with jungle CC.",
+    "Dream Maker into Moonstone Renewer. Imperial Mandate amplifies Q slow trades. Have your carry buy Grievous Wounds to cut his Demonic Ascension drain; Mikael's Blessing cleanses the Nevermove root if he chains it with jungle CC.",
   earlyItems: ['Forbidden Idol', 'Control Ward; avoid his brush control'],
 };

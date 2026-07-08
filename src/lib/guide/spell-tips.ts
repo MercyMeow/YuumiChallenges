@@ -78,7 +78,7 @@ export const YUUMI_SPELL_TIPS: SpellTip[] = [
       },
       {
         lead: 'CC lockout',
-        text: 'Getting **immobilized while detached** puts W on a **5-second cooldown** — never face-tank hooks or roots.',
+        text: 'You **cannot attach while immobilized**, and CC that clips the W dash puts it on a **5-second cooldown** — never face-tank hooks or roots.',
       },
       {
         lead: 'Best Friend bonus',

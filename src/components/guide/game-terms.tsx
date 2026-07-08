@@ -82,7 +82,11 @@ function loadChampionSpells(champion: string): Promise<ChampionSpellInfo[]> {
   return promise;
 }
 
-/** Fetches (and caches) a champion's P/Q/W/E/R icons + stats. */
+/**
+ * Fetches (and caches) a champion's P/Q/W/E/R icons + stats. Callers must
+ * remount per champion (key the owning component by champion) so state from
+ * the previous selection never flashes while the new fetch resolves.
+ */
 export function useChampionSpells(
   champion: string
 ): ChampionSpellInfo[] | null {
@@ -220,7 +224,12 @@ const ITEM_TERMS: ReadonlyArray<{
   { id: 2055, name: 'Control Ward', pattern: 'Control Wards?' },
   { id: 3114, name: 'Forbidden Idol', pattern: 'Forbidden Idol' },
   { id: 4642, name: 'Bandleglass Mirror', pattern: 'Bandleglass(?: Mirror)?' },
-  { id: 3011, name: 'Chemtech Putrifier', pattern: '(?:Chemtech )?Putrifier' },
+  { id: 3916, name: 'Oblivion Orb', pattern: 'Oblivion Orb' },
+  {
+    id: 3123,
+    name: "Executioner's Calling",
+    pattern: "Executioner[’']?s Calling",
+  },
   { id: 3364, name: 'Oracle Lens', pattern: 'Oracle Lens' },
   { id: 3865, name: 'World Atlas', pattern: 'World Atlas' },
   { id: 3866, name: 'Runic Compass', pattern: 'Runic Compass' },

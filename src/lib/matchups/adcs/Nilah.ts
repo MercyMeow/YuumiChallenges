@@ -13,6 +13,6 @@ export const Nilah: BotLaneSynergy = {
   ],
   buildAdjustments: [
     'Ardent Censer excellent—her attack speed and Joy Unending double-dip on every heal proc.',
-    'Moonstone Renewer chain healing is amplified by Joy Unending in extended skirmishes; Chemtech Putrifier only into heavy-sustain lanes.',
+    "Moonstone Renewer chain healing is amplified by Joy Unending in extended skirmishes; ask Nilah for an early Executioner's Calling into heavy-sustain lanes.",
   ],
 };
