@@ -1,16 +1,18 @@
 import { BotLaneSynergy } from '../types';
 
 export const Nilah: BotLaneSynergy = {
-  synergy: 'Poor',
-  playstyle: 'Melee skirmisher with built-in sustain; fights away from attach range',
+  synergy: 'Very Good',
+  playstyle:
+    'Melee skirmisher whose Joy Unending amplifies every heal and shield you give her',
   tips: [
-    'Nilah shares your heals and shields with nearby allies—stay attached so E (Zoomies) reliably shields her through melee chaos.',
-    'Pre-cast E (Zoomies) before her Slipstream (E) dash, but expect her to outrange W (You and Me!) attach during spins.',
-    'Use R (Final Chapter) after her ultimate pulls enemies together; steer the waves onto clumps with your mouse while attached.',
-    'Curve Q (Prowling Projectile) from max range between waves—do not follow her into melee unless fed.',
+    'Joy Unending grants bonus healing and shielding whenever you heal or shield her—your passive heal, E (Zoomies), and R (Final Chapter) are all amplified.',
+    'Pre-cast E (Zoomies) before her Slipstream (E) dash so the shield lands pre-engage and the attack speed carries her first melee rotation.',
+    'Channel R (Final Chapter) as she casts Apotheosis (R)—her pull clumps enemies for all five waves, and overheal from both ults converts to shields.',
+    'Stay attached through her dives; you are untargetable on her, and W Best Friend on-hit healing sustains her fast melee attacks.',
+    'Hit Q (Prowling Projectile) on champions before she engages—the empowered slow keeps targets inside her short attack range.',
   ],
   buildAdjustments: [
-    'Putrifier early into heavy healing lanes; Ardent is lower priority than on immobile hypercarries.',
-    'Shurelya’s over Mikael’s—Nilah wants MS more than peel you can reliably deliver attached.',
+    'Ardent Censer excellent—her attack speed and Joy Unending double-dip on every heal proc.',
+    "Moonstone Renewer chain healing is amplified by Joy Unending in extended skirmishes; ask Nilah for an early Executioner's Calling into heavy-sustain lanes.",
   ],
 };

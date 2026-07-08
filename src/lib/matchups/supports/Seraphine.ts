@@ -3,11 +3,11 @@ import { SupportMatchup } from '../types';
 export const Seraphine: SupportMatchup = {
   difficulty: 'Medium',
   tips: [
-    'Avoid standing in the minion wave vs her Q + passive proc; shift off-angle so both you and your host are not tagged.',
-    'Trade when her passive note stacks are low and after she uses E root. Empowered Q from brush punishes immobility.',
-    'Save R for counter-engage when she casts R through multiple allies; multi-wave slows deter the follow-up.',
-    'Detach only to ward on wave; do not contest river alone — her long-range root enables ganks.',
-    'E shield reactively after her Q poke — shield passes to ally when attached, mitigating her wave clear damage.',
+    'Avoid standing in the minion wave vs High Note (Q); shift off-angle so both you and your host are not tagged by the AoE burst.',
+    'Trade after she uses Beat Drop (E) and misses — long cooldown, and it only roots if the target is already slowed, so punish when it whiffs. Empowered Q from brush adds free poke.',
+    'Save R for counter-engage when her Encore (R) charms your team; multi-wave slows deter her follow-up dive.',
+    'Detach only to ward on wave; do not contest river alone — Beat Drop (E) is long range and enables ganks.',
+    'E shield reactively after her High Note (Q) poke — shield passes to ally when attached, mitigating her burst damage.',
   ],
   recommendedRunes:
     'Aery + Scorch to control lane. Resolve secondary Font of Life + Revitalize for extended trades.',

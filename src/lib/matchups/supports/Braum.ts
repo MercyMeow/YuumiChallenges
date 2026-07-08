@@ -3,15 +3,18 @@ import { SupportMatchup } from '../types';
 export const Braum: SupportMatchup = {
   difficulty: 'Hard',
   tips: [
-    'Respect Concussive Blows stacks — detach only at zero stacks to safely proc passive heal without eating a stun.',
-    'Do not waste R during Unbreakable; wait until his shield expires so slow waves and healing are not absorbed.',
-    'Curve Q behind his E intercept target — aim past the shielded ally once he commits the wall.',
-    'When he W jumps forward he has no further gap close; immediately punish with empowered Q from max range.',
-    'Freeze near your turret to deny passive stacks under minion cover; Exhaust his ADC not Braum unless he runs Hail of Blades.',
+    "Respect Concussive Blows — detach only when your host has zero stacks, since Winter's Bite (Q) plus autos stun on the fourth stack.",
+    'Do not commit Final Chapter into Unbreakable (E) — it intercepts your R waves and Prowling Projectile. Bait the wall out or wait for it to expire before channeling.',
+    'Your Q is mouse-steerable — curve it around the Unbreakable (E) shield angle instead of throwing it straight into the wall.',
+    'Stand Behind Me (W) only dashes to allies or minions — once he jumps in he has no gap closer left; punish immediately with empowered Q from max range.',
+    "Mikael's Blessing cleanses the Concussive Blows stun but NOT the Glacial Fissure (R) knock-up. Exhaust his ADC in all-ins, not Braum.",
   ],
   recommendedRunes:
     'Aery + Manaflow + Transcendence. Resolve Bone Plating vs Draven/burst ADC; Revitalize for longer shield trades.',
   recommendedItems:
-    'Moonstone core into Ardent once carries itemize. Mikaels only if enemy layers extra long stuns (Ashe arrow, etc.).',
-  earlyItems: ['Boots on host to kite Braum autos', 'Control Ward for brush control'],
+    "Moonstone Renewer core into Ardent Censer once carries itemize. Mikael's Blessing mid-value here — it answers his passive stun but not the R knock-up.",
+  earlyItems: [
+    'Boots on host to kite Braum autos',
+    'Control Ward for brush control',
+  ],
 };

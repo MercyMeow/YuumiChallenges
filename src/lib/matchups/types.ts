@@ -9,12 +9,7 @@ export type SupportMatchup = {
 
 export type BotLaneSynergy = {
   synergy:
-    | 'Excellent'
-    | 'Very Good'
-    | 'Good'
-    | 'Average'
-    | 'Poor'
-    | 'Situational';
+    'Excellent' | 'Very Good' | 'Good' | 'Average' | 'Poor' | 'Situational';
   tips: string[];
   playstyle: string;
   optimalAttachTargets?: string;

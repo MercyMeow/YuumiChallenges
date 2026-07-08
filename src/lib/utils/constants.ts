@@ -73,12 +73,6 @@ export const YUUMI_DISCORD_SERVER_ID =
 
 export const YUUMI_DISCORD_INVITE_URL = 'https://discord.gg/yuumi';
 
-// External guide for the live Mythic Shop item list. Riot exposes no API, so the
-// in-game client (Loot tab) is the source of truth; this is a community
-// reference for the current items.
-export const MYTHIC_SHOP_TRACKER_URL =
-  'https://mobalytics.gg/lol/guides/mythic-shop-rotation';
-
 export const CHALLENGE_TYPES = {
   KDA: 'kda',
   WINSTREAK: 'winstreak',

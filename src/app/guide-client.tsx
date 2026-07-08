@@ -8,11 +8,16 @@ import { AbilityIcon, DataDragonImage } from '@/components/ui/datadragon-image';
 import { ItemSlot } from '@/components/match-history/item-slots';
 import { BuildRunes } from '@/components/BuildRunes';
 import {
-  MythicShopPreview,
+  BuildUpdatedStamp,
   PatchPanel,
   QuickTipsPanel,
-  SpellTipsPanel,
 } from '@/components/guide/guide-panels';
+import { AbilityGuidePanel } from '@/components/guide/ability-guide';
+import {
+  ChampionSpellRow,
+  GameTermText,
+  useChampionSpells,
+} from '@/components/guide/game-terms';
 import { DEFAULT_BUILDS, type DefaultBuild } from '@/lib/builds/default-builds';
 import { type AutoBuild } from '@/lib/builds/auto-build';
 import { useLivePatch } from '@/lib/hooks/use-live-patch';
@@ -247,50 +252,125 @@ function HeroStat({
   );
 }
 
+// Labeled info box under the tip grid (rune/item focus, attach priority…).
+type MatchupSection = {
+  label: string;
+  body?: string;
+  bullets?: readonly string[];
+  chips?: readonly string[];
+};
+
 // Shared matchup/synergy scroll — enemy supports and ally ADCs render the same
-// layout (champion header, chip, tip list, optional note), differing only in
-// the chip, the accent, and the note label/text passed in.
+// layout (champion header with kit icons, highlighted tip cards, info
+// sections, optional note), differing only in the chip, the accent, and the
+// sections/note passed in.
 function MatchupScroll({
   champion,
   relation,
   chip,
   tips,
+  sections,
   note,
 }: {
   champion: string;
   relation: 'Versus' | 'With';
   chip: ReactNode;
   tips: readonly string[];
+  sections: readonly MatchupSection[];
   note?: { label: string; text: string; accent: 'gold' | 'magic' } | undefined;
 }) {
+  // Callers remount this component per champion via key, so hook state
+  // (championSpells) can never leak from the previous selection.
+  const championSpells = useChampionSpells(champion);
   return (
-    <div className="rounded-sm p-5 hex-card-inset">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <ChampionImage
-            championName={champion}
-            isSelected={true}
-            size={44}
-            interactive={false}
-            showLabel={false}
-          />
-          <span className="hex-title text-base text-hx-parchment">
-            {relation} {formatChampionName(champion)}
-          </span>
+    <div className="rounded-sm p-5 hex-card-inset duration-300 animate-in fade-in slide-in-from-bottom-2">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <ChampionImage
+          championName={champion}
+          isSelected={true}
+          size={52}
+          interactive={false}
+          showLabel={false}
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="hex-title text-base text-hx-parchment">
+              {relation} {formatChampionName(champion)}
+            </span>
+            {chip}
+          </div>
+          <div className="mt-1.5">
+            <ChampionSpellRow spells={championSpells} />
+          </div>
         </div>
-        {chip}
       </div>
-      <ul className="space-y-2 text-sm text-hx-parchment/80">
+      <div className="mb-4 hex-divider" />
+      <div className="grid gap-3 md:grid-cols-2">
         {tips.map((tip, index) => (
-          <li key={index} className="flex items-start gap-2.5">
+          <div
+            key={index}
+            className="flex items-start gap-2.5 rounded-sm border border-hx-gold-dark/25 bg-hx-panel/40 p-3"
+          >
             <span
               className="mt-1.5 hex-diamond shrink-0 opacity-70"
               aria-hidden
             />
-            <span>{tip}</span>
-          </li>
+            <p className="text-xs leading-relaxed text-hx-parchment/80 sm:text-sm">
+              <GameTermText text={tip} championSpells={championSpells} />
+            </p>
+          </div>
         ))}
-      </ul>
+      </div>
+      {sections.length > 0 && (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {sections.map((section) => (
+            <div
+              key={section.label}
+              className="rounded-sm border border-hx-gold-dark/25 bg-hx-panel/40 p-3"
+            >
+              <div className="mb-1.5 hex-label">{section.label}</div>
+              {section.body && (
+                <p className="text-xs leading-relaxed text-hx-parchment/75 sm:text-sm">
+                  <GameTermText
+                    text={section.body}
+                    championSpells={championSpells}
+                  />
+                </p>
+              )}
+              {section.bullets && (
+                <ul className="space-y-1.5">
+                  {section.bullets.map((bullet) => (
+                    <li
+                      key={bullet}
+                      className="flex items-start gap-2 text-xs leading-relaxed text-hx-parchment/75 sm:text-sm"
+                    >
+                      <span
+                        className="mt-1.5 hex-diamond shrink-0 opacity-60"
+                        aria-hidden
+                      />
+                      <span>
+                        <GameTermText
+                          text={bullet}
+                          championSpells={championSpells}
+                        />
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {section.chips && (
+                <div className="flex flex-wrap gap-1.5">
+                  {section.chips.map((chipText) => (
+                    <span key={chipText} className="hex-chip">
+                      {chipText}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
       {note && (
         <div
           className={cn(
@@ -308,7 +388,9 @@ function MatchupScroll({
           >
             {note.label}
           </span>
-          <p className="mt-1">{note.text}</p>
+          <p className="mt-1">
+            <GameTermText text={note.text} championSpells={championSpells} />
+          </p>
         </div>
       )}
     </div>
@@ -491,12 +573,10 @@ export function YuumiGuide({
                 <HeroStat label="Difficulty" value="Easy" />
                 <HeroStat
                   label="Build data"
-                  value={
-                    autoBuild
-                      ? `Live · ${autoBuild.source.split(' · ')[0] ?? autoBuild.source}`
-                      : 'Curated'
+                  value={autoBuild ? 'Live' : 'Curated'}
+                  title={
+                    autoBuild ? 'Auto-updated daily' : 'Curated by the team'
                   }
-                  title={autoBuild?.source}
                   magic={autoBuild !== null}
                 />
               </div>
@@ -508,6 +588,7 @@ export function YuumiGuide({
             <OrnateHeading eyebrow="Forge your path">
               Recommended Builds
             </OrnateHeading>
+            <BuildUpdatedStamp autoBuild={autoBuild} />
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {displayBuilds.map((build) => {
@@ -640,7 +721,10 @@ export function YuumiGuide({
                         levels={currentBuild.skillOrder.levels}
                       />
                       <p className="mt-3 text-xs leading-relaxed text-hx-parchment/60">
-                        {currentBuild.skillOrder.notes}
+                        <GameTermText
+                          text={currentBuild.skillOrder.notes}
+                          yuumiKit
+                        />
                       </p>
                     </div>
                   </div>
@@ -678,8 +762,10 @@ export function YuumiGuide({
 
           {/* Abilities */}
           <section id="abilities" className="scroll-mt-24 space-y-6">
-            <OrnateHeading eyebrow={`Patch ${currentPatch} kit`}>Spell Tips</OrnateHeading>
-            <SpellTipsPanel />
+            <OrnateHeading eyebrow={`Patch ${currentPatch} kit`}>
+              Spell Tips
+            </OrnateHeading>
+            <AbilityGuidePanel />
           </section>
 
           {/* Matchups */}
@@ -734,6 +820,7 @@ export function YuumiGuide({
 
                   {selectedSupport && supportMatchup ? (
                     <MatchupScroll
+                      key={selectedSupport}
                       champion={selectedSupport}
                       relation="Versus"
                       chip={
@@ -747,6 +834,24 @@ export function YuumiGuide({
                         </span>
                       }
                       tips={supportMatchup.tips}
+                      sections={[
+                        {
+                          label: 'Rune Adjustments',
+                          body: supportMatchup.recommendedRunes,
+                        },
+                        {
+                          label: 'Item Focus',
+                          body: supportMatchup.recommendedItems,
+                        },
+                        ...(supportMatchup.earlyItems?.length
+                          ? [
+                              {
+                                label: 'Early Buys',
+                                chips: supportMatchup.earlyItems,
+                              },
+                            ]
+                          : []),
+                      ]}
                       note={
                         supportMatchup.notes
                           ? {
@@ -786,6 +891,7 @@ export function YuumiGuide({
 
                   {selectedADC && adcMatchup ? (
                     <MatchupScroll
+                      key={selectedADC}
                       champion={selectedADC}
                       relation="With"
                       chip={
@@ -800,6 +906,24 @@ export function YuumiGuide({
                         </span>
                       }
                       tips={adcMatchup.tips}
+                      sections={[
+                        ...(adcMatchup.optimalAttachTargets
+                          ? [
+                              {
+                                label: 'Attach Priority',
+                                body: adcMatchup.optimalAttachTargets,
+                              },
+                            ]
+                          : []),
+                        ...(adcMatchup.buildAdjustments?.length
+                          ? [
+                              {
+                                label: 'Build Adjustments',
+                                bullets: adcMatchup.buildAdjustments,
+                              },
+                            ]
+                          : []),
+                      ]}
                       note={
                         adcMatchup.playstyle
                           ? {
@@ -826,7 +950,6 @@ export function YuumiGuide({
 
         {/* ============ Right rail ============ */}
         <aside className="hidden space-y-6 2xl:block">
-          <MythicShopPreview />
           <PatchPanel
             patch={currentPatch}
             autoBuild={autoBuild}
@@ -837,8 +960,7 @@ export function YuumiGuide({
       </div>
 
       {/* Rail content for narrower screens */}
-      <div className="mt-12 grid gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:hidden">
-        <MythicShopPreview />
+      <div className="mt-12 grid gap-6 sm:grid-cols-2 2xl:hidden">
         <PatchPanel
           patch={currentPatch}
           autoBuild={autoBuild}

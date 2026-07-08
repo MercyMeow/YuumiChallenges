@@ -3,11 +3,11 @@ import { SupportMatchup } from '../types';
 export const Rell: SupportMatchup = {
   difficulty: 'Hard',
   tips: [
-    'Never detach in melee range — her W crash + Q CC chain can kill you before reattaching. Keep max attach distance.',
-    'Punish after she uses W — mobility is gone. Curve empowered Q and kite back while cooldowns are down.',
-    'Hold R to peel after Magnet Storm pulls your team; multi-wave slows stop follow-up dives.',
-    "Mikael's breaks her W crash stun on your carry — prioritize vs Rell + follow-up CC (Ashe, Varus).",
-    'Exhaust the primary diver during the all-in; E shield + MS helps your host survive the dismount window.',
+    'Never detach in melee range — her Ferromancy: Crash Down (W) dismount knockup into Shattering Strike (Q) stun can kill you before reattaching. Keep max attach distance.',
+    'Punish right after she dismounts with Ferromancy: Crash Down (W) — she loses her mounted move speed bonus, so curve empowered Q and kite back while it and Q are down.',
+    'Hold R for right after Magnet Storm pulls your team together; multi-wave slows stop her follow-up dive.',
+    "Mikael's breaks Crash Down's (W) knockup-into-stun on your carry — prioritize vs Rell + follow-up CC (Ashe, Varus). Note it cannot cleanse the initial knockup itself, only stuns applied after.",
+    'Exhaust the primary diver during the all-in; E shield + MS helps your host kite away right after she dismounts.',
   ],
   recommendedRunes:
     'Guardian or Aery; Resolve secondary Bone Plating + Revitalize for all-in mitigation.',

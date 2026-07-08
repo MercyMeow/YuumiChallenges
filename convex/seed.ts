@@ -1,6 +1,6 @@
 // Database seeding for the Yuumi guide. Idempotent: replaces the contents of
 // the seeded guide tables and sets specific metadata keys (never wipes
-// metadata wholesale — autoBuild/mythicShop live there too).
+// metadata wholesale — autoBuild lives there too).
 //
 // Run against the deployment with:
 //   npx convex run seed:seedAll
@@ -89,10 +89,8 @@ const GUIDE_SECTIONS = [
     sectionKey: 'about',
     title: 'About This Guide',
     content:
-      'Built by the Yuumi mains community. Build data auto-updates daily from ' +
-      'OP.GG via the site cron; the Mythic Shop rotation is curated by hand ' +
-      'because Riot exposes no public API for it. Patch labels follow Data ' +
-      'Dragon versioning.',
+      'Built by the Yuumi mains community. Build data auto-updates daily ' +
+      'via the site cron. Patch labels follow Data Dragon versioning.',
     order: 5,
   },
 ] as const;

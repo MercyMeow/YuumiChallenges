@@ -5,22 +5,13 @@
 // each panel owns its own data/fetching and is rendered in both the wide
 // sidebar and the narrow-screen grid.
 
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { Clock, ExternalLink, ScrollText, Sparkles, Star } from 'lucide-react';
+import { Clock, ExternalLink, ScrollText, Star } from 'lucide-react';
 import { HextechPanel } from '@/components/ui/hextech-panel';
-import { AbilityIcon } from '@/components/ui/datadragon-image';
+import { GameTermText } from '@/components/guide/game-terms';
 import { type AutoBuild } from '@/lib/builds/auto-build';
+import { yuumiBuild } from '@/lib/builds/yuumi';
 import { GUIDE_PATCH } from '@/lib/guide/patch';
-import { YUUMI_SPELL_TIPS } from '@/lib/guide/spell-tips';
-import { formatCountdown, useNowMs } from '@/lib/mythic-shop/countdown';
-import { getNextResetForSection } from '@/lib/mythic-shop/reset-schedule';
-import {
-  fetchMythicRotation,
-  skinLoadingUrl,
-  type MythicRotation,
-} from '@/lib/mythic-shop/rotation';
+import { useNowMs } from '@/lib/mythic-shop/countdown';
 
 const RIOT_PATCH_NOTES_URL =
   'https://www.leagueoflegends.com/en-us/news/tags/patch-notes/';
@@ -28,7 +19,7 @@ const RIOT_PATCH_NOTES_URL =
 const QUICK_TIPS: ReadonlyArray<{ title: string; tip: string }> = [
   {
     title: 'Best Friend Bond',
-    tip: 'Stack friendship on your carry — empowered Q slow, W on-hit heal, and steerable R are your win condition.',
+    tip: 'Stack friendship on your carry — enhanced Q slow, W on-hit heals, and boosted R healing are your win condition.',
   },
   {
     title: 'Empowered Q',
@@ -44,92 +35,50 @@ const QUICK_TIPS: ReadonlyArray<{ title: string; tip: string }> = [
   },
 ];
 
-/** Right rail: current Mythic Shop rotation teaser with reset countdown. */
-export function MythicShopPreview() {
+/** "3h ago"-style age for build freshness stamps. */
+function formatRelativeAge(thenMs: number, nowMs: number): string {
+  const minutes = Math.floor(Math.max(0, nowMs - thenMs) / 60_000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+/** Full date + time a build timestamp resolves to, in the viewer's locale. */
+function formatUpdatedStamp(ms: number): string {
+  return new Date(ms).toLocaleString(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+}
+
+/**
+ * Freshness chip under the builds heading: when the displayed build data was
+ * last refreshed (auto-scrape timestamp, or the curated dataset's date).
+ */
+export function BuildUpdatedStamp({
+  autoBuild,
+}: {
+  autoBuild: AutoBuild | null;
+}) {
+  // useNowMs is null during SSR/hydration, so the locale-dependent stamp only
+  // renders client-side — no server/client timezone mismatch to suppress.
   const nowMs = useNowMs();
-  const [rotation, setRotation] = useState<MythicRotation | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchMythicRotation().then((data) => {
-      if (!cancelled) setRotation(data);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const now = nowMs === null ? new Date() : new Date(nowMs);
-  const featured = rotation?.items.filter((i) => i.section === 'featured');
-  const showingFeatured = Boolean(featured && featured.length > 0);
-  const display = (
-    showingFeatured ? featured! : (rotation?.items ?? [])
-  ).slice(0, 3);
-  // Match the countdown label to what is actually displayed: featured items
-  // rotate ad hoc (getNextResetForSection returns null → 'Varies').
-  const countdownSection = showingFeatured ? 'featured' : 'daily';
-  const nextReset = getNextResetForSection(countdownSection, now);
-
+  const updatedMs = autoBuild?.updatedAt ?? Date.parse(yuumiBuild.updatedAt);
   return (
-    <HextechPanel
-      title="Mythic Shop"
-      icon={<Sparkles className="h-4 w-4" />}
-      accent="magic"
-      contentClassName="space-y-3 p-4"
-    >
-      <div className="flex items-center justify-between gap-2">
-        <span className="hex-label opacity-70">
-          {showingFeatured ? 'Featured rotation' : 'Daily reset'}
-        </span>
-        <span className="hex-chip-magic">
-          <Clock className="h-3 w-3" />
-          {nowMs === null ? '—' : formatCountdown(nextReset, nowMs)}
-        </span>
-      </div>
-      {display.length > 0 ? (
-        <div className="grid grid-cols-3 gap-2">
-          {display.map((item) => {
-            const art = skinLoadingUrl(item);
-            return (
-              <div
-                key={`${item.name}-${item.section}`}
-                className="group hex-frame-art relative aspect-[3/5] overflow-hidden rounded-sm"
-                title={item.name}
-              >
-                {art ? (
-                  <Image
-                    src={art}
-                    alt={item.name}
-                    fill
-                    sizes="90px"
-                    className="object-cover object-top transition-transform duration-300 group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center bg-hx-black/60">
-                    <Sparkles className="h-5 w-5 text-hx-gold/40" />
-                  </div>
-                )}
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-hx-black via-hx-black/70 to-transparent px-1 pt-4 pb-1 text-center">
-                  <span className="text-[10px] font-semibold text-hx-gold">
-                    {item.costME} ME
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <p className="py-2 text-center text-xs text-hx-gold/50">
-          Rotation not published yet.
-        </p>
-      )}
-      <Link
-        href="/mythic-shop"
-        className="btn-hextech-magic block w-full rounded-sm px-4 py-2 text-center text-xs"
+    <div className="flex justify-center">
+      <span
+        className="hex-chip"
+        title={autoBuild ? 'Auto-updated daily' : 'Curated build data'}
       >
-        View Mythic Shop
-      </Link>
-    </HextechPanel>
+        <Clock className="h-3 w-3" />
+        {nowMs === null
+          ? 'Updated …'
+          : `Updated ${formatUpdatedStamp(updatedMs)} · ${formatRelativeAge(updatedMs, nowMs)}`}
+      </span>
+    </div>
   );
 }
 
@@ -142,6 +91,8 @@ export function PatchPanel({
   autoBuild: AutoBuild | null;
   outdated: boolean;
 }) {
+  // Locale-dependent timestamp renders only after mount (see BuildUpdatedStamp).
+  const nowMs = useNowMs();
   return (
     <HextechPanel
       title="Patch Status"
@@ -169,14 +120,14 @@ export function PatchPanel({
         <div className="flex items-center justify-between gap-2">
           <dt className="text-hx-gold/60">Build data</dt>
           <dd className="font-semibold text-hx-parchment">
-            {autoBuild ? `Live · ${autoBuild.source}` : 'Curated'}
+            {autoBuild ? 'Live · auto-updated' : 'Curated'}
           </dd>
         </div>
         {autoBuild && (
           <div className="flex items-center justify-between gap-2">
             <dt className="text-hx-gold/60">Updated</dt>
             <dd className="font-semibold text-hx-parchment">
-              {new Date(autoBuild.updatedAt).toLocaleDateString()}
+              {nowMs === null ? '…' : formatUpdatedStamp(autoBuild.updatedAt)}
             </dd>
           </div>
         )}
@@ -218,52 +169,9 @@ export function QuickTipsPanel() {
               {tip.title}
             </div>
             <p className="text-xs leading-snug text-hx-parchment/70">
-              {tip.tip}
+              <GameTermText text={tip.tip} yuumiKit />
             </p>
           </div>
-        </div>
-      ))}
-    </HextechPanel>
-  );
-}
-
-export function SpellTipsPanel() {
-  return (
-    <HextechPanel
-      title="Ability Guide"
-      icon={<Sparkles className="h-4 w-4" />}
-      contentClassName="space-y-4 p-4 sm:p-6"
-    >
-      {YUUMI_SPELL_TIPS.map((spell) => (
-        <div
-          key={spell.key}
-          className="rounded-sm border border-hx-gold-dark/25 bg-hx-panel/30 p-3"
-        >
-          <div className="mb-2 flex items-center gap-2.5">
-            <AbilityIcon championId="Yuumi" ability={spell.key} size={28} />
-            <div>
-              <div className="hex-title text-sm text-hx-parchment">
-                {spell.name}
-              </div>
-              <p className="text-[11px] leading-snug text-hx-parchment/60">
-                {spell.summary}
-              </p>
-            </div>
-          </div>
-          <ul className="space-y-1.5">
-            {spell.tips.map((tip) => (
-              <li
-                key={tip}
-                className="flex items-start gap-2 text-xs leading-snug text-hx-parchment/75"
-              >
-                <span
-                  className="mt-1.5 hex-diamond shrink-0 opacity-60"
-                  aria-hidden
-                />
-                <span>{tip}</span>
-              </li>
-            ))}
-          </ul>
         </div>
       ))}
     </HextechPanel>
