@@ -1,0 +1,24 @@
+next.config.ts
+  s_db52cda2fde068::t_7f2a1e3fb81488 23-27,29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "0dcfe0d82992b2024f22a794883329ccf64ee6ab",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_db52cda2fde068": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fa27717b-528c-4569-b1a9-02e9f8abe7fd",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
