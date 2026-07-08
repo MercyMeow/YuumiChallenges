@@ -1,0 +1,33 @@
+src/components/highelo/hextech-select.tsx
+  s_10726833d288df::t_b69b2061a95c85 1-37,39-65
+  s_10726833d288df::t_5b69d0c2fd2743 38
+src/app/games/games-client.tsx
+  s_10726833d288df::t_a9859861ed8e8a 67,72,75-81
+  s_10726833d288df::t_1117157fed3ce8 22
+  s_10726833d288df::t_2debd527fd6969 108,110-129,131-137
+  s_10726833d288df::t_3750e43412c018 9,11
+  s_10726833d288df::t_dfef7f8c0852cd 49-53
+  s_10726833d288df::t_05ffd87605102b 90-91
+  s_10726833d288df::t_d6a3efc061565f 82
+src/lib/highelo/regions.ts
+  s_10726833d288df::t_357c93171298da 22-27
+src/app/players/players-client.tsx
+  s_10726833d288df::t_e7ec590a431c51 80,82-88
+  s_10726833d288df::t_d022795ee0f012 10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "8cbd5de3e6f7758132c57f8adab8118df89f7f22",
+  "prompts": {},
+  "sessions": {
+    "s_10726833d288df": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "42f63596-586d-4846-bf4b-7ee4c5128f6a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
