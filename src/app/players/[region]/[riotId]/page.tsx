@@ -10,7 +10,9 @@ export async function generateMetadata(props: {
   const params = await props.params;
   const profile = await fetchProfile(params);
   if (!profile) {
-    return { title: 'Player not found — yuumi.quest' };
+    // Neutral fallback: covers both genuine not-found and a transient
+    // Convex outage, so shared links never embed a wrong "not found" title.
+    return { title: 'Yuumi Player Profile — yuumi.quest' };
   }
   const { player } = profile;
   const winrate =

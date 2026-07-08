@@ -91,6 +91,7 @@ export function PlayersClient() {
           </select>
           <button
             type="button"
+            aria-pressed={minGamesOnly}
             onClick={() => setMinGamesOnly((v) => !v)}
             className={cn(
               'rounded-sm border px-2.5 py-1.5 text-xs tracking-wide transition-colors',
@@ -130,13 +131,27 @@ export function PlayersClient() {
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-hx-gold-dark/30 hex-label text-[10px]">
-                  <th className="px-2 py-2">#</th>
-                  <th className="px-2 py-2">Player</th>
-                  <th className="px-2 py-2">Region</th>
-                  <th className="px-2 py-2 text-right">LP</th>
-                  <th className="px-2 py-2 text-right">Games</th>
-                  <th className="px-2 py-2 text-right">Winrate</th>
-                  <th className="px-2 py-2 text-right">KDA</th>
+                  <th scope="col" className="px-2 py-2">
+                    #
+                  </th>
+                  <th scope="col" className="px-2 py-2">
+                    Player
+                  </th>
+                  <th scope="col" className="px-2 py-2">
+                    Region
+                  </th>
+                  <th scope="col" className="px-2 py-2 text-right">
+                    LP
+                  </th>
+                  <th scope="col" className="px-2 py-2 text-right">
+                    Games
+                  </th>
+                  <th scope="col" className="px-2 py-2 text-right">
+                    Winrate
+                  </th>
+                  <th scope="col" className="px-2 py-2 text-right">
+                    KDA
+                  </th>
                 </tr>
               </thead>
               <tbody>

@@ -58,7 +58,6 @@ export default async function OpengraphImage(props: {
           background: '#0A1428',
           border: `4px solid ${GOLD}`,
           color: 'white',
-          fontFamily: 'serif',
         }}
       >
         <div style={{ display: 'flex', fontSize: 84, fontWeight: 800 }}>
@@ -105,7 +104,6 @@ export default async function OpengraphImage(props: {
         background: '#0A1428',
         border: `4px solid ${GOLD}`,
         color: 'white',
-        fontFamily: 'serif',
       }}
     >
       {/* Name */}
