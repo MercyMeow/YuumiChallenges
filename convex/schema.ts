@@ -212,6 +212,11 @@ export default defineSchema({
     assistsTotal: v.optional(v.number()),
     // Season backfill bookkeeping (ms epoch when completed)
     backfilledAt: v.optional(v.number()),
+    // Resumable backfill progress: oldest match-history timestamp already
+    // scanned (ms epoch) and how many match payloads were inspected. Both
+    // cleared when the backfill finishes or the season rolls over.
+    backfillCursor: v.optional(v.number()),
+    backfillScanned: v.optional(v.number()),
   })
     .index('by_puuid', ['puuid'])
     .index('by_platform', ['platform'])
@@ -241,6 +246,14 @@ export default defineSchema({
     secondaryStyleId: v.optional(v.number()),
     summonerSpells: v.optional(v.array(v.number())), // 2 ids
     duoChampion: v.optional(v.string()), // ADC on Yuumi's team (BOTTOM)
+    // Full build snapshot (2026-07 enrichment; absence marks a row for
+    // re-fetch — see getExistingMatchIds)
+    primaryRunes: v.optional(v.array(v.number())), // 4 perk ids, keystone first
+    secondaryRunes: v.optional(v.array(v.number())), // 2 perk ids
+    statShards: v.optional(v.array(v.number())), // [offense, flex, defense]
+    // Completed items in purchase order (from the match timeline; may be
+    // missing when the timeline fetch failed, [] when nothing completed)
+    buildPath: v.optional(v.array(v.number())),
   })
     .index('by_matchId', ['matchId'])
     .index('by_gameCreation', ['gameCreation'])
