@@ -1,0 +1,74 @@
+src/lib/matchups/supports/Thresh.ts
+  s_90d9c1d84ee3a8::t_a11977b19118c4 8
+src/lib/guide/spell-tips.ts
+  s_90d9c1d84ee3a8::t_e410c3d8f6b658 81
+src/lib/matchups/adcs/Nilah.ts
+  s_90d9c1d84ee3a8::t_2a2c2f2a88c791 16
+src/lib/matchups/adcs/Vladimir.ts
+  s_90d9c1d84ee3a8::t_6a02671ba625a3 13
+src/lib/matchups/supports/Swain.ts
+  s_90d9c1d84ee3a8::t_be9fe74e3b6217 15
+src/app/guide-client.tsx
+  s_90d9c1d84ee3a8::t_71d6b344c10512 823
+  s_90d9c1d84ee3a8::t_831e6480d347c3 894
+  s_90d9c1d84ee3a8::t_1a26d419c0ef4a 282-283,286
+src/lib/matchups/supports/Fiddlesticks.ts
+  s_90d9c1d84ee3a8::t_e4403b41c14ceb 6
+src/lib/builds/embed-summary.ts
+  s_90d9c1d84ee3a8::t_58de206471b291 76-79
+src/lib/matchups/supports/Camille.ts
+  s_90d9c1d84ee3a8::t_5cf87b8086e465 13
+  s_90d9c1d84ee3a8::t_78c87be1b86523 8
+src/lib/matchups/adcs/Karthus.ts
+  s_90d9c1d84ee3a8::t_e97fbe75183967 10
+src/components/guide/game-terms.tsx
+  s_90d9c1d84ee3a8::t_fd44f94ae74301 227-230,232
+  s_90d9c1d84ee3a8::t_1a390ce0a10196 85-89
+  s_90d9c1d84ee3a8::t_33da41c2e2d641 231
+src/lib/matchups/supports/Sett.ts
+  s_90d9c1d84ee3a8::t_dcd02482f180fc 6
+src/components/guide/ability-guide.tsx
+  s_90d9c1d84ee3a8::t_c0de776f5d8061 90-91
+src/lib/matchups/adcs/Cassiopeia.ts
+  s_90d9c1d84ee3a8::t_71561e7e27a34d 11
+src/lib/matchups/adcs/Zeri.ts
+  s_90d9c1d84ee3a8::t_c5db232dfe809f 7
+src/lib/matchups/adcs/Swain.ts
+  s_90d9c1d84ee3a8::t_d5d4785ba26321 15
+src/lib/matchups/supports/Nami.ts
+  s_90d9c1d84ee3a8::t_245ce498d405ae 10
+  s_90d9c1d84ee3a8::t_0995d67367f37b 15
+  s_90d9c1d84ee3a8::t_a6fdd30f8036bb 6
+src/components/guide/guide-panels.tsx
+  s_90d9c1d84ee3a8::t_caff85b3c54ea2 94-95
+  s_90d9c1d84ee3a8::t_d1c06470e68207 66-67,77-79
+  s_90d9c1d84ee3a8::t_38f953d457126e 129-130
+src/lib/matchups/supports/Ivern.ts
+  s_90d9c1d84ee3a8::t_6d1c066f4fab52 6
+  s_90d9c1d84ee3a8::t_05a8dbe5dfc2ed 8
+src/lib/matchups/adcs/Xerath.ts
+  s_90d9c1d84ee3a8::t_5b8d7deefb5911 9
+src/lib/matchups/supports/Yuumi.ts
+  s_90d9c1d84ee3a8::t_ae22511a80b85f 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "3bdf9548353203bb5ee7f72c96b4eccd0749b57f",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_90d9c1d84ee3a8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cea611b-8896-437c-b450-c9bc672972f6",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
