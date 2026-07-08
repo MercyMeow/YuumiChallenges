@@ -1,0 +1,22 @@
+src/app/players/[region]/[riotId]/profile-client.tsx
+  s_655f4567a62a1d::t_58795c756bee2a 40-43
+  s_655f4567a62a1d::t_c98595b6529430 266-267
+  s_655f4567a62a1d::t_590bcd76195082 203
+  s_655f4567a62a1d::t_2d972ce99bbd57 230
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "6213fd62e8bf3e3aac6acb3db215e6a52b2b1d86",
+  "prompts": {},
+  "sessions": {
+    "s_655f4567a62a1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7810e78-844d-4500-94ab-36db1a62895a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
