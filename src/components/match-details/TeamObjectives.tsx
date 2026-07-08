@@ -88,7 +88,7 @@ export const TeamObjectives = memo(function TeamObjectives({
                       <div className="text-2xl font-bold text-white">
                         {objective?.kills ?? 0}
                       </div>
-                      <div className="text-xs capitalize text-white/60">
+                      <div className="text-xs text-white/60 capitalize">
                         {String(key)}
                       </div>
                       {objective?.first && (
@@ -115,7 +115,7 @@ export const TeamObjectives = memo(function TeamObjectives({
                       <div className="text-2xl font-bold text-white">
                         {objective?.kills ?? 0}
                       </div>
-                      <div className="text-xs capitalize text-white/60">
+                      <div className="text-xs text-white/60 capitalize">
                         {String(key)}
                       </div>
                       {objective?.first && (

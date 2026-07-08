@@ -97,9 +97,7 @@ interface YuumiChallengesTabProps {
   selectedPlayerData?: ExtendedMatchParticipant | null | undefined;
   matchData: ExtendedMatchData;
   supportItemCompletionTimes?:
-    | import('./types').SupportItemCompletionTimes
-    | null
-    | undefined;
+    import('./types').SupportItemCompletionTimes | null | undefined;
 }
 
 interface StatTileProps {
@@ -118,7 +116,7 @@ const StatTile = ({
   accentClass,
 }: StatTileProps) => (
   <div className="rounded-xl border border-white/10 bg-black/25 px-4 py-3 backdrop-blur-sm">
-    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white/60">
+    <div className="flex items-center gap-2 text-xs font-semibold tracking-wide text-white/60 uppercase">
       <Icon className="h-4 w-4" />
       {label}
     </div>
@@ -167,7 +165,7 @@ const renderCategory = (category: EvaluatedCategory) => {
                 <Badge
                   key={`${category.key}-${badge.label}`}
                   className={cn(
-                    'border px-3 py-1 text-xs font-semibold uppercase tracking-wide',
+                    'border px-3 py-1 text-xs font-semibold tracking-wide uppercase',
                     badge.className
                   )}
                 >
@@ -237,7 +235,7 @@ const renderCategory = (category: EvaluatedCategory) => {
                   </div>
                   <Badge
                     className={cn(
-                      'border px-3 py-1 text-xs font-semibold uppercase tracking-wide',
+                      'border px-3 py-1 text-xs font-semibold tracking-wide uppercase',
                       statusMeta.chipClass
                     )}
                   >
@@ -254,7 +252,7 @@ const renderCategory = (category: EvaluatedCategory) => {
                           className="group relative overflow-hidden rounded-lg border border-white/10 bg-linear-to-br from-white/5 to-transparent p-3 backdrop-blur-xs transition-all hover:border-white/20 hover:shadow-lg"
                         >
                           <div className="relative z-10">
-                            <span className="block text-[10px] font-bold uppercase tracking-wider text-white/50">
+                            <span className="block text-[10px] font-bold tracking-wider text-white/50 uppercase">
                               {item.label}
                             </span>
                             <span
@@ -290,7 +288,7 @@ const renderCategory = (category: EvaluatedCategory) => {
                       <Badge
                         key={`${challenge.id}-${chip}`}
                         variant="outline"
-                        className="border-white/15 bg-white/5 text-xs font-medium uppercase tracking-wide text-white/70"
+                        className="border-white/15 bg-white/5 text-xs font-medium tracking-wide text-white/70 uppercase"
                       >
                         {chip}
                       </Badge>
@@ -424,7 +422,7 @@ export function YuumiChallengesTab({
                   championId={selectedPlayerData.championName}
                   size="lg"
                 />
-                <span className="absolute -bottom-1 -right-1 rounded-full border border-white/10 bg-black/80 px-2 text-xs font-semibold text-white">
+                <span className="absolute -right-1 -bottom-1 rounded-full border border-white/10 bg-black/80 px-2 text-xs font-semibold text-white">
                   Lv {selectedPlayerData.champLevel}
                 </span>
               </div>
@@ -440,7 +438,7 @@ export function YuumiChallengesTab({
                 <Badge
                   key={badge.label}
                   className={cn(
-                    'border px-3 py-1 text-xs font-semibold uppercase tracking-wide backdrop-blur-sm',
+                    'border px-3 py-1 text-xs font-semibold tracking-wide uppercase backdrop-blur-sm',
                     badge.className,
                     badge.value === 0 && 'opacity-60'
                   )}
@@ -490,7 +488,7 @@ export function YuumiChallengesTab({
         <CardContent className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <div className="space-y-5">
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-white/60">
+              <h3 className="text-xs font-semibold tracking-wide text-white/60 uppercase">
                 Final Build
               </h3>
               <div className="mt-3 rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur-sm">
@@ -498,12 +496,12 @@ export function YuumiChallengesTab({
               </div>
             </div>
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-white/60">
+              <h3 className="text-xs font-semibold tracking-wide text-white/60 uppercase">
                 Quick Stats
               </h3>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/80">
-                  <p className="text-xs uppercase tracking-wide text-white/60">
+                  <p className="text-xs tracking-wide text-white/60 uppercase">
                     Match Length
                   </p>
                   <p className="mt-1 text-lg font-semibold text-white">
@@ -511,7 +509,7 @@ export function YuumiChallengesTab({
                   </p>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/80">
-                  <p className="text-xs uppercase tracking-wide text-white/60">
+                  <p className="text-xs tracking-wide text-white/60 uppercase">
                     Role
                   </p>
                   <p className="mt-1 text-lg font-semibold text-white">
@@ -522,12 +520,12 @@ export function YuumiChallengesTab({
             </div>
           </div>
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-white/60">
+            <h3 className="text-xs font-semibold tracking-wide text-white/60 uppercase">
               Rune Setup
             </h3>
             <div className="mt-3 space-y-4 rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur-sm">
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-white/50">
+                <p className="text-xs font-semibold tracking-wide text-white/50 uppercase">
                   Primary Path
                 </p>
                 <div className="flex flex-wrap items-center gap-2">
@@ -557,7 +555,7 @@ export function YuumiChallengesTab({
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-white/50">
+                <p className="text-xs font-semibold tracking-wide text-white/50 uppercase">
                   Secondary Path
                 </p>
                 <div className="flex flex-wrap items-center gap-2">
@@ -572,7 +570,7 @@ export function YuumiChallengesTab({
               </div>
               {statPerks ? (
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-white/50">
+                  <p className="text-xs font-semibold tracking-wide text-white/50 uppercase">
                     Stat Shards
                   </p>
                   <div className="flex items-center gap-2">

@@ -13,12 +13,7 @@ export type SupportMatchup = {
 
 export type BotLaneSynergy = {
   synergy:
-    | 'Excellent'
-    | 'Very Good'
-    | 'Good'
-    | 'Average'
-    | 'Poor'
-    | 'Situational';
+    'Excellent' | 'Very Good' | 'Good' | 'Average' | 'Poor' | 'Situational';
   tips: string[];
   playstyle: string; // succinct play pattern summary
   optimalAttachTargets?: string; // if not always the bot laner (e.g., roam to jungler)

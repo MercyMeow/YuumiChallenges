@@ -26,10 +26,7 @@ export interface RawTimelineEvent {
 
 // Clean event types
 export type ItemEventType =
-  | 'ITEM_PURCHASED'
-  | 'ITEM_SOLD'
-  | 'ITEM_DESTROYED'
-  | 'ITEM_UNDO';
+  'ITEM_PURCHASED' | 'ITEM_SOLD' | 'ITEM_DESTROYED' | 'ITEM_UNDO';
 
 // Processed item event - simplified structure
 export interface ItemEvent {

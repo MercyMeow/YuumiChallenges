@@ -115,7 +115,7 @@ const ChallengeStatCard = ({
         : 'bg-black/25'
     }`}
   >
-    <span className="text-xs font-semibold uppercase tracking-wide text-white/60">
+    <span className="text-xs font-semibold tracking-wide text-white/60 uppercase">
       {entry.label}
     </span>
     <span
@@ -246,7 +246,7 @@ export function ChallengesTab({
             size="md"
           />
           <span>{displayName}</span>
-          <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs uppercase tracking-wide text-white/60">
+          <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs tracking-wide text-white/60 uppercase">
             {normalizedEntries.length} tracked challenges
           </span>
         </CardTitle>
@@ -255,7 +255,7 @@ export function ChallengesTab({
         <div>
           <label
             htmlFor="challenge-search"
-            className="mb-2 block text-xs font-semibold uppercase tracking-wide text-white/50"
+            className="mb-2 block text-xs font-semibold tracking-wide text-white/50 uppercase"
           >
             Search challenges
           </label>
@@ -270,7 +270,7 @@ export function ChallengesTab({
 
         {highlightEntries.length > 0 ? (
           <div>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-white/50">
+            <p className="mb-3 text-xs font-semibold tracking-wide text-white/50 uppercase">
               Standout metrics
             </p>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -302,9 +302,9 @@ export function ChallengesTab({
                 entries.some((entry) => highlightKeys.has(entry.key))
               }
             >
-              <summary className="flex cursor-pointer select-none items-center justify-between gap-3 text-sm font-semibold text-white">
+              <summary className="flex cursor-pointer items-center justify-between gap-3 text-sm font-semibold text-white select-none">
                 <span>{groupName}</span>
-                <span className="flex items-center gap-3 text-xs uppercase tracking-wide text-white/40">
+                <span className="flex items-center gap-3 text-xs tracking-wide text-white/40 uppercase">
                   <span className="rounded-full border border-white/10 bg-white/10 px-2 py-1">
                     {entries.length} entries
                   </span>

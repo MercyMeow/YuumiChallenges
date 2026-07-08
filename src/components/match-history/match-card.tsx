@@ -142,10 +142,10 @@ export function MatchCard({
 
   return (
     <Card
-      className={`focus-card relative bg-linear-to-br from-purple-500/5 to-purple-600/5 backdrop-blur-md transition-all duration-200 hover:bg-white/5 ${
+      className={`relative bg-linear-to-br from-purple-500/5 to-purple-600/5 focus-card backdrop-blur-md transition-all duration-200 hover:bg-white/5 ${
         match.win
-          ? 'border-l-accessible-green border-accessible-green/30 border-b border-l-4 border-r border-t'
-          : 'border-l-accessible-red border-accessible-red/30 border-b border-l-4 border-r border-t'
+          ? 'border-l-accessible-green border-t border-r border-b border-l-4 border-accessible-green/30'
+          : 'border-l-accessible-red border-t border-r border-b border-l-4 border-accessible-red/30'
       } ${className}`}
       role="article"
       aria-labelledby={`match-title-${match.match_id}`}
@@ -154,7 +154,7 @@ export function MatchCard({
       {/* Victory/Defeat badge - absolute positioned top-left */}
       <Badge
         variant={match.win ? 'default' : 'destructive'}
-        className={`absolute left-3 top-3 z-10 px-3 py-1 ${match.win ? 'bg-accessible-green/20 text-accessible-green border-accessible-green/30' : 'bg-accessible-red/20 text-accessible-red border-accessible-red/30'}`}
+        className={`absolute top-3 left-3 z-10 px-3 py-1 ${match.win ? 'border-accessible-green/30 bg-accessible-green/20 text-accessible-green' : 'border-accessible-red/30 bg-accessible-red/20 text-accessible-red'}`}
       >
         <Trophy className="mr-1 h-3 w-3" />
         {match.win ? 'Victory' : 'Defeat'}
@@ -163,7 +163,7 @@ export function MatchCard({
       {/* Game mode badge - positioned right of victory badge */}
       <Badge
         variant="outline"
-        className={`absolute left-28 top-3 z-10 px-3 py-1 ${gameModeColor} border-current`}
+        className={`absolute top-3 left-28 z-10 px-3 py-1 ${gameModeColor} border-current`}
       >
         <Gamepad2 className="mr-1 h-3 w-3" />
         {gameMode}
@@ -172,7 +172,7 @@ export function MatchCard({
       {/* Game duration badge - positioned right of game mode badge */}
       <Badge
         variant="outline"
-        className="absolute left-48 top-3 z-10 border-gray-500/30 bg-gray-500/20 px-3 py-1 text-gray-300"
+        className="absolute top-3 left-48 z-10 border-gray-500/30 bg-gray-500/20 px-3 py-1 text-gray-300"
       >
         <Clock className="mr-1 h-3 w-3" />
         {formatSecondsToTime(match.duration)}
@@ -183,7 +183,7 @@ export function MatchCard({
         variant="outline"
         size="sm"
         onClick={() => window.open(`/match/${match.match_id}`, '_blank')}
-        className="absolute left-72 top-3 z-10 border-white/20 px-2 py-0.5 text-xs text-white/60 backdrop-blur-xs hover:bg-white/10 hover:text-white"
+        className="absolute top-3 left-72 z-10 border-white/20 px-2 py-0.5 text-xs text-white/60 backdrop-blur-xs hover:bg-white/10 hover:text-white"
       >
         <ExternalLink className="h-2.5 w-2.5" />
       </Button>
@@ -210,7 +210,7 @@ export function MatchCard({
               {/* Date played below champion level badge */}
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 transform cursor-help whitespace-nowrap text-xs font-medium text-white/70">
+                  <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 transform cursor-help text-xs font-medium whitespace-nowrap text-white/70">
                     {formatDistanceToNow(new Date(match.game_creation), {
                       addSuffix: true,
                     })}
@@ -296,7 +296,7 @@ export function MatchCard({
 
       {/* Teams Section - positioned at very top of card */}
       {match.all_participants && match.all_participants.length > 0 && (
-        <div className="absolute right-4 top-0 z-10 max-w-[calc(100%-16rem)] p-3 text-xs">
+        <div className="absolute top-0 right-4 z-10 max-w-[calc(100%-16rem)] p-3 text-xs">
           {/* Team Headers */}
           <div className="mb-2 grid grid-cols-2 gap-3">
             <div className="flex items-center justify-center gap-1">

@@ -56,7 +56,7 @@ export function TeamSection({
   const getResultBadge = (isWin: boolean) => {
     return isWin ? (
       <Badge
-        className="bg-accessible-green/20 text-accessible-green border-accessible-green/30"
+        className="border-accessible-green/30 bg-accessible-green/20 text-accessible-green"
         aria-label="Team result: Victory"
       >
         <Trophy className="mr-1 h-3 w-3" aria-hidden="true" />
@@ -65,7 +65,7 @@ export function TeamSection({
     ) : (
       <Badge
         variant="destructive"
-        className="bg-accessible-red/20 text-accessible-red border-accessible-red/30"
+        className="border-accessible-red/30 bg-accessible-red/20 text-accessible-red"
         aria-label="Team result: Defeat"
       >
         Defeat
@@ -141,7 +141,7 @@ export function TeamSection({
           aria-label="Team statistics"
         >
           <div className="rounded bg-black/20 p-2">
-            <div className="text-accessible-green flex items-center justify-center gap-1 text-sm font-semibold">
+            <div className="flex items-center justify-center gap-1 text-sm font-semibold text-accessible-green">
               <Sword className="h-3 w-3" aria-hidden="true" />
               {teamStats.kills}
             </div>
@@ -149,7 +149,7 @@ export function TeamSection({
           </div>
 
           <div className="rounded bg-black/20 p-2">
-            <div className="text-accessible-red flex items-center justify-center gap-1 text-sm font-semibold">
+            <div className="flex items-center justify-center gap-1 text-sm font-semibold text-accessible-red">
               <Target className="h-3 w-3" aria-hidden="true" />
               {teamStats.deaths}
             </div>
@@ -157,7 +157,7 @@ export function TeamSection({
           </div>
 
           <div className="rounded bg-black/20 p-2">
-            <div className="text-accessible-blue flex items-center justify-center gap-1 text-sm font-semibold">
+            <div className="flex items-center justify-center gap-1 text-sm font-semibold text-accessible-blue">
               <Shield className="h-3 w-3" aria-hidden="true" />
               {teamStats.assists}
             </div>
@@ -165,7 +165,7 @@ export function TeamSection({
           </div>
 
           <div className="rounded bg-black/20 p-2">
-            <div className="text-accessible-yellow flex items-center justify-center gap-1 text-sm font-semibold">
+            <div className="flex items-center justify-center gap-1 text-sm font-semibold text-accessible-yellow">
               <Crown className="h-3 w-3" aria-hidden="true" />
               {Math.round(teamStats.gold / 1000)}k
             </div>
@@ -173,14 +173,14 @@ export function TeamSection({
           </div>
 
           <div className="rounded bg-black/20 p-2">
-            <div className="text-accessible-purple text-sm font-semibold">
+            <div className="text-sm font-semibold text-accessible-purple">
               {teamStats.cs}
             </div>
             <div className="text-xs text-white/60">CS</div>
           </div>
 
           <div className="rounded bg-black/20 p-2">
-            <div className="text-accessible-pink flex items-center justify-center gap-1 text-sm font-semibold">
+            <div className="flex items-center justify-center gap-1 text-sm font-semibold text-accessible-pink">
               <Eye className="h-3 w-3" aria-hidden="true" />
               {teamStats.vision}
             </div>

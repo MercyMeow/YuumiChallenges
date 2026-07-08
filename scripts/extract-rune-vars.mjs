@@ -64,8 +64,6 @@ const perkIdsOfInterest = [
   8360, 8369, 8306, 8304, 8313, 8321, 8316, 8345, 8347, 8410, 8352,
 ];
 
-
-
 function inferFormat(label) {
   const plain = label.toLowerCase();
   if (plain.includes('gold')) return 'gold';

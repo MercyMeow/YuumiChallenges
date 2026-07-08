@@ -22,7 +22,7 @@ export default function NotFound() {
             <div className="absolute inset-0 animate-pulse bg-linear-to-r from-red-500 to-orange-500 opacity-20 blur-3xl"></div>
           </div>
 
-          <h1 className="animate-gradient mb-4 bg-linear-to-r from-red-400 via-orange-400 to-yellow-400 bg-clip-text text-8xl font-bold text-transparent md:text-9xl">
+          <h1 className="mb-4 animate-gradient bg-linear-to-r from-red-400 via-orange-400 to-yellow-400 bg-clip-text text-8xl font-bold text-transparent md:text-9xl">
             404
           </h1>
 

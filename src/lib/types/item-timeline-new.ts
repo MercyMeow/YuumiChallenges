@@ -8,10 +8,7 @@
 // ==================== CORE EVENT TYPES ====================
 
 export type ItemEventType =
-  | 'ITEM_PURCHASED'
-  | 'ITEM_SOLD'
-  | 'ITEM_DESTROYED'
-  | 'ITEM_UNDO';
+  'ITEM_PURCHASED' | 'ITEM_SOLD' | 'ITEM_DESTROYED' | 'ITEM_UNDO';
 
 export type EvolutionStage = 'base' | 'tier1' | 'tier2' | 'tier3';
 

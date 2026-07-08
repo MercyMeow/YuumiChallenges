@@ -171,40 +171,22 @@ export default function MatchDetailsPage() {
           className="space-y-6"
         >
           <TabsList className="hex-card grid h-auto w-full grid-cols-2 rounded-sm p-1 sm:grid-cols-3 lg:grid-cols-6">
-            <TabsTrigger
-              value="overview"
-              className={MATCH_TAB_TRIGGER}
-            >
+            <TabsTrigger value="overview" className={MATCH_TAB_TRIGGER}>
               Overview
             </TabsTrigger>
-            <TabsTrigger
-              value="details"
-              className={MATCH_TAB_TRIGGER}
-            >
+            <TabsTrigger value="details" className={MATCH_TAB_TRIGGER}>
               Detailed Stats
             </TabsTrigger>
-            <TabsTrigger
-              value="runes"
-              className={MATCH_TAB_TRIGGER}
-            >
+            <TabsTrigger value="runes" className={MATCH_TAB_TRIGGER}>
               Runes
             </TabsTrigger>
-            <TabsTrigger
-              value="timeline"
-              className={MATCH_TAB_TRIGGER}
-            >
+            <TabsTrigger value="timeline" className={MATCH_TAB_TRIGGER}>
               Timeline
             </TabsTrigger>
-            <TabsTrigger
-              value="challenges"
-              className={MATCH_TAB_TRIGGER}
-            >
+            <TabsTrigger value="challenges" className={MATCH_TAB_TRIGGER}>
               Challenges
             </TabsTrigger>
-            <TabsTrigger
-              value="yuumi-challenges"
-              className={MATCH_TAB_TRIGGER}
-            >
+            <TabsTrigger value="yuumi-challenges" className={MATCH_TAB_TRIGGER}>
               Yuumi Challenges
             </TabsTrigger>
           </TabsList>

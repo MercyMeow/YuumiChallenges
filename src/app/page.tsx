@@ -5,7 +5,10 @@
 // to static builds when Convex is unreachable. Interactivity lives in
 // ./guide-client.
 
-import { fetchGuideBuilds, type GuideBuildDoc } from '@/lib/builds/guide-builds';
+import {
+  fetchGuideBuilds,
+  type GuideBuildDoc,
+} from '@/lib/builds/guide-builds';
 import { fetchAutoBuild } from '@/lib/builds/auto-build';
 import type { DefaultBuild } from '@/lib/builds/default-builds';
 import { YuumiGuide } from './guide-client';

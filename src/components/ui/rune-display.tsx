@@ -126,7 +126,7 @@ export function RuneIcon({
   const content = (
     <div
       className={cn(
-        'cursor-pointer overflow-hidden rounded border transition-colors hover:border-opacity-70',
+        'hover:border-opacity-70 cursor-pointer overflow-hidden rounded border transition-colors',
         variant === 'keystone'
           ? 'border-purple-500/60 bg-purple-500/10 shadow-xs shadow-purple-500/20 hover:border-purple-400/70'
           : 'border-white/10 hover:border-white/20',
@@ -182,7 +182,7 @@ export function RuneIcon({
             <div className="min-w-0 flex-1">
               <div
                 className={cn(
-                  'text-base font-semibold leading-tight',
+                  'text-base leading-tight font-semibold',
                   variant === 'keystone' ? 'text-purple-300' : 'text-white'
                 )}
               >
@@ -364,7 +364,7 @@ export function StatShardIcon({
             {statShard.name}
           </div>
           <div className="text-xs text-gray-300">{statShard.description}</div>
-          <div className="text-xs capitalize text-purple-400">
+          <div className="text-xs text-purple-400 capitalize">
             {statShard.slot} Shard
           </div>
         </div>
@@ -600,7 +600,7 @@ export function RuneTreeDisplay({
                 );
                 return (
                   <div className="mb-6">
-                    <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-purple-400">
+                    <div className="mb-2 text-xs font-semibold tracking-wider text-purple-400 uppercase">
                       Keystone
                     </div>
                     <div className="flex items-start gap-4 rounded-lg border border-purple-500/30 bg-purple-500/10 p-4">
@@ -924,7 +924,7 @@ export function RuneTreeDisplay({
             {/* Offense Shard */}
             <div className="rounded-lg border border-orange-500/30 bg-linear-to-br from-orange-900/20 to-orange-900/10 p-4">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-orange-400">
+                <span className="text-xs font-semibold tracking-wider text-orange-400 uppercase">
                   Offense
                 </span>
                 <StatShardIcon
@@ -944,7 +944,7 @@ export function RuneTreeDisplay({
             {/* Flex Shard */}
             <div className="rounded-lg border border-purple-500/30 bg-linear-to-br from-purple-900/20 to-purple-900/10 p-4">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-purple-400">
+                <span className="text-xs font-semibold tracking-wider text-purple-400 uppercase">
                   Flex
                 </span>
                 <StatShardIcon
@@ -964,7 +964,7 @@ export function RuneTreeDisplay({
             {/* Defense Shard */}
             <div className="rounded-lg border border-green-500/30 bg-linear-to-br from-green-900/20 to-green-900/10 p-4">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-green-400">
+                <span className="text-xs font-semibold tracking-wider text-green-400 uppercase">
                   Defense
                 </span>
                 <StatShardIcon

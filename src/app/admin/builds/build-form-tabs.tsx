@@ -47,7 +47,11 @@ function splitCsv(value: string): string[] {
 }
 
 /** True when assigning `skill` at `index` would stay within rank caps. */
-function canAssignSkill(levels: string[], index: number, skill: string): boolean {
+function canAssignSkill(
+  levels: string[],
+  index: number,
+  skill: string
+): boolean {
   if (!(skill in SKILL_CAPS)) return false;
   const counts: Record<SkillKey, number> = { Q: 0, W: 0, E: 0, R: 0 };
   levels.forEach((s, i) => {
@@ -297,9 +301,7 @@ export function BuildRunesTab({
       <Field label="Stat Shards (comma-separated)">
         <Input
           value={formData.runes.shards.join(', ')}
-          onChange={(e) =>
-            setRunes({ shards: splitCsv(e.target.value) })
-          }
+          onChange={(e) => setRunes({ shards: splitCsv(e.target.value) })}
           className={FIELD_CLASS}
           placeholder="AdaptiveForce, AdaptiveForce, Health"
         />
@@ -385,8 +387,7 @@ export function BuildItemsTab({
                   const parsed = parseInt(e.target.value, 10);
                   setNewItem({
                     ...newItem,
-                    id:
-                      Number.isFinite(parsed) && parsed > 0 ? parsed : 0,
+                    id: Number.isFinite(parsed) && parsed > 0 ? parsed : 0,
                   });
                 }}
                 className={FIELD_CLASS}
@@ -507,17 +508,13 @@ export function BuildSkillsTab({
             <div key={idx} className="text-center">
               <div className="mb-1 text-xs text-hx-gold/60">{idx + 1}</div>
               <Select value={skill} onValueChange={(v) => setLevel(idx, v)}>
-                <SelectTrigger className="hex-input h-8 w-full rounded-sm px-1 text-xs">
+                <SelectTrigger className="h-8 w-full rounded-sm px-1 text-xs hex-input">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {(['Q', 'W', 'E'] as const).map(
                     (key) =>
-                      canAssignSkill(
-                        formData.skillOrder.levels,
-                        idx,
-                        key
-                      ) && (
+                      canAssignSkill(formData.skillOrder.levels, idx, key) && (
                         <SelectItem key={key} value={key}>
                           {key}
                         </SelectItem>

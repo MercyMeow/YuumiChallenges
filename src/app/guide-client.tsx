@@ -590,48 +590,52 @@ export function YuumiGuide({
             </OrnateHeading>
             <BuildUpdatedStamp autoBuild={autoBuild} />
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              {displayBuilds.map((build) => {
-                const isSelected = build.id === currentBuild?.id;
-                return (
-                  <button
-                    key={build.id}
-                    onClick={() => setSelectedBuild(build.id)}
-                    className={cn(
-                      'relative rounded-sm p-4 text-left transition-all duration-200',
-                      isSelected
-                        ? 'hex-card-elevated hex-glow-gold'
-                        : 'hex-card hover:border-hx-gold/70'
-                    )}
-                  >
-                    {build.isRecommended && (
-                      <span className="absolute -top-2.5 right-3 hex-chip border-hx-gold bg-hx-black text-hx-gold-bright">
-                        <Star className="h-2.5 w-2.5 fill-current" />
-                        Recommended
-                      </span>
-                    )}
-                    <div className="mb-2 flex items-center gap-2.5">
-                      <span
-                        className={cn(
-                          'rounded-sm border border-hx-gold-dark/50 p-2',
-                          isSelected
-                            ? 'bg-hx-gold/20 text-hx-gold-bright'
-                            : 'bg-hx-gold/10 text-hx-gold'
-                        )}
-                      >
-                        {BUILD_ICONS[build.icon] ?? (
-                          <Star className="h-5 w-5" />
-                        )}
-                      </span>
-                      <span className="hex-title text-base">{build.name}</span>
-                    </div>
-                    <p className="text-sm text-landing-text-secondary">
-                      {build.description}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
+            {displayBuilds.length > 1 && (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                {displayBuilds.map((build) => {
+                  const isSelected = build.id === currentBuild?.id;
+                  return (
+                    <button
+                      key={build.id}
+                      onClick={() => setSelectedBuild(build.id)}
+                      className={cn(
+                        'relative rounded-sm p-4 text-left transition-all duration-200',
+                        isSelected
+                          ? 'hex-card-elevated hex-glow-gold'
+                          : 'hex-card hover:border-hx-gold/70'
+                      )}
+                    >
+                      {build.isRecommended && (
+                        <span className="absolute -top-2.5 right-3 hex-chip border-hx-gold bg-hx-black text-hx-gold-bright">
+                          <Star className="h-2.5 w-2.5 fill-current" />
+                          Recommended
+                        </span>
+                      )}
+                      <div className="mb-2 flex items-center gap-2.5">
+                        <span
+                          className={cn(
+                            'rounded-sm border border-hx-gold-dark/50 p-2',
+                            isSelected
+                              ? 'bg-hx-gold/20 text-hx-gold-bright'
+                              : 'bg-hx-gold/10 text-hx-gold'
+                          )}
+                        >
+                          {BUILD_ICONS[build.icon] ?? (
+                            <Star className="h-5 w-5" />
+                          )}
+                        </span>
+                        <span className="hex-title text-base">
+                          {build.name}
+                        </span>
+                      </div>
+                      <p className="text-sm text-landing-text-secondary">
+                        {build.description}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             {currentBuild && (
               <HextechPanel
@@ -652,11 +656,19 @@ export function YuumiGuide({
                   {currentBuild.description}
                 </p>
 
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                  {/* Runes */}
+                <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+                  {/* Runes — full client-style page, with OP.GG page tabs on
+                      the live (recommended) build */}
                   <div className="space-y-3">
                     <h3 className="hex-label">Rune Page</h3>
-                    <BuildRunes runes={currentBuild.runes} />
+                    <BuildRunes
+                      runes={currentBuild.runes}
+                      runePages={
+                        currentBuild.isRecommended
+                          ? autoBuild?.runePages
+                          : undefined
+                      }
+                    />
                   </div>
 
                   {/* Items */}
@@ -690,43 +702,42 @@ export function YuumiGuide({
                       ))}
                     </div>
                   </div>
+                </div>
 
-                  {/* Skill order */}
-                  <div className="space-y-3">
-                    <h3 className="hex-label">Skill Order</h3>
-                    <div className="rounded-sm p-4 hex-card-inset">
-                      <div className="mb-3 flex items-center justify-center gap-1.5">
-                        {currentBuild.skillOrder.priority
-                          .split(' > ')
-                          .map((skill, i, arr) => (
+                {/* Skill order — own full-width row so the 18-level grid
+                    renders without horizontal scrolling */}
+                <div className="mt-6 space-y-3">
+                  <h3 className="hex-label">Skill Order</h3>
+                  <div className="rounded-sm p-4 hex-card-inset">
+                    <div className="mb-3 flex items-center justify-center gap-1.5">
+                      {currentBuild.skillOrder.priority
+                        .split(' > ')
+                        .map((skill, i, arr) => (
+                          <span
+                            key={`${skill}-${i}`}
+                            className="flex items-center gap-1.5"
+                          >
                             <span
-                              key={`${skill}-${i}`}
-                              className="flex items-center gap-1.5"
-                            >
-                              <span
-                                className={cn(
-                                  'hex-title text-lg',
-                                  SKILL_TEXT[skill] ?? 'text-hx-parchment'
-                                )}
-                              >
-                                {skill}
-                              </span>
-                              {i < arr.length - 1 && (
-                                <span className="text-hx-gold-dark">›</span>
+                              className={cn(
+                                'hex-title text-lg',
+                                SKILL_TEXT[skill] ?? 'text-hx-parchment'
                               )}
+                            >
+                              {skill}
                             </span>
-                          ))}
-                      </div>
-                      <SkillOrderTable
-                        levels={currentBuild.skillOrder.levels}
-                      />
-                      <p className="mt-3 text-xs leading-relaxed text-hx-parchment/60">
-                        <GameTermText
-                          text={currentBuild.skillOrder.notes}
-                          yuumiKit
-                        />
-                      </p>
+                            {i < arr.length - 1 && (
+                              <span className="text-hx-gold-dark">›</span>
+                            )}
+                          </span>
+                        ))}
                     </div>
+                    <SkillOrderTable levels={currentBuild.skillOrder.levels} />
+                    <p className="mt-3 text-xs leading-relaxed text-hx-parchment/60">
+                      <GameTermText
+                        text={currentBuild.skillOrder.notes}
+                        yuumiKit
+                      />
+                    </p>
                   </div>
                 </div>
 

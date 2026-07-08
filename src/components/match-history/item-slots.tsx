@@ -286,7 +286,7 @@ export function ItemSlot({
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-base font-semibold leading-tight text-white">
+                <div className="text-base leading-tight font-semibold text-white">
                   {item.name}
                 </div>
                 {/* Cost */}

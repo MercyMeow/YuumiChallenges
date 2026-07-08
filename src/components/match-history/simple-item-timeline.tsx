@@ -624,7 +624,7 @@ const LoadingSkeleton = () => {
 const EmptyState = () => {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <Package className="text-muted-foreground/50 mb-4 h-12 w-12" />
+      <Package className="mb-4 h-12 w-12 text-muted-foreground/50" />
       <h3 className="mb-2 font-medium text-foreground">No Item Events</h3>
       <p className="text-sm text-muted-foreground">
         No item purchases, sales, or evolutions found in this match.
@@ -655,24 +655,24 @@ interface StatsHeaderProps {
 const StatsHeader = ({ stats, participantId }: StatsHeaderProps) => {
   return (
     <div className="flex flex-wrap items-center gap-4 text-sm">
-      <Badge className="text-accessible-blue border-accessible-blue/30 bg-blue-500/20">
+      <Badge className="border-accessible-blue/30 bg-blue-500/20 text-accessible-blue">
         Player {participantId}
       </Badge>
 
       <div className="flex items-center gap-1">
-        <ShoppingCart className="text-accessible-green h-4 w-4" />
+        <ShoppingCart className="h-4 w-4 text-accessible-green" />
         <span className="text-accessible-green">{stats.purchases}</span>
         <span className="text-muted-foreground">purchases</span>
       </div>
 
       <div className="flex items-center gap-1">
-        <X className="text-accessible-yellow h-4 w-4" />
+        <X className="h-4 w-4 text-accessible-yellow" />
         <span className="text-accessible-yellow">{stats.sales}</span>
         <span className="text-muted-foreground">sales</span>
       </div>
 
       <div className="flex items-center gap-1">
-        <Trash2 className="text-accessible-red h-4 w-4" />
+        <Trash2 className="h-4 w-4 text-accessible-red" />
         <span className="text-accessible-red">{stats.destructions}</span>
         <span className="text-muted-foreground">destroyed</span>
       </div>
@@ -774,7 +774,7 @@ export function SimpleItemTimeline({
             <Package className="h-5 w-5" />
             Item Timeline
             {timeline && (
-              <Badge className="text-accessible-blue border-accessible-blue/30 ml-2 bg-blue-500/20">
+              <Badge className="ml-2 border-accessible-blue/30 bg-blue-500/20 text-accessible-blue">
                 Player {timeline.participantId}
               </Badge>
             )}

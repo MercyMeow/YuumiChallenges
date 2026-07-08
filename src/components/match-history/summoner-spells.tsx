@@ -137,11 +137,11 @@ export function SummonerSpell({
             />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-base font-semibold leading-tight text-white">
+            <div className="text-base leading-tight font-semibold text-white">
               {spell.name}
             </div>
             {ddragonSpell?.description && (
-              <div className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-white/90">
+              <div className="mt-1 text-xs leading-relaxed whitespace-pre-wrap text-white/90">
                 {ddragonSpell.description.replace(/<[^>]+>/g, '')}
               </div>
             )}
