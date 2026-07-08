@@ -1,0 +1,19 @@
+README.md
+  s_79e30f9334401f::t_028fe130c89459 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "59fc3d9db98e77a835268b05372efe8179b829aa",
+  "prompts": {},
+  "sessions": {
+    "s_79e30f9334401f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0e7aad91-8654-4d2d-b66b-7588d6714103",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
