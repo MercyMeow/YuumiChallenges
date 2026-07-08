@@ -1,0 +1,42 @@
+scripts/patch-opennext-windows.mjs
+  s_87c6c9224ee869::t_c4ef89ef88af93 5-10,17,19,21,30-39,41-44,46-49,53-56,59-61,71-87,122-139,141,144-155
+  s_10726833d288df::t_b020def9c0f1e9 88-121
+src/app/match/[matchId]/match-summary.ts
+  s_10726833d288df::t_8f7d65b2e78e82 86-88
+  s_10726833d288df::t_c4f03a4cfc3d71 89-92
+convex/highelo.ts
+  s_10726833d288df::t_3f6a4fa492f4e3 1037-1044
+  s_10726833d288df::t_f47657901c81f9 944-949
+convex/schema.ts
+  s_10726833d288df::t_2fe3976b282440 216-219
+package.json
+  s_10726833d288df::t_f1b770b4f0289c 9
+src/app/match/[matchId]/layout.tsx
+  s_10726833d288df::t_cd07b060145737 9-12,14-27
+convex/scraper.ts
+  s_10726833d288df::t_bdc8c33f9a6a66 245-250,257-261,263-264,268-271,275-276,279-280,284,290
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "4e5cdedbee464107d552bd14790d53ecde2c8069",
+  "prompts": {},
+  "sessions": {
+    "s_10726833d288df": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "42f63596-586d-4846-bf4b-7ee4c5128f6a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    },
+    "s_87c6c9224ee869": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "20fff618-2227-4378-9c1f-c0f483280360",
+        "model": "grok-composer-2.5-fast"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
