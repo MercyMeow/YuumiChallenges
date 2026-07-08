@@ -38,12 +38,11 @@ Public `NEXT_PUBLIC_*` and server secrets must be available at **build time** fo
 
 ## Custom domain (yuumi.quest)
 
-The zone must be on the **same Cloudflare account** as the Worker before adding routes in `wrangler.jsonc`.
+Keep custom domains **out of** `wrangler.jsonc` if an apex `A`/`CNAME` still exists (Wrangler deploy fails on `domains/records`).
 
-1. Add `yuumi.quest` to Cloudflare (DNS / zone transfer from Vercel or registrar).
-2. In dashboard: **Workers & Pages → yuumi-challenges → Domains & Routes** → Custom Domain for `yuumi.quest` and `www`.
-3. Or add to `wrangler.jsonc` `routes` with `custom_domain: true` after the zone exists.
-4. Remove Vercel DNS when the Worker serves traffic.
+1. Zone on the same account as the Worker.
+2. Remove conflicting apex records, then run `npm run cf:attach-domains` (or attach in the dashboard).
+3. See `docs/cloudflare-migration-checklist.md` for cutover and Vercel teardown.
 
 ## Windows local deploy
 
@@ -56,6 +55,10 @@ Workflow: `.github/workflows/deploy-cloudflare.yml`
 Add repo secret **`CLOUDFLARE_API_TOKEN`** (Workers Scripts Edit). Optional build secret **`NEXT_PUBLIC_CONVEX_URL`** if not only in `wrangler.jsonc` vars.
 
 Run manually: **Actions → Deploy Cloudflare Workers → Run workflow**, or push to `main`.
+
+## Full migration
+
+See **`docs/cloudflare-migration-checklist.md`** for DNS cutover, Vercel decommission, and smoke tests.
 
 ## Vercel rollback
 

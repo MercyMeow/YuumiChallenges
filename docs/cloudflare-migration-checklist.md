@@ -6,7 +6,7 @@
 - [x] GitHub Actions: `.github/workflows/deploy-cloudflare.yml` (Linux build + deploy)
 - [x] GitHub secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `NEXT_PUBLIC_CONVEX_URL`
 - [x] Worker runtime secrets via `npm run sync:cf-secrets`
-- [x] Custom domains in `wrangler.jsonc`: `yuumi.quest`, `www.yuumi.quest`
+- [x] Custom domains attached via API / `npm run cf:attach-domains` (not in `wrangler.jsonc` — avoids CI deploy failures when apex A record conflicts)
 - [x] Convex stays at `https://convex-yuumi-challenges.veiledcat.de` (self-hosted)
 
 ## After each push to `main`
@@ -31,15 +31,18 @@ Or rely on GitHub Actions only and disable duplicate Builds.
 
 In Convex dashboard for self-hosted deployment, ensure **`RIOT_API_KEY`** is set (Convex `highelo.ts` uses it).
 
-### 3. Cut over DNS
+### 3. Cut over DNS (one-time)
 
-Zone `yuumi.quest` is on Cloudflare (`89daf611be1495f2e4605b464850b6ed`).
+Cloudflare **rejects** Worker custom domains while a manual apex `A`/`CNAME` exists (error 100117).
 
-Successful deploy with `custom_domain` routes should replace apex DNS with Worker routing. If apex still points to Vercel:
+```bash
+# Requires CLOUDFLARE_API_TOKEN (Workers + Zone DNS Edit)
+npm run cf:attach-domains
+```
 
-1. **Workers & Pages → yuumi-challenges → Domains** — confirm `yuumi.quest` / `www.yuumi.quest`
-2. Remove old Vercel A/CNAME records if they remain
-3. Verify: `curl -sI https://yuumi.quest/` returns `200` and Cloudflare headers
+Or dashboard: **Workers & Pages → yuumi-challenges → Domains** after deleting the Vercel apex `A` record.
+
+Verify: `curl -sI https://yuumi.quest/` → `200`, `server: cloudflare`
 
 ### 4. Decommission Vercel
 
