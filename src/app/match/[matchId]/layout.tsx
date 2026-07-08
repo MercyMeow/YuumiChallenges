@@ -6,9 +6,25 @@ import { fetchMatchSummary, resolveBaseUrl } from './match-summary';
 // twitter-image.tsx file conventions in this segment — do not add image
 // URLs here (a previous hardcoded /api/match-embed URL 404'd and broke
 // Discord embeds entirely).
+// openGraph/twitter are set explicitly so error paths don't inherit the
+// parent layout's guide-wide social text on match URLs.
+const FALLBACK_TITLE = 'Match Details - Yuumi Challenges';
+const FALLBACK_DESCRIPTION = 'View detailed League of Legends match statistics';
 const FALLBACK_METADATA: Metadata = {
-  title: 'Match Details - Yuumi Challenges',
-  description: 'View detailed League of Legends match statistics',
+  title: FALLBACK_TITLE,
+  description: FALLBACK_DESCRIPTION,
+  openGraph: {
+    title: FALLBACK_TITLE,
+    description: FALLBACK_DESCRIPTION,
+    type: 'website',
+    siteName: 'Yuumi Challenges',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: FALLBACK_TITLE,
+    description: FALLBACK_DESCRIPTION,
+    site: '@YuumiChallenges',
+  },
 };
 
 export async function generateMetadata({

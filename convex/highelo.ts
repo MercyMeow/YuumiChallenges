@@ -941,7 +941,12 @@ export const takeRosterForBackfill = internalQuery({
       .filter(
         (entry) =>
           entry.backfilledAt === undefined &&
-          entry.yuumiLastPlayTime >= args.activeSince
+          // Known producers always qualify (re-enrichment rollouts via
+          // clearBackfillMarkers must reach them even when their mastery
+          // lastPlayTime has gone stale); the recency gate only screens
+          // players who have never produced a counted game.
+          ((entry.gamesCount ?? 0) > 0 ||
+            entry.yuumiLastPlayTime >= args.activeSince)
       )
       .sort((a, b) => b.yuumiLastPlayTime - a.yuumiLastPlayTime)
       .slice(0, args.limit);
@@ -1029,12 +1034,18 @@ export const clearBackfillMarkers = internalMutation({
     const roster = await ctx.db.query('yuumiRoster').collect();
     let cleared = 0;
     for (const entry of roster) {
-      if (entry.backfilledAt !== undefined) {
+      // Also reset rows with only partial progress (cursor but no marker)
+      // so they re-scan from the top instead of resuming mid-history.
+      // backfillScanned survives on purpose: it lets the probe bail skip
+      // zero-game dabblers immediately instead of re-probing 30 matches.
+      if (
+        entry.backfilledAt !== undefined ||
+        entry.backfillCursor !== undefined
+      ) {
         // Patching undefined removes the field (Convex patch semantics).
         await ctx.db.patch(entry._id, {
           backfilledAt: undefined,
           backfillCursor: undefined,
-          backfillScanned: undefined,
         });
         cleared++;
       }

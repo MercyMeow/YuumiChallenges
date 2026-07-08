@@ -242,45 +242,52 @@ export const autoUpdateBuild = internalAction({
         fetchItemNameMap(version),
       ]);
 
-      // 2. Runes — resolve every viable page OP.GG lists (most-picked first,
-      //    each row carries play/win/pick_rate stats). Rows that can't be
-      //    fully resolved are dropped rather than failing the whole scrape.
+      // 2. Runes — one entry per OP.GG rune PAGE (most-picked first).
+      //    `rune_pages` carries the page-level play/win/pick_rate the site's
+      //    rune widget shows; the concrete rune choices come from the page's
+      //    most-played build (`builds[0]`, shaped like a `runes[]` row).
+      //    Pages that can't be fully resolved are dropped rather than
+      //    failing the whole scrape.
       const resolveRunes = (ids: number[]): RuneInfo[] =>
         ids.flatMap((id) => {
           const info = runeInfo.get(id);
           return info ? [info] : [];
         });
 
-      const runeRows = Array.isArray(data.runes) ? data.runes : [];
-      const runePages = runeRows.flatMap((row) => {
-        if (!isRecord(row)) return [];
+      const pageRows = Array.isArray(data.rune_pages) ? data.rune_pages : [];
+      const runePages = pageRows.flatMap((page) => {
+        if (!isRecord(page)) return [];
+        const build = Array.isArray(page.builds) ? page.builds[0] : null;
+        if (!isRecord(build)) return [];
         if (
-          typeof row.primary_page_id !== 'number' ||
-          typeof row.secondary_page_id !== 'number'
+          typeof build.primary_page_id !== 'number' ||
+          typeof build.secondary_page_id !== 'number'
         ) {
           return [];
         }
-        const pagePrimary = resolveRunes(numberArray(row.primary_rune_ids));
-        const pageSecondary = resolveRunes(numberArray(row.secondary_rune_ids));
+        const pagePrimary = resolveRunes(numberArray(build.primary_rune_ids));
+        const pageSecondary = resolveRunes(
+          numberArray(build.secondary_rune_ids)
+        );
         const pageKeystone = pagePrimary[0];
         if (!pageKeystone || pagePrimary.length < 4) return [];
         if (pageSecondary.length < 2) return [];
-        const play = typeof row.play === 'number' ? row.play : 0;
-        const win = typeof row.win === 'number' ? row.win : 0;
+        const play = typeof page.play === 'number' ? page.play : 0;
+        const win = typeof page.win === 'number' ? page.win : 0;
         return [
           {
-            primaryStyleId: row.primary_page_id,
-            secondaryStyleId: row.secondary_page_id,
+            primaryStyleId: build.primary_page_id,
+            secondaryStyleId: build.secondary_page_id,
             keystone: pageKeystone,
             primary: pagePrimary.slice(1),
             secondary: pageSecondary,
-            shardKeys: numberArray(row.stat_mod_ids).flatMap((id) => {
+            shardKeys: numberArray(build.stat_mod_ids).flatMap((id) => {
               const key = STAT_MOD_KEYS[id];
               return key ? [key] : [];
             }),
             games: play,
             winRate: play > 0 ? win / play : 0,
-            pickRate: typeof row.pick_rate === 'number' ? row.pick_rate : 0,
+            pickRate: typeof page.pick_rate === 'number' ? page.pick_rate : 0,
           },
         ];
       });

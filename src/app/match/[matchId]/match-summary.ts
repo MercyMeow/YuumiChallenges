@@ -83,10 +83,13 @@ export async function fetchMatchSummary(
   matchId: string,
   baseUrl: string
 ): Promise<MatchSummary | null> {
-  const response = await fetch(`${baseUrl}/api/match-details/${matchId}`, {
-    cache: 'no-store',
-    headers: { 'User-Agent': 'YuumiChallenges-OG/1.0' },
-  });
+  const response = await fetch(
+    `${baseUrl}/api/match-details/${encodeURIComponent(matchId)}`,
+    {
+      cache: 'no-store',
+      headers: { 'User-Agent': 'YuumiChallenges-OG/1.0' },
+    }
+  );
   if (!response.ok) return null;
 
   const data = (await response.json()) as MatchDetailsApiResponse;

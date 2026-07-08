@@ -213,8 +213,10 @@ export default defineSchema({
     // Season backfill bookkeeping (ms epoch when completed)
     backfilledAt: v.optional(v.number()),
     // Resumable backfill progress: oldest match-history timestamp already
-    // scanned (ms epoch) and how many match payloads were inspected. Both
-    // cleared when the backfill finishes or the season rolls over.
+    // scanned (ms epoch) and how many match payloads were inspected. The
+    // cursor clears when the backfill finishes; the scanned counter is
+    // retained so probe bails survive re-enrichment rollouts. Both reset
+    // on season rollover.
     backfillCursor: v.optional(v.number()),
     backfillScanned: v.optional(v.number()),
   })
