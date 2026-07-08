@@ -37,6 +37,10 @@ const SPELL_NAMES: Record<number, string> = {
   32: 'Snowball',
 };
 
+function gamesLabel(count: number): string {
+  return count === 1 ? '1 game' : `${count} games`;
+}
+
 function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8 md:px-6">
@@ -196,7 +200,7 @@ export function ProfileClient({ params }: { params: ProfileParams | null }) {
                   ))}
                 </div>
                 <span className="text-xs tracking-wide text-hx-gold/60">
-                  {build.games} games ·{' '}
+                  {gamesLabel(build.games)} ·{' '}
                   {Math.round((build.wins / build.games) * 100)}% WR
                 </span>
               </div>
@@ -223,7 +227,7 @@ export function ProfileClient({ params }: { params: ProfileParams | null }) {
                         .join(' + ')}
                     </span>
                     <span className="text-xs tracking-wide text-hx-gold/60">
-                      {page.games} games ·{' '}
+                      {gamesLabel(page.games)} ·{' '}
                       {Math.round((page.wins / page.games) * 100)}% WR
                     </span>
                   </div>
@@ -259,8 +263,8 @@ export function ProfileClient({ params }: { params: ProfileParams | null }) {
                   {duo.champion}
                 </span>
                 <span className="text-xs tracking-wide text-hx-gold/60">
-                  {duo.games} games · {Math.round((duo.wins / duo.games) * 100)}
-                  %
+                  {gamesLabel(duo.games)} ·{' '}
+                  {Math.round((duo.wins / duo.games) * 100)}%
                 </span>
               </div>
             ))}
