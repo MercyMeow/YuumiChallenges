@@ -55,7 +55,8 @@ const roleDisplayNames = {
 } as const;
 
 export interface RoleBadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof roleBadgeVariants> {
   role: keyof typeof roleIcons;
   showIcon?: boolean;

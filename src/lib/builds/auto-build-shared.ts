@@ -12,6 +12,20 @@ const runeSchema = z.object({
   icon: z.string(),
 });
 
+// One viable rune page as scraped from OP.GG's top rune rows, with its
+// play-rate stats so the UI can rank the tabs like the OP.GG rune widget.
+const autoRunePageSchema = z.object({
+  primaryStyleId: z.number(),
+  secondaryStyleId: z.number(),
+  keystone: runeSchema,
+  primary: z.array(runeSchema).min(3),
+  secondary: z.array(runeSchema).min(2),
+  shardKeys: z.array(z.string()),
+  games: z.number(),
+  winRate: z.number(),
+  pickRate: z.number(),
+});
+
 export const autoBuildSchema = z.object({
   version: z.literal(1),
   patch: z.string(),
@@ -25,6 +39,9 @@ export const autoBuildSchema = z.object({
     secondary: z.array(runeSchema).min(2),
     shardKeys: z.array(z.string()),
   }),
+  // All viable rune pages (most-picked first). Optional so blobs stored
+  // before this field existed still validate (keep-last-good).
+  runePages: z.array(autoRunePageSchema).optional(),
   coreItems: z.array(z.object({ id: z.number(), name: z.string() })).min(2),
   boots: z.object({ id: z.number(), name: z.string() }).nullable(),
   skillPriority: z.array(z.string()).length(3),
@@ -32,6 +49,7 @@ export const autoBuildSchema = z.object({
 });
 
 export type AutoBuild = z.infer<typeof autoBuildSchema>;
+export type AutoBuildRunePage = z.infer<typeof autoRunePageSchema>;
 
 export function parseAutoBuild(
   json: string | undefined | null

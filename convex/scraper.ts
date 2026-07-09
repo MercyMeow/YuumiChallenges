@@ -39,12 +39,13 @@ export const getScrapeJobs = query({
 
 // ============ AUTO BUILD PIPELINE (daily cron) ============
 //
-// Fetches the most-picked Yuumi support build from OP.GG's champion API,
-// resolves names/icons via Data Dragon, stores a compact JSON blob in
-// guideMetadata under AUTO_BUILD_METADATA_KEY, and overlays the scraped
-// runes/core/boots/skill order onto the recommended guideBuilds row so the DB
-// is the source of truth the site reads. The metadata blob still feeds share
-// embeds / OG images and the "Live" label.
+// Fetches the most-picked Yuumi support build from OP.GG's champion API —
+// including every viable rune page with its play/win stats — resolves
+// names/icons via Data Dragon, stores a compact JSON blob in guideMetadata
+// under AUTO_BUILD_METADATA_KEY, and overlays the scraped runes/core/boots/
+// skill order onto the recommended guideBuilds row so the DB is the source of
+// truth the site reads. The metadata blob still feeds share embeds / OG
+// images, the "Live" label, and the rune-page tabs on the guide.
 // Keep-last-good: on any fetch/parse failure nothing is overwritten.
 
 const OPGG_URL =
@@ -241,39 +242,59 @@ export const autoUpdateBuild = internalAction({
         fetchItemNameMap(version),
       ]);
 
-      // 2. Runes (most-picked page)
-      const runeRow = Array.isArray(data.runes) ? data.runes[0] : null;
-      if (!isRecord(runeRow)) throw new Error('OP.GG runes missing');
-      const primaryIds = numberArray(runeRow.primary_rune_ids);
-      const secondaryIds = numberArray(runeRow.secondary_rune_ids);
-      const shardIds = numberArray(runeRow.stat_mod_ids);
-      const runePage = Array.isArray(data.rune_pages)
-        ? data.rune_pages[0]
-        : null;
-      const primaryStyleId =
-        (isRecord(runeRow) && typeof runeRow.primary_page_id === 'number'
-          ? runeRow.primary_page_id
-          : null) ??
-        (isRecord(runePage) && typeof runePage.primary_page_id === 'number'
-          ? runePage.primary_page_id
-          : null);
-      const secondaryStyleId =
-        (isRecord(runeRow) && typeof runeRow.secondary_page_id === 'number'
-          ? runeRow.secondary_page_id
-          : null) ??
-        (isRecord(runePage) && typeof runePage.secondary_page_id === 'number'
-          ? runePage.secondary_page_id
-          : null);
-
+      // 2. Runes — one entry per OP.GG rune PAGE (most-picked first).
+      //    `rune_pages` carries the page-level play/win/pick_rate the site's
+      //    rune widget shows; the concrete rune choices come from the page's
+      //    most-played build (`builds[0]`, shaped like a `runes[]` row).
+      //    Pages that can't be fully resolved are dropped rather than
+      //    failing the whole scrape.
       const resolveRunes = (ids: number[]): RuneInfo[] =>
         ids.flatMap((id) => {
           const info = runeInfo.get(id);
           return info ? [info] : [];
         });
 
-      const primary = resolveRunes(primaryIds);
-      const secondary = resolveRunes(secondaryIds);
-      const keystone = primary[0];
+      const pageRows = Array.isArray(data.rune_pages) ? data.rune_pages : [];
+      const runePages = pageRows.flatMap((page) => {
+        if (!isRecord(page)) return [];
+        const build = Array.isArray(page.builds) ? page.builds[0] : null;
+        if (!isRecord(build)) return [];
+        if (
+          typeof build.primary_page_id !== 'number' ||
+          typeof build.secondary_page_id !== 'number'
+        ) {
+          return [];
+        }
+        const pagePrimary = resolveRunes(numberArray(build.primary_rune_ids));
+        const pageSecondary = resolveRunes(
+          numberArray(build.secondary_rune_ids)
+        );
+        const pageKeystone = pagePrimary[0];
+        if (!pageKeystone || pagePrimary.length < 4) return [];
+        if (pageSecondary.length < 2) return [];
+        const play = typeof page.play === 'number' ? page.play : 0;
+        const win = typeof page.win === 'number' ? page.win : 0;
+        return [
+          {
+            primaryStyleId: build.primary_page_id,
+            secondaryStyleId: build.secondary_page_id,
+            keystone: pageKeystone,
+            primary: pagePrimary.slice(1),
+            secondary: pageSecondary,
+            shardKeys: numberArray(build.stat_mod_ids).flatMap((id) => {
+              const key = STAT_MOD_KEYS[id];
+              return key ? [key] : [];
+            }),
+            games: play,
+            winRate: play > 0 ? win / play : 0,
+            pickRate: typeof page.pick_rate === 'number' ? page.pick_rate : 0,
+          },
+        ];
+      });
+
+      const topPage = runePages[0];
+      if (!topPage) throw new Error('OP.GG runes missing');
+      const keystone = topPage.keystone;
 
       // 3. Items
       const coreRow = Array.isArray(data.core_items)
@@ -304,8 +325,6 @@ export const autoUpdateBuild = internalAction({
 
       // 5. Validate before overwriting anything (keep-last-good)
       if (!keystone) throw new Error('Keystone could not be resolved');
-      if (primary.length < 4) throw new Error('Primary runes incomplete');
-      if (secondary.length < 2) throw new Error('Secondary runes incomplete');
       if (coreItems.length < 2) throw new Error('Core items incomplete');
       if (skillPriority.length !== 3) {
         throw new Error('Skill priority incomplete');
@@ -322,16 +341,14 @@ export const autoUpdateBuild = internalAction({
         updatedAt: Date.now(),
         source: 'OP.GG · Ranked · EUW',
         runes: {
-          primaryStyleId,
-          secondaryStyleId,
+          primaryStyleId: topPage.primaryStyleId,
+          secondaryStyleId: topPage.secondaryStyleId,
           keystone,
-          primary: primary.slice(1),
-          secondary,
-          shardKeys: shardIds.flatMap((id) => {
-            const key = STAT_MOD_KEYS[id];
-            return key ? [key] : [];
-          }),
+          primary: topPage.primary,
+          secondary: topPage.secondary,
+          shardKeys: topPage.shardKeys,
         },
+        runePages,
         coreItems,
         boots:
           bootsId && itemNames.get(bootsId)

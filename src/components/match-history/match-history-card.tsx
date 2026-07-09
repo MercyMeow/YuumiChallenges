@@ -277,7 +277,7 @@ export function MatchHistoryCard({
   const streak = getRecentStreak();
 
   return (
-    <Card className="card-hover h-full border-purple-500/30 bg-black/20 backdrop-blur-md transition-all duration-300 hover:shadow-lg">
+    <Card className="h-full card-hover border-purple-500/30 bg-black/20 backdrop-blur-md transition-all duration-300 hover:shadow-lg">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">

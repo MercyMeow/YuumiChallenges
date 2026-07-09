@@ -101,7 +101,7 @@ export const PlayerCard = memo(
           <div className="flex items-center gap-3">
             <div className="relative">
               <ChampionIcon championId={participant.championName} size="lg" />
-              <div className="absolute -bottom-1 -right-1 rounded-full bg-black/80 px-1.5 text-xs font-bold text-white">
+              <div className="absolute -right-1 -bottom-1 rounded-full bg-black/80 px-1.5 text-xs font-bold text-white">
                 {participant.champLevel}
               </div>
             </div>

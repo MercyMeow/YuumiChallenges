@@ -11,12 +11,23 @@ crons.daily(
   internal.scraper.autoUpdateBuild
 );
 
-// High-elo Yuumi feed: fast game polling, rolling ladder sweep, and a daily
-// prune to the current season. See convex/highelo.ts.
+// High-elo Yuumi feed: game polling and season backfill each serve ONE
+// match-v5 cluster per run, rotating americas -> asia -> europe -> sea and
+// offset from each other by two slots, so the dev-tier Riot key's
+// per-cluster budget is never shared by two jobs. The ladder sweep only
+// touches per-platform hosts (independent buckets) and stays parallel.
+// See the rate-limit notes at the top of convex/highelo.ts.
 crons.interval(
   'poll high elo yuumi games',
   { minutes: 5 },
-  internal.highelo.pollRosterMatches
+  internal.highelo.pollRosterMatches,
+  {}
+);
+crons.interval(
+  'backfill season yuumi games',
+  { minutes: 5 },
+  internal.highelo.backfillSeason,
+  {}
 );
 crons.interval(
   'sweep high elo ladder',
@@ -27,12 +38,6 @@ crons.daily(
   'prune high elo feed',
   { hourUTC: 5, minuteUTC: 45 },
   internal.highelo.pruneOldGames
-);
-// Season history backfill for profile stats; dormant when caught up.
-crons.interval(
-  'backfill season yuumi games',
-  { minutes: 15 },
-  internal.highelo.backfillSeason
 );
 
 export default crons;

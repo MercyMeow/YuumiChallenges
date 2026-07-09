@@ -7,7 +7,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, LogOut, Layers, Users, Settings, FileText } from 'lucide-react';
+import {
+  Loader2,
+  LogOut,
+  Layers,
+  Users,
+  Settings,
+  FileText,
+} from 'lucide-react';
 
 export default function AdminDashboard() {
   const router = useRouter();

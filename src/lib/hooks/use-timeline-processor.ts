@@ -42,9 +42,8 @@ export function useLegacyTimelineProcessor() {
 
       setTimeout(async () => {
         try {
-          const { processPlayerItemTimeline } = await import(
-            '@/lib/utils/item-timeline-processor'
-          );
+          const { processPlayerItemTimeline } =
+            await import('@/lib/utils/item-timeline-processor');
           const result = processPlayerItemTimeline(timelineData, options);
 
           setProcessedTimeline(result);

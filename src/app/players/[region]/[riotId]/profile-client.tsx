@@ -1,15 +1,20 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from 'convex/react';
-import { Layers, Trophy, Users } from 'lucide-react';
+import { ChevronRight, Layers, Trophy, Users } from 'lucide-react';
 import { api } from '@/../convex/_generated/api';
 import { HextechPanel } from '@/components/ui/hextech-panel';
 import { DataDragonImage } from '@/components/ui/datadragon-image';
-import { RuneIcon } from '@/components/ui/rune-display';
+import {
+  RuneIcon,
+  RuneTreeIcon,
+  StatShardIcon,
+} from '@/components/ui/rune-display';
 import { ItemSlot } from '@/components/match-history/item-slots';
+import { SummonerSpell } from '@/components/match-history/summoner-spells';
 import { GameCard } from '@/components/highelo/game-card';
 import { HighEloTabs } from '@/components/highelo/high-elo-tabs';
 import { platformLabel } from '@/lib/highelo/regions';
@@ -23,22 +28,108 @@ const STYLE_NAMES: Record<number, string> = {
   8400: 'Resolve',
 };
 
-const SPELL_NAMES: Record<number, string> = {
-  1: 'Cleanse',
-  3: 'Exhaust',
-  4: 'Flash',
-  6: 'Ghost',
-  7: 'Heal',
-  11: 'Smite',
-  12: 'Teleport',
-  13: 'Clarity',
-  14: 'Ignite',
-  21: 'Barrier',
-  32: 'Snowball',
-};
-
 function gamesLabel(count: number): string {
   return count === 1 ? '1 game' : `${count} games`;
+}
+
+function GroupStats({ games, wins }: { games: number; wins: number }) {
+  return (
+    <span className="text-xs tracking-wide text-hx-gold/60">
+      {gamesLabel(games)} · {Math.round((wins / games) * 100)}% WR
+    </span>
+  );
+}
+
+/** Ordered completed-item purchases, onetricks-style A → B → C. */
+function BuildPathRow({
+  path,
+  games,
+  wins,
+}: {
+  path: number[];
+  games: number;
+  wins: number;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-1">
+        {path.map((itemId, i) => (
+          <Fragment key={`${itemId}-${i}`}>
+            {i > 0 && (
+              <ChevronRight
+                className="h-3.5 w-3.5 shrink-0 text-hx-gold/40"
+                aria-hidden
+              />
+            )}
+            <ItemSlot itemId={itemId} size="lg" />
+          </Fragment>
+        ))}
+      </div>
+      <GroupStats games={games} wins={wins} />
+    </div>
+  );
+}
+
+type RunePageGroup = {
+  keystoneId: number;
+  secondaryStyleId: number;
+  summonerSpells: number[];
+  games: number;
+  wins: number;
+  primaryRunes?: number[];
+  secondaryRunes?: number[];
+  statShards?: number[];
+};
+
+/**
+ * Full rune page + summoner spells. Rows ingested before the build-snapshot
+ * enrichment only carry the keystone and secondary style; they render the
+ * old compact form until the backfill patches them.
+ */
+function RunePageRow({ page }: { page: RunePageGroup }) {
+  const { secondaryRunes, statShards } = page;
+  const keystoneId = page.primaryRunes?.[0] ?? page.keystoneId;
+  const primaryMinors = page.primaryRunes?.slice(1) ?? [];
+  const full =
+    primaryMinors.length > 0 &&
+    secondaryRunes !== undefined &&
+    statShards !== undefined;
+
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <div className="flex items-center gap-1.5">
+        <RuneIcon runeId={keystoneId} size="md" variant="keystone" />
+        {primaryMinors.map((id) => (
+          <RuneIcon key={id} runeId={id} size="sm" />
+        ))}
+      </div>
+      {full && secondaryRunes && statShards ? (
+        <>
+          <div className="flex items-center gap-1.5 border-l border-hx-gold-dark/30 pl-4">
+            <RuneTreeIcon treeId={page.secondaryStyleId} size="sm" />
+            {secondaryRunes.map((id) => (
+              <RuneIcon key={id} runeId={id} size="sm" />
+            ))}
+          </div>
+          <div className="flex items-center gap-1 border-l border-hx-gold-dark/30 pl-4">
+            {statShards.map((id, i) => (
+              <StatShardIcon key={`${id}-${i}`} statShardId={id} size="md" />
+            ))}
+          </div>
+        </>
+      ) : (
+        <span className="text-sm text-hx-gold">
+          {STYLE_NAMES[page.secondaryStyleId] ?? 'Unknown'} secondary
+        </span>
+      )}
+      <div className="flex items-center gap-1 border-l border-hx-gold-dark/30 pl-4">
+        {page.summonerSpells.map((id) => (
+          <SummonerSpell key={id} spellId={id} size="md" />
+        ))}
+      </div>
+      <GroupStats games={page.games} wins={page.wins} />
+    </div>
+  );
 }
 
 function Shell({ children }: { children: ReactNode }) {
@@ -121,6 +212,9 @@ export function ProfileClient({ params }: { params: ProfileParams | null }) {
   }
 
   const { player } = profile;
+  // Deploy-skew guard: a client built with the new schema can briefly talk
+  // to a deployment whose profile query predates buildPaths.
+  const buildPaths = profile.buildPaths ?? [];
   const winrate =
     player.gamesCount > 0
       ? Math.round((player.wins / player.gamesCount) * 100)
@@ -179,58 +273,63 @@ export function ProfileClient({ params }: { params: ProfileParams | null }) {
         icon={<Layers className="h-4 w-4" aria-hidden />}
         className="mt-6"
       >
-        {profile.builds.length === 0 && profile.runePages.length === 0 ? (
+        {profile.builds.length === 0 &&
+        buildPaths.length === 0 &&
+        profile.runePages.length === 0 ? (
           <p className="py-6 text-center text-sm text-hx-gold/60">
             No build data yet — games are still being ingested.
           </p>
         ) : (
           <div className="space-y-4">
-            {profile.builds.map((build) => (
-              <div
-                key={build.items.join(',')}
-                className="flex flex-wrap items-center gap-3"
-              >
-                <div className="flex gap-1">
-                  {build.items.map((itemId, i) => (
-                    <ItemSlot
-                      key={`${itemId}-${i}`}
-                      itemId={itemId}
-                      size="lg"
-                    />
-                  ))}
-                </div>
-                <span className="text-xs tracking-wide text-hx-gold/60">
-                  {gamesLabel(build.games)} ·{' '}
-                  {Math.round((build.wins / build.games) * 100)}% WR
-                </span>
+            {buildPaths.length > 0 && (
+              <div className="space-y-3">
+                <div className="hex-label">Build Path</div>
+                {buildPaths.map((entry) => (
+                  <BuildPathRow
+                    key={entry.path.join(',')}
+                    path={entry.path}
+                    games={entry.games}
+                    wins={entry.wins}
+                  />
+                ))}
               </div>
-            ))}
-            {profile.runePages.length > 0 && (
-              <div className="space-y-3 border-t border-hx-gold-dark/30 pt-4">
-                {profile.runePages.map((page) => (
+            )}
+            {profile.builds.length > 0 && (
+              <div
+                className={
+                  buildPaths.length > 0
+                    ? 'space-y-3 border-t border-hx-gold-dark/30 pt-4'
+                    : 'space-y-3'
+                }
+              >
+                <div className="hex-label">Final Items</div>
+                {profile.builds.map((build) => (
                   <div
-                    key={`${page.keystoneId}-${page.secondaryStyleId}-${page.summonerSpells.join(',')}`}
+                    key={build.items.join(',')}
                     className="flex flex-wrap items-center gap-3"
                   >
-                    <RuneIcon
-                      runeId={page.keystoneId}
-                      size="md"
-                      variant="keystone"
-                    />
-                    <span className="text-sm text-hx-gold">
-                      {STYLE_NAMES[page.secondaryStyleId] ?? 'Unknown'}{' '}
-                      secondary
-                    </span>
-                    <span className="text-xs tracking-wide text-hx-gold/60">
-                      {page.summonerSpells
-                        .map((id) => SPELL_NAMES[id] ?? `Spell ${id}`)
-                        .join(' + ')}
-                    </span>
-                    <span className="text-xs tracking-wide text-hx-gold/60">
-                      {gamesLabel(page.games)} ·{' '}
-                      {Math.round((page.wins / page.games) * 100)}% WR
-                    </span>
+                    <div className="flex gap-1">
+                      {build.items.map((itemId, i) => (
+                        <ItemSlot
+                          key={`${itemId}-${i}`}
+                          itemId={itemId}
+                          size="lg"
+                        />
+                      ))}
+                    </div>
+                    <GroupStats games={build.games} wins={build.wins} />
                   </div>
+                ))}
+              </div>
+            )}
+            {profile.runePages.length > 0 && (
+              <div className="space-y-3 border-t border-hx-gold-dark/30 pt-4">
+                <div className="hex-label">Runes &amp; Summoners</div>
+                {profile.runePages.map((page) => (
+                  <RunePageRow
+                    key={`${(page.primaryRunes ?? [page.keystoneId]).join(',')}-${page.secondaryStyleId}-${page.summonerSpells.join(',')}`}
+                    page={page}
+                  />
                 ))}
               </div>
             )}

@@ -61,7 +61,7 @@ export function MatchEntry({ match, compact = false }: MatchEntryProps) {
     return (
       <Link href={`/match/${match.match_id}`} className="group block">
         <div
-          className={`flex items-center justify-between rounded-lg border-l-4 p-3 ${getWinColor(match.win)} cursor-pointer backdrop-blur-xs transition-all duration-200 hover:bg-white/10 group-hover:border-white/20`}
+          className={`flex items-center justify-between rounded-lg border-l-4 p-3 ${getWinColor(match.win)} cursor-pointer backdrop-blur-xs transition-all duration-200 group-hover:border-white/20 hover:bg-white/10`}
         >
           <div className="flex items-center space-x-3">
             <ChampionIcon championId={match.champion} size="sm" />
@@ -98,7 +98,7 @@ export function MatchEntry({ match, compact = false }: MatchEntryProps) {
   return (
     <Link href={`/match/${match.match_id}`} className="group block">
       <div
-        className={`rounded-lg border-l-4 p-4 ${getWinColor(match.win)} cursor-pointer border border-white/10 bg-black/20 backdrop-blur-md transition-all duration-200 hover:bg-white/10 group-hover:border-white/20`}
+        className={`rounded-lg border-l-4 p-4 ${getWinColor(match.win)} cursor-pointer border border-white/10 bg-black/20 backdrop-blur-md transition-all duration-200 group-hover:border-white/20 hover:bg-white/10`}
       >
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center space-x-4">

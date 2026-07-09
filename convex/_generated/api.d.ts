@@ -8,18 +8,18 @@
  * @module
  */
 
-import type * as auth from "../auth.js";
-import type * as crons from "../crons.js";
-import type * as guide from "../guide.js";
-import type * as highelo from "../highelo.js";
-import type * as scraper from "../scraper.js";
-import type * as seed from "../seed.js";
+import type * as auth from '../auth.js';
+import type * as crons from '../crons.js';
+import type * as guide from '../guide.js';
+import type * as highelo from '../highelo.js';
+import type * as scraper from '../scraper.js';
+import type * as seed from '../seed.js';
 
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
-} from "convex/server";
+} from 'convex/server';
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
@@ -40,7 +40,7 @@ declare const fullApi: ApiFromModules<{
  */
 export declare const api: FilterApi<
   typeof fullApi,
-  FunctionReference<any, "public">
+  FunctionReference<any, 'public'>
 >;
 
 /**
@@ -53,7 +53,7 @@ export declare const api: FilterApi<
  */
 export declare const internal: FilterApi<
   typeof fullApi,
-  FunctionReference<any, "internal">
+  FunctionReference<any, 'internal'>
 >;
 
 export declare const components: {};

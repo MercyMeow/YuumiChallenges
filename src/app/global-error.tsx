@@ -24,7 +24,7 @@ export default function GlobalError({
           </p>
           <button
             onClick={() => reset()}
-            className="hover:bg-yuumi-purple/90 inline-flex items-center rounded-md border border-transparent bg-yuumi-purple px-6 py-3 text-base font-medium text-white transition-all duration-300 focus:outline-hidden focus:ring-2 focus:ring-yuumi-purple focus:ring-offset-2"
+            className="inline-flex items-center rounded-md border border-transparent bg-yuumi-purple px-6 py-3 text-base font-medium text-white transition-all duration-300 hover:bg-yuumi-purple/90 focus:ring-2 focus:ring-yuumi-purple focus:ring-offset-2 focus:outline-hidden"
           >
             Try again
           </button>

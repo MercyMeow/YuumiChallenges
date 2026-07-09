@@ -7,6 +7,8 @@ const eslintConfig = [
   {
     ignores: [
       '.next/**',
+      '.open-next/**',
+      '.vercel/**',
       'out/**',
       'node_modules/**',
       'convex/_generated/**',

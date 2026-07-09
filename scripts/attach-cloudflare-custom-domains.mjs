@@ -8,7 +8,8 @@ import { resolve } from 'node:path';
 
 const ACCOUNT_ID =
   process.env.CLOUDFLARE_ACCOUNT_ID ?? '34ec904c07227ab237ed84e4a2043cd5';
-const ZONE_ID = process.env.CLOUDFLARE_ZONE_ID ?? '89daf611be1495f2e4605b464850b6ed';
+const ZONE_ID =
+  process.env.CLOUDFLARE_ZONE_ID ?? '89daf611be1495f2e4605b464850b6ed';
 const ZONE_NAME = 'yuumi.quest';
 const WORKER = 'yuumi-challenges';
 const HOSTNAMES = ['yuumi.quest', 'www.yuumi.quest'];
@@ -52,7 +53,7 @@ async function cf(path, { method = 'GET', body } = {}) {
 /** Delete proxied A/CNAME on apex/www that block Worker custom domains. */
 async function clearConflictingRecords(hostname) {
   const records = await cf(
-    `/zones/${ZONE_ID}/dns_records?per_page=100&type=A,CNAME`,
+    `/zones/${ZONE_ID}/dns_records?per_page=100&type=A,CNAME`
   );
   const name = hostname === ZONE_NAME ? ZONE_NAME : hostname;
   for (const rec of records) {

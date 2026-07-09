@@ -227,11 +227,7 @@ export type SupportItemTier = EvolutionStage;
  * Support item evolution chain types
  */
 export type SupportItemChainType =
-  | 'world_atlas'
-  | 'relic'
-  | 'steel'
-  | 'spectral_sickle'
-  | 'spectral_spellthief';
+  'world_atlas' | 'relic' | 'steel' | 'spectral_sickle' | 'spectral_spellthief';
 
 /**
  * Support item completion information
@@ -262,8 +258,10 @@ export interface SupportPlayerInfo {
   readonly [key: string]: unknown;
 }
 
-export interface SupportTimelineEvent
-  extends Pick<RawTimelineEvent, 'type' | 'timestamp' | 'participantId'> {
+export interface SupportTimelineEvent extends Pick<
+  RawTimelineEvent,
+  'type' | 'timestamp' | 'participantId'
+> {
   readonly itemId?: number | null;
   readonly [key: string]: unknown;
 }

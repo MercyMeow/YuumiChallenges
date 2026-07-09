@@ -7,6 +7,7 @@ import { useQuery } from 'convex/react';
 import { Crown } from 'lucide-react';
 import { api } from '@/../convex/_generated/api';
 import { HextechPanel, OrnateHeading } from '@/components/ui/hextech-panel';
+import { HextechSelect } from '@/components/highelo/hextech-select';
 import { HighEloTabs } from '@/components/highelo/high-elo-tabs';
 import { platformLabel, regionSlug } from '@/lib/highelo/regions';
 import { cn } from '@/lib/utils';
@@ -76,19 +77,15 @@ export function PlayersClient() {
       >
         {/* Filters */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <select
+          <HextechSelect
             value={region}
-            onChange={(e) => setRegion(e.target.value)}
-            className="rounded-sm border border-hx-gold-dark/40 bg-transparent px-2 py-1.5 text-xs tracking-wide text-hx-gold hex-card-inset"
-            aria-label="Filter by region"
-          >
-            <option value="all">All regions</option>
-            {regions.map((r) => (
-              <option key={r} value={r}>
-                {platformLabel(r)}
-              </option>
-            ))}
-          </select>
+            onValueChange={setRegion}
+            ariaLabel="Filter by region"
+            options={[
+              { value: 'all', label: 'All regions' },
+              ...regions.map((r) => ({ value: r, label: platformLabel(r) })),
+            ]}
+          />
           <button
             type="button"
             aria-pressed={minGamesOnly}

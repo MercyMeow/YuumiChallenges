@@ -104,9 +104,8 @@ export function useTimelineProcessor(): UseLegacyTimelineProcessorResult {
       setTimeout(async () => {
         try {
           // Use the legacy compatibility function
-          const { processPlayerItemTimeline } = await import(
-            '@/lib/utils/item-timeline-processor-new'
-          );
+          const { processPlayerItemTimeline } =
+            await import('@/lib/utils/item-timeline-processor-new');
 
           const result = processPlayerItemTimeline(timelineData, options);
           setLegacyResult(result);

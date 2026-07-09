@@ -6,8 +6,9 @@ import { Trophy } from 'lucide-react';
 import { api } from '@/../convex/_generated/api';
 import { HextechPanel, OrnateHeading } from '@/components/ui/hextech-panel';
 import { GameCard } from '@/components/highelo/game-card';
+import { HextechSelect } from '@/components/highelo/hextech-select';
 import { HighEloTabs } from '@/components/highelo/high-elo-tabs';
-import { platformLabel } from '@/lib/highelo/regions';
+import { MAJOR_PLATFORMS, platformLabel } from '@/lib/highelo/regions';
 import { useLivePatch } from '@/lib/hooks/use-live-patch';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +19,7 @@ type WinFilter = 'all' | 'wins' | 'losses';
 export function GamesClient() {
   const [limit, setLimit] = useState(PAGE_SIZE);
   const [region, setRegion] = useState('all');
+  const [showAllRegions, setShowAllRegions] = useState(false);
   const [patchFilter, setPatchFilter] = useState('all');
   const [winFilter, setWinFilter] = useState<WinFilter>('all');
   const games = useQuery(api.highelo.listGames, { limit });
@@ -44,8 +46,11 @@ export function GamesClient() {
   const shown = games ?? prevGames;
 
   const regions = useMemo(
-    () => [...new Set((shown ?? []).map((g) => g.platform))].sort(),
-    [shown]
+    () =>
+      [...new Set((shown ?? []).map((g) => g.platform))]
+        .filter((r) => showAllRegions || MAJOR_PLATFORMS.includes(r))
+        .sort(),
+    [shown, showAllRegions]
   );
   const patches = useMemo(
     () =>
@@ -59,12 +64,21 @@ export function GamesClient() {
     () =>
       (shown ?? []).filter(
         (g) =>
+          (showAllRegions || MAJOR_PLATFORMS.includes(g.platform)) &&
           (region === 'all' || g.platform === region) &&
           (patchFilter === 'all' || g.patch === patchFilter) &&
           (winFilter === 'all' || (winFilter === 'wins') === g.win)
       ),
-    [shown, region, patchFilter, winFilter]
+    [shown, region, showAllRegions, patchFilter, winFilter]
   );
+
+  const toggleAllRegions = (checked: boolean) => {
+    setShowAllRegions(checked);
+    // A minor region stays selectable only while "All regions" is on.
+    if (!checked && region !== 'all' && !MAJOR_PLATFORMS.includes(region)) {
+      setRegion('all');
+    }
+  };
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8 md:px-6">
@@ -73,7 +87,8 @@ export function GamesClient() {
       </OrnateHeading>
       <p className="mt-3 text-center text-xs tracking-wide text-hx-gold/60">
         Every Master+ solo queue Yuumi game across all regions on patch{' '}
-        {livePatch ?? '…'} and the one before · refreshed every 5 minutes
+        {livePatch ?? '…'} and the one before · refreshed around the clock,
+        region by region
       </p>
 
       <HighEloTabs />
@@ -90,32 +105,36 @@ export function GamesClient() {
       >
         {/* Filters */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <select
+          <HextechSelect
             value={region}
-            onChange={(e) => setRegion(e.target.value)}
-            className="rounded-sm border border-hx-gold-dark/40 bg-transparent px-2 py-1.5 text-xs tracking-wide text-hx-gold hex-card-inset"
-            aria-label="Filter by region"
-          >
-            <option value="all">All regions</option>
-            {regions.map((r) => (
-              <option key={r} value={r}>
-                {platformLabel(r)}
-              </option>
-            ))}
-          </select>
-          <select
+            onValueChange={setRegion}
+            ariaLabel="Filter by region"
+            options={[
+              {
+                value: 'all',
+                label: showAllRegions ? 'All regions' : 'Major regions',
+              },
+              ...regions.map((r) => ({ value: r, label: platformLabel(r) })),
+            ]}
+          />
+          <label className="flex cursor-pointer items-center gap-1.5 rounded-sm border border-hx-gold-dark/40 px-2.5 py-1.5 text-xs tracking-wide text-hx-gold/60 transition-colors hover:text-hx-gold has-checked:border-hx-gold has-checked:bg-hx-gold/10 has-checked:text-hx-gold-bright">
+            <input
+              type="checkbox"
+              checked={showAllRegions}
+              onChange={(e) => toggleAllRegions(e.target.checked)}
+              className="size-3.5 accent-hx-gold"
+            />
+            All regions
+          </label>
+          <HextechSelect
             value={patchFilter}
-            onChange={(e) => setPatchFilter(e.target.value)}
-            className="rounded-sm border border-hx-gold-dark/40 bg-transparent px-2 py-1.5 text-xs tracking-wide text-hx-gold hex-card-inset"
-            aria-label="Filter by patch"
-          >
-            <option value="all">All patches</option>
-            {patches.map((p) => (
-              <option key={p} value={p}>
-                Patch {p}
-              </option>
-            ))}
-          </select>
+            onValueChange={setPatchFilter}
+            ariaLabel="Filter by patch"
+            options={[
+              { value: 'all', label: 'All patches' },
+              ...patches.map((p) => ({ value: p, label: `Patch ${p}` })),
+            ]}
+          />
           <div className="flex gap-1">
             {(['all', 'wins', 'losses'] as const).map((value) => (
               <button
