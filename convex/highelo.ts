@@ -1029,11 +1029,15 @@ export const markBackfilled = internalMutation({
  *   npx convex run highelo:clearBackfillMarkers
  */
 export const clearBackfillMarkers = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    // Batched: patching the whole 8k+ roster in one mutation hits the
+    // transaction timeout. Re-run until it returns 0.
+    const limit = Math.min(Math.max(args.limit ?? 500, 1), 2000);
     const roster = await ctx.db.query('yuumiRoster').collect();
     let cleared = 0;
     for (const entry of roster) {
+      if (cleared >= limit) break;
       // Also reset rows with only partial progress (cursor but no marker)
       // so they re-scan from the top instead of resuming mid-history.
       // backfillScanned survives on purpose: it lets the probe bail skip
