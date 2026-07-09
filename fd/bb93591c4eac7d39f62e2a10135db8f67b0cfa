@@ -1,0 +1,19 @@
+src/providers/ConvexProvider.tsx
+  s_10726833d288df::t_3357f93eea82ff 9-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "fdbb93591c4eac7d39f62e2a10135db8f67b0cfa",
+  "prompts": {},
+  "sessions": {
+    "s_10726833d288df": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "42f63596-586d-4846-bf4b-7ee4c5128f6a",
+        "model": "unknown"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
