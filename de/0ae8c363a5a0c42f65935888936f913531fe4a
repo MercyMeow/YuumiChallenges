@@ -1,0 +1,19 @@
+convex/highelo.ts
+  s_10726833d288df::t_3a5d30c0d51bc4 1032-1036,1040
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "de0ae8c363a5a0c42f65935888936f913531fe4a",
+  "prompts": {},
+  "sessions": {
+    "s_10726833d288df": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "42f63596-586d-4846-bf4b-7ee4c5128f6a",
+        "model": "unknown"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
