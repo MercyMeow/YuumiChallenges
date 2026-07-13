@@ -40,4 +40,20 @@ crons.daily(
   internal.highelo.pruneOldGames
 );
 
+// Ladder meta stats & snapshots (convex/meta.ts): DB-only aggregation over
+// the games feed — no Riot API traffic, so the jobs above keep their full
+// per-cluster rate budgets.
+crons.hourly(
+  'compute yuumi meta stats',
+  { minuteUTC: 20 },
+  internal.meta.computeMetaStats,
+  {}
+);
+crons.daily(
+  'snapshot yuumi ladder',
+  { hourUTC: 4, minuteUTC: 50 },
+  internal.meta.snapshotRoster,
+  {}
+);
+
 export default crons;

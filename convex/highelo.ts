@@ -323,7 +323,7 @@ function parseCompletedItems(
 }
 
 /** True when patch `a` is strictly older than `b` ('major.minor' strings). */
-function isOlderPatch(a: string, b: string): boolean {
+export function isOlderPatch(a: string, b: string): boolean {
   const [aMajor = 0, aMinor = 0] = a.split('.').map(Number);
   const [bMajor = 0, bMinor = 0] = b.split('.').map(Number);
   return aMajor !== bMajor ? aMajor < bMajor : aMinor < bMinor;

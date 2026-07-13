@@ -261,6 +261,21 @@ export default defineSchema({
     .index('by_gameCreation', ['gameCreation'])
     .index('by_puuid', ['puuid']),
 
+  // Daily LP/games snapshots of ladder producers (players with counted
+  // games). Powers profile form sparklines and the weekly-climbers board;
+  // pruned after SNAPSHOT_RETENTION_MS (see convex/meta.ts).
+  rosterSnapshots: defineTable({
+    puuid: v.string(),
+    platform: v.string(),
+    tier: v.string(),
+    lp: v.number(),
+    gamesCount: v.number(),
+    wins: v.number(),
+    takenAt: v.number(), // ms epoch of the snapshot run
+  })
+    .index('by_puuid', ['puuid'])
+    .index('by_takenAt', ['takenAt']),
+
   // Pending mastery checks from the last ladder refresh (rolling sweep).
   sweepQueue: defineTable({
     platform: v.string(),
