@@ -5,10 +5,17 @@ import Image from 'next/image';
 import { Swords } from 'lucide-react';
 import type { Doc } from '@/../convex/_generated/dataModel';
 import { DataDragonImage } from '@/components/ui/datadragon-image';
+import { ItemSlot } from '@/components/match-history/item-slots';
+import { SummonerSpell } from '@/components/match-history/summoner-spells';
+import { RuneIcon } from '@/components/ui/rune-display';
 import { platformLabel } from '@/lib/highelo/regions';
 import { cn } from '@/lib/utils';
 
 type YuumiGame = Doc<'yuumiGames'>;
+
+// Trinkets/wards are dropped from the compact build strip — they aren't
+// part of the item build onetricks-style rows care about.
+const TRINKET_ITEM_IDS = new Set([3340, 3363, 3364]);
 
 export function timeAgo(timestamp: number): string {
   const minutes = Math.floor((Date.now() - timestamp) / 60_000);
@@ -25,11 +32,29 @@ export function formatDuration(seconds: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-export function GameCard({ game }: { game: YuumiGame }) {
+export function GameCard({
+  game,
+  showBuild = false,
+}: {
+  game: YuumiGame;
+  /** Render a compact keystone + summoners + items strip below the row.
+   *  Off by default so the /games feed keeps its existing appearance. */
+  showBuild?: boolean;
+}) {
   const kda =
     game.deaths === 0
       ? 'Perfect'
       : ((game.kills + game.assists) / game.deaths).toFixed(1);
+
+  // Per-game build snapshot — every field is optional (pre-enrichment rows
+  // lack it), so guard each part and hide the strip when nothing is present.
+  const keystoneId = game.primaryRunes?.[0] || game.keystoneId || undefined;
+  const spells = game.summonerSpells ?? [];
+  const buildItems = (game.items ?? []).filter(
+    (id) => id !== 0 && !TRINKET_ITEM_IDS.has(id)
+  );
+  const hasBuild =
+    keystoneId !== undefined || spells.length > 0 || buildItems.length > 0;
 
   return (
     <Link
@@ -118,6 +143,38 @@ export function GameCard({ game }: { game: YuumiGame }) {
           </span>
         </div>
       </div>
+
+      {/* Compact build strip — opt-in (profile Recent Games), skipped when
+          the row carries no build snapshot. */}
+      {showBuild && hasBuild && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-hx-gold-dark/30 px-3 pt-2.5 pb-3 sm:px-4">
+          {(keystoneId !== undefined || spells.length > 0) && (
+            <div className="flex items-center gap-1">
+              {keystoneId !== undefined && (
+                <RuneIcon runeId={keystoneId} size="sm" variant="keystone" />
+              )}
+              {spells.map((spellId, i) => (
+                <SummonerSpell
+                  key={`spell-${spellId}-${i}`}
+                  spellId={spellId}
+                  size="sm"
+                />
+              ))}
+            </div>
+          )}
+          {buildItems.length > 0 && (
+            <div className="flex items-center gap-1 border-l border-hx-gold-dark/30 pl-3">
+              {buildItems.map((itemId, i) => (
+                <ItemSlot
+                  key={`item-${itemId}-${i}`}
+                  itemId={itemId}
+                  size="sm"
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </Link>
   );
 }

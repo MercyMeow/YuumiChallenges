@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Crown,
   Flame,
+  History,
   Layers,
   ShieldCheck,
   Sparkles,
@@ -34,11 +35,12 @@ import {
 } from '@/components/ui/rune-display';
 import { ItemSlot } from '@/components/match-history/item-slots';
 import { SummonerSpell } from '@/components/match-history/summoner-spells';
-import { GameCard } from '@/components/highelo/game-card';
+import { GameCard, timeAgo } from '@/components/highelo/game-card';
 import { HighEloTabs } from '@/components/highelo/high-elo-tabs';
 import { platformLabel } from '@/lib/highelo/regions';
 import { parseMetaStats, winratePct } from '@/lib/highelo/meta-stats';
 import { writeLastViewedProfile } from '@/lib/highelo/last-profile';
+import { cn } from '@/lib/utils';
 import type { ProfileParams } from './profile-data';
 
 const STYLE_NAMES: Record<number, string> = {
@@ -51,6 +53,21 @@ const STYLE_NAMES: Record<number, string> = {
 
 function gamesLabel(count: number): string {
   return count === 1 ? '1 game' : `${count} games`;
+}
+
+/** Winrate text tone — emerald above ~52%, red below ~48%, gold between
+ *  (self-contained mirror of the Meta Report's scale). */
+function winrateTone(pct: number): string {
+  if (pct >= 52) return 'text-emerald-300';
+  if (pct <= 48) return 'text-red-300';
+  return 'text-hx-gold';
+}
+
+/** Winrate bar-fill tone, paired with {@link winrateTone}. */
+function barTone(pct: number): string {
+  if (pct >= 52) return 'bg-emerald-400/70';
+  if (pct <= 48) return 'bg-red-400/60';
+  return 'bg-hx-gold/70';
 }
 
 function GroupStats({ games, wins }: { games: number; wins: number }) {
@@ -404,8 +421,11 @@ export function ProfileClient({ params }: { params: ProfileParams | null }) {
 
   const { player } = profile;
   // Deploy-skew guard: a client built with the new schema can briefly talk
-  // to a deployment whose profile query predates buildPaths.
+  // to a deployment whose profile query predates these fields — treat every
+  // newly-added field as possibly-undefined and degrade gracefully.
   const buildPaths = profile.buildPaths ?? [];
+  const patchSplits = profile.patchSplits ?? [];
+  const records = profile.records ?? null;
   const winrate =
     player.gamesCount > 0
       ? Math.round((player.wins / player.gamesCount) * 100)
@@ -419,6 +439,8 @@ export function ProfileClient({ params }: { params: ProfileParams | null }) {
         ).toFixed(2);
   const showPosition =
     typeof player.position === 'number' && player.position > 0;
+  const showRegionPosition =
+    typeof player.regionPosition === 'number' && player.regionPosition > 0;
   const winrateDelta =
     ladderWinrate !== null && player.gamesCount >= 20
       ? winrate - ladderWinrate
@@ -456,6 +478,12 @@ export function ProfileClient({ params }: { params: ProfileParams | null }) {
           <Stat label="LP" value={player.lp} />
           {showPosition && (
             <Stat label="Yuumi worldwide" value={`#${player.position}`} />
+          )}
+          {showRegionPosition && (
+            <Stat
+              label={`In ${platformLabel(player.platform)}`}
+              value={`#${player.regionPosition}`}
+            />
           )}
           <Stat
             label={`${player.gamesCount} games`}
@@ -511,6 +539,92 @@ export function ProfileClient({ params }: { params: ProfileParams | null }) {
             <span>
               {shortDate(lastSnap.takenAt)} · {lastSnap.lp} LP
             </span>
+          </div>
+        </HextechPanel>
+      )}
+
+      {/* Season Journey — per-patch winrate splits, newest patch first.
+          Hidden (empty array) against a deployment that predates patchSplits. */}
+      {patchSplits.length > 0 && (
+        <HextechPanel
+          title="Season Journey"
+          icon={<History className="h-4 w-4" aria-hidden />}
+          className="mt-6"
+        >
+          <div className="space-y-2">
+            {patchSplits.map((split) => {
+              const pct = winratePct(split);
+              return (
+                <div key={split.patch} className="flex items-center gap-3">
+                  <span className="w-12 shrink-0 text-xs tracking-wide text-hx-gold/70 tabular-nums">
+                    {split.patch}
+                  </span>
+                  <div className="h-2 flex-1 overflow-hidden rounded-sm bg-hx-black/60">
+                    <div
+                      className={cn('h-full', barTone(pct))}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <span
+                    className={cn(
+                      'w-9 shrink-0 text-right text-sm tabular-nums',
+                      winrateTone(pct)
+                    )}
+                  >
+                    {pct}%
+                  </span>
+                  <span className="w-20 shrink-0 text-right text-[10px] tracking-wide text-hx-gold/40">
+                    {gamesLabel(split.games)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </HextechPanel>
+      )}
+
+      {/* Records — season highlights; skipped entirely when the deployment
+          predates the records field, or the player has no wins yet. */}
+      {records && (records.longestWinStreak > 0 || records.bestGame) && (
+        <HextechPanel
+          title="Records"
+          icon={<Trophy className="h-4 w-4" aria-hidden />}
+          className="mt-6"
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            {records.longestWinStreak > 0 && (
+              <div className="flex items-center gap-3 rounded-sm px-3 py-3 hex-card-inset">
+                <Flame className="h-6 w-6 shrink-0 text-hx-gold" aria-hidden />
+                <div className="min-w-0">
+                  <div className="hex-title text-lg text-hx-gold-bright">
+                    {records.longestWinStreak}
+                    {records.longestWinStreak === 1 ? ' win' : ' wins'}
+                  </div>
+                  <div className="mt-0.5 hex-label">Longest win streak</div>
+                </div>
+              </div>
+            )}
+            {records.bestGame && (
+              <Link
+                href={`/match/${records.bestGame.matchId}`}
+                className="flex items-center gap-3 rounded-sm px-3 py-3 hex-card-inset transition-colors hover:border-hx-gold"
+              >
+                <Sparkles
+                  className="h-6 w-6 shrink-0 text-hx-gold"
+                  aria-hidden
+                />
+                <div className="min-w-0">
+                  <div className="hex-title text-lg text-hx-gold-bright">
+                    {records.bestGame.kills} / {records.bestGame.deaths} /{' '}
+                    {records.bestGame.assists}
+                  </div>
+                  <div className="mt-0.5 text-[11px] tracking-wide text-hx-gold/60">
+                    Best game · {records.bestGame.patch} ·{' '}
+                    {timeAgo(records.bestGame.gameCreation)}
+                  </div>
+                </div>
+              </Link>
+            )}
           </div>
         </HextechPanel>
       )}
@@ -632,7 +746,7 @@ export function ProfileClient({ params }: { params: ProfileParams | null }) {
         ) : (
           <div className="space-y-2">
             {profile.recentGames.map((game) => (
-              <GameCard key={game._id} game={game} />
+              <GameCard key={game._id} game={game} showBuild />
             ))}
           </div>
         )}
