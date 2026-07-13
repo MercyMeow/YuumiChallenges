@@ -1,15 +1,13 @@
 /**
  * Match Header Component
- * Displays match metadata: game mode, duration, result, and match ID
- * Extracted from match details page
- * Memoized to prevent re-renders when props haven't changed
+ * Hextech plate with game mode, duration, result, and match ID.
+ * Memoized to prevent re-renders when props haven't changed.
  */
 
 import { memo } from 'react';
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Clock, Gamepad2 } from 'lucide-react';
+import { Clock, Swords } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { ExtendedMatchData, ExtendedMatchTeam } from './types';
 import { formatDuration } from './utils';
 
@@ -31,48 +29,43 @@ export const MatchHeader = memo(function MatchHeader({
   redTeamData,
 }: MatchHeaderProps) {
   return (
-    <Card className="border border-white/10 bg-black/20 backdrop-blur-md">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
-              <Gamepad2 className="h-6 w-6" />
-              Enhanced Match Details
-            </CardTitle>
-            <div className="mt-2 flex items-center gap-4 text-white/60">
-              <Badge
-                variant="outline"
-                className={`${gameModeColor} border-current`}
-              >
-                {gameMode}
-              </Badge>
-              <div className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                {formatDuration(matchData.info.gameDuration)}
-              </div>
-              <span>
-                {formatDistanceToNow(new Date(matchData.info.gameCreation), {
-                  addSuffix: true,
-                })}
+    <section className="hex-card-elevated hex-corners relative rounded-sm px-4 py-4 sm:px-6 sm:py-5">
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+        <div className="min-w-0">
+          <h1 className="flex items-center gap-3 hex-title text-xl text-hx-gold-bright sm:text-2xl">
+            <Swords className="h-5 w-5 shrink-0 text-hx-gold" aria-hidden />
+            Match Details
+          </h1>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className={cn('hex-chip', gameModeColor)}>{gameMode}</span>
+            <span className="hex-chip">
+              <Clock className="h-3 w-3" aria-hidden />
+              {formatDuration(matchData.info.gameDuration)}
+            </span>
+            {blueTeamData?.win && (
+              <span className="hex-chip border-sky-400/50 text-sky-300">
+                Blue Victory
               </span>
-              {blueTeamData?.win && (
-                <Badge className="border-blue-500/30 bg-blue-500/20 text-blue-400">
-                  Blue Victory
-                </Badge>
-              )}
-              {redTeamData?.win && (
-                <Badge className="border-red-500/30 bg-red-500/20 text-red-400">
-                  Red Victory
-                </Badge>
-              )}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-sm text-white/60">Match ID</div>
-            <div className="font-mono text-sm text-white">{matchId}</div>
+            )}
+            {redTeamData?.win && (
+              <span className="hex-chip border-red-400/50 text-red-300">
+                Red Victory
+              </span>
+            )}
+            <span className="text-xs tracking-wide text-hx-gold/60">
+              {formatDistanceToNow(new Date(matchData.info.gameCreation), {
+                addSuffix: true,
+              })}
+            </span>
           </div>
         </div>
-      </CardHeader>
-    </Card>
+        <div className="min-w-0">
+          <div className="hex-label">Match ID</div>
+          <div className="mt-0.5 truncate font-mono text-xs text-hx-parchment/80">
+            {matchId}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 });

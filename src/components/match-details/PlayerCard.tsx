@@ -1,12 +1,10 @@
 /**
  * Player Card Component
- * Displays detailed player statistics in a match
- * Extracted from match details page
+ * One scoreboard row inside a team panel: identity, KDA, stat blocks,
+ * items and runes. Wraps instead of overflowing on narrow viewports.
  */
 
 import { memo } from 'react';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import {
   Tooltip,
   TooltipContent,
@@ -21,6 +19,14 @@ import { GitCompare, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExtendedMatchData, TeamTotals } from './types';
 
+const POSITION_LABELS: Record<string, string> = {
+  TOP: 'Top',
+  JUNGLE: 'Jungle',
+  MIDDLE: 'Mid',
+  BOTTOM: 'Bot',
+  UTILITY: 'Support',
+};
+
 interface PlayerCardProps {
   participant: DetailedMatchParticipant;
   teamColor: 'blue' | 'red';
@@ -33,6 +39,56 @@ interface PlayerCardProps {
   getKDAColor: (kills: number, deaths: number, assists: number) => string;
   formatNumber: (num: number) => string;
 }
+
+/** Compact centered stat with an optional share-of-team meter. */
+function StatBlock({
+  value,
+  label,
+  valueClassName,
+  share,
+}: {
+  value: string | number;
+  label: string;
+  valueClassName: string;
+  share?: number;
+}) {
+  return (
+    <div className="w-16 shrink-0 text-center">
+      <div className={cn('text-sm font-bold', valueClassName)}>{value}</div>
+      <div className="text-[10px] tracking-widest text-hx-gold/50 uppercase">
+        {label}
+      </div>
+      {share !== undefined && (
+        <div className="mx-auto mt-1 h-0.5 w-12 overflow-hidden rounded-full bg-white/10">
+          <div
+            className={cn('h-full bg-current', valueClassName)}
+            style={{ width: `${Math.min(100, Math.max(0, share))}%` }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatTooltipRow({
+  label,
+  value,
+  valueClassName,
+}: {
+  label: string;
+  value: string | number;
+  valueClassName: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-hx-parchment/60">{label}</span>
+      <span className={cn('font-semibold', valueClassName)}>{value}</span>
+    </div>
+  );
+}
+
+const STAT_TOOLTIP_CLASS =
+  'border-hx-gold-dark/60 bg-hx-black/95 text-hx-parchment';
 
 export const PlayerCard = memo(
   ({
@@ -47,11 +103,9 @@ export const PlayerCard = memo(
     getKDAColor,
     formatNumber,
   }: PlayerCardProps) => {
-    const isSelected =
-      selectedPlayer === matchData.info.participants.indexOf(participant);
-    const isComparing =
-      comparePlayer === matchData.info.participants.indexOf(participant);
     const playerIndex = matchData.info.participants.indexOf(participant);
+    const isSelected = selectedPlayer === playerIndex;
+    const isComparing = comparePlayer === playerIndex;
 
     const items = [
       participant.item0,
@@ -69,7 +123,7 @@ export const PlayerCard = memo(
             (participant.kills + participant.assists) /
             participant.deaths
           ).toFixed(2)
-        : (participant.kills + participant.assists).toFixed(0);
+        : 'Perfect';
 
     const killParticipation =
       teamTotals.kills > 0
@@ -78,261 +132,244 @@ export const PlayerCard = memo(
           )
         : 0;
 
+    const minutes = Math.max(1, matchData.info.gameDuration / 60);
+    const cs =
+      participant.totalMinionsKilled + participant.neutralMinionsKilled;
+    const damageShare =
+      teamTotals.damage > 0
+        ? (participant.totalDamageDealtToChampions / teamTotals.damage) * 100
+        : 0;
+    const goldShare =
+      teamTotals.gold > 0
+        ? (participant.goldEarned / teamTotals.gold) * 100
+        : 0;
+
+    const displayName =
+      participant.riotIdGameName && participant.riotIdTagline
+        ? participant.riotIdGameName
+        : participant.summonerName;
+    const position =
+      POSITION_LABELS[participant.individualPosition] ??
+      participant.individualPosition;
+
+    const keystone = participant.perks?.styles?.[0]?.selections?.[0];
+    const statPerks = participant.perks?.statPerks;
+
     return (
       <div
         className={cn(
-          'cursor-pointer rounded-lg border p-4 transition-all',
+          'relative cursor-pointer rounded-sm border-l-2 p-3 hex-card-inset transition-all duration-200',
           teamColor === 'blue'
-            ? 'border-blue-500/20 bg-blue-500/5'
-            : 'border-red-500/20 bg-red-500/5',
-          isSelected && 'ring-2 ring-purple-500',
-          isComparing && 'ring-2 ring-yellow-500',
-          'hover:bg-opacity-40'
+            ? 'border-l-sky-400/70 hover:border-l-sky-300'
+            : 'border-l-red-400/60 hover:border-l-red-300',
+          isSelected && 'ring-2 ring-hx-magic',
+          isComparing && 'ring-2 ring-hx-gold'
         )}
         onClick={() => {
-          if (isSelected) {
-            setSelectedPlayer(null);
-          } else {
-            setSelectedPlayer(playerIndex);
-          }
+          setSelectedPlayer(isSelected ? null : playerIndex);
         }}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <ChampionIcon championId={participant.championName} size="lg" />
-              <div className="absolute -right-1 -bottom-1 rounded-full bg-black/80 px-1.5 text-xs font-bold text-white">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+          {/* Identity: champion, spells, name */}
+          <div className="flex min-w-0 flex-1 basis-52 items-center gap-2.5">
+            <div className="relative shrink-0">
+              <ChampionIcon
+                championId={participant.championName}
+                size="md"
+                className="rounded-sm border border-hx-gold-dark/50"
+              />
+              <div className="absolute -right-1.5 -bottom-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border border-hx-gold-dark/70 bg-hx-black px-1 text-[10px] font-bold text-hx-gold-bright">
                 {participant.champLevel}
               </div>
             </div>
-            <div>
-              <div className="flex items-center gap-2 font-medium text-white">
-                {participant.riotIdGameName && participant.riotIdTagline
-                  ? `${participant.riotIdGameName}#${participant.riotIdTagline}`
-                  : participant.summonerName}
-              </div>
-              <div className="text-sm text-white/60">
-                {participant.championName} • {participant.individualPosition}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-6">
-            {/* KDA & Stats */}
-            <div className="text-center">
-              <div
-                className={`text-lg font-bold ${getKDAColor(participant.kills, participant.deaths, participant.assists)}`}
-              >
-                {participant.kills}/{participant.deaths}/{participant.assists}
-              </div>
-              <div className="text-xs text-white/60">
-                {kda} KDA • {killParticipation}% KP
-              </div>
-            </div>
-
-            {/* Damage (hover for DPM and % team damage) */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="cursor-help touch-manipulation text-center">
-                  <div className="font-semibold text-orange-400">
-                    {formatNumber(participant.totalDamageDealtToChampions)}
-                  </div>
-                  <div className="text-xs text-white/60">Damage</div>
-                  <Progress
-                    value={
-                      teamTotals.damage > 0
-                        ? (participant.totalDamageDealtToChampions /
-                            teamTotals.damage) *
-                          100
-                        : 0
-                    }
-                    className="mt-1 h-1 w-16"
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="border-orange-500/30 bg-black/85 text-white">
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-white/70">DPM</span>
-                    <span className="font-semibold text-orange-300">
-                      {Math.round(
-                        participant.challenges?.damagePerMinute ??
-                          participant.totalDamageDealtToChampions /
-                            Math.max(1, matchData.info.gameDuration / 60)
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-white/70">% Team Damage</span>
-                    <span className="font-semibold text-blue-300">
-                      {teamTotals.damage > 0
-                        ? Math.round(
-                            (participant.totalDamageDealtToChampions /
-                              teamTotals.damage) *
-                              100
-                          )
-                        : participant.challenges?.teamDamagePercentage
-                          ? Math.round(
-                              participant.challenges.teamDamagePercentage * 100
-                            )
-                          : 0}
-                      %
-                    </span>
-                  </div>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-
-            {/* Gold (hover for GPM) */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="cursor-help touch-manipulation text-center">
-                  <div className="font-semibold text-yellow-400">
-                    {formatNumber(participant.goldEarned)}
-                  </div>
-                  <div className="text-xs text-white/60">Gold</div>
-                  <Progress
-                    value={
-                      teamTotals.gold > 0
-                        ? (participant.goldEarned / teamTotals.gold) * 100
-                        : 0
-                    }
-                    className="mt-1 h-1 w-16"
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="border-yellow-500/30 bg-black/85 text-white">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-white/70">GPM</span>
-                  <span className="font-semibold text-yellow-300">
-                    {Math.round(
-                      participant.goldEarned /
-                        Math.max(1, matchData.info.gameDuration / 60)
-                    )}
-                  </span>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-
-            {/* CS */}
-            <div className="text-center">
-              <div className="font-semibold text-purple-400">
-                {participant.totalMinionsKilled +
-                  participant.neutralMinionsKilled}
-              </div>
-              <div className="text-xs text-white/60">
-                CS (
-                {(
-                  (participant.totalMinionsKilled +
-                    participant.neutralMinionsKilled) /
-                  (matchData.info.gameDuration / 60)
-                ).toFixed(1)}
-                /m)
-              </div>
-            </div>
-
-            {/* Vision (hover for VPM and Pink wards purchased) */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="cursor-help touch-manipulation text-center">
-                  <div className="font-semibold text-pink-400">
-                    {participant.visionScore}
-                  </div>
-                  <div className="text-xs text-white/60">Vision</div>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="border-pink-500/30 bg-black/85 text-white">
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-white/70">Vision / min</span>
-                    <span className="font-semibold text-pink-300">
-                      {(
-                        participant.visionScore /
-                        Math.max(1, matchData.info.gameDuration / 60)
-                      ).toFixed(1)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-white/70">
-                      Pink wards (purchased)
-                    </span>
-                    <span className="font-semibold text-purple-300">
-                      {typeof participant.visionWardsBoughtInGame === 'number'
-                        ? participant.visionWardsBoughtInGame
-                        : 0}
-                    </span>
-                  </div>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-
-            {/* Items - 3x2 grid + right-side trinket, larger slots */}
-            <ItemSlots items={items} size="lg" gridLayout />
-
-            {/* Summoner Spells - vertical, larger */}
             <SummonerSpells
               spell1Id={participant.summoner1Id}
               spell2Id={participant.summoner2Id}
-              size="lg"
+              size="sm"
               orientation="vertical"
+              className="shrink-0"
             />
-
-            {/* Runes compact */}
-            {participant.perks?.styles?.[0]?.selections?.[0] &&
-              participant.perks?.statPerks && (
-                <div className="flex items-center gap-2">
-                  <RuneIcon
-                    runeId={participant.perks.styles[0].selections[0].perk}
-                    size="minor28"
-                    variant="keystone"
-                  />
-                  <div className="flex items-center gap-1">
-                    <StatShardIcon
-                      statShardId={participant.perks.statPerks.offense}
-                      size="shard24"
-                    />
-                    <StatShardIcon
-                      statShardId={participant.perks.statPerks.flex}
-                      size="shard24"
-                    />
-                    <StatShardIcon
-                      statShardId={participant.perks.statPerks.defense}
-                      size="shard24"
-                    />
-                  </div>
-                </div>
-              )}
-
-            {/* Actions */}
-            <div className="flex gap-2">
-              {!isComparing && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setComparePlayer(playerIndex);
-                  }}
-                  className="text-xs"
-                >
-                  <GitCompare className="h-3 w-3" />
-                </Button>
-              )}
-              {isComparing && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setComparePlayer(null);
-                  }}
-                  className="text-xs"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              )}
+            <div className="min-w-0">
+              <div className="truncate text-sm font-semibold text-hx-parchment">
+                {displayName}
+                {participant.riotIdTagline && (
+                  <span className="ml-1 text-xs font-normal text-hx-gold/50">
+                    #{participant.riotIdTagline}
+                  </span>
+                )}
+              </div>
+              <div className="truncate text-[11px] tracking-wide text-hx-gold/60">
+                {participant.championName} · {position}
+              </div>
             </div>
           </div>
+
+          {/* KDA */}
+          <div className="w-24 shrink-0 text-center">
+            <div
+              className={cn(
+                'text-sm font-bold',
+                getKDAColor(
+                  participant.kills,
+                  participant.deaths,
+                  participant.assists
+                )
+              )}
+            >
+              {participant.kills}/{participant.deaths}/{participant.assists}
+            </div>
+            <div className="text-[10px] tracking-widest text-hx-gold/50 uppercase">
+              {kda} KDA · {killParticipation}% KP
+            </div>
+          </div>
+
+          {/* Damage (hover for DPM and % team damage) */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="cursor-help touch-manipulation">
+                <StatBlock
+                  value={formatNumber(participant.totalDamageDealtToChampions)}
+                  label="Damage"
+                  valueClassName="text-orange-300"
+                  share={damageShare}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className={STAT_TOOLTIP_CLASS}>
+              <div className="space-y-1">
+                <StatTooltipRow
+                  label="DPM"
+                  value={Math.round(
+                    participant.challenges?.damagePerMinute ??
+                      participant.totalDamageDealtToChampions / minutes
+                  )}
+                  valueClassName="text-orange-300"
+                />
+                <StatTooltipRow
+                  label="% Team Damage"
+                  value={`${Math.round(damageShare)}%`}
+                  valueClassName="text-orange-300"
+                />
+              </div>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Gold (hover for GPM) */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="cursor-help touch-manipulation">
+                <StatBlock
+                  value={formatNumber(participant.goldEarned)}
+                  label="Gold"
+                  valueClassName="text-hx-gold-bright"
+                  share={goldShare}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className={STAT_TOOLTIP_CLASS}>
+              <StatTooltipRow
+                label="GPM"
+                value={Math.round(participant.goldEarned / minutes)}
+                valueClassName="text-hx-gold-bright"
+              />
+            </TooltipContent>
+          </Tooltip>
+
+          {/* CS */}
+          <StatBlock
+            value={cs}
+            label={`CS ${(cs / minutes).toFixed(1)}/m`}
+            valueClassName="text-hx-parchment"
+          />
+
+          {/* Vision (hover for VPM and pink wards purchased) */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="cursor-help touch-manipulation">
+                <StatBlock
+                  value={participant.visionScore}
+                  label="Vision"
+                  valueClassName="text-hx-magic-bright"
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className={STAT_TOOLTIP_CLASS}>
+              <div className="space-y-1">
+                <StatTooltipRow
+                  label="Vision / min"
+                  value={(participant.visionScore / minutes).toFixed(1)}
+                  valueClassName="text-hx-magic-bright"
+                />
+                <StatTooltipRow
+                  label="Pink wards (purchased)"
+                  value={
+                    typeof participant.visionWardsBoughtInGame === 'number'
+                      ? participant.visionWardsBoughtInGame
+                      : 0
+                  }
+                  valueClassName="text-hx-magic-bright"
+                />
+              </div>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Items + runes */}
+          <div className="flex shrink-0 items-center gap-3">
+            <ItemSlots items={items} size="md" gridLayout />
+            {keystone && statPerks && (
+              <div className="flex items-center gap-1.5">
+                <RuneIcon
+                  runeId={keystone.perk}
+                  size="minor28"
+                  variant="keystone"
+                />
+                <div className="flex items-center gap-0.5">
+                  <StatShardIcon
+                    statShardId={statPerks.offense}
+                    size="shard24"
+                  />
+                  <StatShardIcon statShardId={statPerks.flex} size="shard24" />
+                  <StatShardIcon
+                    statShardId={statPerks.defense}
+                    size="shard24"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Compare toggle */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label={
+                  isComparing
+                    ? `Stop comparing ${displayName}`
+                    : `Compare ${displayName}`
+                }
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setComparePlayer(isComparing ? null : playerIndex);
+                }}
+                className={cn(
+                  'ml-auto flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border transition-colors',
+                  isComparing
+                    ? 'border-hx-gold bg-hx-gold/15 text-hx-gold-bright'
+                    : 'border-hx-gold-dark/50 text-hx-gold/60 hover:border-hx-gold hover:text-hx-gold-bright'
+                )}
+              >
+                {isComparing ? (
+                  <X className="h-3.5 w-3.5" />
+                ) : (
+                  <GitCompare className="h-3.5 w-3.5" />
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className={STAT_TOOLTIP_CLASS}>
+              {isComparing ? 'Stop comparing' : 'Compare this player'}
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
     );
