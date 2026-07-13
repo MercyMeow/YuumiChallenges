@@ -1,0 +1,30 @@
+README.md
+  s_9f52681d48915f::t_06069f4faea80e 49
+  s_9f52681d48915f::t_526b0052f4ac46 174,176,181
+  s_9f52681d48915f::t_66a4ce9d2a00f7 233-235
+  s_9f52681d48915f::t_bb00d300e32e03 97-120
+  s_9f52681d48915f::t_740b0fc38f9bb4 249,252
+  s_9f52681d48915f::t_7c2c83b73c6a1d 284
+  s_9f52681d48915f::t_1f15106bf406cf 152,157,160-162
+CLAUDE.md
+  s_9f52681d48915f::t_0d01352ba0dd13 14-15
+  s_9f52681d48915f::t_38b12e61f7dd30 7
+  s_9f52681d48915f::t_aa692b1a85e171 16
+  s_9f52681d48915f::t_42bbceb1874b8c 40,78-80,84,86,129-133,200-202,212,272-273,289-291,371-372,378,381,409
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "10d8988154c6d897bf1e1b3b103a292cc84796a0",
+  "prompts": {},
+  "sessions": {
+    "s_9f52681d48915f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "412ca2c9-8323-4aa4-9c0b-2cd82ddf690e",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
