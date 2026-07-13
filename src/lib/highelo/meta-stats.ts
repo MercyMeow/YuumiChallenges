@@ -17,6 +17,16 @@ export type RegionStat = WinCount & { platform: string };
 export type TierStat = WinCount & { tier: string };
 export type PatchStat = WinCount & { patch: string };
 
+export type ItemStat = WinCount & { id: number };
+export type BuildPathStat = WinCount & { path: number[] };
+export type RunePageStat = WinCount & {
+  primaryRunes: number[];
+  secondaryRunes: number[];
+  statShards: number[];
+  secondaryStyleId: number;
+};
+export type SpellsStat = WinCount & { ids: number[] };
+
 export type MetaScope = {
   totals: WinCount;
   duos: DuoStat[];
@@ -25,6 +35,12 @@ export type MetaScope = {
   durations: DurationStat[];
   regions: RegionStat[];
   tiers: TierStat[];
+  // Absent on blobs computed before the builds boards existed (deploy
+  // skew) — consume with `?? []`.
+  items?: ItemStat[];
+  buildPaths?: BuildPathStat[];
+  runePages?: RunePageStat[];
+  spells?: SpellsStat[];
 };
 
 export type MetaStats = {

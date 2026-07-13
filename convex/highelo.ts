@@ -473,6 +473,41 @@ export const getPlayerProfile = query({
           (TIER_ORDER[a.tier] ?? 9) - (TIER_ORDER[b.tier] ?? 9) || b.lp - a.lp
       );
     const position = ranked.findIndex((p) => p.puuid === player.puuid) + 1;
+    const regionRanked = ranked.filter((p) => p.platform === player.platform);
+    const regionPosition =
+      regionRanked.findIndex((p) => p.puuid === player.puuid) + 1;
+
+    // Per-patch winrate splits, newest patch first (games sort desc, so
+    // first-seen order is already newest-first).
+    const patchSplits: { patch: string; games: number; wins: number }[] = [];
+    for (const game of games) {
+      const split = patchSplits.find((s) => s.patch === game.patch);
+      if (split) {
+        split.games++;
+        if (game.win) split.wins++;
+      } else {
+        patchSplits.push({
+          patch: game.patch,
+          games: 1,
+          wins: game.win ? 1 : 0,
+        });
+      }
+    }
+
+    // Records: longest win streak (chronological walk) and best KDA game.
+    let longestWinStreak = 0;
+    let streak = 0;
+    for (let i = games.length - 1; i >= 0; i--) {
+      streak = games[i]?.win ? streak + 1 : 0;
+      if (streak > longestWinStreak) longestWinStreak = streak;
+    }
+    const kdaOf = (g: { kills: number; deaths: number; assists: number }) =>
+      (g.kills + g.assists) / Math.max(1, g.deaths);
+    let bestGame: Doc<'yuumiGames'> | null = null;
+    for (const game of games) {
+      if (!game.win) continue;
+      if (!bestGame || kdaOf(game) > kdaOf(bestGame)) bestGame = game;
+    }
 
     // Common builds: finished items only, sorted signature -> occurrences.
     // The completedItems catalog (refreshed on patch rollover by
@@ -595,6 +630,21 @@ export const getPlayerProfile = query({
         assistsTotal: player.assistsTotal ?? 0,
         // null when the player isn't in the ranked list (no counted games).
         position: position > 0 ? position : null,
+        regionPosition: regionPosition > 0 ? regionPosition : null,
+      },
+      patchSplits,
+      records: {
+        longestWinStreak,
+        bestGame: bestGame
+          ? {
+              matchId: bestGame.matchId,
+              kills: bestGame.kills,
+              deaths: bestGame.deaths,
+              assists: bestGame.assists,
+              patch: bestGame.patch,
+              gameCreation: bestGame.gameCreation,
+            }
+          : null,
       },
       builds: [...buildGroups.values()].sort(byGames).slice(0, 3),
       buildPaths: [...pathGroups.values()].sort(byGames).slice(0, 3),

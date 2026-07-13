@@ -53,6 +53,20 @@ function parseSeasonStartValue(raw: string | null): number {
   return Date.now() - DEFAULT_SEASON_LOOKBACK_MS;
 }
 
+/** Ids from the poll's completedItems catalog; empty set when unset. */
+function parseCompletedItemIds(raw: string | null): Set<number> {
+  if (raw === null) return new Set();
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!isRecord(parsed) || !Array.isArray(parsed.ids)) return new Set();
+    return new Set(
+      parsed.ids.filter((id): id is number => typeof id === 'number')
+    );
+  } catch {
+    return new Set();
+  }
+}
+
 function parseStringArray(raw: string | null): string[] {
   if (raw === null) return [];
   try {
@@ -78,12 +92,30 @@ const DURATION_BUCKETS = [
 
 type WinCount = { games: number; wins: number };
 type DuoCount = WinCount & { kills: number; deaths: number; assists: number };
+type PathCount = WinCount & { path: number[] };
+type RunePageCount = WinCount & {
+  primaryRunes: number[];
+  secondaryRunes: number[];
+  statShards: number[];
+  secondaryStyleId: number;
+};
+type SpellsCount = WinCount & { ids: number[] };
+
+// Stored-entry caps per board: enough for any UI, bounded blob size.
+const ITEMS_CAP = 40;
+const BUILD_PATHS_CAP = 25;
+const RUNE_PAGES_CAP = 20;
+const SPELLS_CAP = 8;
 
 type ScopeAgg = {
   totals: WinCount;
   duos: Map<string, DuoCount>;
   enemies: Map<string, WinCount>;
   keystones: Map<number, WinCount>;
+  items: Map<number, WinCount>;
+  buildPaths: Map<string, PathCount>;
+  runePages: Map<string, RunePageCount>;
+  spells: Map<string, SpellsCount>;
   durations: WinCount[];
   regions: Map<string, WinCount>;
   tiers: Map<string, WinCount>;
@@ -95,6 +127,10 @@ function newScopeAgg(): ScopeAgg {
     duos: new Map(),
     enemies: new Map(),
     keystones: new Map(),
+    items: new Map(),
+    buildPaths: new Map(),
+    runePages: new Map(),
+    spells: new Map(),
     durations: DURATION_BUCKETS.map(() => ({ games: 0, wins: 0 })),
     regions: new Map(),
     tiers: new Map(),
@@ -121,9 +157,20 @@ type StatsGameRow = {
   enemyChampions: string[];
   duoChampion?: string;
   keystoneId?: number;
+  secondaryStyleId?: number;
+  items?: number[];
+  buildPath?: number[];
+  primaryRunes?: number[];
+  secondaryRunes?: number[];
+  statShards?: number[];
+  summonerSpells?: number[];
 };
 
-function addGame(agg: ScopeAgg, game: StatsGameRow): void {
+function addGame(
+  agg: ScopeAgg,
+  game: StatsGameRow,
+  completedItems: Set<number>
+): void {
   agg.totals.games++;
   if (game.win) agg.totals.wins++;
   if (game.duoChampion) {
@@ -145,6 +192,57 @@ function addGame(agg: ScopeAgg, game: StatsGameRow): void {
     bump(agg.enemies, champion, game.win);
   }
   if (game.keystoneId) bump(agg.keystones, game.keystoneId, game.win);
+  // Item winrates: completed items only (catalog maintained by the poll);
+  // a Set dedupes the rare double-slot case so a game counts once.
+  if (game.items && completedItems.size > 0) {
+    for (const id of new Set(
+      game.items.filter((id) => completedItems.has(id))
+    )) {
+      bump(agg.items, id, game.win);
+    }
+  }
+  // Openers: first three completed buys, same signature the profiles use;
+  // pages iterate newest-first so the stored path is the newest example.
+  if (game.buildPath && game.buildPath.length >= 3) {
+    const key = game.buildPath.slice(0, 3).join(',');
+    const entry = agg.buildPaths.get(key) ?? {
+      path: game.buildPath.slice(0, 3),
+      games: 0,
+      wins: 0,
+    };
+    entry.games++;
+    if (game.win) entry.wins++;
+    agg.buildPaths.set(key, entry);
+  }
+  // Full rune pages (enriched rows only — legacy rows lack the minors).
+  if (
+    game.primaryRunes &&
+    game.primaryRunes.length >= 4 &&
+    game.secondaryRunes &&
+    game.statShards &&
+    game.secondaryStyleId
+  ) {
+    const key = `${game.primaryRunes.join(',')}|${game.secondaryRunes.join(',')}|${game.statShards.join(',')}`;
+    const entry = agg.runePages.get(key) ?? {
+      primaryRunes: game.primaryRunes,
+      secondaryRunes: game.secondaryRunes,
+      statShards: game.statShards,
+      secondaryStyleId: game.secondaryStyleId,
+      games: 0,
+      wins: 0,
+    };
+    entry.games++;
+    if (game.win) entry.wins++;
+    agg.runePages.set(key, entry);
+  }
+  if (game.summonerSpells && game.summonerSpells.length === 2) {
+    const ids = [...game.summonerSpells].sort((a, b) => a - b);
+    const key = ids.join(',');
+    const entry = agg.spells.get(key) ?? { ids, games: 0, wins: 0 };
+    entry.games++;
+    if (game.win) entry.wins++;
+    agg.spells.set(key, entry);
+  }
   const minutes = game.gameDuration / 60;
   const index = DURATION_BUCKETS.findIndex((b) => minutes < b.maxMinutes);
   const bucket = agg.durations[index === -1 ? 0 : index];
@@ -176,6 +274,22 @@ function serializeScope(agg: ScopeAgg): Record<string, unknown> {
       ...s,
     })),
     keystones: serializeGroups(agg.keystones, (id, s) => ({ id, ...s })),
+    items: serializeGroups(agg.items, (id, s) => ({ id, ...s })).slice(
+      0,
+      ITEMS_CAP
+    ),
+    buildPaths: serializeGroups(agg.buildPaths, (_key, s) => ({ ...s })).slice(
+      0,
+      BUILD_PATHS_CAP
+    ),
+    runePages: serializeGroups(agg.runePages, (_key, s) => ({ ...s })).slice(
+      0,
+      RUNE_PAGES_CAP
+    ),
+    spells: serializeGroups(agg.spells, (_key, s) => ({ ...s })).slice(
+      0,
+      SPELLS_CAP
+    ),
     durations: DURATION_BUCKETS.map((bucket, i) => ({
       key: bucket.key,
       ...(agg.durations[i] ?? { games: 0, wins: 0 }),
@@ -215,6 +329,23 @@ export const getGamesPageForStats = internalQuery({
         ? { duoChampion: game.duoChampion }
         : {}),
       ...(game.keystoneId !== undefined ? { keystoneId: game.keystoneId } : {}),
+      ...(game.secondaryStyleId !== undefined
+        ? { secondaryStyleId: game.secondaryStyleId }
+        : {}),
+      ...(game.items !== undefined ? { items: game.items } : {}),
+      ...(game.buildPath !== undefined ? { buildPath: game.buildPath } : {}),
+      ...(game.primaryRunes !== undefined
+        ? { primaryRunes: game.primaryRunes }
+        : {}),
+      ...(game.secondaryRunes !== undefined
+        ? { secondaryRunes: game.secondaryRunes }
+        : {}),
+      ...(game.statShards !== undefined
+        ? { statShards: game.statShards }
+        : {}),
+      ...(game.summonerSpells !== undefined
+        ? { summonerSpells: game.summonerSpells }
+        : {}),
     }));
   },
 });
@@ -240,6 +371,13 @@ export const computeMetaStats = internalAction({
       })
     );
     const oldestWindowPatch = patchWindow[patchWindow.length - 1];
+    // Completed-items catalog (maintained by the poll on patch rollover);
+    // empty set just disables item winrates for this run.
+    const completedItems = parseCompletedItemIds(
+      await ctx.runQuery(internal.highelo.getMetadataValue, {
+        key: 'completedItems',
+      })
+    );
 
     const season = newScopeAgg();
     const window = newScopeAgg();
@@ -262,7 +400,7 @@ export const computeMetaStats = internalAction({
           break;
         }
         scanned++;
-        addGame(season, game);
+        addGame(season, game, completedItems);
         bump(patchTrend, game.patch, game.win);
         // The feed treats games NEWER than the stored window as in-window
         // (ddragon lags new patches), so only strictly-older ones fall out.
@@ -270,7 +408,7 @@ export const computeMetaStats = internalAction({
           oldestWindowPatch === undefined ||
           !isOlderPatch(game.patch, oldestWindowPatch)
         ) {
-          addGame(window, game);
+          addGame(window, game, completedItems);
         }
       }
       if (page.length < STATS_PAGE_SIZE || scanned >= STATS_MAX_SCANNED) {
