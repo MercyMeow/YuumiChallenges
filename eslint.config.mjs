@@ -9,6 +9,8 @@ const eslintConfig = [
       '.next/**',
       '.open-next/**',
       '.vercel/**',
+      '.wrangler/**',
+      'cloudflare-env.d.ts',
       'out/**',
       'node_modules/**',
       'convex/_generated/**',
