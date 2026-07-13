@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import {
+  action,
   internalAction,
   internalMutation,
   internalQuery,
@@ -1861,6 +1862,93 @@ export const backfillSeason = internalAction({
         );
       }
     }
+  },
+});
+
+// ---------- on-demand profile refresh ----------
+
+// Public cooldown between manual refreshes of the same profile; verified
+// subscribers refreshing their own linked profile get the shorter one
+// (that's what powers auto-refresh while they watch their page).
+const MANUAL_REFRESH_COOLDOWN_MS = 5 * 60 * 1000;
+const SUBSCRIBER_REFRESH_COOLDOWN_MS = 60 * 1000;
+
+export const getRosterByPuuid = internalQuery({
+  args: { puuid: v.string() },
+  handler: async (ctx, args): Promise<Doc<'yuumiRoster'> | null> => {
+    return await ctx.db
+      .query('yuumiRoster')
+      .withIndex('by_puuid', (q) => q.eq('puuid', args.puuid))
+      .unique();
+  },
+});
+
+export const stampManualRefresh = internalMutation({
+  args: { puuid: v.string(), at: v.number() },
+  handler: async (ctx, args): Promise<void> => {
+    const row = await ctx.db
+      .query('yuumiRoster')
+      .withIndex('by_puuid', (q) => q.eq('puuid', args.puuid))
+      .unique();
+    if (row) await ctx.db.patch(row._id, { lastManualRefreshAt: args.at });
+  },
+});
+
+/**
+ * On-demand single-player refresh for profile pages: pulls the player's
+ * newest ranked games right now instead of waiting for their cluster's
+ * poll rotation. Cooldown is stored per player (5 min public; 1 min for a
+ * verified subscriber refreshing their own linked profile, which is what
+ * the profile page's auto-refresh uses). Request cost is tiny (1 id-list
+ * call + fetches for genuinely new games only), so it coexists with the
+ * cron choreography's rate budget.
+ */
+export const refreshPlayer = action({
+  args: { puuid: v.string(), token: v.optional(v.string()) },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ refreshed: boolean; nextAllowedAt: number }> => {
+    const player = await ctx.runQuery(internal.highelo.getRosterByPuuid, {
+      puuid: args.puuid,
+    });
+    if (!player) throw new Error('Player is not on the Yuumi ladder');
+
+    // Subscriber fast lane only for the profile the caller has verified
+    // ownership of — everyone else shares the public per-player cooldown.
+    let cooldown = MANUAL_REFRESH_COOLDOWN_MS;
+    if (args.token) {
+      const user = await ctx.runQuery(internal.webauth.resolveUser, {
+        token: args.token,
+      });
+      if (
+        user &&
+        (user.subscribedUntil ?? 0) > Date.now() &&
+        user.linkedPuuid === args.puuid
+      ) {
+        cooldown = SUBSCRIBER_REFRESH_COOLDOWN_MS;
+      }
+    }
+    const now = Date.now();
+    const last = player.lastManualRefreshAt ?? 0;
+    if (now - last < cooldown) {
+      return {
+        refreshed: false,
+        nextAllowedAt: last + cooldown,
+      };
+    }
+    // Stamp before the Riot calls so concurrent clicks can't double-spend.
+    await ctx.runMutation(internal.highelo.stampManualRefresh, {
+      puuid: args.puuid,
+      at: now,
+    });
+
+    const patchWindow = await fetchPatchWindow();
+    const completedItems = await loadCompletedItemsSet(ctx, patchWindow[0]);
+    const cluster =
+      PLATFORM_TO_CLUSTER[player.platform as Platform] ?? 'europe';
+    await pollCluster(ctx, cluster, [player], patchWindow, completedItems, now);
+    return { refreshed: true, nextAllowedAt: now + cooldown };
   },
 });
 

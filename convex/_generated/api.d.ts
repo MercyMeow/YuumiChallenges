@@ -16,6 +16,7 @@ import type * as highelo from '../highelo.js';
 import type * as meta from '../meta.js';
 import type * as scraper from '../scraper.js';
 import type * as seed from '../seed.js';
+import type * as webauth from '../webauth.js';
 
 import type {
   ApiFromModules,
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   meta: typeof meta;
   scraper: typeof scraper;
   seed: typeof seed;
+  webauth: typeof webauth;
 }>;
 
 /**
