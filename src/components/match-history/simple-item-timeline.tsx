@@ -20,6 +20,7 @@ import {
   Trophy,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 import { isFinalSupportItemEvolution } from '@/lib/utils/match-timeline-utils';
 import { SUPPORT_EVOLUTIONS } from '@/lib/types/item-timeline-new';
 
@@ -608,12 +609,12 @@ const LoadingSkeleton = () => {
           key={i}
           className="flex items-center gap-3 rounded-lg border border-purple-500/20 bg-black/20 p-4 backdrop-blur-md"
         >
-          <div className="h-8 w-8 animate-pulse rounded-full bg-gray-600/50" />
-          <div className="h-6 w-6 animate-pulse rounded bg-gray-600/50" />
+          <Skeleton className="h-8 w-8 rounded-full" />
+          <Skeleton className="h-6 w-6 rounded" />
           <div className="flex-1 space-y-2">
-            <div className="h-4 w-24 animate-pulse rounded bg-gray-600/50" />
+            <Skeleton className="h-4 w-24 rounded" />
           </div>
-          <div className="h-3 w-12 animate-pulse rounded bg-gray-600/50" />
+          <Skeleton className="h-3 w-12 rounded" />
         </div>
       ))}
     </div>
@@ -728,7 +729,7 @@ export function SimpleItemTimeline({
           <CardTitle className="flex items-center gap-2 text-foreground">
             <Package className="h-5 w-5" />
             Item Timeline
-            <div className="ml-2 h-3 w-3 animate-spin rounded-full border border-purple-400/50 border-t-purple-400" />
+            <Skeleton className="ml-2 h-3 w-3 rounded-full" />
           </CardTitle>
         </CardHeader>
         <CardContent>

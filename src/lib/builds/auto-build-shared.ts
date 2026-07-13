@@ -76,3 +76,20 @@ export const RUNE_STYLE_NAMES: Record<number, string> = {
   8300: 'Inspiration',
   8400: 'Resolve',
 };
+
+/**
+ * Riot statMod perk id -> shard key, the vocabulary the guide UI's shard
+ * grid understands. Shared by both auto-build pipelines (the OP.GG
+ * scraper and the own-ladder derivation) so shard rendering can't drift.
+ */
+export const STAT_MOD_KEYS: Record<number, string> = {
+  5001: 'HealthScaling',
+  5002: 'Armor',
+  5003: 'MagicRes',
+  5005: 'AttackSpeed',
+  5007: 'AbilityHaste',
+  5008: 'AdaptiveForce',
+  5010: 'MoveSpeed',
+  5011: 'Health',
+  5013: 'TenacitySlowResist',
+};

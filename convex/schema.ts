@@ -21,6 +21,48 @@ export default defineSchema({
     .index('by_token', ['token'])
     .index('by_userId', ['userId']),
 
+  // Site visitors signed in via Discord OAuth (distinct from admin
+  // `users`). Subscription state is stamped by the Stripe webhook route;
+  // linkedPuuid is set only after icon-based Riot account verification.
+  webUsers: defineTable({
+    discordId: v.string(),
+    username: v.string(),
+    globalName: v.optional(v.string()),
+    avatar: v.optional(v.string()), // Discord avatar hash
+    createdAt: v.number(),
+    lastLoginAt: v.number(),
+    // Supporter subscription (ms epoch; subscribed while > now)
+    subscribedUntil: v.optional(v.number()),
+    stripeCustomerId: v.optional(v.string()),
+    // Creation time (ms) + mode of the newest Stripe event applied —
+    // ordering guard against delayed/replayed webhooks (end wins ties).
+    subEventAt: v.optional(v.number()),
+    subEventMode: v.optional(v.union(v.literal('extend'), v.literal('end'))),
+    // Verified Riot account link
+    linkedPuuid: v.optional(v.string()),
+    // In-flight link challenge: change summoner icon to `iconId` (0-29)
+    pendingLink: v.optional(
+      v.object({
+        puuid: v.string(),
+        iconId: v.number(),
+        expiresAt: v.number(),
+      })
+    ),
+  })
+    .index('by_discordId', ['discordId'])
+    .index('by_linkedPuuid', ['linkedPuuid'])
+    .index('by_stripeCustomerId', ['stripeCustomerId']),
+
+  // Web sessions (Discord-auth); token lives in an httpOnly cookie.
+  webSessions: defineTable({
+    userId: v.id('webUsers'),
+    token: v.string(),
+    expiresAt: v.number(),
+    createdAt: v.number(),
+  })
+    .index('by_token', ['token'])
+    .index('by_userId', ['userId']),
+
   // Guide sections (editable text content)
   guideSections: defineTable({
     sectionKey: v.string(), // e.g., 'overview', 'mechanics_intro'
@@ -210,6 +252,8 @@ export default defineSchema({
     killsTotal: v.optional(v.number()),
     deathsTotal: v.optional(v.number()),
     assistsTotal: v.optional(v.number()),
+    // Last on-demand profile refresh (ms epoch; 5-minute public cooldown)
+    lastManualRefreshAt: v.optional(v.number()),
     // Season backfill bookkeeping (ms epoch when completed)
     backfilledAt: v.optional(v.number()),
     // Resumable backfill progress: oldest match-history timestamp already
@@ -260,6 +304,21 @@ export default defineSchema({
     .index('by_matchId', ['matchId'])
     .index('by_gameCreation', ['gameCreation'])
     .index('by_puuid', ['puuid']),
+
+  // Daily LP/games snapshots of ladder producers (players with counted
+  // games). Powers profile form sparklines and the weekly-climbers board;
+  // pruned after SNAPSHOT_RETENTION_MS (see convex/meta.ts).
+  rosterSnapshots: defineTable({
+    puuid: v.string(),
+    platform: v.string(),
+    tier: v.string(),
+    lp: v.number(),
+    gamesCount: v.number(),
+    wins: v.number(),
+    takenAt: v.number(), // ms epoch of the snapshot run
+  })
+    .index('by_puuid', ['puuid'])
+    .index('by_takenAt', ['takenAt']),
 
   // Pending mastery checks from the last ladder refresh (rolling sweep).
   sweepQueue: defineTable({

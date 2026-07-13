@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Lock, User, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function AdminLoginPage() {
@@ -21,8 +22,34 @@ export default function AdminLoginPage() {
   // Redirect if already authenticated
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center hex-page-bg">
-        <Loader2 className="h-8 w-8 animate-spin text-hx-gold" />
+      <div
+        role="status"
+        aria-busy="true"
+        className="flex min-h-screen items-center justify-center p-4 hex-page-bg"
+      >
+        <span className="sr-only">Loading…</span>
+        <div className="relative w-full max-w-md">
+          <Card className="hex-card-elevated hex-corners relative w-full rounded-sm border-0">
+            <CardHeader className="text-center">
+              <Skeleton className="mx-auto mb-4 h-16 w-16" />
+              <Skeleton className="mx-auto h-7 w-40" />
+              <Skeleton className="mx-auto mt-2 h-4 w-52" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

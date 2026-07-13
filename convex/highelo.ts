@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import {
+  action,
   internalAction,
   internalMutation,
   internalQuery,
@@ -323,7 +324,7 @@ function parseCompletedItems(
 }
 
 /** True when patch `a` is strictly older than `b` ('major.minor' strings). */
-function isOlderPatch(a: string, b: string): boolean {
+export function isOlderPatch(a: string, b: string): boolean {
   const [aMajor = 0, aMinor = 0] = a.split('.').map(Number);
   const [bMajor = 0, bMinor = 0] = b.split('.').map(Number);
   return aMajor !== bMajor ? aMajor < bMajor : aMinor < bMinor;
@@ -473,6 +474,41 @@ export const getPlayerProfile = query({
           (TIER_ORDER[a.tier] ?? 9) - (TIER_ORDER[b.tier] ?? 9) || b.lp - a.lp
       );
     const position = ranked.findIndex((p) => p.puuid === player.puuid) + 1;
+    const regionRanked = ranked.filter((p) => p.platform === player.platform);
+    const regionPosition =
+      regionRanked.findIndex((p) => p.puuid === player.puuid) + 1;
+
+    // Per-patch winrate splits, newest patch first (games sort desc, so
+    // first-seen order is already newest-first).
+    const patchSplits: { patch: string; games: number; wins: number }[] = [];
+    for (const game of games) {
+      const split = patchSplits.find((s) => s.patch === game.patch);
+      if (split) {
+        split.games++;
+        if (game.win) split.wins++;
+      } else {
+        patchSplits.push({
+          patch: game.patch,
+          games: 1,
+          wins: game.win ? 1 : 0,
+        });
+      }
+    }
+
+    // Records: longest win streak (chronological walk) and best KDA game.
+    let longestWinStreak = 0;
+    let streak = 0;
+    for (let i = games.length - 1; i >= 0; i--) {
+      streak = games[i]?.win ? streak + 1 : 0;
+      if (streak > longestWinStreak) longestWinStreak = streak;
+    }
+    const kdaOf = (g: { kills: number; deaths: number; assists: number }) =>
+      (g.kills + g.assists) / Math.max(1, g.deaths);
+    let bestGame: Doc<'yuumiGames'> | null = null;
+    for (const game of games) {
+      if (!game.win) continue;
+      if (!bestGame || kdaOf(game) > kdaOf(bestGame)) bestGame = game;
+    }
 
     // Common builds: finished items only, sorted signature -> occurrences.
     // The completedItems catalog (refreshed on patch rollover by
@@ -595,6 +631,21 @@ export const getPlayerProfile = query({
         assistsTotal: player.assistsTotal ?? 0,
         // null when the player isn't in the ranked list (no counted games).
         position: position > 0 ? position : null,
+        regionPosition: regionPosition > 0 ? regionPosition : null,
+      },
+      patchSplits,
+      records: {
+        longestWinStreak,
+        bestGame: bestGame
+          ? {
+              matchId: bestGame.matchId,
+              kills: bestGame.kills,
+              deaths: bestGame.deaths,
+              assists: bestGame.assists,
+              patch: bestGame.patch,
+              gameCreation: bestGame.gameCreation,
+            }
+          : null,
       },
       builds: [...buildGroups.values()].sort(byGames).slice(0, 3),
       buildPaths: [...pathGroups.values()].sort(byGames).slice(0, 3),
@@ -1541,9 +1592,10 @@ async function pollCluster(
   patchWindow: string[],
   completedItems: Set<number>,
   startedAt: number
-): Promise<void> {
+): Promise<number> {
   let games: GameRow[] = [];
   let rosterIds: Id<'yuumiRoster'>[] = [];
+  let polled = 0;
 
   const flush = async () => {
     if (games.length === 0 && rosterIds.length === 0) return;
@@ -1608,6 +1660,7 @@ async function pollCluster(
       }
       rosterIds.push(player._id);
       games.push(...playerGames);
+      polled++;
     } catch (error) {
       console.error(`poll ${cluster}: player ${player.puuid} failed:`, error);
       continue;
@@ -1617,6 +1670,7 @@ async function pollCluster(
     }
   }
   await flush();
+  return polled;
 }
 
 /**
@@ -1811,6 +1865,190 @@ export const backfillSeason = internalAction({
         );
       }
     }
+  },
+});
+
+// ---------- on-demand profile refresh ----------
+
+// Public cooldown between manual refreshes of the same profile; verified
+// subscribers refreshing their own linked profile get the shorter one
+// (that's what powers auto-refresh while they watch their page).
+const MANUAL_REFRESH_COOLDOWN_MS = 5 * 60 * 1000;
+const SUBSCRIBER_REFRESH_COOLDOWN_MS = 60 * 1000;
+
+export const getRosterByPuuid = internalQuery({
+  args: { puuid: v.string() },
+  handler: async (ctx, args): Promise<Doc<'yuumiRoster'> | null> => {
+    return await ctx.db
+      .query('yuumiRoster')
+      .withIndex('by_puuid', (q) => q.eq('puuid', args.puuid))
+      .unique();
+  },
+});
+
+export const stampManualRefresh = internalMutation({
+  args: { puuid: v.string(), at: v.number() },
+  handler: async (ctx, args): Promise<void> => {
+    const row = await ctx.db
+      .query('yuumiRoster')
+      .withIndex('by_puuid', (q) => q.eq('puuid', args.puuid))
+      .unique();
+    if (row) await ctx.db.patch(row._id, { lastManualRefreshAt: args.at });
+  },
+});
+
+// Global on-demand-refresh budget: at most this many player refreshes per
+// window across ALL visitors, so a crawler clicking refresh on many
+// profiles cannot starve the cron ingestion's shared Riot rate budget.
+const GLOBAL_REFRESH_WINDOW_MS = 60 * 1000;
+const GLOBAL_REFRESH_MAX_PER_WINDOW = 6;
+
+/**
+ * Atomically claim a refresh slot: per-player cooldown AND the global
+ * budget are checked and stamped inside one mutation (one transaction),
+ * so concurrent clicks cannot double-spend Riot requests.
+ */
+export const tryAcquireRefresh = internalMutation({
+  args: { puuid: v.string(), at: v.number(), cooldownMs: v.number() },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{
+    acquired: boolean;
+    nextAllowedAt: number;
+    prevStamp: number;
+  }> => {
+    const row = await ctx.db
+      .query('yuumiRoster')
+      .withIndex('by_puuid', (q) => q.eq('puuid', args.puuid))
+      .unique();
+    if (!row) return { acquired: false, nextAllowedAt: 0, prevStamp: 0 };
+    const last = row.lastManualRefreshAt ?? 0;
+    if (args.at - last < args.cooldownMs) {
+      return {
+        acquired: false,
+        nextAllowedAt: last + args.cooldownMs,
+        prevStamp: last,
+      };
+    }
+    // Global budget window, stored in guideMetadata.
+    const meta = await ctx.db
+      .query('guideMetadata')
+      .withIndex('by_key', (q) => q.eq('key', 'refreshBudget'))
+      .unique();
+    let windowStart = args.at;
+    let count = 0;
+    try {
+      const parsed: unknown = meta ? JSON.parse(meta.value) : null;
+      if (
+        isRecord(parsed) &&
+        typeof parsed.windowStart === 'number' &&
+        typeof parsed.count === 'number' &&
+        args.at - parsed.windowStart < GLOBAL_REFRESH_WINDOW_MS
+      ) {
+        windowStart = parsed.windowStart;
+        count = parsed.count;
+      }
+    } catch {
+      // Malformed budget blob: treat as a fresh window.
+    }
+    if (count >= GLOBAL_REFRESH_MAX_PER_WINDOW) {
+      return {
+        acquired: false,
+        nextAllowedAt: windowStart + GLOBAL_REFRESH_WINDOW_MS,
+        prevStamp: last,
+      };
+    }
+    const value = JSON.stringify({ windowStart, count: count + 1 });
+    if (meta) {
+      await ctx.db.patch(meta._id, { value, updatedAt: args.at });
+    } else {
+      await ctx.db.insert('guideMetadata', {
+        key: 'refreshBudget',
+        value,
+        updatedAt: args.at,
+      });
+    }
+    await ctx.db.patch(row._id, { lastManualRefreshAt: args.at });
+    return {
+      acquired: true,
+      nextAllowedAt: args.at + args.cooldownMs,
+      prevStamp: last,
+    };
+  },
+});
+
+/**
+ * On-demand single-player refresh for profile pages: pulls the player's
+ * newest ranked games right now instead of waiting for their cluster's
+ * poll rotation. Guards: an atomic per-player cooldown (5 min public,
+ * 1 min for a verified subscriber refreshing their own linked profile —
+ * that powers auto-refresh) plus a small global per-minute budget so
+ * fan-out across profiles can't starve the cron choreography's Riot rate
+ * budget. A failed Riot poll restores the previous stamp so the visitor
+ * can retry immediately instead of waiting out the cooldown.
+ */
+export const refreshPlayer = action({
+  args: { puuid: v.string(), token: v.optional(v.string()) },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{ refreshed: boolean; nextAllowedAt: number }> => {
+    const player = await ctx.runQuery(internal.highelo.getRosterByPuuid, {
+      puuid: args.puuid,
+    });
+    if (!player) throw new Error('Player is not on the Yuumi ladder');
+
+    // Subscriber fast lane only for the profile the caller has verified
+    // ownership of — everyone else shares the public per-player cooldown.
+    let cooldown = MANUAL_REFRESH_COOLDOWN_MS;
+    if (args.token) {
+      const user = await ctx.runQuery(internal.webauth.resolveUser, {
+        token: args.token,
+      });
+      if (
+        user &&
+        (user.subscribedUntil ?? 0) > Date.now() &&
+        user.linkedPuuid === args.puuid
+      ) {
+        cooldown = SUBSCRIBER_REFRESH_COOLDOWN_MS;
+      }
+    }
+    const now = Date.now();
+    const lease = await ctx.runMutation(internal.highelo.tryAcquireRefresh, {
+      puuid: args.puuid,
+      at: now,
+      cooldownMs: cooldown,
+    });
+    if (!lease.acquired) {
+      return { refreshed: false, nextAllowedAt: lease.nextAllowedAt };
+    }
+
+    try {
+      const patchWindow = await fetchPatchWindow();
+      const completedItems = await loadCompletedItemsSet(ctx, patchWindow[0]);
+      const cluster =
+        PLATFORM_TO_CLUSTER[player.platform as Platform] ?? 'europe';
+      const polled = await pollCluster(
+        ctx,
+        cluster,
+        [player],
+        patchWindow,
+        completedItems,
+        now
+      );
+      if (polled < 1) throw new Error('poll did not complete');
+    } catch (error) {
+      // Give the cooldown back (the global budget keeps its count — the
+      // Riot attempt was still spent) so the visitor can retry.
+      console.error(`refresh ${args.puuid} failed:`, error);
+      await ctx.runMutation(internal.highelo.stampManualRefresh, {
+        puuid: args.puuid,
+        at: lease.prevStamp,
+      });
+      throw new Error('Refresh failed — please try again.');
+    }
+    return { refreshed: true, nextAllowedAt: now + cooldown };
   },
 });
 

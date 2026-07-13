@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Loader2,
   ArrowLeft,
   Plus,
   Pencil,
@@ -27,6 +26,7 @@ import {
   Target,
   Star,
 } from 'lucide-react';
+import { Skeleton, PanelSkeleton } from '@/components/ui/skeleton';
 import {
   initialFormData,
   type BuildFormData,
@@ -88,8 +88,45 @@ export default function BuildsEditorPage() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center hex-page-bg">
-        <Loader2 className="h-8 w-8 animate-spin text-hx-gold" />
+      <div role="status" aria-busy="true" className="min-h-screen hex-page-bg">
+        <span className="sr-only">Loading builds editor…</span>
+        <div className="container mx-auto max-w-7xl px-6 py-8">
+          {/* Header */}
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <Skeleton className="mb-4 h-4 w-36" />
+              <Skeleton className="h-9 w-56" />
+              <Skeleton className="mt-2 h-4 w-80" />
+            </div>
+            <Skeleton className="h-9 w-28" />
+          </div>
+
+          {/* Builds List */}
+          <div className="space-y-4">
+            {Array.from({ length: 3 }, (_, i) => (
+              <PanelSkeleton key={i}>
+                <div className="flex items-start justify-between p-6">
+                  <div className="flex items-start gap-4">
+                    <Skeleton className="h-12 w-12 shrink-0" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-5 w-40" />
+                      <Skeleton className="h-4 w-64" />
+                      <div className="mt-3 flex flex-wrap gap-4">
+                        <Skeleton className="h-4 w-28" />
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-20" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Skeleton className="h-8 w-16" />
+                    <Skeleton className="h-8 w-20" />
+                  </div>
+                </div>
+              </PanelSkeleton>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

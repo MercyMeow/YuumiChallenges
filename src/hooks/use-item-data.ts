@@ -18,6 +18,31 @@ let clientItemCache: Record<string, ItemData> | null = null;
 let clientCacheTime = 0;
 const CLIENT_CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
 
+// Concurrent mounts (e.g. a stats board full of ItemSlots) share one
+// in-flight request instead of each issuing their own; failures clear the
+// slot so a retry can fetch again.
+let inflightItems: Promise<ItemDataResponse> | null = null;
+
+function fetchItemsShared(): Promise<ItemDataResponse> {
+  if (!inflightItems) {
+    inflightItems = (async () => {
+      const response = await fetch('/api/data-dragon/items', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch item data: ${response.status}`);
+      }
+      return (await response.json()) as ItemDataResponse;
+    })().finally(() => {
+      // Concurrent-dedupe only: the 30-minute clientItemCache above is the
+      // actual cache, so expiry refetches must hit the network again.
+      inflightItems = null;
+    });
+  }
+  return inflightItems;
+}
+
 export function useItemData() {
   const [itemData, setItemData] = useState<Record<string, ItemData> | null>(
     clientItemCache
@@ -40,18 +65,7 @@ export function useItemData() {
         setIsLoading(true);
         setError(null);
 
-        const response = await fetch('/api/data-dragon/items', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch item data: ${response.status}`);
-        }
-
-        const data: ItemDataResponse = await response.json();
+        const data = await fetchItemsShared();
 
         // Update client cache
         clientItemCache = data.items;

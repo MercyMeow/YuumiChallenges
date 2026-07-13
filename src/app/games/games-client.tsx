@@ -8,6 +8,7 @@ import { HextechPanel, OrnateHeading } from '@/components/ui/hextech-panel';
 import { GameCard } from '@/components/highelo/game-card';
 import { HextechSelect } from '@/components/highelo/hextech-select';
 import { HighEloTabs } from '@/components/highelo/high-elo-tabs';
+import { PanelSkeleton } from '@/components/ui/skeleton';
 import { MAJOR_PLATFORMS, platformLabel } from '@/lib/highelo/regions';
 import { useLivePatch } from '@/lib/hooks/use-live-patch';
 import { cn } from '@/lib/utils';
@@ -163,10 +164,7 @@ export function GamesClient() {
           ) : (
             <div className="space-y-2" aria-busy>
               {Array.from({ length: 6 }, (_, i) => (
-                <div
-                  key={i}
-                  className="hex-card h-16 animate-pulse rounded-sm opacity-50"
-                />
+                <PanelSkeleton key={i} className="h-16" />
               ))}
             </div>
           )

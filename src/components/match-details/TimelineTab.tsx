@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SimpleItemTimeline } from '@/components/match-history/simple-item-timeline';
 import { TimelineEventItem } from '@/components/match-history/timeline-event-item';
-import { Loader2, Timer, Coins } from 'lucide-react';
+import { Timer, Coins } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { ExtendedMatchData, CRITICAL_TIMELINE_EVENT_TYPES } from './types';
 import { RawTimelineData, PlayerTimeline } from '@/lib/types/item-timeline-new';
@@ -88,11 +89,29 @@ export function TimelineTab({
                 </p>
               </div>
             ) : isProcessing ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="mr-3 h-8 w-8 animate-spin text-white/60" />
-                <span className="text-white/60">
-                  Processing timeline data...
-                </span>
+              // Ghost of the combat timeline — rail, time-badge, and event
+              // rows — so the layout holds while frames are processed.
+              <div
+                role="status"
+                aria-label="Processing timeline data"
+                className="space-y-4"
+              >
+                <span className="sr-only">Processing timeline data</span>
+                {Array.from({ length: 6 }, (_, frameIndex) => (
+                  <div
+                    key={frameIndex}
+                    className="ml-2 border-l-2 border-white/20 pl-4"
+                  >
+                    <div className="mb-2 flex items-center gap-2">
+                      <div className="-ml-5 h-2 w-2 rounded-full bg-white/20"></div>
+                      <Skeleton className="h-5 w-16" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-10 w-full" />
+                      <Skeleton className="h-10 w-3/4" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <ScrollArea className="h-[600px] pr-4">

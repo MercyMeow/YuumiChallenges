@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadingFallback } from '@/components/ui/loading-fallback';
 import { formatMatchTime } from '@/lib/utils/time';
-import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { AlertCircle, ArrowLeft } from 'lucide-react';
+import { Skeleton, PanelSkeleton } from '@/components/ui/skeleton';
 import {
   MatchHeader,
   TeamObjectives,
@@ -95,14 +96,106 @@ export default function MatchDetailsPage() {
   } = useTimelineData(rawTimelineData, selectedPlayer, comparePlayer);
 
   if (loading) {
+    // Ghost of the loaded match page — back button, header plate, tab strip,
+    // two team panels (five rows each), and the objectives grid — so nothing
+    // shifts when the real data arrives.
     return (
-      <div>
-        <div className="mx-auto py-8">
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="h-12 w-12 animate-spin text-hx-gold" />
-            <span className="ml-4 hex-title text-lg text-hx-gold/70">
-              Consulting the archives…
-            </span>
+      <div className="relative" role="status" aria-busy="true">
+        <div className="relative mx-auto max-w-7xl py-8">
+          <span className="sr-only">Loading match details</span>
+          {/* Flavor caption kept from the old spinner — still charming */}
+          <p className="mb-4 hex-title text-sm text-hx-gold/60">
+            Consulting the archives…
+          </p>
+
+          <div className="mb-6">
+            {/* Back button */}
+            <Skeleton className="mb-4 h-9 w-24" />
+
+            {/* Match header plate */}
+            <PanelSkeleton className="hex-corners px-4 py-4 sm:px-6 sm:py-5">
+              <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+                <div className="min-w-0 space-y-3">
+                  <Skeleton className="h-7 w-52" />
+                  <div className="flex flex-wrap gap-2">
+                    <Skeleton className="h-5 w-24" />
+                    <Skeleton className="h-5 w-20" />
+                    <Skeleton className="h-5 w-28" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-3 w-40" />
+                </div>
+              </div>
+            </PanelSkeleton>
+          </div>
+
+          <div className="space-y-6">
+            {/* Tab strip */}
+            <div className="hex-card grid grid-cols-2 gap-1 rounded-sm p-1 sm:grid-cols-3 lg:grid-cols-6">
+              {Array.from({ length: 6 }, (_, i) => (
+                <Skeleton key={i} className="h-8 w-full" />
+              ))}
+            </div>
+
+            {/* Overview: two team panels */}
+            {Array.from({ length: 2 }, (_, teamIndex) => (
+              <section key={teamIndex} className="hex-card relative rounded-sm">
+                <header className="flex items-center justify-between gap-4 border-b border-hx-gold-dark/40 px-4 py-3 sm:px-5">
+                  <div className="flex items-center gap-2.5">
+                    <Skeleton className="h-2.5 w-2.5 rotate-45" />
+                    <Skeleton className="h-4 w-28" />
+                  </div>
+                  <Skeleton className="h-3 w-44" />
+                </header>
+                <div className="space-y-2 p-3 sm:p-4">
+                  {Array.from({ length: 5 }, (_, rowIndex) => (
+                    <div
+                      key={rowIndex}
+                      className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-sm border-l-2 border-l-hx-gold-dark/30 p-3 hex-card-inset"
+                    >
+                      {/* Identity */}
+                      <div className="flex min-w-0 flex-1 basis-52 items-center gap-2.5">
+                        <Skeleton className="h-10 w-10 rounded-sm" />
+                        <Skeleton className="h-9 w-5" />
+                        <div className="min-w-0 space-y-1.5">
+                          <Skeleton className="h-3.5 w-32" />
+                          <Skeleton className="h-2.5 w-24" />
+                        </div>
+                      </div>
+                      {/* KDA + stat blocks */}
+                      <Skeleton className="h-8 w-24" />
+                      {Array.from({ length: 4 }, (_, statIndex) => (
+                        <Skeleton key={statIndex} className="h-8 w-16" />
+                      ))}
+                      {/* Items + runes */}
+                      <Skeleton className="h-10 w-28" />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+
+            {/* Team objectives */}
+            <section className="hex-card relative rounded-sm">
+              <header className="flex items-center gap-2.5 border-b border-hx-gold-dark/40 px-4 py-3 sm:px-5">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-36" />
+              </header>
+              <div className="grid gap-6 p-4 sm:p-5 lg:grid-cols-2">
+                {Array.from({ length: 2 }, (_, colIndex) => (
+                  <div key={colIndex} className="space-y-3">
+                    <Skeleton className="h-3 w-24" />
+                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                      {Array.from({ length: 8 }, (_, tileIndex) => (
+                        <Skeleton key={tileIndex} className="h-16 w-full" />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  BarChart3,
   BookOpen,
   Crown,
   Home,
@@ -28,6 +29,7 @@ const GUIDE_LINKS = [
 const RESOURCE_LINKS = [
   { label: 'High Elo Games', href: '/games', icon: Trophy },
   { label: 'Yuumi Players', href: '/players', icon: Crown },
+  { label: 'Meta Stats', href: '/stats', icon: BarChart3 },
   { label: 'Match Viewer', href: '/match', icon: Swords },
   { label: 'Rule Gallery', href: '/gallery', icon: ImageIcon },
   { label: 'Guide Admin', href: '/admin', icon: BookOpen },
