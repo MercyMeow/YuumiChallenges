@@ -10,6 +10,7 @@ import {
 import { itemImages } from '@/lib/apis/datadragon';
 import { useItem } from '@/hooks/use-item-data';
 import { sanitizeRiotHtml } from '@/lib/utils/sanitize-html';
+import type { RoleBoundSlot } from '@/lib/utils/role-quest';
 
 interface ItemSlotProps {
   itemId: number;
@@ -339,6 +340,36 @@ interface ItemSlotsProps {
   className?: string;
   showTrinketSeparately?: boolean;
   gridLayout?: boolean; // New prop for 3x2 grid layout
+  /** Role-quest ("lane quest") slot, resolved via getRoleBoundSlot().
+   * Renders an extra slot after the trinket; itemId 0 (quest incomplete)
+   * shows an empty slot with the label as tooltip. Omit/null to hide —
+   * pre-2026 matches and roles whose quest never fills the slot. */
+  roleBoundSlot?: RoleBoundSlot | null | undefined;
+}
+
+/** Role-quest slot with a magic ring to set it apart from the trinket. */
+function RoleBoundItemSlot({
+  slot,
+  size,
+}: {
+  slot: RoleBoundSlot;
+  size: 'sm' | 'md' | 'lg' | 'xl';
+}) {
+  if (slot.itemId === 0) {
+    // Empty quest slot: ItemSlot has no tooltip for id 0, so label it here.
+    return (
+      <div title={slot.label} aria-label={slot.label}>
+        <ItemSlot itemId={0} size={size} className="ring-1 ring-hx-magic/70" />
+      </div>
+    );
+  }
+  return (
+    <ItemSlot
+      itemId={slot.itemId}
+      size={size}
+      className="ring-1 ring-hx-magic/70"
+    />
+  );
 }
 
 export function ItemSlots({
@@ -347,6 +378,7 @@ export function ItemSlots({
   className = '',
   showTrinketSeparately = false,
   gridLayout = false,
+  roleBoundSlot,
 }: ItemSlotsProps) {
   // Ensure we have exactly 7 slots (6 items + trinket)
   // Safe spread operation - handle undefined/null items array
@@ -370,11 +402,16 @@ export function ItemSlots({
           ))}
         </div>
         <div className="mx-1 h-6 w-px bg-gray-500/30" />
-        <ItemSlot
-          itemId={trinket || 0}
-          size={size}
-          className="ring-1 ring-yellow-500/30"
-        />
+        <div className="flex flex-col items-center gap-1">
+          <ItemSlot
+            itemId={trinket || 0}
+            size={size}
+            className="ring-1 ring-yellow-500/30"
+          />
+          {roleBoundSlot && (
+            <RoleBoundItemSlot slot={roleBoundSlot} size={size} />
+          )}
+        </div>
       </div>
     );
   }
@@ -389,6 +426,9 @@ export function ItemSlots({
         </div>
         <div className="mx-1 h-4 w-px bg-gray-500/30" />
         <ItemSlot itemId={trinket || 0} size={size} />
+        {roleBoundSlot && (
+          <RoleBoundItemSlot slot={roleBoundSlot} size={size} />
+        )}
       </div>
     );
   }
@@ -403,6 +443,7 @@ export function ItemSlots({
           className={index === 6 ? 'ring-1 ring-yellow-500/30' : ''}
         />
       ))}
+      {roleBoundSlot && <RoleBoundItemSlot slot={roleBoundSlot} size={size} />}
     </div>
   );
 }

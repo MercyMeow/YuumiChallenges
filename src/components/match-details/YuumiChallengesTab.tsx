@@ -17,6 +17,7 @@ import {
   ChallengeStatus,
 } from './yuumi-challenge-evaluator';
 import { ExtendedMatchParticipant, ExtendedMatchData } from './types';
+import { getRoleBoundSlot } from '@/lib/utils/role-quest';
 import { cn } from '@/lib/utils';
 import {
   Award,
@@ -492,7 +493,12 @@ export function YuumiChallengesTab({
                 Final Build
               </h3>
               <div className="mt-3 rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur-sm">
-                <ItemSlots items={items} size="lg" gridLayout />
+                <ItemSlots
+                  items={items}
+                  size="lg"
+                  gridLayout
+                  roleBoundSlot={getRoleBoundSlot(selectedPlayerData)}
+                />
               </div>
             </div>
             <div>

@@ -1,12 +1,11 @@
 /**
  * Team Section Component
- * Displays a team card with all participants
- * Extracted from match details page
- * Memoized to prevent re-renders when props haven't changed
+ * Hextech panel listing one team's players plus a totals summary.
+ * Memoized to prevent re-renders when props haven't changed.
  */
 
 import { memo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import {
   ExtendedMatchData,
   TeamTotals,
@@ -41,20 +40,49 @@ export const TeamSection = memo(function TeamSection({
   getKDAColor,
   formatNumber,
 }: TeamSectionProps) {
-  const borderColor =
-    teamColor === 'blue' ? 'border-blue-500/20' : 'border-red-500/20';
-  const titleColor = teamColor === 'blue' ? 'text-blue-400' : 'text-red-400';
-  const dotColor = teamColor === 'blue' ? 'bg-blue-500' : 'bg-red-500';
+  const isBlue = teamColor === 'blue';
+  const teamData = matchData.info.teams.find(
+    (team) => team.teamId === (isBlue ? 100 : 200)
+  );
 
   return (
-    <Card className={`${borderColor} bg-black/20 backdrop-blur-md`}>
-      <CardHeader>
-        <CardTitle className={`flex items-center gap-2 ${titleColor}`}>
-          <div className={`h-4 w-4 rounded-full ${dotColor}`}></div>
-          {teamName}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <section className="hex-card relative rounded-sm">
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-hx-gold-dark/40 px-4 py-3 sm:px-5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span
+            aria-hidden
+            className={cn(
+              'h-2.5 w-2.5 shrink-0 rotate-45',
+              isBlue
+                ? 'bg-sky-400 shadow-[0_0_8px] shadow-sky-400/60'
+                : 'bg-red-400 shadow-[0_0_8px] shadow-red-400/60'
+            )}
+          />
+          <h2
+            className={cn(
+              'truncate hex-title text-sm sm:text-base',
+              isBlue ? 'text-sky-300' : 'text-red-300'
+            )}
+          >
+            {teamName}
+          </h2>
+          {teamData && (
+            <span
+              className={cn(
+                'hex-title text-xs',
+                teamData.win ? 'text-emerald-300' : 'text-red-300/80'
+              )}
+            >
+              {teamData.win ? 'Victory' : 'Defeat'}
+            </span>
+          )}
+        </div>
+        <div className="text-xs tracking-wide text-hx-gold/60">
+          {teamTotals.kills} kills · {formatNumber(teamTotals.gold)} gold ·{' '}
+          {formatNumber(teamTotals.damage)} damage
+        </div>
+      </header>
+      <div className="space-y-2 p-3 sm:p-4">
         {participants.map((participant, index) => (
           <PlayerCard
             key={index}
@@ -70,7 +98,7 @@ export const TeamSection = memo(function TeamSection({
             formatNumber={formatNumber}
           />
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 });

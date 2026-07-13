@@ -1,16 +1,100 @@
 /**
  * Team Objectives Component
- * Displays team feats, support quest completion, and objective breakdowns for both teams
- * Extracted from match details page
- * Memoized to prevent re-renders when props haven't changed
+ * Hextech panel with team feats, support quest completion, and objective
+ * breakdowns for both teams.
+ * Memoized to prevent re-renders when props haven't changed.
  */
 
 import { memo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Target } from 'lucide-react';
-import { ExtendedMatchTeam, SupportItemCompletionTimes } from './types';
+import { cn } from '@/lib/utils';
+import {
+  ExtendedMatchTeam,
+  SupportItemCompletionTimes,
+  TeamObjectiveExtra,
+} from './types';
 import { objectKeys } from './utils';
+
+const OBJECTIVE_LABELS: Record<string, string> = {
+  baron: 'Baron',
+  champion: 'Kills',
+  dragon: 'Dragons',
+  horde: 'Grubs',
+  inhibitor: 'Inhibs',
+  riftHerald: 'Herald',
+  tower: 'Towers',
+  atakhan: 'Atakhan',
+};
+
+function objectiveLabel(key: string): string {
+  return OBJECTIVE_LABELS[key] ?? key.replace(/([A-Z])/g, ' $1').toLowerCase();
+}
+
+function ObjectiveTile({
+  label,
+  objective,
+}: {
+  label: string;
+  objective: TeamObjectiveExtra | undefined;
+}) {
+  return (
+    <div className="rounded-sm px-2 py-2.5 text-center hex-card-inset">
+      <div className="text-lg font-bold text-hx-parchment">
+        {objective?.kills ?? 0}
+      </div>
+      <div className="truncate text-[10px] tracking-widest text-hx-gold/60 uppercase">
+        {label}
+      </div>
+      <div
+        className={cn(
+          'mt-1 inline-block rounded-sm px-1.5 py-px text-[9px] font-bold tracking-wider uppercase',
+          objective?.first ? 'bg-hx-gold/15 text-hx-gold-bright' : 'invisible'
+        )}
+      >
+        First
+      </div>
+    </div>
+  );
+}
+
+function TeamObjectiveColumn({
+  teamData,
+  side,
+}: {
+  teamData: ExtendedMatchTeam | undefined;
+  side: 'blue' | 'red';
+}) {
+  const isBlue = side === 'blue';
+  return (
+    <div>
+      <h3
+        className={cn(
+          'mb-3 flex items-center gap-2 hex-title text-xs',
+          isBlue ? 'text-sky-300' : 'text-red-300'
+        )}
+      >
+        <span
+          aria-hidden
+          className={cn(
+            'h-2 w-2 rotate-45',
+            isBlue ? 'bg-sky-400' : 'bg-red-400'
+          )}
+        />
+        {isBlue ? 'Blue Team' : 'Red Team'}
+      </h3>
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+        {teamData?.objectives &&
+          objectKeys(teamData.objectives).map((key) => (
+            <ObjectiveTile
+              key={String(key)}
+              label={objectiveLabel(String(key))}
+              objective={teamData.objectives[key]}
+            />
+          ))}
+      </div>
+    </div>
+  );
+}
 
 interface TeamObjectivesProps {
   blueTeamData: ExtendedMatchTeam | undefined;
@@ -25,111 +109,70 @@ export const TeamObjectives = memo(function TeamObjectives({
   supportItemCompletionTimes,
   formatMatchTime,
 }: TeamObjectivesProps) {
+  const questTime =
+    supportItemCompletionTimes?.tier2 ??
+    supportItemCompletionTimes?.tier3 ??
+    supportItemCompletionTimes?.tier1 ??
+    null;
+
+  const featChips = [
+    ...(blueTeamData?.feats
+      ? objectKeys(blueTeamData.feats).map((key) => ({
+          side: 'blue' as const,
+          name: String(key),
+        }))
+      : []),
+    ...(redTeamData?.feats
+      ? objectKeys(redTeamData.feats).map((key) => ({
+          side: 'red' as const,
+          name: String(key),
+        }))
+      : []),
+  ];
+
   return (
-    <Card className="border border-white/10 bg-black/20 backdrop-blur-md">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
-          <Target className="h-5 w-5" />
+    <section className="hex-card relative rounded-sm">
+      <header className="flex items-center gap-2.5 border-b border-hx-gold-dark/40 px-4 py-3 sm:px-5">
+        <Target className="h-4 w-4 shrink-0 text-hx-gold" aria-hidden />
+        <h2 className="truncate hex-title text-sm text-hx-gold sm:text-base">
           Team Objectives
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {/* Team Feats (if available) */}
-        <div className="mb-4 flex flex-wrap gap-2">
-          {blueTeamData?.feats &&
-            objectKeys(blueTeamData.feats).map((featKey) => {
-              const featName = String(featKey);
-              return (
-                <Badge
-                  key={`blue-${featName}`}
-                  className="border-blue-500/30 bg-blue-500/10 text-xs text-blue-300"
-                >
-                  🔵 {featName.replace(/_/g, ' ').toLowerCase()}
-                </Badge>
-              );
-            })}
-          {redTeamData?.feats &&
-            objectKeys(redTeamData.feats).map((featKey) => {
-              const featName = String(featKey);
-              return (
-                <Badge
-                  key={`red-${featName}`}
-                  className="border-red-500/30 bg-red-500/10 text-xs text-red-300"
-                >
-                  🔴 {featName.replace(/_/g, ' ').toLowerCase()}
-                </Badge>
-              );
-            })}
-          {/* Support Quest completion badge for selected player */}
-          <Badge className="border-purple-500/30 bg-purple-500/10 text-xs text-purple-300">
-            Support quest completed at{' '}
-            {(() => {
-              const questTime =
-                supportItemCompletionTimes?.tier2 ??
-                supportItemCompletionTimes?.tier3 ??
-                supportItemCompletionTimes?.tier1 ??
-                null;
-              return questTime ? formatMatchTime(questTime) : '-';
-            })()}
-          </Badge>
-        </div>
-        <div className="grid grid-cols-2 gap-8">
-          <div>
-            <h4 className="mb-4 font-semibold text-blue-400">Blue Team</h4>
-            <div className="grid grid-cols-3 gap-4">
-              {blueTeamData?.objectives &&
-                objectKeys(blueTeamData.objectives).map((key) => {
-                  const objective = blueTeamData.objectives[key];
-                  return (
-                    <div
-                      key={String(key)}
-                      className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-3 text-center"
-                    >
-                      <div className="text-2xl font-bold text-white">
-                        {objective?.kills ?? 0}
-                      </div>
-                      <div className="text-xs text-white/60 capitalize">
-                        {String(key)}
-                      </div>
-                      {objective?.first && (
-                        <Badge className="mt-1 bg-yellow-500/20 text-xs text-yellow-400">
-                          First
-                        </Badge>
-                      )}
-                    </div>
-                  );
-                })}
-            </div>
+        </h2>
+      </header>
+      <div className="p-4 sm:p-5">
+        {(featChips.length > 0 || questTime !== null) && (
+          <div className="mb-5 flex flex-wrap gap-2">
+            {featChips.map(({ side, name }) => (
+              <span
+                key={`${side}-${name}`}
+                className={cn(
+                  'hex-chip',
+                  side === 'blue'
+                    ? 'border-sky-400/40 text-sky-300'
+                    : 'border-red-400/40 text-red-300'
+                )}
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    'h-1.5 w-1.5 rotate-45',
+                    side === 'blue' ? 'bg-sky-400' : 'bg-red-400'
+                  )}
+                />
+                {name.replace(/_/g, ' ').toLowerCase()}
+              </span>
+            ))}
+            {questTime !== null && (
+              <span className="hex-chip-magic">
+                Support quest completed at {formatMatchTime(questTime)}
+              </span>
+            )}
           </div>
-          <div>
-            <h4 className="mb-4 font-semibold text-red-400">Red Team</h4>
-            <div className="grid grid-cols-3 gap-4">
-              {redTeamData?.objectives &&
-                objectKeys(redTeamData.objectives).map((key) => {
-                  const objective = redTeamData.objectives[key];
-                  return (
-                    <div
-                      key={String(key)}
-                      className="rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-center"
-                    >
-                      <div className="text-2xl font-bold text-white">
-                        {objective?.kills ?? 0}
-                      </div>
-                      <div className="text-xs text-white/60 capitalize">
-                        {String(key)}
-                      </div>
-                      {objective?.first && (
-                        <Badge className="mt-1 bg-yellow-500/20 text-xs text-yellow-400">
-                          First
-                        </Badge>
-                      )}
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
+        )}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <TeamObjectiveColumn teamData={blueTeamData} side="blue" />
+          <TeamObjectiveColumn teamData={redTeamData} side="red" />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 });
