@@ -10,6 +10,8 @@ This document provides comprehensive guidance for AI assistants working on this 
 
 - **Yuumi Guide** - Runes, items, skill orders, matchups, and synergies for the current patch
 - **Match Viewer** - Detailed match analysis with timeline data via Riot API or example payloads
+- **High Elo Feed** - Live Master+ Yuumi games (`/games`), player ladder with weekly climbers (`/players`), and per-player profiles with honors and LP form
+- **Meta Report** - Duo synergies, matchup/keystone winrates, and scaling curves aggregated hourly from the games feed at `/stats`
 - **Rule Gallery** - Discord-shareable rule GIFs at `/gallery`
 - **Admin Panel** - Authenticated content management for guide data at `/admin`
 - **Data Scraper** - Tools to import data from external sources (U.GG, OP.GG, etc.)
@@ -40,6 +42,9 @@ YuumiChallenges/
 │   │   │   ├── login/         # Admin authentication
 │   │   │   └── scraper/       # Data import tools
 │   │   ├── gallery/           # Rule GIF gallery
+│   │   ├── games/             # High-elo Yuumi game feed
+│   │   ├── players/           # Yuumi ladder + player profiles
+│   │   ├── stats/             # Meta Report (aggregated ladder stats)
 │   │   ├── match/             # Match viewer
 │   │   ├── rule[id].gif/      # Dynamic rule routes
 │   │   ├── layout.tsx         # Root layout with providers
@@ -70,6 +75,8 @@ YuumiChallenges/
 │   ├── schema.ts              # Database schema definitions
 │   ├── auth.ts                # Authentication functions
 │   ├── guide.ts               # Guide CRUD operations
+│   ├── highelo.ts             # High-elo feed (Riot polling, roster, backfill)
+│   ├── meta.ts                # Ladder meta stats + daily snapshots (DB-only crons)
 │   ├── seed.ts                # Database seeding (npx convex run seed:seedAll)
 │   └── scraper.ts             # Data scraping functions
 ├── public/                    # Static assets
@@ -188,7 +195,9 @@ import { DataDragonImage } from '@/components/ui/datadragon-image';
 | `guideSkillOrder` | Skill leveling orders (legacy) |
 | `guideMatchups` | Champion matchup data (enemy/ally) |
 | `guideSections` | Text content sections |
-| `guideMetadata` | Key-value config (patch, etc.) |
+| `guideMetadata` | Key-value config (patch, meta stats blob, climbers, etc.) |
+| `yuumiRoster` / `yuumiGames` | High-elo Yuumi players and their games |
+| `rosterSnapshots` | Daily LP/games snapshots (form sparklines, climbers) |
 | `scrapedData` | Imported external data |
 | `scrapeJobs` | Scrape job logs |
 
@@ -264,6 +273,8 @@ npx convex run scraper:autoUpdateBuild   # refresh the OP.GG auto build
 | `convex/schema.ts` | Database schema definitions |
 | `convex/guide.ts` | Guide CRUD operations |
 | `convex/seed.ts` | Guide table seeding (`seed:seedAll`) |
+| `convex/meta.ts` | Hourly meta-stats aggregation + daily ladder snapshots |
+| `src/lib/highelo/meta-stats.ts` | Client contract for the meta-stats blob |
 | `src/lib/embeds/yuumi.ts` | Discord embed configuration |
 | `src/lib/types/index.ts` | Shared TypeScript types |
 | `src/components/ui/datadragon-image.tsx` | League asset image component |
