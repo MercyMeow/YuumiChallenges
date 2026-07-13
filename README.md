@@ -46,7 +46,7 @@ Everything the Book could ask for lives under one roof. The recommended build **
 
 `/` &nbsp;·&nbsp; _home_
 
-- **Self-updating builds** — refreshed daily with a "last forged" stamp; a curated build stands in whenever the backend is asleep
+- **Self-updating builds** — forged nightly from our own Master+ ladder data, stamped with when it was last forged; a curated build stands in whenever the backend is asleep
 - **Ability guide** — interactive spell selector with Data Dragon icons, live cooldown / mana chips, and wiki-verified tips
 - **Matchup & synergy scrolls** — every enemy support and ally ADC with full kit icons, highlighted tips, and rune / item tweaks
 - **Scroll-spy rails** — the client-style side rail tracks the section you're reading
@@ -94,6 +94,30 @@ Everything the Book could ask for lives under one roof. The recommended build **
 <tr>
 <td width="50%" valign="top">
 
+### 📊 Meta Report
+
+`/stats`
+
+- **Duo synergies, matchup & keystone winrates, scaling curves** — no third-party stat sites involved
+- **Builds & Runes boards** — item, build-path, rune-page, and spell winrates
+- Aggregated **hourly** from our own high-elo games feed
+
+</td>
+<td width="50%" valign="top">
+
+### 🐾 Accounts & Supporter
+
+_top-nav sign-in_
+
+- **Discord sign-in** — sessions live in httpOnly cookies
+- **Riot account linking**, verified with a summoner-icon challenge
+- **1€/month Supporter** via Stripe, with a badge to show for it
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
 ### ✨ Mythic Shop Timers
 
 _site-wide banner_
@@ -125,14 +149,17 @@ flowchart LR
     Viewer["Match Viewer"]
     Feed["High-Elo Games"]
     Ladder["Ladder & Profiles"]
+    Stats["Meta Report"]
     Admin["Admin Panel"]
   end
   subgraph Edge["API Routes"]
     MatchAPI["/api/match-details"]
+    AccountAPI["/api/auth · /api/account<br/>/api/stripe"]
   end
   subgraph Backend["✦ Convex · realtime DB + crons"]
-    DB["guideBuilds · guideMatchups<br/>yuumiGames · yuumiRoster"]
-    BuildCron["daily build refresh"]
+    DB["guideBuilds · guideMatchups<br/>yuumiGames · yuumiRoster<br/>webUsers"]
+    BuildCron["nightly build derive"]
+    MetaCron["hourly meta stats"]
     Poll["5-min ladder poll"]
   end
   subgraph Riot["✦ Riot Services"]
@@ -144,11 +171,14 @@ flowchart LR
   Guide --> DB
   Ladder --> DB
   Feed --> DB
+  Stats --> DB
   Admin --> DB
+  Ladder --> AccountAPI --> DB
   Guide --> DDragon
   Feed --> DDragon
   Poll --> RiotAPI
   Poll --> DB
+  MetaCron --> DB
   BuildCron --> DB
 ```
 
@@ -200,6 +230,9 @@ npx convex run seed:seedAll     # seed builds, matchups & sections
 | `CONVEX_DEPLOY_KEY` | cloud prod | Convex cloud deploy key |
 | `NEXT_PUBLIC_SITE_URL` | prod | Canonical & Open Graph URLs |
 | `NEXT_PUBLIC_USE_EXAMPLE_DATA` | optional | Serve bundled example match payloads |
+| `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` | accounts | Discord OAuth web sign-in |
+| `AUTH_BRIDGE_SECRET` | accounts | Shared secret between Next API routes and Convex (set the same value in both) |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | supporter | 1€/month Supporter subscription + webhook verification |
 
 Grab a development key from the [Riot Developer Portal](https://developer.riotgames.com/). Convex runs in the cloud **or fully self-hosted** — both are supported.
 
@@ -213,9 +246,10 @@ Grab a development key from the [Riot Developer Portal](https://developer.riotga
 YuumiChallenges/
 ├── src/
 │   ├── app/                 # App Router routes + hextech design system (globals.css)
-│   │   ├── api/             # match-details proxy
+│   │   ├── api/             # match-details proxy · auth · account · stripe
 │   │   ├── games/           # high-elo Yuumi games feed
 │   │   ├── players/         # Yuumi ladder + player profiles
+│   │   ├── stats/           # Meta Report — winrates, synergies, builds & runes
 │   │   ├── match/           # match viewer
 │   │   ├── gallery/         # rule GIF gallery
 │   │   ├── admin/           # auth-gated content management
@@ -247,6 +281,7 @@ YuumiChallenges/
 | **Backend** | Convex — realtime DB, functions & crons (cloud or self-hosted) |
 | **Styling** | Tailwind CSS 4 (CSS-first `@theme`) · Radix UI · CVA · Cinzel display |
 | **Live data** | Riot Match & Timeline V5 · Data Dragon CDN |
+| **Accounts** | Discord OAuth sign-in · Stripe supporter subscriptions |
 | **Tooling** | Zod 4 · Lucide · date-fns · Sonner · ESLint · Prettier |
 
 </div>

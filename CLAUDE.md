@@ -4,14 +4,16 @@ This document provides comprehensive guidance for AI assistants working on this 
 
 ## Project Overview
 
-**YuumiChallenges** is a Next.js 15 web application featuring a comprehensive League of Legends Yuumi support guide, match viewer, and rule GIF gallery. The application uses Convex as a real-time backend database for managing guide content through an admin panel.
+**YuumiChallenges** (yuumi.quest) is a Next.js 16 web application featuring a comprehensive League of Legends Yuumi support guide, match viewer, live high-elo tracker, and rule GIF gallery. Convex serves as the real-time backend for guide content, the high-elo feed, aggregated meta stats, and web accounts.
 
 ### Core Features
 
 - **Yuumi Guide** - Runes, items, skill orders, matchups, and synergies for the current patch
 - **Match Viewer** - Detailed match analysis with timeline data via Riot API or example payloads
 - **High Elo Feed** - Live Master+ Yuumi games (`/games`), player ladder with weekly climbers (`/players`), and per-player profiles with honors and LP form
-- **Meta Report** - Duo synergies, matchup/keystone winrates, and scaling curves aggregated hourly from the games feed at `/stats`
+- **Meta Report** - Duo synergies, matchup/keystone winrates, scaling curves, and Builds & Runes boards (item, build-path, rune-page, and spell winrates) aggregated hourly from the games feed at `/stats`
+- **Self-derived Build** - The homepage build is recomputed daily from our own Master+ ladder aggregate (`convex/autobuild.ts`); the OP.GG scraper remains a manual fallback
+- **Accounts & Supporter** - Discord OAuth sign-in, icon-verified Riot account linking, and a 1€/month Stripe supporter subscription (`convex/webauth.ts`)
 - **Rule Gallery** - Discord-shareable rule GIFs at `/gallery`
 - **Admin Panel** - Authenticated content management for guide data at `/admin`
 - **Data Scraper** - Tools to import data from external sources (U.GG, OP.GG, etc.)
@@ -35,7 +37,7 @@ This document provides comprehensive guidance for AI assistants working on this 
 YuumiChallenges/
 ├── src/
 │   ├── app/                    # Next.js App Router
-│   │   ├── api/               # API routes (match-details proxy)
+│   │   ├── api/               # API routes (match-details, account, auth, stripe, data-dragon)
 │   │   ├── admin/             # Admin panel routes
 │   │   │   ├── builds/        # Unified builds management
 │   │   │   ├── items/         # Item configuration
@@ -73,12 +75,15 @@ YuumiChallenges/
 ├── convex/                    # Convex backend
 │   ├── _generated/            # Auto-generated Convex types
 │   ├── schema.ts              # Database schema definitions
-│   ├── auth.ts                # Authentication functions
+│   ├── auth.ts                # Admin authentication functions
+│   ├── autobuild.ts           # Daily homepage build derived from own ladder data
+│   ├── crons.ts               # Cron schedule (build derive, polling, meta stats)
 │   ├── guide.ts               # Guide CRUD operations
 │   ├── highelo.ts             # High-elo feed (Riot polling, roster, backfill)
 │   ├── meta.ts                # Ladder meta stats + daily snapshots (DB-only crons)
+│   ├── webauth.ts             # Web accounts (Discord auth, Riot linking, Stripe)
 │   ├── seed.ts                # Database seeding (npx convex run seed:seedAll)
-│   └── scraper.ts             # Data scraping functions
+│   └── scraper.ts             # Data scraping functions (manual fallback)
 ├── public/                    # Static assets
 │   ├── images/                # Champion, rune, item images
 │   │   └── ranked/            # Rank emblems
@@ -121,7 +126,11 @@ Create `.env.local` from `.env.example`:
 | `NEXT_PUBLIC_USE_EXAMPLE_DATA` | Toggle static vs live match data |
 | `RIOT_API_KEY` | Required for live Riot API requests |
 | `NEXT_PUBLIC_CONVEX_URL` | Convex deployment URL |
-| `CONVEX_DEPLOY_KEY` | Convex deployment key (production) |
+| `CONVEX_DEPLOY_KEY` | Convex deployment key (cloud production) |
+| `CONVEX_SELF_HOSTED_URL` / `CONVEX_SELF_HOSTED_ADMIN_KEY` | Self-hosted Convex endpoint + admin key |
+| `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` | Discord OAuth web sign-in |
+| `AUTH_BRIDGE_SECRET` | Shared secret between Next API routes and Convex bridge mutations (set the same value in the Convex environment) |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Stripe supporter subscription + webhook verification |
 
 ## Code Conventions
 
@@ -188,7 +197,9 @@ import { DataDragonImage } from '@/components/ui/datadragon-image';
 | Table | Purpose |
 |-------|---------|
 | `users` | Admin accounts (username, passwordHash, role) |
-| `sessions` | Auth session tokens |
+| `sessions` | Admin auth session tokens |
+| `webUsers` | Web accounts (Discord identity, supporter subscription, Riot link) |
+| `webSessions` | Web auth sessions (token in httpOnly cookie) |
 | `guideBuilds` | Unified builds (runes + items + skill order) |
 | `guideItems` | Individual item configurations |
 | `guideRunes` | Rune page configurations |
@@ -198,7 +209,7 @@ import { DataDragonImage } from '@/components/ui/datadragon-image';
 | `guideMetadata` | Key-value config (patch, meta stats blob, climbers, etc.) |
 | `yuumiRoster` / `yuumiGames` | High-elo Yuumi players and their games |
 | `rosterSnapshots` | Daily LP/games snapshots (form sparklines, climbers) |
-| `scrapedData` | Imported external data |
+| `sweepQueue` / `sweepState` | Ladder sweep work queue + per-platform bookkeeping |
 | `scrapeJobs` | Scrape job logs |
 
 ### Key Patterns
@@ -258,7 +269,8 @@ tables; only touches specific metadata keys):
 ```bash
 npx convex deploy            # push schema/functions first
 npx convex run seed:seedAll
-npx convex run scraper:autoUpdateBuild   # refresh the OP.GG auto build
+npx convex run autobuild:deriveAutoBuild   # derive the auto build from ladder data
+npx convex run scraper:autoUpdateBuild     # OP.GG fallback if no ladder data yet
 ```
 
 ## Key Files Reference
@@ -274,6 +286,9 @@ npx convex run scraper:autoUpdateBuild   # refresh the OP.GG auto build
 | `convex/guide.ts` | Guide CRUD operations |
 | `convex/seed.ts` | Guide table seeding (`seed:seedAll`) |
 | `convex/meta.ts` | Hourly meta-stats aggregation + daily ladder snapshots |
+| `convex/autobuild.ts` | Daily homepage build derived from the ladder aggregate |
+| `convex/webauth.ts` | Web accounts: Discord auth, Riot linking, Stripe bridge |
+| `src/lib/hooks/use-web-user.ts` | Client hook for the signed-in web user |
 | `src/lib/highelo/meta-stats.ts` | Client contract for the meta-stats blob |
 | `src/lib/embeds/yuumi.ts` | Discord embed configuration |
 | `src/lib/types/index.ts` | Shared TypeScript types |
@@ -353,15 +368,17 @@ Example: `feat: Add Guardian rune page to builds system`
 
 - Never commit `.env*` files or API keys
 - Admin auth uses session tokens stored in Convex
+- Web auth (Discord OAuth) stores session tokens in httpOnly cookies; Next API routes call Convex bridge mutations guarded by `AUTH_BRIDGE_SECRET`
+- Stripe webhooks are signature-verified (`STRIPE_WEBHOOK_SECRET`) with replay/ordering guards on subscription events
 - Riot API key is server-side only (not exposed to client)
 - Password hashing handled in `convex/auth.ts`
 
 ## External Data Sources
 
-The guide aggregates data from:
+The homepage build is primarily derived from the site's own Master+ ladder aggregate (`convex/autobuild.ts`). External sources remain available as references and manual fallbacks:
 - Lolalytics
 - U.GG
-- OP.GG
+- OP.GG (`npx convex run scraper:autoUpdateBuild` — manual fallback build)
 - Mobalytics
 - OneTricks community
 
@@ -389,4 +406,4 @@ Ensure variables prefixed with `NEXT_PUBLIC_` for client-side access. Restart de
 
 ---
 
-*Last updated: January 2026*
+*Last updated: July 2026*
