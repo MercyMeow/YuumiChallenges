@@ -1,0 +1,24 @@
+scripts/ensure-indexes.ts
+  s_801a60b5f5c1f3::t_5bbc6d2a2ba3eb 4-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "02f58df7a53a5aa3aee3174a44792f3f79469ed5",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_801a60b5f5c1f3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "78b7a01c-aadf-4e8e-9315-bea0315c72c5",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
