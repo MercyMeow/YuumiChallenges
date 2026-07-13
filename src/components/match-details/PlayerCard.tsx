@@ -190,7 +190,14 @@ export const PlayerCard = memo(
               className="shrink-0"
             />
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold text-hx-parchment">
+              <div
+                className="truncate text-sm font-semibold text-hx-parchment"
+                title={
+                  participant.riotIdTagline
+                    ? `${displayName}#${participant.riotIdTagline}`
+                    : displayName
+                }
+              >
                 {displayName}
                 {participant.riotIdTagline && (
                   <span className="ml-1 text-xs font-normal text-hx-gold/50">
