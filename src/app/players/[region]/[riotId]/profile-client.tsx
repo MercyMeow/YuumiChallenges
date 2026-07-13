@@ -1,10 +1,28 @@
 'use client';
 
-import { Fragment, useEffect, useState, type ReactNode } from 'react';
+import {
+  Fragment,
+  useEffect,
+  useMemo,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from 'convex/react';
-import { ChevronRight, Layers, Trophy, Users } from 'lucide-react';
+import {
+  Cat,
+  ChevronRight,
+  Crown,
+  Flame,
+  Layers,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+  Trophy,
+  Users,
+} from 'lucide-react';
 import { api } from '@/../convex/_generated/api';
 import { HextechPanel } from '@/components/ui/hextech-panel';
 import { DataDragonImage } from '@/components/ui/datadragon-image';
@@ -18,6 +36,8 @@ import { SummonerSpell } from '@/components/match-history/summoner-spells';
 import { GameCard } from '@/components/highelo/game-card';
 import { HighEloTabs } from '@/components/highelo/high-elo-tabs';
 import { platformLabel } from '@/lib/highelo/regions';
+import { parseMetaStats, winratePct } from '@/lib/highelo/meta-stats';
+import { writeLastViewedProfile } from '@/lib/highelo/last-profile';
 import type { ProfileParams } from './profile-data';
 
 const STYLE_NAMES: Record<number, string> = {
@@ -161,17 +181,190 @@ function NotFound() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: ReactNode }) {
+function Stat({
+  label,
+  value,
+  sub,
+}: {
+  label: string;
+  value: ReactNode;
+  sub?: ReactNode;
+}) {
   return (
     <div className="min-w-16 text-center">
       <div className="hex-title text-lg text-hx-gold-bright">{value}</div>
       <div className="mt-0.5 hex-label">{label}</div>
+      {sub && <div className="mt-0.5 text-[10px] tracking-wide">{sub}</div>}
     </div>
   );
 }
 
+// ---------- honors ----------
+
+type Honor = {
+  icon: ComponentType<{ className?: string }>;
+  label: string;
+};
+
+const GAMES_MILESTONES: ReadonlyArray<[number, string]> = [
+  [500, 'Yuumi Devotee · 500+ games'],
+  [250, 'Book Club Regular · 250+ games'],
+  [100, 'Century Cat · 100+ games'],
+  [50, 'Committed · 50+ games'],
+];
+
+/**
+ * Earned badges, derived purely from the profile payload. Positive-only:
+ * an empty row simply doesn't render.
+ */
+function computeHonors(
+  player: {
+    gamesCount: number;
+    wins: number;
+    killsTotal: number;
+    deathsTotal: number;
+    assistsTotal: number;
+    position: number | null;
+  },
+  recentGames: ReadonlyArray<{ win: boolean; deaths: number }>
+): Honor[] {
+  const honors: Honor[] = [];
+  if (typeof player.position === 'number' && player.position > 0) {
+    if (player.position <= 10) {
+      honors.push({ icon: Crown, label: 'Top 10 Yuumi worldwide' });
+    } else if (player.position <= 100) {
+      honors.push({ icon: Crown, label: 'Top 100 Yuumi worldwide' });
+    }
+  }
+  const milestone = GAMES_MILESTONES.find(
+    ([games]) => player.gamesCount >= games
+  );
+  if (milestone) honors.push({ icon: Cat, label: milestone[1] });
+  if (player.gamesCount >= 20) {
+    const winrate = (player.wins / player.gamesCount) * 100;
+    if (winrate >= 60) {
+      honors.push({ icon: Sparkles, label: 'Dominant · 60%+ winrate' });
+    } else if (winrate >= 55) {
+      honors.push({ icon: Sparkles, label: 'Winning Cat · 55%+ winrate' });
+    }
+  }
+  let streak = 0;
+  for (const game of recentGames) {
+    if (!game.win) break;
+    streak++;
+  }
+  if (streak >= 3) {
+    honors.push({ icon: Flame, label: `${streak}-game win streak` });
+  }
+  if (recentGames.some((game) => game.win && game.deaths === 0)) {
+    honors.push({ icon: ShieldCheck, label: 'Untouchable · deathless win' });
+  }
+  if (player.gamesCount >= 10 && player.deathsTotal > 0) {
+    const kda = (player.killsTotal + player.assistsTotal) / player.deathsTotal;
+    if (kda >= 8) {
+      honors.push({ icon: Trophy, label: 'KDA Machine · 8+ average' });
+    }
+  }
+  return honors;
+}
+
+// ---------- LP form sparkline ----------
+
+const SPARK_W = 300;
+const SPARK_H = 64;
+const SPARK_PAD = 6;
+
+/** Inline LP-over-time sparkline from daily ladder snapshots. */
+function LpSparkline({
+  points,
+}: {
+  points: ReadonlyArray<{ takenAt: number; lp: number }>;
+}) {
+  const lps = points.map((p) => p.lp);
+  const min = Math.min(...lps);
+  const max = Math.max(...lps);
+  // A flat line still needs a visible range to sit mid-chart.
+  const range = max - min || 20;
+  const coords = points.map((p, i) => {
+    const x =
+      points.length === 1
+        ? SPARK_W / 2
+        : (i / (points.length - 1)) * (SPARK_W - SPARK_PAD * 2) + SPARK_PAD;
+    const y =
+      SPARK_H - SPARK_PAD - ((p.lp - min) / range) * (SPARK_H - SPARK_PAD * 2);
+    return [x, y] as const;
+  });
+  const line = coords.map(([x, y]) => `${x},${y}`).join(' ');
+  const last = coords[coords.length - 1];
+  return (
+    <svg
+      viewBox={`0 0 ${SPARK_W} ${SPARK_H}`}
+      preserveAspectRatio="none"
+      className="h-16 w-full text-hx-magic"
+      role="img"
+      aria-label={`LP over time, from ${min} to ${max}`}
+    >
+      <polygon
+        points={`${SPARK_PAD},${SPARK_H} ${line} ${SPARK_W - SPARK_PAD},${SPARK_H}`}
+        fill="currentColor"
+        opacity="0.12"
+      />
+      <polyline
+        points={line}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      {last && <circle cx={last[0]} cy={last[1]} r="3" fill="currentColor" />}
+    </svg>
+  );
+}
+
+function shortDate(timestamp: number): string {
+  return new Date(timestamp).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+/** Gain/loss coloring for the LP-form header chip. */
+function cnDelta(delta: number): string {
+  return `hex-title text-sm ${delta >= 0 ? 'text-emerald-300' : 'text-red-300'}`;
+}
+
 export function ProfileClient({ params }: { params: ProfileParams | null }) {
   const profile = useQuery(api.highelo.getPlayerProfile, params ?? 'skip');
+  // Daily ladder snapshots (form sparkline) and the meta blob (ladder-
+  // average comparison); both render progressively when they arrive.
+  const snapshots = useQuery(
+    api.meta.getPlayerSnapshots,
+    profile ? { puuid: profile.player.puuid } : 'skip'
+  );
+  const metaRaw = useQuery(api.meta.getMetaStats);
+
+  // Remember this profile so the ladder page can offer a "continue" pin.
+  useEffect(() => {
+    if (!profile) return;
+    writeLastViewedProfile({
+      puuid: profile.player.puuid,
+      platform: profile.player.platform,
+      gameName: profile.player.gameName,
+      tagLine: profile.player.tagLine,
+    });
+  }, [profile]);
+
+  const ladderWinrate = useMemo(() => {
+    const parsed = metaRaw == null ? null : parseMetaStats(metaRaw);
+    const totals = parsed?.window.totals;
+    return totals && totals.games >= 100 ? winratePct(totals) : null;
+  }, [metaRaw]);
+
+  const honors = useMemo(
+    () => (profile ? computeHonors(profile.player, profile.recentGames) : []),
+    [profile]
+  );
 
   // Convex unreachable -> useQuery stays undefined forever; show a notice
   // instead of skeletons after a grace period.
@@ -228,6 +421,13 @@ export function ProfileClient({ params }: { params: ProfileParams | null }) {
         ).toFixed(2);
   const showPosition =
     typeof player.position === 'number' && player.position > 0;
+  const winrateDelta =
+    ladderWinrate !== null && player.gamesCount >= 20
+      ? winrate - ladderWinrate
+      : null;
+  const firstSnap = snapshots?.[0];
+  const lastSnap = snapshots?.[snapshots.length - 1];
+  const lpDelta = firstSnap && lastSnap ? lastSnap.lp - firstSnap.lp : 0;
 
   return (
     <Shell>
@@ -262,10 +462,60 @@ export function ProfileClient({ params }: { params: ProfileParams | null }) {
           <Stat
             label={`${player.gamesCount} games`}
             value={player.gamesCount < 5 ? 'Early season' : `${winrate}%`}
+            sub={
+              winrateDelta !== null ? (
+                <span
+                  className={
+                    winrateDelta >= 0 ? 'text-emerald-300' : 'text-red-300'
+                  }
+                >
+                  {winrateDelta >= 0 ? '+' : ''}
+                  {winrateDelta}% vs ladder
+                </span>
+              ) : undefined
+            }
           />
           <Stat label="Avg KDA" value={kda} />
         </div>
+
+        {/* Honors — earned badges, hidden when none apply */}
+        {honors.length > 0 && (
+          <div className="flex w-full flex-wrap gap-1.5 border-t border-hx-gold-dark/30 pt-3">
+            {honors.map(({ icon: Icon, label }) => (
+              <span
+                key={label}
+                className="inline-flex items-center gap-1.5 rounded-sm border border-hx-gold-dark/40 bg-hx-gold/5 px-2.5 py-1 text-[11px] tracking-wide text-hx-gold-bright"
+              >
+                <Icon className="h-3.5 w-3.5 text-hx-gold" aria-hidden />
+                {label}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* LP form — appears once at least two daily snapshots exist */}
+      {snapshots && snapshots.length >= 2 && firstSnap && lastSnap && (
+        <HextechPanel
+          title="LP Form"
+          icon={<TrendingUp className="h-4 w-4" aria-hidden />}
+          className="mt-6"
+          action={
+            <span className={cnDelta(lpDelta)}>
+              {lpDelta >= 0 ? '+' : ''}
+              {lpDelta} LP
+            </span>
+          }
+        >
+          <LpSparkline points={snapshots} />
+          <div className="mt-1 flex justify-between text-[10px] tracking-wide text-hx-gold/40">
+            <span>{shortDate(firstSnap.takenAt)}</span>
+            <span>
+              {shortDate(lastSnap.takenAt)} · {lastSnap.lp} LP
+            </span>
+          </div>
+        </HextechPanel>
+      )}
 
       {/* Common builds */}
       <HextechPanel
