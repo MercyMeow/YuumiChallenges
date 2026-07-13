@@ -1,32 +1,46 @@
 'use client';
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useQuery } from 'convex/react';
 import {
   Activity,
+  ChevronRight,
+  Gem,
   Globe,
   History,
+  Layers,
   Sparkles,
   Swords,
   TrendingUp,
   Users,
+  Wand2,
+  Zap,
 } from 'lucide-react';
 import { api } from '@/../convex/_generated/api';
 import { HextechPanel, OrnateHeading } from '@/components/ui/hextech-panel';
 import { DataDragonImage } from '@/components/ui/datadragon-image';
-import { RuneIcon } from '@/components/ui/rune-display';
+import {
+  RuneIcon,
+  RuneTreeIcon,
+  StatShardIcon,
+} from '@/components/ui/rune-display';
+import { ItemSlot } from '@/components/match-history/item-slots';
+import { SummonerSpell } from '@/components/match-history/summoner-spells';
 import { PanelSkeleton } from '@/components/ui/skeleton';
 import { HighEloTabs } from '@/components/highelo/high-elo-tabs';
 import { timeAgo } from '@/components/highelo/game-card';
 import { useRuneData } from '@/hooks/use-rune-data';
+import { useItemData } from '@/hooks/use-item-data';
 import { platformLabel } from '@/lib/highelo/regions';
 import {
   avgKda,
   parseMetaStats,
   winratePct,
+  type BuildPathStat,
   type ChampionStat,
   type MetaScope,
   type MetaStats,
+  type RunePageStat,
   type WinCount,
 } from '@/lib/highelo/meta-stats';
 import {
@@ -45,6 +59,7 @@ const SOLID_SAMPLE_GAMES = 20;
 const WINRATE_SORT_MIN_GAMES = 10;
 
 type Scope = 'window' | 'season';
+type SubTab = 'overview' | 'duos' | 'builds';
 type BoardSort = 'games' | 'winrate';
 
 function winrateTone(pct: number): string {
@@ -259,10 +274,87 @@ function ThreatColumn({
   );
 }
 
+/** Ordered completed-item purchases as an A → B → C chain, with winrate. */
+function CoreBuildRow({ entry }: { entry: BuildPathStat }) {
+  const lowSample = entry.games < SOLID_SAMPLE_GAMES;
+  return (
+    <div
+      className={cn(
+        'flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-hx-gold-dark/15 py-2.5 last:border-b-0',
+        lowSample && 'opacity-70'
+      )}
+    >
+      <div className="flex flex-wrap items-center gap-1">
+        {entry.path.map((itemId, i) => (
+          <Fragment key={`${itemId}-${i}`}>
+            {i > 0 && (
+              <ChevronRight
+                className="h-3.5 w-3.5 shrink-0 text-hx-gold/40"
+                aria-hidden
+              />
+            )}
+            <ItemSlot itemId={itemId} size="lg" />
+          </Fragment>
+        ))}
+      </div>
+      <div className="ml-auto flex items-center gap-3">
+        {lowSample && <LowSampleMark />}
+        <span className="text-[11px] tracking-wide text-hx-gold/50">
+          {gamesLabel(entry.games)}
+        </span>
+        <WinrateBar stat={entry} />
+      </div>
+    </div>
+  );
+}
+
+/** Full rune page: keystone + minors, secondary tree + runes, stat shards. */
+function RuneStatRow({ page }: { page: RunePageStat }) {
+  const keystoneId = page.primaryRunes[0];
+  if (keystoneId === undefined) return null;
+  const primaryMinors = page.primaryRunes.slice(1);
+  const lowSample = page.games < SOLID_SAMPLE_GAMES;
+  return (
+    <div
+      className={cn(
+        'flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-hx-gold-dark/15 py-3 last:border-b-0',
+        lowSample && 'opacity-70'
+      )}
+    >
+      <div className="flex items-center gap-1.5">
+        <RuneIcon runeId={keystoneId} size="lg" variant="keystone" />
+        {primaryMinors.map((id, i) => (
+          <RuneIcon key={`${id}-${i}`} runeId={id} size="sm" />
+        ))}
+      </div>
+      <div className="flex items-center gap-1.5 border-l border-hx-gold-dark/30 pl-4">
+        <RuneTreeIcon treeId={page.secondaryStyleId} size="sm" />
+        {page.secondaryRunes.map((id, i) => (
+          <RuneIcon key={`${id}-${i}`} runeId={id} size="sm" />
+        ))}
+      </div>
+      <div className="flex items-center gap-1 border-l border-hx-gold-dark/30 pl-4">
+        {page.statShards.map((id, i) => (
+          <StatShardIcon key={`${id}-${i}`} statShardId={id} size="md" />
+        ))}
+      </div>
+      <div className="ml-auto flex items-center gap-3">
+        {lowSample && <LowSampleMark />}
+        <span className="text-[11px] tracking-wide text-hx-gold/50">
+          {gamesLabel(page.games)}
+        </span>
+        <WinrateBar stat={page} />
+      </div>
+    </div>
+  );
+}
+
 export function StatsClient() {
   const raw = useQuery(api.meta.getMetaStats);
   const { getRuneById } = useRuneData();
+  const { getItem } = useItemData();
   const [scope, setScope] = useState<Scope>('window');
+  const [tab, setTab] = useState<SubTab>('overview');
   const [duoSort, setDuoSort] = useState<BoardSort>('games');
   const [threatSort, setThreatSort] = useState<BoardSort>('games');
 
@@ -342,6 +434,38 @@ export function StatsClient() {
   const trend = stats
     ? stats.patchTrend.filter((p) => p.games >= MIN_SHOWN_GAMES)
     : [];
+
+  // Builds & Runes boards — absent on stale blobs (deploy skew), consumed
+  // with `?? []`. The writer pre-sorts each by games desc, so filtering the
+  // sub-threshold tail and slicing keeps the most-played entries on top.
+  const buildPaths = useMemo(
+    () =>
+      (data?.buildPaths ?? [])
+        .filter((b) => b.games >= MIN_SHOWN_GAMES)
+        .slice(0, 8),
+    [data]
+  );
+  const itemStats = useMemo(
+    () =>
+      (data?.items ?? [])
+        .filter((i) => i.games >= MIN_SHOWN_GAMES)
+        .slice(0, 20),
+    [data]
+  );
+  const runePages = useMemo(
+    () =>
+      (data?.runePages ?? [])
+        .filter((p) => p.games >= MIN_SHOWN_GAMES && p.primaryRunes.length > 0)
+        .slice(0, 6),
+    [data]
+  );
+  const spellPairs = useMemo(
+    () =>
+      (data?.spells ?? [])
+        .filter((s) => s.games >= MIN_SHOWN_GAMES && s.ids.length >= 2)
+        .slice(0, 8),
+    [data]
+  );
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8 md:px-6">
@@ -473,260 +597,427 @@ export function StatsClient() {
             />
           </div>
 
-          {/* Duo synergy board */}
-          <HextechPanel
-            title="Duo Synergy Board"
-            icon={<Users className="h-4 w-4" aria-hidden />}
-            className="mt-6"
-            action={<SortToggle sort={duoSort} onChange={setDuoSort} />}
-          >
-            <p className="mb-3 text-[11px] tracking-wide text-hx-gold/50">
-              Yuumi&apos;s winrate by bot-lane ally, with her average KDA
-              alongside — and what the guide says about the pairing.
-            </p>
-            {duos.length === 0 ? (
-              <p className="py-6 text-center text-sm text-hx-gold/60">
-                Not enough games yet — the feed is still gathering data.
-              </p>
-            ) : (
-              duos.map((duo) => {
-                const synergy = ADC_MATCHUPS[duo.champion]?.synergy;
-                return (
-                  <ChampionRow
-                    key={duo.champion}
-                    champion={duo.champion}
-                    stat={duo}
-                    extra={<> · {avgKda(duo)} avg KDA</>}
-                    chip={
-                      synergy ? (
+          {/* Sub-tabs — split the report into focused views (gold accent) */}
+          <div className="mt-6 flex flex-wrap justify-center gap-1">
+            {(
+              [
+                { value: 'overview', label: 'Overview' },
+                { value: 'duos', label: 'Duos & Threats' },
+                { value: 'builds', label: 'Builds & Runes' },
+              ] as const
+            ).map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setTab(option.value)}
+                aria-pressed={tab === option.value}
+                className={cn(
+                  'rounded-sm border px-4 py-1.5 text-xs tracking-widest uppercase transition-colors',
+                  tab === option.value
+                    ? 'border-hx-gold bg-hx-gold/10 text-hx-gold-bright'
+                    : 'border-hx-gold-dark/40 text-hx-gold/60 hover:text-hx-gold'
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Overview — scaling, patch trend, regional spread */}
+          {tab === 'overview' && (
+            <div className="mt-6 space-y-6">
+              <div className="grid gap-6 lg:grid-cols-2">
+                <HextechPanel
+                  title="Does Yuumi Scale?"
+                  icon={<TrendingUp className="h-4 w-4" aria-hidden />}
+                >
+                  <p className="mb-3 text-[11px] tracking-wide text-hx-gold/50">
+                    Winrate by game length — the definitive answer, one bar per
+                    bracket.
+                  </p>
+                  <div className="space-y-2.5">
+                    {data?.durations.map((bucket) => {
+                      const pct = winratePct(bucket);
+                      return (
+                        <div
+                          key={bucket.key}
+                          className="flex items-center gap-3"
+                        >
+                          <span className="w-12 shrink-0 text-right text-xs tracking-wide text-hx-gold/60 tabular-nums">
+                            {bucket.key}m
+                          </span>
+                          <div className="h-3 flex-1 overflow-hidden rounded-sm bg-hx-black/60">
+                            <div
+                              className={cn('h-full', barTone(pct))}
+                              style={{
+                                width: `${bucket.games === 0 ? 0 : pct}%`,
+                              }}
+                            />
+                          </div>
+                          <span
+                            className={cn(
+                              'w-9 shrink-0 text-right text-sm tabular-nums',
+                              winrateTone(pct)
+                            )}
+                          >
+                            {bucket.games === 0 ? '–' : `${pct}%`}
+                          </span>
+                          <span
+                            className="w-20 shrink-0 text-right text-[10px] tracking-wide text-hx-gold/40"
+                            style={{
+                              opacity:
+                                0.5 + (bucket.games / maxDurationGames) * 0.5,
+                            }}
+                          >
+                            {gamesLabel(bucket.games)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </HextechPanel>
+
+                <HextechPanel
+                  title="Patch Trend"
+                  icon={<History className="h-4 w-4" aria-hidden />}
+                >
+                  {trend.length === 0 ? (
+                    <p className="py-6 text-center text-sm text-hx-gold/60">
+                      Not enough games yet.
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {trend.map((patch) => {
+                        const pct = winratePct(patch);
+                        return (
+                          <div
+                            key={patch.patch}
+                            className="flex items-center gap-3"
+                          >
+                            <span className="w-12 shrink-0 text-xs tracking-wide text-hx-gold/70 tabular-nums">
+                              {patch.patch}
+                            </span>
+                            <div className="h-2 flex-1 overflow-hidden rounded-sm bg-hx-black/60">
+                              <div
+                                className={cn('h-full', barTone(pct))}
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <span
+                              className={cn(
+                                'w-9 shrink-0 text-right text-sm tabular-nums',
+                                winrateTone(pct)
+                              )}
+                            >
+                              {pct}%
+                            </span>
+                            <span className="w-20 shrink-0 text-right text-[10px] tracking-wide text-hx-gold/40">
+                              {gamesLabel(patch.games)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </HextechPanel>
+              </div>
+
+              <HextechPanel
+                title="Around the World"
+                icon={<Globe className="h-4 w-4" aria-hidden />}
+              >
+                {regions.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-hx-gold/60">
+                    Not enough games yet.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+                    {regions.map((region) => {
+                      const pct = winratePct(region);
+                      return (
+                        <div
+                          key={region.platform}
+                          className="flex flex-col items-center gap-0.5 rounded-sm px-2 py-2.5 hex-card-inset"
+                        >
+                          <span className="hex-chip-magic">
+                            {platformLabel(region.platform)}
+                          </span>
+                          <span
+                            className={cn(
+                              'hex-title text-base',
+                              winrateTone(pct)
+                            )}
+                          >
+                            {pct}%
+                          </span>
+                          <span className="text-[10px] tracking-wide text-hx-gold/40">
+                            {gamesLabel(region.games)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </HextechPanel>
+            </div>
+          )}
+
+          {/* Duos & Threats — synergy board + enemy threat columns */}
+          {tab === 'duos' && (
+            <div className="mt-6 space-y-6">
+              <HextechPanel
+                title="Duo Synergy Board"
+                icon={<Users className="h-4 w-4" aria-hidden />}
+                action={<SortToggle sort={duoSort} onChange={setDuoSort} />}
+              >
+                <p className="mb-3 text-[11px] tracking-wide text-hx-gold/50">
+                  Yuumi&apos;s winrate by bot-lane ally, with her average KDA
+                  alongside — and what the guide says about the pairing.
+                </p>
+                {duos.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-hx-gold/60">
+                    Not enough games yet — the feed is still gathering data.
+                  </p>
+                ) : (
+                  duos.map((duo) => {
+                    const synergy = ADC_MATCHUPS[duo.champion]?.synergy;
+                    return (
+                      <ChampionRow
+                        key={duo.champion}
+                        champion={duo.champion}
+                        stat={duo}
+                        extra={<> · {avgKda(duo)} avg KDA</>}
+                        chip={
+                          synergy ? (
+                            <GuideChip
+                              label={synergy}
+                              tone={
+                                SYNERGY_TONE[synergy] ??
+                                'border-hx-gold-dark/50 text-hx-gold/60'
+                              }
+                            />
+                          ) : undefined
+                        }
+                      />
+                    );
+                  })
+                )}
+              </HextechPanel>
+
+              <HextechPanel
+                title="Enemy Threats"
+                icon={<Swords className="h-4 w-4" aria-hidden />}
+                action={
+                  <SortToggle sort={threatSort} onChange={setThreatSort} />
+                }
+              >
+                <p className="mb-3 text-[11px] tracking-wide text-hx-gold/50">
+                  Yuumi&apos;s winrate when a champion appears anywhere on the
+                  enemy team — low numbers mark real threats. Guide chips show
+                  the matchup page&apos;s difficulty rating for comparison.
+                </p>
+                <div className="flex flex-col gap-6 md:flex-row md:gap-8">
+                  <ThreatColumn
+                    heading="Enemy Supports"
+                    entries={enemySupports}
+                    chipFor={(champion) => {
+                      const difficulty = SUPPORT_MATCHUPS[champion]?.difficulty;
+                      return difficulty ? (
                         <GuideChip
-                          label={synergy}
+                          label={difficulty}
                           tone={
-                            SYNERGY_TONE[synergy] ??
+                            DIFFICULTY_TONE[difficulty] ??
                             'border-hx-gold-dark/50 text-hx-gold/60'
                           }
                         />
-                      ) : undefined
-                    }
+                      ) : undefined;
+                    }}
                   />
-                );
-              })
-            )}
-          </HextechPanel>
-
-          {/* Enemy threats */}
-          <HextechPanel
-            title="Enemy Threats"
-            icon={<Swords className="h-4 w-4" aria-hidden />}
-            className="mt-6"
-            action={<SortToggle sort={threatSort} onChange={setThreatSort} />}
-          >
-            <p className="mb-3 text-[11px] tracking-wide text-hx-gold/50">
-              Yuumi&apos;s winrate when a champion appears anywhere on the enemy
-              team — low numbers mark real threats. Guide chips show the matchup
-              page&apos;s difficulty rating for comparison.
-            </p>
-            <div className="flex flex-col gap-6 md:flex-row md:gap-8">
-              <ThreatColumn
-                heading="Enemy Supports"
-                entries={enemySupports}
-                chipFor={(champion) => {
-                  const difficulty = SUPPORT_MATCHUPS[champion]?.difficulty;
-                  return difficulty ? (
-                    <GuideChip
-                      label={difficulty}
-                      tone={
-                        DIFFICULTY_TONE[difficulty] ??
-                        'border-hx-gold-dark/50 text-hx-gold/60'
-                      }
-                    />
-                  ) : undefined;
-                }}
-              />
-              <ThreatColumn
-                heading="Enemy Carries"
-                entries={enemyAdcs}
-                chipFor={() => undefined}
-              />
+                  <ThreatColumn
+                    heading="Enemy Carries"
+                    entries={enemyAdcs}
+                    chipFor={() => undefined}
+                  />
+                </div>
+              </HextechPanel>
             </div>
-          </HextechPanel>
+          )}
 
-          {/* Keystones + scaling, side by side on wide screens */}
-          <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            <HextechPanel
-              title="Keystone Winrates"
-              icon={<Sparkles className="h-4 w-4" aria-hidden />}
-            >
-              {keystones.length === 0 ? (
-                <p className="py-6 text-center text-sm text-hx-gold/60">
-                  Not enough games yet.
+          {/* Builds & Runes — op.gg-style core builds, items, runes, spells */}
+          {tab === 'builds' && (
+            <div className="mt-6 space-y-6">
+              <HextechPanel
+                title="Core Builds"
+                icon={<Layers className="h-4 w-4" aria-hidden />}
+              >
+                <p className="mb-3 text-[11px] tracking-wide text-hx-gold/50">
+                  The most-taken first three completed items, in purchase order.
                 </p>
-              ) : (
-                keystones.map((keystone) => (
-                  <div
-                    key={keystone.id}
-                    className={cn(
-                      'flex items-center gap-3 border-b border-hx-gold-dark/15 py-2 last:border-b-0',
-                      keystone.games < SOLID_SAMPLE_GAMES && 'opacity-70'
-                    )}
-                  >
-                    <RuneIcon
-                      runeId={keystone.id}
-                      size="md"
-                      variant="keystone"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-x-2">
-                        <span className="text-sm font-semibold text-hx-gold-bright">
-                          {getRuneById(keystone.id)?.name ??
-                            `Rune ${keystone.id}`}
-                        </span>
-                        {keystone.games < SOLID_SAMPLE_GAMES && (
-                          <LowSampleMark />
-                        )}
-                      </div>
-                      <div className="text-[11px] tracking-wide text-hx-gold/50">
-                        {gamesLabel(keystone.games)}
-                      </div>
-                    </div>
-                    <WinrateBar stat={keystone} />
-                  </div>
-                ))
-              )}
-            </HextechPanel>
+                {buildPaths.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-hx-gold/60">
+                    No build data yet — games are still being enriched.
+                  </p>
+                ) : (
+                  buildPaths.map((entry) => (
+                    <CoreBuildRow key={entry.path.join('-')} entry={entry} />
+                  ))
+                )}
+              </HextechPanel>
 
-            <HextechPanel
-              title="Does Yuumi Scale?"
-              icon={<TrendingUp className="h-4 w-4" aria-hidden />}
-            >
-              <p className="mb-3 text-[11px] tracking-wide text-hx-gold/50">
-                Winrate by game length — the definitive answer, one bar per
-                bracket.
-              </p>
-              <div className="space-y-2.5">
-                {data?.durations.map((bucket) => {
-                  const pct = winratePct(bucket);
-                  return (
-                    <div key={bucket.key} className="flex items-center gap-3">
-                      <span className="w-12 shrink-0 text-right text-xs tracking-wide text-hx-gold/60 tabular-nums">
-                        {bucket.key}m
-                      </span>
-                      <div className="h-3 flex-1 overflow-hidden rounded-sm bg-hx-black/60">
+              <HextechPanel
+                title="Item Winrates"
+                icon={<Gem className="h-4 w-4" aria-hidden />}
+              >
+                <p className="mb-3 text-[11px] tracking-wide text-hx-gold/50">
+                  Winrate for every completed item, most-built first — hover an
+                  icon for its details.
+                </p>
+                {itemStats.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-hx-gold/60">
+                    No item data yet — games are still being enriched.
+                  </p>
+                ) : (
+                  <div className="grid gap-x-8 sm:grid-cols-2">
+                    {itemStats.map((item) => {
+                      const info = getItem(item.id);
+                      const lowSample = item.games < SOLID_SAMPLE_GAMES;
+                      return (
                         <div
-                          className={cn('h-full', barTone(pct))}
-                          style={{
-                            width: `${bucket.games === 0 ? 0 : pct}%`,
-                          }}
-                        />
-                      </div>
-                      <span
+                          key={item.id}
+                          className={cn(
+                            'flex min-w-0 items-center gap-3 border-b border-hx-gold-dark/15 py-2 last:border-b-0',
+                            lowSample && 'opacity-70'
+                          )}
+                        >
+                          <ItemSlot itemId={item.id} size="lg" />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-x-2">
+                              <span className="truncate text-sm font-semibold text-hx-gold-bright">
+                                {info?.name ?? `Item ${item.id}`}
+                              </span>
+                              {lowSample && <LowSampleMark />}
+                            </div>
+                            <div className="text-[11px] tracking-wide text-hx-gold/50">
+                              {gamesLabel(item.games)}
+                            </div>
+                          </div>
+                          <WinrateBar stat={item} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </HextechPanel>
+
+              <HextechPanel
+                title="Rune Pages"
+                icon={<Wand2 className="h-4 w-4" aria-hidden />}
+              >
+                <p className="mb-3 text-[11px] tracking-wide text-hx-gold/50">
+                  The full pages Master+ Yuumis run most, keystone first.
+                </p>
+                {runePages.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-hx-gold/60">
+                    No rune data yet — games are still being enriched.
+                  </p>
+                ) : (
+                  runePages.map((page, i) => (
+                    <RuneStatRow
+                      key={`${page.primaryRunes.join('-')}-${page.secondaryStyleId}-${i}`}
+                      page={page}
+                    />
+                  ))
+                )}
+              </HextechPanel>
+
+              <div className="grid gap-6 lg:grid-cols-2">
+                <HextechPanel
+                  title="Keystone Winrates"
+                  icon={<Sparkles className="h-4 w-4" aria-hidden />}
+                >
+                  {keystones.length === 0 ? (
+                    <p className="py-6 text-center text-sm text-hx-gold/60">
+                      Not enough games yet.
+                    </p>
+                  ) : (
+                    keystones.map((keystone) => (
+                      <div
+                        key={keystone.id}
                         className={cn(
-                          'w-9 shrink-0 text-right text-sm tabular-nums',
-                          winrateTone(pct)
+                          'flex items-center gap-3 border-b border-hx-gold-dark/15 py-2 last:border-b-0',
+                          keystone.games < SOLID_SAMPLE_GAMES && 'opacity-70'
                         )}
                       >
-                        {bucket.games === 0 ? '–' : `${pct}%`}
-                      </span>
-                      <span
-                        className="w-20 shrink-0 text-right text-[10px] tracking-wide text-hx-gold/40"
-                        style={{
-                          opacity:
-                            0.5 + (bucket.games / maxDurationGames) * 0.5,
-                        }}
-                      >
-                        {gamesLabel(bucket.games)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </HextechPanel>
-          </div>
-
-          {/* Patch trend + regions */}
-          <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            <HextechPanel
-              title="Patch Trend"
-              icon={<History className="h-4 w-4" aria-hidden />}
-            >
-              {trend.length === 0 ? (
-                <p className="py-6 text-center text-sm text-hx-gold/60">
-                  Not enough games yet.
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {trend.map((patch) => {
-                    const pct = winratePct(patch);
-                    return (
-                      <div
-                        key={patch.patch}
-                        className="flex items-center gap-3"
-                      >
-                        <span className="w-12 shrink-0 text-xs tracking-wide text-hx-gold/70 tabular-nums">
-                          {patch.patch}
-                        </span>
-                        <div className="h-2 flex-1 overflow-hidden rounded-sm bg-hx-black/60">
-                          <div
-                            className={cn('h-full', barTone(pct))}
-                            style={{ width: `${pct}%` }}
-                          />
+                        <RuneIcon
+                          runeId={keystone.id}
+                          size="md"
+                          variant="keystone"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-x-2">
+                            <span className="text-sm font-semibold text-hx-gold-bright">
+                              {getRuneById(keystone.id)?.name ??
+                                `Rune ${keystone.id}`}
+                            </span>
+                            {keystone.games < SOLID_SAMPLE_GAMES && (
+                              <LowSampleMark />
+                            )}
+                          </div>
+                          <div className="text-[11px] tracking-wide text-hx-gold/50">
+                            {gamesLabel(keystone.games)}
+                          </div>
                         </div>
-                        <span
-                          className={cn(
-                            'w-9 shrink-0 text-right text-sm tabular-nums',
-                            winrateTone(pct)
-                          )}
-                        >
-                          {pct}%
-                        </span>
-                        <span className="w-20 shrink-0 text-right text-[10px] tracking-wide text-hx-gold/40">
-                          {gamesLabel(patch.games)}
-                        </span>
+                        <WinrateBar stat={keystone} />
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </HextechPanel>
+                    ))
+                  )}
+                </HextechPanel>
 
-            <HextechPanel
-              title="Around the World"
-              icon={<Globe className="h-4 w-4" aria-hidden />}
-            >
-              {regions.length === 0 ? (
-                <p className="py-6 text-center text-sm text-hx-gold/60">
-                  Not enough games yet.
-                </p>
-              ) : (
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {regions.map((region) => {
-                    const pct = winratePct(region);
-                    return (
-                      <div
-                        key={region.platform}
-                        className="flex flex-col items-center gap-0.5 rounded-sm px-2 py-2.5 hex-card-inset"
-                      >
-                        <span className="hex-chip-magic">
-                          {platformLabel(region.platform)}
-                        </span>
-                        <span
+                <HextechPanel
+                  title="Summoner Spells"
+                  icon={<Zap className="h-4 w-4" aria-hidden />}
+                >
+                  {spellPairs.length === 0 ? (
+                    <p className="py-6 text-center text-sm text-hx-gold/60">
+                      No summoner data yet — games are still being enriched.
+                    </p>
+                  ) : (
+                    spellPairs.map((entry) => {
+                      const lowSample = entry.games < SOLID_SAMPLE_GAMES;
+                      return (
+                        <div
+                          key={entry.ids.join('-')}
                           className={cn(
-                            'hex-title text-base',
-                            winrateTone(pct)
+                            'flex items-center gap-3 border-b border-hx-gold-dark/15 py-2 last:border-b-0',
+                            lowSample && 'opacity-70'
                           )}
                         >
-                          {pct}%
-                        </span>
-                        <span className="text-[10px] tracking-wide text-hx-gold/40">
-                          {gamesLabel(region.games)}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </HextechPanel>
-          </div>
+                          <div className="flex items-center gap-1">
+                            {entry.ids.map((id, i) => (
+                              <SummonerSpell
+                                key={`${id}-${i}`}
+                                spellId={id}
+                                size="md"
+                              />
+                            ))}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-x-2">
+                              <span className="text-[11px] tracking-wide text-hx-gold/50">
+                                {gamesLabel(entry.games)}
+                              </span>
+                              {lowSample && <LowSampleMark />}
+                            </div>
+                          </div>
+                          <WinrateBar stat={entry} />
+                        </div>
+                      );
+                    })
+                  )}
+                </HextechPanel>
+              </div>
+            </div>
+          )}
 
           {/* Provenance */}
           <p className="mt-6 flex flex-wrap items-center justify-center gap-x-2 text-center text-[11px] tracking-wide text-hx-gold/40">
