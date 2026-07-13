@@ -372,6 +372,10 @@ export function StatsClient() {
     () => (raw === undefined || raw === null ? null : parseMetaStats(raw)),
     [raw]
   );
+  // A defined-but-unparseable blob is an outage, not a loading state — the
+  // skeleton must not spin forever on it.
+  const unavailable =
+    timedOut || raw === null || (raw !== undefined && stats === null);
   const data: MetaScope | null = stats ? stats[scope] : null;
 
   const duos = useMemo(
@@ -480,7 +484,7 @@ export function StatsClient() {
       <HighEloTabs />
 
       {stats === null ? (
-        timedOut || raw === null ? (
+        unavailable ? (
           <p className="py-16 text-center text-sm text-hx-gold/60">
             {raw === null
               ? 'The meta report is still being computed — check back within the hour.'

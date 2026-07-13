@@ -3,6 +3,7 @@ import { query, internalAction, internalMutation } from './_generated/server';
 import { internal } from './_generated/api';
 import {
   AUTO_BUILD_METADATA_KEY,
+  STAT_MOD_KEYS,
   parseAutoBuild,
 } from '../src/lib/builds/auto-build-shared';
 import { applyAutoBuildToFields } from '../src/lib/builds/apply-auto-build';
@@ -53,17 +54,6 @@ const OPGG_URL =
 const DDRAGON_BASE = 'https://ddragon.leagueoflegends.com';
 
 // Stat shard IDs -> icon keys used by the guide UI.
-const STAT_MOD_KEYS: Record<number, string> = {
-  5001: 'HealthScaling',
-  5002: 'Armor',
-  5003: 'MagicRes',
-  5005: 'AttackSpeed',
-  5007: 'AbilityHaste',
-  5008: 'AdaptiveForce',
-  5010: 'MoveSpeed',
-  5011: 'Health',
-  5013: 'TenacitySlowResist',
-};
 
 type RuneInfo = { id: number; name: string; key: string; icon: string };
 

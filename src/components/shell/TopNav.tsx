@@ -86,6 +86,56 @@ function AccountCluster() {
   );
 }
 
+/** Drawer variant of the account controls, for viewports below `sm`. */
+function MobileAccountRow({ onNavigate }: { onNavigate: () => void }) {
+  const pathname = usePathname();
+  const { user, loading, logout } = useWebUser();
+  if (loading) return null;
+  if (!user) {
+    return (
+      <a
+        href={`/api/auth/discord/login?return=${encodeURIComponent(pathname)}`}
+        className="hex-rail-link"
+        onClick={onNavigate}
+      >
+        <LogIn className="h-3.5 w-3.5" aria-hidden />
+        Sign in with Discord
+      </a>
+    );
+  }
+  return (
+    <div className="flex items-center justify-between gap-2 border-t border-hx-gold-dark/40 pt-2">
+      <span className="flex min-w-0 items-center gap-2 px-3 py-2 text-xs text-hx-gold-bright">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={discordAvatarUrl(user)}
+          alt=""
+          width={20}
+          height={20}
+          className="rounded-full"
+        />
+        <span className="truncate">{user.globalName ?? user.username}</span>
+        {user.subscribed && (
+          <Gem
+            className="h-3.5 w-3.5 shrink-0 text-hx-magic"
+            aria-label="Supporter"
+          />
+        )}
+      </span>
+      <button
+        type="button"
+        onClick={() => {
+          void logout();
+          onNavigate();
+        }}
+        className="flex items-center gap-1.5 px-3 py-2 text-xs text-hx-gold/60 hover:text-hx-gold-bright"
+      >
+        <LogOut className="h-3.5 w-3.5" aria-hidden /> Sign out
+      </button>
+    </div>
+  );
+}
+
 /** Old-client top bar: wordmark, gold nav links, live patch crystal. */
 export function TopNav() {
   const pathname = usePathname();
@@ -207,6 +257,7 @@ export function TopNav() {
             <Settings className="h-3.5 w-3.5" aria-hidden />
             Admin
           </Link>
+          <MobileAccountRow onNavigate={() => setMenuOpen(false)} />
         </nav>
       </div>
     </header>

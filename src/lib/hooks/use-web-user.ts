@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Signed-in web user (Discord auth). The session token lives in an
-// httpOnly cookie, so the client asks /api/auth/me — which can read it —
-// and receives the token back for calling Convex actions directly.
+// httpOnly cookie that client JavaScript never sees; /api/auth/me reports
+// who is signed in, and authenticated account actions go through the
+// /api/account/* proxy routes that read the cookie server-side.
 
 export type WebUser = {
   id: string;
@@ -18,26 +19,32 @@ export type WebUser = {
   pendingLink: { puuid: string; iconId: number; expiresAt: number } | null;
 };
 
-type MePayload = { user: WebUser | null; token: string | null };
+type MePayload = { user: WebUser | null };
 
 export function useWebUser() {
-  const [state, setState] = useState<MePayload & { loading: boolean }>({
+  const [state, setState] = useState<{
+    user: WebUser | null;
+    loading: boolean;
+  }>({
     user: null,
-    token: null,
     loading: true,
   });
+  // Monotonic request id: a slow earlier /me response must not overwrite
+  // the result of a later one (e.g. the post-logout refresh).
+  const requestSeq = useRef(0);
 
   const refresh = useCallback(() => {
+    const seq = ++requestSeq.current;
     fetch('/api/auth/me')
       .then((res) => res.json())
-      .then((data: MePayload) =>
-        setState({
-          user: data.user ?? null,
-          token: data.token ?? null,
-          loading: false,
-        })
-      )
-      .catch(() => setState({ user: null, token: null, loading: false }));
+      .then((data: MePayload) => {
+        if (seq !== requestSeq.current) return; // superseded
+        setState({ user: data.user ?? null, loading: false });
+      })
+      .catch(() => {
+        if (seq !== requestSeq.current) return;
+        setState({ user: null, loading: false });
+      });
   }, []);
 
   useEffect(() => {

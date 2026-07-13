@@ -1592,9 +1592,10 @@ async function pollCluster(
   patchWindow: string[],
   completedItems: Set<number>,
   startedAt: number
-): Promise<void> {
+): Promise<number> {
   let games: GameRow[] = [];
   let rosterIds: Id<'yuumiRoster'>[] = [];
+  let polled = 0;
 
   const flush = async () => {
     if (games.length === 0 && rosterIds.length === 0) return;
@@ -1659,6 +1660,7 @@ async function pollCluster(
       }
       rosterIds.push(player._id);
       games.push(...playerGames);
+      polled++;
     } catch (error) {
       console.error(`poll ${cluster}: player ${player.puuid} failed:`, error);
       continue;
@@ -1668,6 +1670,7 @@ async function pollCluster(
     }
   }
   await flush();
+  return polled;
 }
 
 /**
@@ -1894,14 +1897,96 @@ export const stampManualRefresh = internalMutation({
   },
 });
 
+// Global on-demand-refresh budget: at most this many player refreshes per
+// window across ALL visitors, so a crawler clicking refresh on many
+// profiles cannot starve the cron ingestion's shared Riot rate budget.
+const GLOBAL_REFRESH_WINDOW_MS = 60 * 1000;
+const GLOBAL_REFRESH_MAX_PER_WINDOW = 6;
+
+/**
+ * Atomically claim a refresh slot: per-player cooldown AND the global
+ * budget are checked and stamped inside one mutation (one transaction),
+ * so concurrent clicks cannot double-spend Riot requests.
+ */
+export const tryAcquireRefresh = internalMutation({
+  args: { puuid: v.string(), at: v.number(), cooldownMs: v.number() },
+  handler: async (
+    ctx,
+    args
+  ): Promise<{
+    acquired: boolean;
+    nextAllowedAt: number;
+    prevStamp: number;
+  }> => {
+    const row = await ctx.db
+      .query('yuumiRoster')
+      .withIndex('by_puuid', (q) => q.eq('puuid', args.puuid))
+      .unique();
+    if (!row) return { acquired: false, nextAllowedAt: 0, prevStamp: 0 };
+    const last = row.lastManualRefreshAt ?? 0;
+    if (args.at - last < args.cooldownMs) {
+      return {
+        acquired: false,
+        nextAllowedAt: last + args.cooldownMs,
+        prevStamp: last,
+      };
+    }
+    // Global budget window, stored in guideMetadata.
+    const meta = await ctx.db
+      .query('guideMetadata')
+      .withIndex('by_key', (q) => q.eq('key', 'refreshBudget'))
+      .unique();
+    let windowStart = args.at;
+    let count = 0;
+    try {
+      const parsed: unknown = meta ? JSON.parse(meta.value) : null;
+      if (
+        isRecord(parsed) &&
+        typeof parsed.windowStart === 'number' &&
+        typeof parsed.count === 'number' &&
+        args.at - parsed.windowStart < GLOBAL_REFRESH_WINDOW_MS
+      ) {
+        windowStart = parsed.windowStart;
+        count = parsed.count;
+      }
+    } catch {
+      // Malformed budget blob: treat as a fresh window.
+    }
+    if (count >= GLOBAL_REFRESH_MAX_PER_WINDOW) {
+      return {
+        acquired: false,
+        nextAllowedAt: windowStart + GLOBAL_REFRESH_WINDOW_MS,
+        prevStamp: last,
+      };
+    }
+    const value = JSON.stringify({ windowStart, count: count + 1 });
+    if (meta) {
+      await ctx.db.patch(meta._id, { value, updatedAt: args.at });
+    } else {
+      await ctx.db.insert('guideMetadata', {
+        key: 'refreshBudget',
+        value,
+        updatedAt: args.at,
+      });
+    }
+    await ctx.db.patch(row._id, { lastManualRefreshAt: args.at });
+    return {
+      acquired: true,
+      nextAllowedAt: args.at + args.cooldownMs,
+      prevStamp: last,
+    };
+  },
+});
+
 /**
  * On-demand single-player refresh for profile pages: pulls the player's
  * newest ranked games right now instead of waiting for their cluster's
- * poll rotation. Cooldown is stored per player (5 min public; 1 min for a
- * verified subscriber refreshing their own linked profile, which is what
- * the profile page's auto-refresh uses). Request cost is tiny (1 id-list
- * call + fetches for genuinely new games only), so it coexists with the
- * cron choreography's rate budget.
+ * poll rotation. Guards: an atomic per-player cooldown (5 min public,
+ * 1 min for a verified subscriber refreshing their own linked profile —
+ * that powers auto-refresh) plus a small global per-minute budget so
+ * fan-out across profiles can't starve the cron choreography's Riot rate
+ * budget. A failed Riot poll restores the previous stamp so the visitor
+ * can retry immediately instead of waiting out the cooldown.
  */
 export const refreshPlayer = action({
   args: { puuid: v.string(), token: v.optional(v.string()) },
@@ -1930,24 +2015,39 @@ export const refreshPlayer = action({
       }
     }
     const now = Date.now();
-    const last = player.lastManualRefreshAt ?? 0;
-    if (now - last < cooldown) {
-      return {
-        refreshed: false,
-        nextAllowedAt: last + cooldown,
-      };
-    }
-    // Stamp before the Riot calls so concurrent clicks can't double-spend.
-    await ctx.runMutation(internal.highelo.stampManualRefresh, {
+    const lease = await ctx.runMutation(internal.highelo.tryAcquireRefresh, {
       puuid: args.puuid,
       at: now,
+      cooldownMs: cooldown,
     });
+    if (!lease.acquired) {
+      return { refreshed: false, nextAllowedAt: lease.nextAllowedAt };
+    }
 
-    const patchWindow = await fetchPatchWindow();
-    const completedItems = await loadCompletedItemsSet(ctx, patchWindow[0]);
-    const cluster =
-      PLATFORM_TO_CLUSTER[player.platform as Platform] ?? 'europe';
-    await pollCluster(ctx, cluster, [player], patchWindow, completedItems, now);
+    try {
+      const patchWindow = await fetchPatchWindow();
+      const completedItems = await loadCompletedItemsSet(ctx, patchWindow[0]);
+      const cluster =
+        PLATFORM_TO_CLUSTER[player.platform as Platform] ?? 'europe';
+      const polled = await pollCluster(
+        ctx,
+        cluster,
+        [player],
+        patchWindow,
+        completedItems,
+        now
+      );
+      if (polled < 1) throw new Error('poll did not complete');
+    } catch (error) {
+      // Give the cooldown back (the global budget keeps its count — the
+      // Riot attempt was still spent) so the visitor can retry.
+      console.error(`refresh ${args.puuid} failed:`, error);
+      await ctx.runMutation(internal.highelo.stampManualRefresh, {
+        puuid: args.puuid,
+        at: lease.prevStamp,
+      });
+      throw new Error('Refresh failed — please try again.');
+    }
     return { refreshed: true, nextAllowedAt: now + cooldown };
   },
 });

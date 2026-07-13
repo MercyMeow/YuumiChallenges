@@ -3,6 +3,7 @@ import { internal } from './_generated/api';
 import {
   autoBuildSchema,
   parseAutoBuild,
+  STAT_MOD_KEYS,
 } from '../src/lib/builds/auto-build-shared';
 
 // ============ AUTO BUILD DERIVATION (daily cron) ============
@@ -32,17 +33,6 @@ const MIN_WINDOW_GAMES = 50;
 // statShards arrive as [offense, flex, defense] (see extractGame in
 // convex/highelo.ts) — exactly the positional order the shard grid
 // highlights — so the keys stay row-aligned without reordering.
-const STAT_MOD_KEYS: Record<number, string> = {
-  5001: 'HealthScaling',
-  5002: 'Armor',
-  5003: 'MagicRes',
-  5005: 'AttackSpeed',
-  5007: 'AbilityHaste',
-  5008: 'AdaptiveForce',
-  5010: 'MoveSpeed',
-  5011: 'Health',
-  5013: 'TenacitySlowResist',
-};
 
 type RuneInfo = { id: number; name: string; key: string; icon: string };
 type ItemInfo = { name: string; isBoots: boolean };
@@ -286,7 +276,8 @@ export const deriveAutoBuild = internalAction({
           key: 'autoBuild',
         })
       );
-      const skillPriority = previous?.skillPriority ?? ['E', 'W', 'Q'];
+      // Matches the static guide's recommendation (default-builds.ts).
+      const skillPriority = previous?.skillPriority ?? ['Q', 'E', 'W'];
       const skillOrder = previous?.skillOrder ?? null;
 
       const patch = patchWindow[0] ?? version.split('.').slice(0, 2).join('.');

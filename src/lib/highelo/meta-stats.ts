@@ -76,6 +76,8 @@ export function parseMetaStats(value: unknown): MetaStats | null {
   if (
     !isRecord(value) ||
     typeof value.computedAt !== 'number' ||
+    typeof value.scanned !== 'number' ||
+    !Array.isArray(value.patchWindow) ||
     !Array.isArray(value.patchTrend) ||
     !isScope(value.window) ||
     !isScope(value.season)

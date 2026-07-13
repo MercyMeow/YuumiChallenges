@@ -22,7 +22,7 @@ export function LoadingFallback({
   size = 'md',
 }: LoadingFallbackProps) {
   return (
-    <div className="space-y-3 py-8" role="status" aria-busy>
+    <div className="space-y-3 py-8" role="status">
       <span className="sr-only">{message}</span>
       <Skeleton className="h-5 w-48" />
       {Array.from({ length: PANEL_COUNT[size] }, (_, i) => (

@@ -11,7 +11,7 @@ import {
 } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useAction, useMutation, useQuery } from 'convex/react';
+import { useQuery } from 'convex/react';
 import {
   Cat,
   ChevronRight,
@@ -305,10 +305,15 @@ function LpSparkline({
   points: ReadonlyArray<{ takenAt: number; lp: number }>;
 }) {
   const lps = points.map((p) => p.lp);
-  const min = Math.min(...lps);
-  const max = Math.max(...lps);
-  // A flat line still needs a visible range to sit mid-chart.
-  const range = max - min || 20;
+  let min = Math.min(...lps);
+  let max = Math.max(...lps);
+  // A flat history gets a padded range so the line sits mid-chart instead
+  // of hugging the floor like a slump.
+  if (min === max) {
+    min -= 10;
+    max += 10;
+  }
+  const range = max - min;
   const coords = points.map((p, i) => {
     const x =
       points.length === 1
@@ -384,19 +389,12 @@ function formatCountdown(ms: number): string {
  * icon 0-29 we pick — never the current one — then verify).
  */
 function ProfileAccountRow({ puuid }: { puuid: string }) {
-  const { user, token, refresh: refreshMe } = useWebUser();
-  const refreshPlayer = useAction(api.highelo.refreshPlayer);
-  const startLink = useAction(api.webauth.startAccountLink);
-  const verifyLink = useAction(api.webauth.verifyAccountLink);
-  const unlink = useMutation(api.webauth.unlinkAccount);
+  const { user, refresh: refreshMe } = useWebUser();
 
   const [busy, setBusy] = useState(false);
+  const [linkBusy, setLinkBusy] = useState(false);
   const [nextAllowedAt, setNextAllowedAt] = useState(0);
   const [now, setNow] = useState(() => Date.now());
-  const [challenge, setChallenge] = useState<{
-    iconId: number;
-    expiresAt: number;
-  } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [ddVersion, setDdVersion] = useState<string | null>(null);
 
@@ -419,38 +417,51 @@ function ProfileAccountRow({ puuid }: { puuid: string }) {
   const doRefresh = useCallback(async () => {
     setBusy(true);
     try {
-      const result = await refreshPlayer({
-        puuid,
-        ...(token ? { token } : {}),
+      const res = await fetch('/api/account/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ puuid }),
       });
-      setNextAllowedAt(result.nextAllowedAt);
+      const data = (await res.json()) as {
+        refreshed?: boolean;
+        nextAllowedAt?: number;
+        error?: string;
+      };
+      if (typeof data.nextAllowedAt === 'number') {
+        setNextAllowedAt(data.nextAllowedAt);
+      }
+      if (!res.ok) setNotice(data.error ?? 'Refresh is unavailable right now.');
     } catch {
       setNotice('Refresh is unavailable right now.');
     } finally {
       setBusy(false);
     }
-  }, [refreshPlayer, puuid, token]);
+  }, [puuid]);
 
   // Subscriber perk: keep the owner's profile fresh while they watch it.
   const autoRefresh = Boolean(user?.subscribed && isOwner);
   useEffect(() => {
     if (!autoRefresh) return;
-    void doRefresh();
+    // Deferred so the effect body itself stays setState-free (the refresh
+    // toggles busy state); the tick then keeps the profile fresh.
+    const kickoff = setTimeout(() => void doRefresh(), 0);
     const timer = setInterval(() => {
       if (document.visibilityState === 'visible') void doRefresh();
     }, 90_000);
-    return () => clearInterval(timer);
+    return () => {
+      clearTimeout(kickoff);
+      clearInterval(timer);
+    };
   }, [autoRefresh, doRefresh]);
 
   const cooldownLeft = nextAllowedAt - now;
+  // The active challenge always comes from the settled server state
+  // (/api/auth/me), so rapid clicks can't desync icon and challenge —
+  // after startLink succeeds we re-fetch the user.
   const pending =
-    challenge ??
-    (user?.pendingLink && user.pendingLink.puuid === puuid
-      ? {
-          iconId: user.pendingLink.iconId,
-          expiresAt: user.pendingLink.expiresAt,
-        }
-      : null);
+    user?.pendingLink && user.pendingLink.puuid === puuid
+      ? user.pendingLink
+      : null;
 
   return (
     <div className="hex-card mt-3 rounded-sm px-4 py-3">
@@ -503,7 +514,9 @@ function ProfileAccountRow({ puuid }: { puuid: string }) {
             <button
               type="button"
               onClick={() => {
-                if (token) void unlink({ token }).then(refreshMe);
+                void fetch('/api/account/unlink', { method: 'POST' }).then(
+                  refreshMe
+                );
               }}
               className="text-hx-gold/40 underline-offset-2 hover:underline"
             >
@@ -514,19 +527,35 @@ function ProfileAccountRow({ puuid }: { puuid: string }) {
         {user && !isOwner && !pending && (
           <button
             type="button"
+            disabled={linkBusy}
             onClick={() => {
-              if (!token) return;
               setNotice(null);
-              startLink({ token, puuid })
-                .then((result) => setChallenge(result))
+              setLinkBusy(true);
+              fetch('/api/account/link/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ puuid }),
+              })
+                .then(async (res) => {
+                  const data = (await res.json()) as { error?: string };
+                  if (!res.ok) {
+                    setNotice(
+                      data.error ??
+                        'Could not start verification — try again later.'
+                    );
+                  }
+                  // Show the challenge from the authoritative source.
+                  refreshMe();
+                })
                 .catch(() =>
                   setNotice('Could not start verification — try again later.')
-                );
+                )
+                .finally(() => setLinkBusy(false));
             }}
-            className="inline-flex items-center gap-1.5 rounded-sm border border-hx-gold-dark/40 px-3 py-1.5 text-xs text-hx-gold/70 transition-colors hover:border-hx-gold hover:text-hx-gold-bright"
+            className="inline-flex items-center gap-1.5 rounded-sm border border-hx-gold-dark/40 px-3 py-1.5 text-xs text-hx-gold/70 transition-colors hover:border-hx-gold hover:text-hx-gold-bright disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Link2 className="h-3.5 w-3.5" aria-hidden />
-            This is my account
+            {linkBusy ? 'Starting…' : 'This is my account'}
           </button>
         )}
         {!user && (
@@ -563,31 +592,34 @@ function ProfileAccountRow({ puuid }: { puuid: string }) {
           </div>
           <button
             type="button"
-            disabled={busy || pending.expiresAt < now}
+            disabled={linkBusy || pending.expiresAt < now}
             onClick={() => {
-              if (!token) return;
-              setBusy(true);
+              setLinkBusy(true);
               setNotice(null);
-              verifyLink({ token })
-                .then((result) => {
-                  if (result.linked) {
-                    setChallenge(null);
+              fetch('/api/account/link/verify', { method: 'POST' })
+                .then(async (res) => {
+                  const data = (await res.json()) as {
+                    linked?: boolean;
+                    reason?: string;
+                    error?: string;
+                  };
+                  if (data.linked) {
                     refreshMe();
-                  } else if (result.reason === 'icon_mismatch') {
+                  } else if (data.reason === 'icon_mismatch') {
                     setNotice(
                       "Icon doesn't match yet — save it in the client, wait a few seconds, and try again."
                     );
                   } else {
-                    setChallenge(null);
-                    setNotice('Challenge expired — start again.');
+                    setNotice(data.error ?? 'Challenge expired — start again.');
+                    refreshMe();
                   }
                 })
                 .catch(() => setNotice('Verification failed — try again.'))
-                .finally(() => setBusy(false));
+                .finally(() => setLinkBusy(false));
             }}
             className="btn-hextech rounded-sm px-3 py-1.5 text-xs disabled:opacity-50"
           >
-            Verify
+            {linkBusy ? 'Verifying…' : 'Verify'}
           </button>
         </div>
       )}

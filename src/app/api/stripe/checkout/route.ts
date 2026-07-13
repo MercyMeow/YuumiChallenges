@@ -30,6 +30,15 @@ export async function POST(request: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
   }
+  if (user.subscribed) {
+    // One recurring subscription per account: a second Checkout would
+    // create a parallel Stripe subscription and orphan the first one's
+    // customer id.
+    return NextResponse.json(
+      { error: 'You already have an active Supporter subscription. 💛' },
+      { status: 409 }
+    );
+  }
 
   const returnTo = ((): string => {
     const raw = request.nextUrl.searchParams.get('return') ?? '/';

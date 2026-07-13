@@ -18,12 +18,14 @@ async function verifySignature(
   secret: string
 ): Promise<boolean> {
   if (!header) return false;
-  const parts = new Map(
-    header.split(',').map((kv) => kv.split('=', 2) as [string, string])
-  );
-  const timestamp = parts.get('t');
-  const signature = parts.get('v1');
-  if (!timestamp || !signature) return false;
+  const pairs = header
+    .split(',')
+    .map((kv) => kv.split('=', 2) as [string, string]);
+  const timestamp = pairs.find(([k]) => k === 't')?.[1];
+  // Keep EVERY v1 value: during signing-secret rotation Stripe sends one
+  // signature per active secret, in unspecified order.
+  const signatures = pairs.filter(([k]) => k === 'v1').map(([, v]) => v);
+  if (!timestamp || signatures.length === 0) return false;
   // Reject stale events (>5 min) — standard replay guard.
   if (Math.abs(Date.now() / 1000 - Number(timestamp)) > 300) return false;
   const key = await crypto.subtle.importKey(
@@ -41,13 +43,15 @@ async function verifySignature(
   const expected = [...new Uint8Array(mac)]
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
-  // Constant-time-ish compare.
-  if (expected.length !== signature.length) return false;
-  let diff = 0;
-  for (let i = 0; i < expected.length; i++) {
-    diff |= expected.charCodeAt(i) ^ signature.charCodeAt(i);
-  }
-  return diff === 0;
+  // Constant-time-ish compare against each provided signature.
+  return signatures.some((signature) => {
+    if (expected.length !== signature.length) return false;
+    let diff = 0;
+    for (let i = 0; i < expected.length; i++) {
+      diff |= expected.charCodeAt(i) ^ signature.charCodeAt(i);
+    }
+    return diff === 0;
+  });
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -92,6 +96,7 @@ export async function POST(request: NextRequest) {
     userId?: string;
     stripeCustomerId?: string;
     subscribedUntil: number;
+    mode: 'extend' | 'end';
     setCustomerId?: string;
   }) =>
     convex.mutation(api.webauth.applySubscription, {
@@ -104,6 +109,7 @@ export async function POST(request: NextRequest) {
         ? { stripeCustomerId: args.stripeCustomerId }
         : {}),
       subscribedUntil: args.subscribedUntil,
+      mode: args.mode,
       ...(args.setCustomerId !== undefined
         ? { setCustomerId: args.setCustomerId }
         : {}),
@@ -111,15 +117,20 @@ export async function POST(request: NextRequest) {
 
   try {
     switch (event.type) {
-      case 'checkout.session.completed': {
+      // Fulfillment is gated on payment_status: 'completed' fires for
+      // delayed payment methods (e.g. SEPA) before money moves; those
+      // sessions get their access from async_payment_succeeded instead.
+      case 'checkout.session.completed':
+      case 'checkout.session.async_payment_succeeded': {
         const userId =
           typeof object.client_reference_id === 'string'
             ? object.client_reference_id
             : undefined;
-        if (userId) {
+        if (userId && object.payment_status === 'paid') {
           await apply({
             userId,
             subscribedUntil: Date.now() + SUB_WINDOW_MS,
+            mode: 'extend',
             ...(customer !== undefined ? { setCustomerId: customer } : {}),
           });
         }
@@ -130,6 +141,7 @@ export async function POST(request: NextRequest) {
           await apply({
             stripeCustomerId: customer,
             subscribedUntil: Date.now() + SUB_WINDOW_MS,
+            mode: 'extend',
           });
         }
         break;
@@ -139,6 +151,7 @@ export async function POST(request: NextRequest) {
           await apply({
             stripeCustomerId: customer,
             subscribedUntil: Date.now(),
+            mode: 'end',
           });
         }
         break;

@@ -75,10 +75,13 @@ export const upsertDiscordUser = mutation({
       .query('webUsers')
       .withIndex('by_discordId', (q) => q.eq('discordId', args.discordId))
       .unique();
+    // The OAuth identity is authoritative: absent optional fields are
+    // cleared (patching undefined removes them), so removed avatars or
+    // global names don't linger.
     const profile = {
       username: args.username,
-      ...(args.globalName !== undefined ? { globalName: args.globalName } : {}),
-      ...(args.avatar !== undefined ? { avatar: args.avatar } : {}),
+      globalName: args.globalName,
+      avatar: args.avatar,
       lastLoginAt: now,
     };
     const userId = existing
@@ -86,8 +89,24 @@ export const upsertDiscordUser = mutation({
       : await ctx.db.insert('webUsers', {
           discordId: args.discordId,
           createdAt: now,
-          ...profile,
+          username: args.username,
+          lastLoginAt: now,
+          // Insert can't take explicit undefined (exactOptionalPropertyTypes)
+          // — absent means absent on a fresh row anyway.
+          ...(args.globalName !== undefined
+            ? { globalName: args.globalName }
+            : {}),
+          ...(args.avatar !== undefined ? { avatar: args.avatar } : {}),
         });
+    // Session hygiene: drop this user's expired sessions so repeated
+    // logins don't accumulate dead tokens forever.
+    const stale = await ctx.db
+      .query('webSessions')
+      .withIndex('by_userId', (q) => q.eq('userId', userId))
+      .collect();
+    for (const session of stale) {
+      if (session.expiresAt < now) await ctx.db.delete(session._id);
+    }
     const token = randomToken();
     await ctx.db.insert('webSessions', {
       userId,
@@ -152,6 +171,10 @@ export const applySubscription = mutation({
     userId: v.optional(v.id('webUsers')),
     stripeCustomerId: v.optional(v.string()),
     subscribedUntil: v.number(),
+    // 'extend' never shortens an existing entitlement (max of old/new), so
+    // out-of-order or replayed payment webhooks are harmless; 'end' stamps
+    // the supplied timestamp exactly (cancellation).
+    mode: v.union(v.literal('extend'), v.literal('end')),
     setCustomerId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -168,8 +191,12 @@ export const applySubscription = mutation({
         .unique();
     }
     if (!user) return { applied: false };
+    const subscribedUntil =
+      args.mode === 'extend'
+        ? Math.max(user.subscribedUntil ?? 0, args.subscribedUntil)
+        : args.subscribedUntil;
     await ctx.db.patch(user._id, {
-      subscribedUntil: args.subscribedUntil,
+      subscribedUntil,
       ...(args.setCustomerId !== undefined
         ? { stripeCustomerId: args.setCustomerId }
         : {}),

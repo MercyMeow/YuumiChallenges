@@ -15,7 +15,7 @@ type YuumiGame = Doc<'yuumiGames'>;
 
 // Trinkets/wards are dropped from the compact build strip — they aren't
 // part of the item build onetricks-style rows care about.
-const TRINKET_ITEM_IDS = new Set([3340, 3363, 3364]);
+const TRINKET_ITEM_IDS = new Set([3340, 3341, 3363, 3364]);
 
 export function timeAgo(timestamp: number): string {
   const minutes = Math.floor((Date.now() - timestamp) / 60_000);

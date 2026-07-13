@@ -11,8 +11,12 @@ export async function POST(request: NextRequest) {
         token,
       });
     } catch {
-      // Session cleanup is best-effort; the cookie delete below is what
-      // signs the browser out.
+      // Revocation failed: keep the cookie so the session isn't left
+      // valid server-side while the browser believes it is signed out.
+      return NextResponse.json(
+        { error: 'Sign-out failed — please try again.' },
+        { status: 502 }
+      );
     }
   }
   const res = NextResponse.json({ ok: true });

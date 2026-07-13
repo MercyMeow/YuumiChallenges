@@ -41,6 +41,21 @@ interface UseRuneDataReturn {
  * mount effect can consume it via a promise chain without synchronous
  * setState calls.
  */
+// One request per page no matter how many icons mount at once: concurrent
+// callers share the same in-flight promise (cleared on failure so a retry
+// can issue a fresh request).
+let inflightRuneData: Promise<RuneDataResponse> | null = null;
+
+function loadRuneDataShared(): Promise<RuneDataResponse> {
+  if (!inflightRuneData) {
+    inflightRuneData = loadRuneData().catch((error) => {
+      inflightRuneData = null;
+      throw error;
+    });
+  }
+  return inflightRuneData;
+}
+
 async function loadRuneData(): Promise<RuneDataResponse> {
   const response = await fetch('/api/data-dragon/runes', {
     headers: {
@@ -69,7 +84,7 @@ export function useRuneData(): UseRuneDataReturn {
   // Applies the fetch result to state. All setState calls happen inside
   // promise callbacks (asynchronously), never in the effect body itself.
   const executeFetch = () =>
-    loadRuneData()
+    loadRuneDataShared()
       .then((data) => {
         setRuneTrees(data.runes);
 

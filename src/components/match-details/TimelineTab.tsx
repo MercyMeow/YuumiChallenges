@@ -93,7 +93,6 @@ export function TimelineTab({
               // rows — so the layout holds while frames are processed.
               <div
                 role="status"
-                aria-busy="true"
                 aria-label="Processing timeline data"
                 className="space-y-4"
               >
