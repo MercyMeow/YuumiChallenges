@@ -1,0 +1,19 @@
+docs/plans/2026-07-13-mongodb-migration.md
+  s_801a60b5f5c1f3::t_98f1615c372eb4 1-267
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "688a3eb55b7aca5a6a40b54a154b2dced158ba98",
+  "prompts": {},
+  "sessions": {
+    "s_801a60b5f5c1f3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "78b7a01c-aadf-4e8e-9315-bea0315c72c5",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
