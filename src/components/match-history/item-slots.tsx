@@ -10,6 +10,7 @@ import {
 import { itemImages } from '@/lib/apis/datadragon';
 import { useItem } from '@/hooks/use-item-data';
 import { sanitizeRiotHtml } from '@/lib/utils/sanitize-html';
+import { Skeleton, SkeletonLines } from '@/components/ui/skeleton';
 import type { RoleBoundSlot } from '@/lib/utils/role-quest';
 
 interface ItemSlotProps {
@@ -265,11 +266,21 @@ export function ItemSlot({
       </TooltipTrigger>
       <TooltipContent className="max-w-80 border-purple-500/30 bg-black/85 p-4 shadow-lg shadow-purple-500/20 backdrop-blur-md">
         {itemDataLoading ? (
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 animate-spin rounded-full border border-purple-400/50 border-t-purple-400" />
-            <span className="text-sm text-purple-300">
-              Loading item data...
-            </span>
+          <div role="status" aria-busy="true" className="space-y-3">
+            <span className="sr-only">Loading item data...</span>
+            {/* Ghost of the header: icon + name + cost */}
+            <div className="flex items-start gap-3">
+              <Skeleton className="h-8 w-8 shrink-0 rounded" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            </div>
+            {/* Ghost of the description */}
+            <SkeletonLines
+              lines={3}
+              className="border-t border-purple-500/20 pt-3"
+            />
           </div>
         ) : item ? (
           <div className="space-y-3">
