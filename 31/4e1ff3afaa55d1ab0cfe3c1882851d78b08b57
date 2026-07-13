@@ -1,0 +1,21 @@
+src/lib/server/services/patch-util.ts
+  s_801a60b5f5c1f3::t_d58b09d40a3160 1-10
+src/lib/server/services/metadata.ts
+  s_801a60b5f5c1f3::t_735050901b395d 1-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "314e1ff3afaa55d1ab0cfe3c1882851d78b08b57",
+  "prompts": {},
+  "sessions": {
+    "s_801a60b5f5c1f3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "78b7a01c-aadf-4e8e-9315-bea0315c72c5",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
