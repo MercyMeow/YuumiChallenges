@@ -9,6 +9,7 @@
  */
 
 import type * as auth from '../auth.js';
+import type * as autobuild from '../autobuild.js';
 import type * as crons from '../crons.js';
 import type * as guide from '../guide.js';
 import type * as highelo from '../highelo.js';
@@ -24,6 +25,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  autobuild: typeof autobuild;
   crons: typeof crons;
   guide: typeof guide;
   highelo: typeof highelo;

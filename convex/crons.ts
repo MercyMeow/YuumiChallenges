@@ -3,12 +3,16 @@ import { internal } from './_generated/api';
 
 const crons = cronJobs();
 
-// Refresh the auto-scraped Yuumi build once a day. On failure the last
-// good build stays in guideMetadata, so the site never regresses.
+// Derive the homepage Yuumi build from our own Master+ ladder aggregate
+// (convex/autobuild.ts) once a day. Scheduled at 6:30 UTC, comfortably after
+// the hourly metaStats compute (:20) that it reads from. On failure the last
+// good build stays in guideMetadata, so the site never regresses. The OP.GG
+// scraper stays available as a manual fallback:
+//   npx convex run scraper:autoUpdateBuild
 crons.daily(
-  'auto update yuumi build',
+  'derive yuumi build from ladder',
   { hourUTC: 6, minuteUTC: 30 },
-  internal.scraper.autoUpdateBuild
+  internal.autobuild.deriveAutoBuild
 );
 
 // High-elo Yuumi feed: game polling and season backfill each serve ONE
