@@ -15,6 +15,7 @@ import { ItemSlots } from '@/components/match-history/item-slots';
 import { SummonerSpells } from '@/components/match-history/summoner-spells';
 import { RuneIcon, StatShardIcon } from '@/components/ui/rune-display';
 import { DetailedMatchParticipant } from '@/lib/types';
+import { getRoleBoundSlot } from '@/lib/utils/role-quest';
 import { GitCompare, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExtendedMatchData, TeamTotals } from './types';
@@ -326,7 +327,7 @@ export const PlayerCard = memo(
               items={items}
               size="md"
               gridLayout
-              roleBoundItemId={participant.roleBoundItem}
+              roleBoundSlot={getRoleBoundSlot(participant)}
             />
             {keystone && statPerks && (
               <div className="flex items-center gap-1.5">
