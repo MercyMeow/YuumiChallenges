@@ -102,12 +102,14 @@ export const upsertDiscordUser = mutation({
           ...(args.avatar !== undefined ? { avatar: args.avatar } : {}),
         });
     // Session hygiene, bounded: prune expired sessions and cap actives at
-    // MAX_ACTIVE_SESSIONS (oldest-expiring dropped first), so neither
-    // storage nor this scan can grow past a login's transaction budget.
+    // MAX_ACTIVE_SESSIONS (oldest-expiring dropped first). The scan is
+    // capped at 250 rows — comfortably inside a mutation's budget, and
+    // enough to shrink even a large legacy pile to the cap in one login,
+    // since every row beyond the kept handful is deleted.
     const sessions = await ctx.db
       .query('webSessions')
       .withIndex('by_userId', (q) => q.eq('userId', userId))
-      .take(MAX_ACTIVE_SESSIONS * 5);
+      .take(250);
     const active = [];
     for (const session of sessions) {
       if (session.expiresAt < now) {
@@ -210,12 +212,20 @@ export const applySubscription = mutation({
         .unique();
     }
     if (!user) return { applied: false };
-    if (
-      args.eventAt !== undefined &&
-      user.subEventAt !== undefined &&
-      args.eventAt < user.subEventAt
-    ) {
-      return { applied: false }; // stale event — a newer one already landed
+    if (args.eventAt !== undefined && user.subEventAt !== undefined) {
+      // Ordering guard: drop events older than the newest applied one.
+      // Stripe's Event.created has second resolution, so a payment and a
+      // cancellation can share a timestamp — cancellation wins the tie
+      // (an entitlement must never be resurrected by an equal-aged
+      // payment event).
+      if (args.eventAt < user.subEventAt) return { applied: false };
+      if (
+        args.eventAt === user.subEventAt &&
+        args.mode === 'extend' &&
+        user.subEventMode === 'end'
+      ) {
+        return { applied: false };
+      }
     }
     const subscribedUntil =
       args.mode === 'extend'
@@ -223,7 +233,9 @@ export const applySubscription = mutation({
         : args.subscribedUntil;
     await ctx.db.patch(user._id, {
       subscribedUntil,
-      ...(args.eventAt !== undefined ? { subEventAt: args.eventAt } : {}),
+      ...(args.eventAt !== undefined
+        ? { subEventAt: args.eventAt, subEventMode: args.mode }
+        : {}),
       ...(args.setCustomerId !== undefined
         ? { stripeCustomerId: args.setCustomerId }
         : {}),
