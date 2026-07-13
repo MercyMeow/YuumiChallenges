@@ -14,9 +14,13 @@ export async function POST(request: NextRequest) {
   if (!token) {
     return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
   }
-  const { puuid } = (await request.json().catch(() => ({}))) as {
-    puuid?: string;
-  };
+  // catch() covers parse errors; the object-check covers valid-but-wrong
+  // JSON like `null` or a bare string.
+  const body: unknown = await request.json().catch(() => ({}));
+  const puuid =
+    typeof body === 'object' && body !== null
+      ? (body as { puuid?: unknown }).puuid
+      : undefined;
   if (typeof puuid !== 'string' || puuid.length === 0) {
     return NextResponse.json({ error: 'Missing puuid' }, { status: 400 });
   }

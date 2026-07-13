@@ -26,9 +26,11 @@ const NAV_LINKS: ReadonlyArray<{ label: string; href: string }> = [
  * Discord sign-in / signed-in avatar for the top bar. The menu is a
  * simple hover/focus popover in the hextech language — no new deps.
  */
-function AccountCluster() {
+type AccountState = ReturnType<typeof useWebUser>;
+
+function AccountCluster({ account }: { account: AccountState }) {
   const pathname = usePathname();
-  const { user, loading, logout } = useWebUser();
+  const { user, loading, logout } = account;
 
   if (loading) return null;
   if (!user) {
@@ -87,9 +89,15 @@ function AccountCluster() {
 }
 
 /** Drawer variant of the account controls, for viewports below `sm`. */
-function MobileAccountRow({ onNavigate }: { onNavigate: () => void }) {
+function MobileAccountRow({
+  account,
+  onNavigate,
+}: {
+  account: AccountState;
+  onNavigate: () => void;
+}) {
   const pathname = usePathname();
-  const { user, loading, logout } = useWebUser();
+  const { user, loading, logout } = account;
   if (loading) return null;
   if (!user) {
     return (
@@ -142,6 +150,9 @@ export function TopNav() {
   const patch = useLivePatch();
   const activeSection = useActiveSection(HOME_SECTION_IDS, pathname === '/');
   const [menuOpen, setMenuOpen] = useState(false);
+  // One shared auth state: signing out in either control (drawer or
+  // desktop cluster) updates both.
+  const account = useWebUser();
 
   // Close the mobile drawer on any route change (incl. back/forward), not
   // just link clicks. Render-time adjustment keeps the React Compiler happy.
@@ -190,7 +201,7 @@ export function TopNav() {
 
           {/* Right cluster */}
           <div className="flex items-center gap-3">
-            <AccountCluster />
+            <AccountCluster account={account} />
             <span className="hex-chip-magic hidden sm:inline-flex">
               <span
                 className="h-1.5 w-1.5 rotate-45 animate-gem-pulse bg-hx-magic"
@@ -257,7 +268,10 @@ export function TopNav() {
             <Settings className="h-3.5 w-3.5" aria-hidden />
             Admin
           </Link>
-          <MobileAccountRow onNavigate={() => setMenuOpen(false)} />
+          <MobileAccountRow
+            account={account}
+            onNavigate={() => setMenuOpen(false)}
+          />
         </nav>
       </div>
     </header>

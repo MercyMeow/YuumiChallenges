@@ -87,9 +87,9 @@ export const STAT_MOD_KEYS: Record<number, string> = {
   5002: 'Armor',
   5003: 'MagicRes',
   5005: 'AttackSpeed',
-  5007: 'CDRScaling',
+  5007: 'AbilityHaste',
   5008: 'AdaptiveForce',
-  5010: 'MovementSpeed',
+  5010: 'MoveSpeed',
   5011: 'Health',
-  5013: 'Tenacity',
+  5013: 'TenacitySlowResist',
 };

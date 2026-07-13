@@ -51,13 +51,20 @@ export function useWebUser() {
     refresh();
   }, [refresh]);
 
-  const logout = useCallback(async () => {
+  /**
+   * Signs out; returns false when server-side revocation failed, in which
+   * case the signed-in state is kept (the cookie was retained too) so the
+   * UI doesn't pretend the session is gone.
+   */
+  const logout = useCallback(async (): Promise<boolean> => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      const res = await fetch('/api/auth/logout', { method: 'POST' });
+      if (!res.ok) return false;
     } catch {
-      // Cookie deletion happens server-side; refresh reflects reality.
+      return false;
     }
     refresh();
+    return true;
   }, [refresh]);
 
   return { ...state, refresh, logout };

@@ -305,8 +305,12 @@ function LpSparkline({
   points: ReadonlyArray<{ takenAt: number; lp: number }>;
 }) {
   const lps = points.map((p) => p.lp);
-  let min = Math.min(...lps);
-  let max = Math.max(...lps);
+  // Real data bounds (for the accessible summary) stay separate from the
+  // padded visual scale below.
+  const dataMin = Math.min(...lps);
+  const dataMax = Math.max(...lps);
+  let min = dataMin;
+  let max = dataMax;
   // A flat history gets a padded range so the line sits mid-chart instead
   // of hugging the floor like a slump.
   if (min === max) {
@@ -331,7 +335,7 @@ function LpSparkline({
       preserveAspectRatio="none"
       className="h-16 w-full text-hx-magic"
       role="img"
-      aria-label={`LP over time, from ${min} to ${max}`}
+      aria-label={`LP over time, from ${dataMin} to ${dataMax}`}
     >
       <polygon
         points={`${SPARK_PAD},${SPARK_H} ${line} ${SPARK_W - SPARK_PAD},${SPARK_H}`}

@@ -34,9 +34,10 @@ function fetchItemsShared(): Promise<ItemDataResponse> {
         throw new Error(`Failed to fetch item data: ${response.status}`);
       }
       return (await response.json()) as ItemDataResponse;
-    })().catch((error) => {
+    })().finally(() => {
+      // Concurrent-dedupe only: the 30-minute clientItemCache above is the
+      // actual cache, so expiry refetches must hit the network again.
       inflightItems = null;
-      throw error;
     });
   }
   return inflightItems;

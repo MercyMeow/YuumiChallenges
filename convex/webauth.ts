@@ -24,6 +24,9 @@ import type { Doc } from './_generated/dataModel';
 // auto-refresh on that profile.
 
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+// Active sessions kept per user (newest wins); bounds both storage growth
+// and the per-login cleanup scan.
+const MAX_ACTIVE_SESSIONS = 10;
 const LINK_CHALLENGE_TTL_MS = 15 * 60 * 1000;
 // Starter summoner icons every account owns.
 const STARTER_ICON_MAX = 29;
@@ -98,14 +101,26 @@ export const upsertDiscordUser = mutation({
             : {}),
           ...(args.avatar !== undefined ? { avatar: args.avatar } : {}),
         });
-    // Session hygiene: drop this user's expired sessions so repeated
-    // logins don't accumulate dead tokens forever.
-    const stale = await ctx.db
+    // Session hygiene, bounded: prune expired sessions and cap actives at
+    // MAX_ACTIVE_SESSIONS (oldest-expiring dropped first), so neither
+    // storage nor this scan can grow past a login's transaction budget.
+    const sessions = await ctx.db
       .query('webSessions')
       .withIndex('by_userId', (q) => q.eq('userId', userId))
-      .collect();
-    for (const session of stale) {
-      if (session.expiresAt < now) await ctx.db.delete(session._id);
+      .take(MAX_ACTIVE_SESSIONS * 5);
+    const active = [];
+    for (const session of sessions) {
+      if (session.expiresAt < now) {
+        await ctx.db.delete(session._id);
+      } else {
+        active.push(session);
+      }
+    }
+    if (active.length >= MAX_ACTIVE_SESSIONS) {
+      active.sort((a, b) => b.expiresAt - a.expiresAt);
+      for (const session of active.slice(MAX_ACTIVE_SESSIONS - 1)) {
+        await ctx.db.delete(session._id);
+      }
     }
     const token = randomToken();
     await ctx.db.insert('webSessions', {
@@ -175,6 +190,10 @@ export const applySubscription = mutation({
     // out-of-order or replayed payment webhooks are harmless; 'end' stamps
     // the supplied timestamp exactly (cancellation).
     mode: v.union(v.literal('extend'), v.literal('end')),
+    // Stripe event creation time (ms). Events older than the newest one
+    // already applied are dropped, so a delayed payment webhook can't
+    // resurrect access after a cancellation.
+    eventAt: v.optional(v.number()),
     setCustomerId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -191,12 +210,20 @@ export const applySubscription = mutation({
         .unique();
     }
     if (!user) return { applied: false };
+    if (
+      args.eventAt !== undefined &&
+      user.subEventAt !== undefined &&
+      args.eventAt < user.subEventAt
+    ) {
+      return { applied: false }; // stale event — a newer one already landed
+    }
     const subscribedUntil =
       args.mode === 'extend'
         ? Math.max(user.subscribedUntil ?? 0, args.subscribedUntil)
         : args.subscribedUntil;
     await ctx.db.patch(user._id, {
       subscribedUntil,
+      ...(args.eventAt !== undefined ? { subEventAt: args.eventAt } : {}),
       ...(args.setCustomerId !== undefined
         ? { stripeCustomerId: args.setCustomerId }
         : {}),

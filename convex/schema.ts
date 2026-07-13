@@ -34,6 +34,9 @@ export default defineSchema({
     // Supporter subscription (ms epoch; subscribed while > now)
     subscribedUntil: v.optional(v.number()),
     stripeCustomerId: v.optional(v.string()),
+    // Creation time (ms) of the newest Stripe event applied — ordering
+    // guard against delayed/replayed webhooks.
+    subEventAt: v.optional(v.number()),
     // Verified Riot account link
     linkedPuuid: v.optional(v.string()),
     // In-flight link challenge: change summoner icon to `iconId` (0-29)

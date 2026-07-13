@@ -42,15 +42,14 @@ interface UseRuneDataReturn {
  * setState calls.
  */
 // One request per page no matter how many icons mount at once: concurrent
-// callers share the same in-flight promise (cleared on failure so a retry
-// can issue a fresh request).
+// callers share the same in-flight promise. Cleared once settled so
+// refetch() and later mounts still reach the network for fresh data.
 let inflightRuneData: Promise<RuneDataResponse> | null = null;
 
 function loadRuneDataShared(): Promise<RuneDataResponse> {
   if (!inflightRuneData) {
-    inflightRuneData = loadRuneData().catch((error) => {
+    inflightRuneData = loadRuneData().finally(() => {
       inflightRuneData = null;
-      throw error;
     });
   }
   return inflightRuneData;

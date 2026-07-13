@@ -90,6 +90,9 @@ export async function POST(request: NextRequest) {
       : {};
   const customer =
     typeof object.customer === 'string' ? object.customer : undefined;
+  // Stripe stamps event creation seconds; used to drop out-of-order events.
+  const eventAt =
+    typeof event.created === 'number' ? event.created * 1000 : undefined;
 
   const convex = new ConvexHttpClient(convexUrl);
   const apply = (args: {
@@ -101,6 +104,7 @@ export async function POST(request: NextRequest) {
   }) =>
     convex.mutation(api.webauth.applySubscription, {
       secret: bridgeSecret,
+      ...(eventAt !== undefined ? { eventAt } : {}),
       ...(args.userId !== undefined
         ? // Convex ids serialize as strings; the mutation validates.
           { userId: args.userId as never }
