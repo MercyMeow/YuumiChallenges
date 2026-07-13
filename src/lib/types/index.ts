@@ -225,8 +225,10 @@ export interface DetailedMatchParticipant {
   item5: number;
   item6: number;
   /** Role-quest ("lane quest") slot introduced in season 2026 — holds the
-   * role-bound item (boots) once the quest completes. Absent on older
-   * matches; 0 while the quest is incomplete. */
+   * role-bound item once the quest completes (boots for BOTTOM, Control
+   * Wards for UTILITY; unused by other roles — see
+   * `@/lib/utils/role-quest`). Absent on older matches; 0 while the quest
+   * is incomplete. */
   roleBoundItem?: number;
   itemsPurchased: number;
   consumablesPurchased: number;
