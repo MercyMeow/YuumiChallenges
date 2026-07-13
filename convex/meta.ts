@@ -340,9 +340,7 @@ export const getGamesPageForStats = internalQuery({
       ...(game.secondaryRunes !== undefined
         ? { secondaryRunes: game.secondaryRunes }
         : {}),
-      ...(game.statShards !== undefined
-        ? { statShards: game.statShards }
-        : {}),
+      ...(game.statShards !== undefined ? { statShards: game.statShards } : {}),
       ...(game.summonerSpells !== undefined
         ? { summonerSpells: game.summonerSpells }
         : {}),
