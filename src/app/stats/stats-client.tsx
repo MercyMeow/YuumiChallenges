@@ -15,6 +15,7 @@ import { api } from '@/../convex/_generated/api';
 import { HextechPanel, OrnateHeading } from '@/components/ui/hextech-panel';
 import { DataDragonImage } from '@/components/ui/datadragon-image';
 import { RuneIcon } from '@/components/ui/rune-display';
+import { PanelSkeleton } from '@/components/ui/skeleton';
 import { HighEloTabs } from '@/components/highelo/high-elo-tabs';
 import { timeAgo } from '@/components/highelo/game-card';
 import { useRuneData } from '@/hooks/use-rune-data';
@@ -365,17 +366,11 @@ export function StatsClient() {
           <div className="space-y-4" aria-busy>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {Array.from({ length: 4 }, (_, i) => (
-                <div
-                  key={i}
-                  className="hex-card h-24 animate-pulse rounded-sm opacity-50"
-                />
+                <PanelSkeleton key={i} className="h-24" />
               ))}
             </div>
             {Array.from({ length: 3 }, (_, i) => (
-              <div
-                key={i}
-                className="hex-card h-52 animate-pulse rounded-sm opacity-50"
-              />
+              <PanelSkeleton key={i} className="h-52" />
             ))}
           </div>
         )

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/../convex/_generated/api';
 import { HextechPanel } from '@/components/ui/hextech-panel';
+import { PanelSkeleton } from '@/components/ui/skeleton';
 import { DataDragonImage } from '@/components/ui/datadragon-image';
 import {
   RuneIcon,
@@ -391,12 +392,9 @@ export function ProfileClient({ params }: { params: ProfileParams | null }) {
           </p>
         ) : (
           <div className="space-y-4" aria-busy>
-            <div className="hex-card h-28 animate-pulse rounded-sm opacity-50" />
+            <PanelSkeleton className="h-28" />
             {Array.from({ length: 3 }, (_, i) => (
-              <div
-                key={i}
-                className="hex-card h-40 animate-pulse rounded-sm opacity-50"
-              />
+              <PanelSkeleton key={i} className="h-40" />
             ))}
           </div>
         )}

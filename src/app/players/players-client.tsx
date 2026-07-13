@@ -9,6 +9,7 @@ import { api } from '@/../convex/_generated/api';
 import { HextechPanel, OrnateHeading } from '@/components/ui/hextech-panel';
 import { HextechSelect } from '@/components/highelo/hextech-select';
 import { HighEloTabs } from '@/components/highelo/high-elo-tabs';
+import { PanelSkeleton } from '@/components/ui/skeleton';
 import { platformLabel, regionSlug } from '@/lib/highelo/regions';
 import { parseClimbers } from '@/lib/highelo/meta-stats';
 import { getLastViewedProfileSnapshot } from '@/lib/highelo/last-profile';
@@ -263,10 +264,7 @@ export function PlayersClient() {
           ) : (
             <div className="space-y-2" aria-busy>
               {Array.from({ length: 8 }, (_, i) => (
-                <div
-                  key={i}
-                  className="hex-card h-10 animate-pulse rounded-sm opacity-50"
-                />
+                <PanelSkeleton key={i} className="h-10" />
               ))}
             </div>
           )
