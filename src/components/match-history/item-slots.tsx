@@ -339,6 +339,23 @@ interface ItemSlotsProps {
   className?: string;
   showTrinketSeparately?: boolean;
   gridLayout?: boolean; // New prop for 3x2 grid layout
+  /** Role-quest ("lane quest") slot: renders an extra slot after the
+   * trinket when the field is present on the match (0 = quest incomplete,
+   * shown as an empty slot). Omit to hide, e.g. for pre-2026 matches. */
+  roleBoundItemId?: number | undefined;
+}
+
+/** Role-quest slot with a magic ring to set it apart from the trinket. */
+function RoleBoundSlot({
+  itemId,
+  size,
+}: {
+  itemId: number;
+  size: 'sm' | 'md' | 'lg' | 'xl';
+}) {
+  return (
+    <ItemSlot itemId={itemId} size={size} className="ring-1 ring-hx-magic/70" />
+  );
 }
 
 export function ItemSlots({
@@ -347,6 +364,7 @@ export function ItemSlots({
   className = '',
   showTrinketSeparately = false,
   gridLayout = false,
+  roleBoundItemId,
 }: ItemSlotsProps) {
   // Ensure we have exactly 7 slots (6 items + trinket)
   // Safe spread operation - handle undefined/null items array
@@ -359,6 +377,7 @@ export function ItemSlots({
 
   const regularItems = paddedItems.slice(0, 6);
   const trinket = paddedItems[6];
+  const hasRoleBoundSlot = typeof roleBoundItemId === 'number';
 
   // Grid layout (3x2 + trinket separately)
   if (gridLayout) {
@@ -370,11 +389,16 @@ export function ItemSlots({
           ))}
         </div>
         <div className="mx-1 h-6 w-px bg-gray-500/30" />
-        <ItemSlot
-          itemId={trinket || 0}
-          size={size}
-          className="ring-1 ring-yellow-500/30"
-        />
+        <div className="flex flex-col items-center gap-1">
+          <ItemSlot
+            itemId={trinket || 0}
+            size={size}
+            className="ring-1 ring-yellow-500/30"
+          />
+          {hasRoleBoundSlot && (
+            <RoleBoundSlot itemId={roleBoundItemId} size={size} />
+          )}
+        </div>
       </div>
     );
   }
@@ -389,6 +413,9 @@ export function ItemSlots({
         </div>
         <div className="mx-1 h-4 w-px bg-gray-500/30" />
         <ItemSlot itemId={trinket || 0} size={size} />
+        {hasRoleBoundSlot && (
+          <RoleBoundSlot itemId={roleBoundItemId} size={size} />
+        )}
       </div>
     );
   }
@@ -403,6 +430,9 @@ export function ItemSlots({
           className={index === 6 ? 'ring-1 ring-yellow-500/30' : ''}
         />
       ))}
+      {hasRoleBoundSlot && (
+        <RoleBoundSlot itemId={roleBoundItemId} size={size} />
+      )}
     </div>
   );
 }

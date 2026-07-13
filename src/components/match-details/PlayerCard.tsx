@@ -322,7 +322,12 @@ export const PlayerCard = memo(
 
           {/* Items + runes */}
           <div className="flex shrink-0 items-center gap-3">
-            <ItemSlots items={items} size="md" gridLayout />
+            <ItemSlots
+              items={items}
+              size="md"
+              gridLayout
+              roleBoundItemId={participant.roleBoundItem}
+            />
             {keystone && statPerks && (
               <div className="flex items-center gap-1.5">
                 <RuneIcon

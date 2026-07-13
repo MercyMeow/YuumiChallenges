@@ -492,7 +492,12 @@ export function YuumiChallengesTab({
                 Final Build
               </h3>
               <div className="mt-3 rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur-sm">
-                <ItemSlots items={items} size="lg" gridLayout />
+                <ItemSlots
+                  items={items}
+                  size="lg"
+                  gridLayout
+                  roleBoundItemId={selectedPlayerData.roleBoundItem}
+                />
               </div>
             </div>
             <div>
