@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 const TABS = [
   { label: 'Games', href: '/games' },
   { label: 'Players', href: '/players' },
+  { label: 'Meta Stats', href: '/stats' },
 ];
 
 export function HighEloTabs() {
