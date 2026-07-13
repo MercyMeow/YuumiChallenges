@@ -101,28 +101,34 @@ export const upsertDiscordUser = mutation({
             : {}),
           ...(args.avatar !== undefined ? { avatar: args.avatar } : {}),
         });
-    // Session hygiene, bounded: prune expired sessions and cap actives at
-    // MAX_ACTIVE_SESSIONS (oldest-expiring dropped first). The scan is
-    // capped at 250 rows — comfortably inside a mutation's budget, and
-    // enough to shrink even a large legacy pile to the cap in one login,
-    // since every row beyond the kept handful is deleted.
-    const sessions = await ctx.db
-      .query('webSessions')
-      .withIndex('by_userId', (q) => q.eq('userId', userId))
-      .take(250);
-    const active = [];
-    for (const session of sessions) {
-      if (session.expiresAt < now) {
-        await ctx.db.delete(session._id);
-      } else {
-        active.push(session);
+    // Session hygiene: prune expired sessions and cap actives at
+    // MAX_ACTIVE_SESSIONS (oldest-expiring dropped first). The cleanup
+    // walks the user's whole session set in 250-row pages: every page
+    // deletes all rows it read except the kept handful, so the loop
+    // strictly shrinks and exits once a short page proves the set is
+    // fully examined. The pass bound keeps worst-case deletes (~2k)
+    // inside a mutation's write budget — far beyond any pile the cap
+    // itself allows to accumulate.
+    for (let pass = 0; pass < 8; pass++) {
+      const sessions = await ctx.db
+        .query('webSessions')
+        .withIndex('by_userId', (q) => q.eq('userId', userId))
+        .take(250);
+      const active = [];
+      for (const session of sessions) {
+        if (session.expiresAt < now) {
+          await ctx.db.delete(session._id);
+        } else {
+          active.push(session);
+        }
       }
-    }
-    if (active.length >= MAX_ACTIVE_SESSIONS) {
-      active.sort((a, b) => b.expiresAt - a.expiresAt);
-      for (const session of active.slice(MAX_ACTIVE_SESSIONS - 1)) {
-        await ctx.db.delete(session._id);
+      if (active.length >= MAX_ACTIVE_SESSIONS) {
+        active.sort((a, b) => b.expiresAt - a.expiresAt);
+        for (const session of active.slice(MAX_ACTIVE_SESSIONS - 1)) {
+          await ctx.db.delete(session._id);
+        }
       }
+      if (sessions.length < 250) break; // whole set examined
     }
     const token = randomToken();
     await ctx.db.insert('webSessions', {
