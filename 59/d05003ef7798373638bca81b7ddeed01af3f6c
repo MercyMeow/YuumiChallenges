@@ -1,0 +1,36 @@
+src/lib/server/db/client.ts
+  s_801a60b5f5c1f3::t_89ce265f4640ec 22
+  s_801a60b5f5c1f3::t_b828c2dedfc895 17-21,23-24
+docs/plans/2026-07-13-mongodb-migration.md
+  s_801a60b5f5c1f3::t_3e82d4b0099bd7 75
+  s_801a60b5f5c1f3::t_7c1802310c821c 64
+  s_801a60b5f5c1f3::t_d42af42d133923 74
+  s_801a60b5f5c1f3::t_4b85476d06dff2 62
+src/lib/server/db/indexes.ts
+  s_801a60b5f5c1f3::t_d827188cd003fc 7-9
+  s_801a60b5f5c1f3::t_4108fc5a33a302 21,35,94-97
+  s_801a60b5f5c1f3::t_f7ac700e7c3d89 89
+scripts/ensure-indexes.ts
+  s_801a60b5f5c1f3::t_ade8e44c7cc22f 8-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "59d05003ef7798373638bca81b7ddeed01af3f6c",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_801a60b5f5c1f3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "78b7a01c-aadf-4e8e-9315-bea0315c72c5",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
