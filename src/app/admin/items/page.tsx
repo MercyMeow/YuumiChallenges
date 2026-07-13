@@ -26,7 +26,6 @@ import {
 } from '@/components/ui/dialog';
 import { ItemSlot } from '@/components/match-history/item-slots';
 import {
-  Loader2,
   ArrowLeft,
   Plus,
   Pencil,
@@ -34,6 +33,7 @@ import {
   Package,
   AlertCircle,
 } from 'lucide-react';
+import { Skeleton, PanelSkeleton } from '@/components/ui/skeleton';
 
 type ItemCategory = 'starter' | 'early' | 'core' | 'situational';
 
@@ -83,8 +83,45 @@ export default function ItemsEditorPage() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center hex-page-bg">
-        <Loader2 className="h-8 w-8 animate-spin text-hx-gold" />
+      <div role="status" aria-busy="true" className="min-h-screen hex-page-bg">
+        <span className="sr-only">Loading items editor…</span>
+        <div className="container mx-auto max-w-7xl px-6 py-8">
+          {/* Header */}
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <Skeleton className="mb-4 h-4 w-36" />
+              <Skeleton className="h-9 w-52" />
+              <Skeleton className="mt-2 h-4 w-72" />
+            </div>
+            <Skeleton className="h-9 w-24" />
+          </div>
+
+          {/* Items by Category */}
+          <div className="space-y-6">
+            {Array.from({ length: 2 }, (_, i) => (
+              <PanelSkeleton key={i}>
+                <div className="p-6">
+                  <Skeleton className="h-5 w-40" />
+                  <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {Array.from({ length: 3 }, (_, j) => (
+                      <div key={j} className="flex items-start gap-3">
+                        <Skeleton className="h-12 w-12 shrink-0" />
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-3 w-full" />
+                          <div className="mt-2 flex gap-2">
+                            <Skeleton className="h-7 w-14" />
+                            <Skeleton className="h-7 w-16" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PanelSkeleton>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

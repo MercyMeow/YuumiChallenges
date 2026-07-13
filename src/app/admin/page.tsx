@@ -7,14 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Loader2,
-  LogOut,
-  Layers,
-  Users,
-  Settings,
-  FileText,
-} from 'lucide-react';
+import { Skeleton, PanelSkeleton } from '@/components/ui/skeleton';
+import { LogOut, Layers, Users, Settings, FileText } from 'lucide-react';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -32,8 +26,52 @@ export default function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center hex-page-bg">
-        <Loader2 className="h-8 w-8 animate-spin text-hx-gold" />
+      <div role="status" aria-busy="true" className="min-h-screen hex-page-bg">
+        <span className="sr-only">Loading admin dashboard…</span>
+        <div className="container mx-auto max-w-7xl px-6 py-8">
+          {/* Header */}
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <Skeleton className="h-9 w-72" />
+              <Skeleton className="mt-2 h-4 w-48" />
+            </div>
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-9 w-28" />
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }, (_, i) => (
+              <PanelSkeleton key={i}>
+                <div className="flex items-center gap-4 p-4">
+                  <Skeleton className="h-12 w-12 shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                </div>
+              </PanelSkeleton>
+            ))}
+          </div>
+
+          {/* Stats Grid */}
+          <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+            {Array.from({ length: 2 }, (_, i) => (
+              <PanelSkeleton key={i}>
+                <div className="flex items-center justify-between p-6">
+                  <div className="space-y-2">
+                    <Skeleton className="h-3 w-16" />
+                    <Skeleton className="h-8 w-12" />
+                    <Skeleton className="h-2.5 w-40" />
+                  </div>
+                  <Skeleton className="h-12 w-12 shrink-0" />
+                </div>
+              </PanelSkeleton>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
