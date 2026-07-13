@@ -2,6 +2,7 @@
 
 import {
   Fragment,
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -10,20 +11,25 @@ import {
 } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useQuery } from 'convex/react';
+import { useAction, useMutation, useQuery } from 'convex/react';
 import {
   Cat,
   ChevronRight,
   Crown,
   Flame,
+  Gem,
   History,
   Layers,
+  Link2,
+  RefreshCw,
   ShieldCheck,
   Sparkles,
   TrendingUp,
   Trophy,
   Users,
+  Zap,
 } from 'lucide-react';
+import { useWebUser } from '@/lib/hooks/use-web-user';
 import { api } from '@/../convex/_generated/api';
 import { HextechPanel } from '@/components/ui/hextech-panel';
 import { PanelSkeleton } from '@/components/ui/skeleton';
@@ -352,6 +358,248 @@ function cnDelta(delta: number): string {
   return `hex-title text-sm ${delta >= 0 ? 'text-emerald-300' : 'text-red-300'}`;
 }
 
+// ---------- account: supporter badge, refresh, icon-verified linking ----------
+
+/** Gem chip shown when a verified supporter owns this profile. */
+function SupporterBadge({ puuid }: { puuid: string }) {
+  const isSupporter = useQuery(api.webauth.getSupporterBadge, { puuid });
+  if (!isSupporter) return null;
+  return (
+    <span className="ml-2 inline-flex items-center gap-1 rounded-sm border border-hx-magic/50 bg-hx-magic/10 px-2 py-0.5 align-middle text-[10px] tracking-widest text-hx-magic-bright uppercase shadow-[0_0_12px_oklch(0.7_0.15_200_/_0.25)]">
+      <Gem className="h-3 w-3" aria-hidden />
+      Supporter
+    </span>
+  );
+}
+
+function formatCountdown(ms: number): string {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+/**
+ * Refresh + account controls under the identity header: manual refresh
+ * with the shared 5-minute cooldown, auto-refresh for the verified
+ * subscribed owner, and the icon-challenge linking flow (equip a starter
+ * icon 0-29 we pick — never the current one — then verify).
+ */
+function ProfileAccountRow({ puuid }: { puuid: string }) {
+  const { user, token, refresh: refreshMe } = useWebUser();
+  const refreshPlayer = useAction(api.highelo.refreshPlayer);
+  const startLink = useAction(api.webauth.startAccountLink);
+  const verifyLink = useAction(api.webauth.verifyAccountLink);
+  const unlink = useMutation(api.webauth.unlinkAccount);
+
+  const [busy, setBusy] = useState(false);
+  const [nextAllowedAt, setNextAllowedAt] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
+  const [challenge, setChallenge] = useState<{
+    iconId: number;
+    expiresAt: number;
+  } | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [ddVersion, setDdVersion] = useState<string | null>(null);
+
+  // Ticking clock for the cooldown / challenge countdowns.
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  // Full ddragon version for profile-icon images (e.g. '16.13.1').
+  useEffect(() => {
+    fetch('/api/data-dragon/version')
+      .then((res) => res.json())
+      .then((data: { version?: string }) => {
+        if (typeof data.version === 'string') setDdVersion(data.version);
+      })
+      .catch(() => {});
+  }, []);
+
+  const isOwner = user?.linkedPuuid === puuid;
+  const doRefresh = useCallback(async () => {
+    setBusy(true);
+    try {
+      const result = await refreshPlayer({
+        puuid,
+        ...(token ? { token } : {}),
+      });
+      setNextAllowedAt(result.nextAllowedAt);
+    } catch {
+      setNotice('Refresh is unavailable right now.');
+    } finally {
+      setBusy(false);
+    }
+  }, [refreshPlayer, puuid, token]);
+
+  // Subscriber perk: keep the owner's profile fresh while they watch it.
+  const autoRefresh = Boolean(user?.subscribed && isOwner);
+  useEffect(() => {
+    if (!autoRefresh) return;
+    void doRefresh();
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') void doRefresh();
+    }, 90_000);
+    return () => clearInterval(timer);
+  }, [autoRefresh, doRefresh]);
+
+  const cooldownLeft = nextAllowedAt - now;
+  const pending =
+    challenge ??
+    (user?.pendingLink && user.pendingLink.puuid === puuid
+      ? {
+          iconId: user.pendingLink.iconId,
+          expiresAt: user.pendingLink.expiresAt,
+        }
+      : null);
+
+  return (
+    <div className="hex-card mt-3 rounded-sm px-4 py-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => void doRefresh()}
+          disabled={busy || cooldownLeft > 0}
+          className="btn-hextech inline-flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <RefreshCw
+            className={cn('h-3.5 w-3.5', busy && 'animate-spin')}
+            aria-hidden
+          />
+          {cooldownLeft > 0
+            ? `Refresh in ${formatCountdown(cooldownLeft)}`
+            : 'Refresh profile'}
+        </button>
+        {autoRefresh && (
+          <span className="inline-flex items-center gap-1 text-[11px] tracking-wide text-hx-magic-bright">
+            <Zap className="h-3 w-3" aria-hidden /> Auto-refresh on
+          </span>
+        )}
+        <span className="flex-1" />
+        {user && isOwner && !user.subscribed && (
+          <button
+            type="button"
+            onClick={() => {
+              void fetch(
+                `/api/stripe/checkout?return=${encodeURIComponent(window.location.pathname)}`,
+                { method: 'POST' }
+              )
+                .then((res) => res.json())
+                .then((data: { url?: string; error?: string }) => {
+                  if (data.url) window.location.assign(data.url);
+                  else setNotice(data.error ?? 'Subscriptions open soon.');
+                })
+                .catch(() => setNotice('Subscriptions open soon.'));
+            }}
+            className="inline-flex items-center gap-1.5 rounded-sm border border-hx-magic/50 bg-hx-magic/10 px-3 py-1.5 text-xs text-hx-magic-bright transition-colors hover:bg-hx-magic/20"
+          >
+            <Gem className="h-3.5 w-3.5" aria-hidden />
+            Support for 1€/mo — unlock auto-refresh
+          </button>
+        )}
+        {user && isOwner && (
+          <span className="inline-flex items-center gap-2 text-[11px] tracking-wide text-hx-gold/60">
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" aria-hidden />
+            Verified — this is you
+            <button
+              type="button"
+              onClick={() => {
+                if (token) void unlink({ token }).then(refreshMe);
+              }}
+              className="text-hx-gold/40 underline-offset-2 hover:underline"
+            >
+              Unlink
+            </button>
+          </span>
+        )}
+        {user && !isOwner && !pending && (
+          <button
+            type="button"
+            onClick={() => {
+              if (!token) return;
+              setNotice(null);
+              startLink({ token, puuid })
+                .then((result) => setChallenge(result))
+                .catch(() =>
+                  setNotice('Could not start verification — try again later.')
+                );
+            }}
+            className="inline-flex items-center gap-1.5 rounded-sm border border-hx-gold-dark/40 px-3 py-1.5 text-xs text-hx-gold/70 transition-colors hover:border-hx-gold hover:text-hx-gold-bright"
+          >
+            <Link2 className="h-3.5 w-3.5" aria-hidden />
+            This is my account
+          </button>
+        )}
+        {!user && (
+          <a
+            href={`/api/auth/discord/login?return=${encodeURIComponent(
+              typeof window !== 'undefined' ? window.location.pathname : '/'
+            )}`}
+            className="text-[11px] tracking-wide text-hx-gold/50 underline-offset-2 hover:underline"
+          >
+            Sign in with Discord to claim this profile
+          </a>
+        )}
+      </div>
+
+      {/* Icon-challenge verification */}
+      {user && !isOwner && pending && (
+        <div className="mt-3 flex flex-wrap items-center gap-4 border-t border-hx-gold-dark/30 pt-3">
+          {ddVersion && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={`https://ddragon.leagueoflegends.com/cdn/${ddVersion}/img/profileicon/${pending.iconId}.png`}
+              alt={`Summoner icon ${pending.iconId}`}
+              width={48}
+              height={48}
+              className="rounded-sm border border-hx-gold/50"
+            />
+          )}
+          <div className="min-w-0 flex-1 text-xs leading-relaxed text-hx-gold/70">
+            In the League client, change this account&apos;s summoner icon to
+            the starter icon shown here, save, then verify.
+            <span className="ml-1 text-hx-gold/40">
+              Challenge expires in {formatCountdown(pending.expiresAt - now)}.
+            </span>
+          </div>
+          <button
+            type="button"
+            disabled={busy || pending.expiresAt < now}
+            onClick={() => {
+              if (!token) return;
+              setBusy(true);
+              setNotice(null);
+              verifyLink({ token })
+                .then((result) => {
+                  if (result.linked) {
+                    setChallenge(null);
+                    refreshMe();
+                  } else if (result.reason === 'icon_mismatch') {
+                    setNotice(
+                      "Icon doesn't match yet — save it in the client, wait a few seconds, and try again."
+                    );
+                  } else {
+                    setChallenge(null);
+                    setNotice('Challenge expired — start again.');
+                  }
+                })
+                .catch(() => setNotice('Verification failed — try again.'))
+                .finally(() => setBusy(false));
+            }}
+            className="btn-hextech rounded-sm px-3 py-1.5 text-xs disabled:opacity-50"
+          >
+            Verify
+          </button>
+        </div>
+      )}
+      {notice && (
+        <p className="mt-2 text-[11px] tracking-wide text-amber-300/90">
+          {notice}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function ProfileClient({ params }: { params: ProfileParams | null }) {
   const profile = useQuery(api.highelo.getPlayerProfile, params ?? 'skip');
   // Daily ladder snapshots (form sparkline) and the meta blob (ladder-
@@ -466,6 +714,7 @@ export function ProfileClient({ params }: { params: ProfileParams | null }) {
             <span className="ml-1.5 text-sm font-normal tracking-normal text-hx-gold/50">
               #{player.tagLine}
             </span>
+            <SupporterBadge puuid={player.puuid} />
           </h1>
           <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs tracking-wide text-hx-gold/60">
             <span className="hex-chip-magic">
@@ -519,6 +768,9 @@ export function ProfileClient({ params }: { params: ProfileParams | null }) {
           </div>
         )}
       </div>
+
+      {/* Refresh, supporter CTA, and icon-verified account linking */}
+      <ProfileAccountRow puuid={player.puuid} />
 
       {/* LP form — appears once at least two daily snapshots exist */}
       {snapshots && snapshots.length >= 2 && firstSnap && lastSnap && (

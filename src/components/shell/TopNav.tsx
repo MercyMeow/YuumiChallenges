@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, Settings, X } from 'lucide-react';
+import { Gem, LogIn, LogOut, Menu, Settings, X } from 'lucide-react';
 import { PawEmblem } from './PawEmblem';
+import { discordAvatarUrl, useWebUser } from '@/lib/hooks/use-web-user';
 import { HOME_SECTION_IDS, isGuideLinkActive } from './nav';
 import { useActiveSection } from '@/lib/hooks/use-active-section';
 import { useLivePatch } from '@/lib/hooks/use-live-patch';
@@ -20,6 +21,70 @@ const NAV_LINKS: ReadonlyArray<{ label: string; href: string }> = [
   { label: 'Match Viewer', href: '/match' },
   { label: 'Gallery', href: '/gallery' },
 ];
+
+/**
+ * Discord sign-in / signed-in avatar for the top bar. The menu is a
+ * simple hover/focus popover in the hextech language — no new deps.
+ */
+function AccountCluster() {
+  const pathname = usePathname();
+  const { user, loading, logout } = useWebUser();
+
+  if (loading) return null;
+  if (!user) {
+    return (
+      <a
+        href={`/api/auth/discord/login?return=${encodeURIComponent(pathname)}`}
+        className="btn-hextech hidden items-center gap-1.5 rounded-sm px-3 py-1.5 text-xs sm:inline-flex"
+      >
+        <LogIn className="h-3.5 w-3.5" aria-hidden />
+        Sign in
+      </a>
+    );
+  }
+  return (
+    <div className="group relative hidden sm:block">
+      <button
+        type="button"
+        className="flex items-center gap-2 rounded-sm border border-hx-gold-dark/40 px-2 py-1 transition-colors hover:border-hx-gold"
+      >
+        {/* Discord CDN isn't in next.config remotePatterns; plain img. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={discordAvatarUrl(user)}
+          alt=""
+          width={22}
+          height={22}
+          className="rounded-full"
+        />
+        <span className="max-w-24 truncate text-xs text-hx-gold-bright">
+          {user.globalName ?? user.username}
+        </span>
+        {user.subscribed && (
+          <Gem className="h-3.5 w-3.5 text-hx-magic" aria-label="Supporter" />
+        )}
+      </button>
+      <div className="invisible absolute top-full right-0 z-50 mt-1 w-44 rounded-sm border border-hx-gold-dark/60 bg-[oklch(0.11_0.03_247_/_0.97)] opacity-0 shadow-lg backdrop-blur-md transition-all duration-150 group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+        {user.subscribed ? (
+          <div className="flex items-center gap-2 border-b border-hx-gold-dark/40 px-3 py-2 text-xs text-hx-magic-bright">
+            <Gem className="h-3.5 w-3.5" aria-hidden /> Supporter
+          </div>
+        ) : (
+          <div className="border-b border-hx-gold-dark/40 px-3 py-2 text-[11px] tracking-wide text-hx-gold/60">
+            Support on your linked profile page — 1€/mo
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={() => void logout()}
+          className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-hx-gold/70 transition-colors hover:bg-hx-gold/5 hover:text-hx-gold-bright"
+        >
+          <LogOut className="h-3.5 w-3.5" aria-hidden /> Sign out
+        </button>
+      </div>
+    </div>
+  );
+}
 
 /** Old-client top bar: wordmark, gold nav links, live patch crystal. */
 export function TopNav() {
@@ -75,6 +140,7 @@ export function TopNav() {
 
           {/* Right cluster */}
           <div className="flex items-center gap-3">
+            <AccountCluster />
             <span className="hex-chip-magic hidden sm:inline-flex">
               <span
                 className="h-1.5 w-1.5 rotate-45 animate-gem-pulse bg-hx-magic"

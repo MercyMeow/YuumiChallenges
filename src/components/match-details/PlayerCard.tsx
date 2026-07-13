@@ -5,6 +5,8 @@
  */
 
 import { memo } from 'react';
+import Link from 'next/link';
+import { regionSlug } from '@/lib/highelo/regions';
 import {
   Tooltip,
   TooltipContent,
@@ -149,6 +151,16 @@ export const PlayerCard = memo(
       participant.riotIdGameName && participant.riotIdTagline
         ? participant.riotIdGameName
         : participant.summonerName;
+    // Name links to the player's profile page; the platform id is the
+    // matchId prefix ('EUW1_123…' -> 'euw1'). Legacy rows without a Riot
+    // ID stay plain text.
+    const platform = matchData.metadata.matchId.split('_')[0]?.toLowerCase();
+    const profileHref =
+      platform && participant.riotIdGameName && participant.riotIdTagline
+        ? `/players/${regionSlug(platform)}/${encodeURIComponent(
+            `${participant.riotIdGameName}-${participant.riotIdTagline}`
+          )}`
+        : null;
     const position =
       POSITION_LABELS[participant.individualPosition] ??
       participant.individualPosition;
@@ -191,21 +203,26 @@ export const PlayerCard = memo(
               className="shrink-0"
             />
             <div className="min-w-0">
-              <div
-                className="truncate text-sm font-semibold text-hx-parchment"
-                title={
-                  participant.riotIdTagline
-                    ? `${displayName}#${participant.riotIdTagline}`
-                    : displayName
-                }
-              >
-                {displayName}
-                {participant.riotIdTagline && (
+              {profileHref ? (
+                <Link
+                  href={profileHref}
+                  onClick={(e) => e.stopPropagation()}
+                  className="block truncate text-sm font-semibold text-hx-parchment underline-offset-2 hover:text-hx-gold-bright hover:underline focus:outline-hidden focus-visible:ring-2 focus-visible:ring-hx-gold"
+                  title={`${displayName}#${participant.riotIdTagline} — view Yuumi profile`}
+                >
+                  {displayName}
                   <span className="ml-1 text-xs font-normal text-hx-gold/50">
                     #{participant.riotIdTagline}
                   </span>
-                )}
-              </div>
+                </Link>
+              ) : (
+                <div
+                  className="truncate text-sm font-semibold text-hx-parchment"
+                  title={displayName}
+                >
+                  {displayName}
+                </div>
+              )}
               <div className="truncate text-[11px] tracking-wide text-hx-gold/60">
                 {participant.championName} · {position}
               </div>

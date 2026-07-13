@@ -26,6 +26,15 @@ export function timeAgo(timestamp: number): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
+/** op.gg-style KDA-ratio coloring: the better the ratio, the brighter. */
+function kdaTone(game: { kills: number; deaths: number; assists: number }) {
+  if (game.deaths === 0) return 'text-emerald-300';
+  const ratio = (game.kills + game.assists) / game.deaths;
+  if (ratio >= 4) return 'text-emerald-300';
+  if (ratio >= 3) return 'text-hx-gold-bright';
+  return 'text-hx-gold/60';
+}
+
 export function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
@@ -84,8 +93,13 @@ export function GameCard({
               )}
             </div>
             <div className="text-[11px] tracking-wide text-hx-gold/60">
-              {game.lp} LP · {game.kills}/{game.deaths}/{game.assists} · {kda}{' '}
-              KDA
+              {game.lp} LP ·{' '}
+              <span className="text-hx-parchment">{game.kills}</span>
+              <span className="text-hx-gold/40"> / </span>
+              <span className="text-red-300">{game.deaths}</span>
+              <span className="text-hx-gold/40"> / </span>
+              <span className="text-hx-parchment">{game.assists}</span> ·{' '}
+              <span className={kdaTone(game)}>{kda} KDA</span>
             </div>
           </div>
         </div>
@@ -94,17 +108,26 @@ export function GameCard({
         <div className="flex flex-1 items-center justify-center gap-2">
           <div className="flex gap-1">
             {game.allyChampions.map((champion, i) => (
-              <DataDragonImage
+              <span
                 key={`ally-${champion}-${i}`}
-                championId={champion}
-                type="icon"
-                width={28}
-                height={28}
-                className={cn(
-                  'rounded-sm',
-                  champion === 'Yuumi' && 'ring-2 ring-hx-magic'
-                )}
-              />
+                title={
+                  champion === game.duoChampion ? `Duo: ${champion}` : undefined
+                }
+              >
+                <DataDragonImage
+                  championId={champion}
+                  type="icon"
+                  width={28}
+                  height={28}
+                  className={cn(
+                    'rounded-sm',
+                    champion === 'Yuumi' && 'ring-2 ring-hx-magic',
+                    champion === game.duoChampion &&
+                      champion !== 'Yuumi' &&
+                      'ring-2 ring-hx-gold/70'
+                  )}
+                />
+              </span>
             ))}
           </div>
           <Swords
@@ -144,10 +167,16 @@ export function GameCard({
         </div>
       </div>
 
-      {/* Compact build strip — opt-in (profile Recent Games), skipped when
-          the row carries no build snapshot. */}
-      {showBuild && hasBuild && (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-hx-gold-dark/30 px-3 pt-2.5 pb-3 sm:px-4">
+      {/* Compact build strip — always shown on desktop (op.gg-style rows);
+          on small screens only where opted in (profile Recent Games).
+          Skipped entirely when the row carries no build snapshot. */}
+      {hasBuild && (
+        <div
+          className={cn(
+            'flex-wrap items-center gap-x-3 gap-y-2 border-t border-hx-gold-dark/30 px-3 pt-2.5 pb-3 sm:px-4',
+            showBuild ? 'flex' : 'hidden lg:flex'
+          )}
+        >
           {(keystoneId !== undefined || spells.length > 0) && (
             <div className="flex items-center gap-1">
               {keystoneId !== undefined && (
