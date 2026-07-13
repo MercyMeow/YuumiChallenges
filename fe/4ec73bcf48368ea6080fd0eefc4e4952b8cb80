@@ -1,0 +1,46 @@
+src/lib/server/db/indexes.ts
+  s_801a60b5f5c1f3::t_e98503cef478f1 1-9,20-26,99
+  s_801a60b5f5c1f3::t_0429325107d955 10-19,27-98
+scripts/ensure-indexes.ts
+  s_801a60b5f5c1f3::t_70e31d33ebd659 1-23
+src/lib/server/db/collections.ts
+  s_801a60b5f5c1f3::t_7b231fde2e34b3 1-23,25-72
+  s_801a60b5f5c1f3::t_0429325107d955 24
+src/lib/server/db/types.ts
+  s_801a60b5f5c1f3::t_6e0d3f8ca4fe8a 1-187,189-315
+  s_801a60b5f5c1f3::t_0429325107d955 188
+src/lib/server/db/client.ts
+  s_801a60b5f5c1f3::t_c0c84e0af82634 1-29
+.env.example
+  s_470ca946b5edd6::t_d5bf6f82742c69 12-15
+package-lock.json
+  s_801a60b5f5c1f3::t_72dc45f93a995e 31,33,37,54,2913-2921,5221-5235,6141-6149,7150-7158,10280-10285,10450-10539,10677-10685,11975-11983,12270-12282,12442-12944,13261-13269
+package.json
+  s_801a60b5f5c1f3::t_176c4e45c74ae6 25-26,49,51,55,72
+tsconfig.json
+  s_470ca946b5edd6::t_fdc51a3fc129bc 46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "fe4ec73bcf48368ea6080fd0eefc4e4952b8cb80",
+  "prompts": {},
+  "sessions": {
+    "s_470ca946b5edd6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b6178875-dfa4-46f7-bcbf-d0ed8ccf86e6",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    },
+    "s_801a60b5f5c1f3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "78b7a01c-aadf-4e8e-9315-bea0315c72c5",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
