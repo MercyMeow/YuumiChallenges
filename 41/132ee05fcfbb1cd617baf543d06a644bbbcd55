@@ -1,0 +1,24 @@
+src/app/mayhem/mayhem-client.tsx
+  s_3980118100f186::t_ebaed4f1734642 426,431,454
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "41132ee05fcfbb1cd617baf543d06a644bbbcd55",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_3980118100f186": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "6add2cdc-446f-4ebc-9b00-371a39b28bb0",
+        "model": "default"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
