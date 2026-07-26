@@ -1,0 +1,50 @@
+src/components/shell/TopNav.tsx
+  s_3980118100f186::t_bae53032efb90a 21
+src/app/api/mayhem/augments/route.ts
+  s_3980118100f186::t_ec6d6acc77b0b0 1-25
+src/app/mayhem/mayhem-client.tsx
+  s_3980118100f186::t_e9c85300c96385 95,97-103,105-106,108-117,119-120,122,124-133
+  s_3980118100f186::t_d80ab72f6d14b2 205
+  s_3980118100f186::t_84261470774355 3
+  s_3980118100f186::t_20f12ecb766be5 8,104,107,147,159,237-239,252,254,343
+  s_3980118100f186::t_7feba2b3aa7383 317
+  s_3980118100f186::t_b00af0ad6c4375 1-2,4-7,9-94,96,118,121,123,134-146,148-158,160-204,206-236,240-251,253,255-316,318-342,344-362
+src/lib/mayhem/fetch-catalog.ts
+  s_3980118100f186::t_93b8318f21fa92 1-99
+src/lib/mayhem/types.ts
+  s_3980118100f186::t_d4c5e2be805694 1-54
+src/lib/mayhem/tiers.ts
+  s_3980118100f186::t_9a51976eb59a7a 1-42
+next.config.ts
+  s_3980118100f186::t_48fcf25a274ab3 49-60
+src/app/mayhem/page.tsx
+  s_3980118100f186::t_9bddcc87fc2769 1-12
+src/lib/mayhem/enrich.ts
+  s_3980118100f186::t_20f12ecb766be5 52-64,66,97-98
+  s_3980118100f186::t_1f4ff9c5f13fed 1-51,65,67-71,73-96,99-107
+  s_3980118100f186::t_a727a8ec7071fd 72
+src/components/shell/SideRail.tsx
+  s_3980118100f186::t_c9f40153223bff 9
+  s_3980118100f186::t_f3b28ec67f7fb3 34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "0cf1ecf2561cad798da0029c79ac0a7549c6a276",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_3980118100f186": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "6add2cdc-446f-4ebc-9b00-371a39b28bb0",
+        "model": "default"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
