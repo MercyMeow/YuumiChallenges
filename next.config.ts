@@ -46,6 +46,18 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/MercyMeow/YuumiChallenges/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'raw.communitydragon.org',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.communitydragon.org',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 
