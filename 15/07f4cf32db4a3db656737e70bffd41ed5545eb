@@ -1,0 +1,27 @@
+src/app/mayhem/mayhem-client.tsx
+  s_3980118100f186::t_87b7beaaca1dc8 9
+  s_3980118100f186::t_e7b698c527d628 407-408,412-428,430-451,453-478
+src/lib/mayhem/rarity.ts
+  s_3980118100f186::t_a414171490f6e6 29-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "1507f4cf32db4a3db656737e70bffd41ed5545eb",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_3980118100f186": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "6add2cdc-446f-4ebc-9b00-371a39b28bb0",
+        "model": "default"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
