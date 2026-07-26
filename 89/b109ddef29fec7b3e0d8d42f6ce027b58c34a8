@@ -1,0 +1,34 @@
+src/lib/mayhem/fetch-catalog.ts
+  s_3980118100f186::t_22419bdef07dbb 1,51
+docs/plans/2026-07-26-aram-mayhem-augments-design.md
+  s_3980118100f186::t_dab081da907985 62-67
+  s_3980118100f186::t_792820093a1910 152
+src/lib/mayhem/enrich.ts
+  s_3980118100f186::t_4e5aed81c79fbe 13,15-16
+docs/plans/2026-07-26-aram-mayhem-augments.md
+  s_3980118100f186::t_c7b08469d963b9 233
+  s_3980118100f186::t_1e8bfa4c57fa96 181,183-184
+  s_3980118100f186::t_bd6e4c160cb8f0 322,372
+  s_3980118100f186::t_1ce767a3159461 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "89b109ddef29fec7b3e0d8d42f6ce027b58c34a8",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_3980118100f186": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "6add2cdc-446f-4ebc-9b00-371a39b28bb0",
+        "model": "default"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
