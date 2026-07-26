@@ -2,11 +2,17 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { Sparkles, X } from 'lucide-react';
+import { ChevronDown, Sparkles, X } from 'lucide-react';
 import { HextechPanel, OrnateHeading } from '@/components/ui/hextech-panel';
 import { PanelSkeleton } from '@/components/ui/skeleton';
 import { filterBestForChampion, sortByMetaTier } from '@/lib/mayhem/enrich';
-import { groupBestByRarity, FEATURED_COUNT, TOTAL_COUNT } from '@/lib/mayhem/rarity';
+import {
+  FEATURED_COUNT,
+  TOTAL_COUNT,
+  groupBestByRarity,
+  rarityTheme,
+  type MayhemRarityTheme,
+} from '@/lib/mayhem/rarity';
 import { tierChipClass, tierLabel } from '@/lib/mayhem/tiers';
 import type {
   MayhemAugment,
@@ -39,23 +45,23 @@ function FeaturedAugmentCard({
   champTier,
   rank,
   highlighted,
+  theme,
 }: {
   augment: MayhemAugment;
   champTier?: MayhemTier;
   rank: number;
   highlighted?: boolean;
+  theme: MayhemRarityTheme;
 }) {
   return (
     <li
       className={cn(
-        'flex flex-col gap-2 rounded-sm border bg-hx-navy/40 p-3',
-        highlighted
-          ? 'border-hx-magic/50 bg-hx-magic/5'
-          : 'border-hx-gold-dark/35'
+        'flex flex-col gap-2 rounded-sm border p-3',
+        highlighted ? theme.cardHighlight : theme.card
       )}
     >
       <div className="flex items-start gap-3">
-        <span className="mt-1 w-4 shrink-0 hex-label text-hx-gold/50">
+        <span className={cn('mt-1 w-4 shrink-0 hex-label', theme.rank)}>
           {rank}
         </span>
         <Image
@@ -91,23 +97,25 @@ function CompactAugmentTile({
   champTier,
   rank,
   highlighted,
+  theme,
 }: {
   augment: MayhemAugment;
   champTier?: MayhemTier;
   rank: number;
   highlighted?: boolean;
+  theme: MayhemRarityTheme;
 }) {
   return (
     <li
       className={cn(
         'flex items-center gap-1.5 rounded-sm border px-1.5 py-1.5',
-        highlighted
-          ? 'border-hx-magic/40 bg-hx-magic/5'
-          : 'border-hx-gold-dark/25 bg-hx-black/30'
+        highlighted ? theme.compactHighlight : theme.compact
       )}
       title={augment.name}
     >
-      <span className="w-3 shrink-0 text-center text-[0.6rem] text-hx-gold/40">
+      <span
+        className={cn('w-3 shrink-0 text-center text-[0.6rem]', theme.rank)}
+      >
         {rank}
       </span>
       <Image
@@ -415,65 +423,89 @@ export function MayhemClient() {
                     current feed.
                   </p>
                 ) : (
-                  <div className="space-y-8">
-                    {bestByRarity.map((bucket) => (
-                      <section key={bucket.id}>
-                        <div className="mb-3 flex items-baseline justify-between gap-2 border-b border-hx-gold-dark/30 pb-2">
-                          <h3 className="font-display text-base tracking-wide text-hx-gold">
-                            {bucket.label}
-                          </h3>
-                          <span className="hex-label">
-                            {bucket.featured.length} / {bucket.top20.length}
-                          </span>
-                        </div>
+                  <div className="space-y-6">
+                    {bestByRarity.map((bucket) => {
+                      const theme = rarityTheme(bucket.id);
+                      return (
+                        <section key={bucket.id} className={theme.section}>
+                          <div
+                            className={cn(
+                              'mb-3 flex items-baseline justify-between gap-2 border-b pb-2',
+                              theme.rule
+                            )}
+                          >
+                            <h3
+                              className={cn(
+                                'font-display text-base tracking-wide',
+                                theme.heading
+                              )}
+                            >
+                              {bucket.label}
+                            </h3>
+                            <span className="hex-label">
+                              {bucket.featured.length} / {bucket.top20.length}
+                            </span>
+                          </div>
 
-                        <p className="mb-2 hex-label">
-                          Top {bucket.featured.length}
-                        </p>
-                        <ol className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                          {bucket.featured.map((augment, index) => {
-                            const champTier = champTierFor(
-                              augment,
-                              selected.id
-                            );
-                            return (
-                              <FeaturedAugmentCard
-                                key={augment.id}
-                                augment={augment}
-                                rank={index + 1}
-                                highlighted={bestIds.has(augment.id)}
-                                {...(champTier !== undefined
-                                  ? { champTier }
-                                  : {})}
-                              />
-                            );
-                          })}
-                        </ol>
+                          <p className="mb-2 hex-label">
+                            Top {bucket.featured.length}
+                          </p>
+                          <ol className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                            {bucket.featured.map((augment, index) => {
+                              const champTier = champTierFor(
+                                augment,
+                                selected.id
+                              );
+                              return (
+                                <FeaturedAugmentCard
+                                  key={augment.id}
+                                  augment={augment}
+                                  rank={index + 1}
+                                  theme={theme}
+                                  highlighted={bestIds.has(augment.id)}
+                                  {...(champTier !== undefined
+                                    ? { champTier }
+                                    : {})}
+                                />
+                              );
+                            })}
+                          </ol>
 
-                        <p className="mt-5 mb-2 hex-label">
-                          Top {bucket.top20.length}
-                        </p>
-                        <ol className="grid gap-1.5 sm:grid-cols-2">
-                          {bucket.top20.map((augment, index) => {
-                            const champTier = champTierFor(
-                              augment,
-                              selected.id
-                            );
-                            return (
-                              <CompactAugmentTile
-                                key={augment.id}
-                                augment={augment}
-                                rank={index + 1}
-                                highlighted={bestIds.has(augment.id)}
-                                {...(champTier !== undefined
-                                  ? { champTier }
-                                  : {})}
+                          <details className="group mt-4">
+                            <summary className="flex cursor-pointer list-none items-center gap-2 hex-label select-none [&::-webkit-details-marker]:hidden">
+                              <ChevronDown
+                                className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180"
+                                aria-hidden
                               />
-                            );
-                          })}
-                        </ol>
-                      </section>
-                    ))}
+                              Top {bucket.top20.length}
+                              <span className="text-hx-gold/40">
+                                (click to expand)
+                              </span>
+                            </summary>
+                            <ol className="mt-3 grid gap-1.5 sm:grid-cols-2">
+                              {bucket.top20.map((augment, index) => {
+                                const champTier = champTierFor(
+                                  augment,
+                                  selected.id
+                                );
+                                return (
+                                  <CompactAugmentTile
+                                    key={augment.id}
+                                    augment={augment}
+                                    rank={index + 1}
+                                    theme={theme}
+                                    highlighted={bestIds.has(augment.id)}
+                                    {...(champTier !== undefined
+                                      ? { champTier }
+                                      : {})}
+                                  />
+                                );
+                              })}
+                            </ol>
+                          </details>
+                        </section>
+                      );
+                    })}
                   </div>
                 )}
               </HextechPanel>
