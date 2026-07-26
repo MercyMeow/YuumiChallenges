@@ -59,6 +59,12 @@ Browser (mayhem-client)
 type MayhemAugmentsResponse = {
   patch: string;
   generatedAt: string; // ISO from feed meta
+  champions: Array<{
+    id: string;
+    key: string;
+    name: string;
+    squareUrl: string;
+  }>;
   augments: Array<{
     id: string;
     name: string;
@@ -143,6 +149,6 @@ Use existing `hex-chip` / gold→steel progression; no purple glow.
 
 ## Open implementation notes
 
-- CommunityDragon catalog path: prefer `maps/modespecificdata/augments.bin.json` (or current kiwi/mayhem equivalent) + stringtable for display names; map numeric `augment_id` from IESDev to CDragon id field carefully during enrich (verify id alignment in implementation).
+- CommunityDragon catalog: `cherry-augments.json` (numeric `id` aligns with IESDev `augment_id`); icon paths use `_small` assets (no `_large` on CDragon).
 - Champion squares: reuse `getChampionSquareUrl` / CommunityDragon square pattern already in the repo.
 - Next `Image` for all remote icons; allowlist CDragon + ddragon hosts in `next.config` if not already.

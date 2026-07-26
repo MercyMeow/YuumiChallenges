@@ -19,7 +19,7 @@
 - Do not put Mayhem under `HighEloTabs`.
 - Tier map: 1→S, 2→A, 3→B, 4→C, 5→D.
 - Augment id join: IESDev `augment_id` === CDragon `cherry-augments.json` `id` (numeric string/number).
-- Icon URL: map `/lol-game-data/assets/ASSETS/...` → `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/...` (lowercase path); prefer `_large.png` when swapping from `_small`.
+- Icon URL: map `/lol-game-data/assets/ASSETS/...` → `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/...` (lowercase path); use the `_small` icon path as-is (CDragon has no `_large` variants).
 
 ---
 
@@ -178,10 +178,10 @@ import type {
 const CDRAGON_ASSETS =
   'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default';
 
-/** Convert lol-game-data asset path to a raw.communitydragon URL (large icon). */
+/** Convert lol-game-data asset path to a raw.communitydragon URL. */
 export function cherryIconUrl(smallPath: string): string {
-  const large = smallPath.replace(/_small(\.[a-z]+)$/i, '_large$1');
-  const stripped = large
+  // CDragon only ships `_small` cherry augment icons — `_large` 404s.
+  const stripped = smallPath
     .replace(/^\/lol-game-data\/assets\//i, '')
     .toLowerCase();
   return `${CDRAGON_ASSETS}/${stripped}`;
@@ -230,7 +230,7 @@ export function enrichAugmentRow(
     id,
     name,
     iconUrl,
-    rarity: cherry?.rarity,
+    ...(cherry?.rarity ? { rarity: cherry.rarity } : {}),
     metaTier: asMayhemTier(row.stats.tier),
     topChampions,
   };
@@ -319,7 +319,7 @@ git commit -m "feat(mayhem): add types, enrich helpers, and CDragon image hosts"
 Create `src/lib/mayhem/fetch-catalog.ts`:
 
 ```ts
-import { FALLBACK_DDRAGON_VERSION } from '@/lib/utils/live-patch';
+import { getLiveDdragonVersion } from '@/lib/utils/live-patch';
 import { buildAugmentCatalog } from './enrich';
 import type {
   CherryAugment,
@@ -362,17 +362,6 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   }
 }
 
-async function resolveDdragonVersion(): Promise<string> {
-  try {
-    const versions = await fetchJson<string[]>(
-      'https://ddragon.leagueoflegends.com/api/versions.json'
-    );
-    return versions[0] ?? FALLBACK_DDRAGON_VERSION;
-  } catch {
-    return FALLBACK_DDRAGON_VERSION;
-  }
-}
-
 /** Build champion id → MayhemChampion map from CDragon summary + DD squares. */
 export async function loadChampionLookup(): Promise<{
   byId: Map<string, MayhemChampion>;
@@ -380,7 +369,7 @@ export async function loadChampionLookup(): Promise<{
 }> {
   const [summary, version] = await Promise.all([
     fetchJson<ChampionSummary[]>(SUMMARY_URL),
-    resolveDdragonVersion(),
+    getLiveDdragonVersion(),
   ]);
 
   const list: MayhemChampion[] = summary

@@ -10,10 +10,10 @@ import type {
 const CDRAGON_ASSETS =
   'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default';
 
-/** Convert lol-game-data asset path to a raw.communitydragon URL (large icon). */
+/** Convert lol-game-data asset path to a raw.communitydragon URL. */
 export function cherryIconUrl(smallPath: string): string {
-  const large = smallPath.replace(/_small(\.[a-z]+)$/i, '_large$1');
-  const stripped = large
+  // CDragon only ships `_small` cherry augment icons — `_large` 404s.
+  const stripped = smallPath
     .replace(/^\/lol-game-data\/assets\//i, '')
     .toLowerCase();
   return `${CDRAGON_ASSETS}/${stripped}`;

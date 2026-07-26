@@ -1,4 +1,4 @@
-import { FALLBACK_DDRAGON_VERSION } from '@/lib/utils/live-patch';
+import { getLiveDdragonVersion } from '@/lib/utils/live-patch';
 import { buildAugmentCatalog } from './enrich';
 import type {
   CherryAugment,
@@ -41,17 +41,6 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   }
 }
 
-async function resolveDdragonVersion(): Promise<string> {
-  try {
-    const versions = await fetchJson<string[]>(
-      'https://ddragon.leagueoflegends.com/api/versions.json'
-    );
-    return versions[0] ?? FALLBACK_DDRAGON_VERSION;
-  } catch {
-    return FALLBACK_DDRAGON_VERSION;
-  }
-}
-
 /** Build champion id → MayhemChampion map from CDragon summary + DD squares. */
 export async function loadChampionLookup(): Promise<{
   byId: Map<string, MayhemChampion>;
@@ -59,7 +48,7 @@ export async function loadChampionLookup(): Promise<{
 }> {
   const [summary, version] = await Promise.all([
     fetchJson<ChampionSummary[]>(SUMMARY_URL),
-    resolveDdragonVersion(),
+    getLiveDdragonVersion(),
   ]);
 
   const list: MayhemChampion[] = summary
