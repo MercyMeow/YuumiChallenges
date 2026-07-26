@@ -1,0 +1,34 @@
+src/app/mayhem/mayhem-client.tsx
+  s_3980118100f186::t_d163a9f6fee84c 9,28-40,42-45,47-48,57,59-87,89-92,94-97,99-101,108-129,293,422,440
+  s_3980118100f186::t_af22f900b35f87 247-251
+  s_3980118100f186::t_e25005df8511ed 406-408,411-421,423-439,441-460
+  s_3980118100f186::t_52ee041cc719ca 41,46,49-56,88,93,98,102-107
+  h_b5ca98ac0212e2 58
+src/lib/mayhem/rarity.ts
+  s_3980118100f186::t_9604cbbed72a07 1-15,19-53,69,72-73,76-78,80-85,87-90,95-97,100-102
+  s_3980118100f186::t_b75bb498485a2a 17-18
+  s_3980118100f186::t_7a21f85772f00b 98-99
+  s_3980118100f186::t_07ab4a0e434f4e 86
+  s_3980118100f186::t_77929629af6e6c 16,54-68,70-71,74-75,79,91-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "ea3a74c483507735e1e576dcdb87b1749ef4ef74",
+  "prompts": {},
+  "humans": {
+    "h_b5ca98ac0212e2": {
+      "author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_3980118100f186": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "6add2cdc-446f-4ebc-9b00-371a39b28bb0",
+        "model": "default"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
