@@ -6,6 +6,7 @@ import { Sparkles, X } from 'lucide-react';
 import { HextechPanel, OrnateHeading } from '@/components/ui/hextech-panel';
 import { PanelSkeleton } from '@/components/ui/skeleton';
 import { filterBestForChampion, sortByMetaTier } from '@/lib/mayhem/enrich';
+import { groupBestByRarity, FEATURED_COUNT, TOTAL_COUNT } from '@/lib/mayhem/rarity';
 import { tierChipClass, tierLabel } from '@/lib/mayhem/tiers';
 import type {
   MayhemAugment,
@@ -24,7 +25,108 @@ function TierChip({ tier, label }: { tier: MayhemTier; label?: string }) {
   );
 }
 
-/** One augment row with optional champ-tier chip and highlight. */
+/** Champ-specific tier for an augment, if present. */
+function champTierFor(
+  augment: MayhemAugment,
+  championId: string
+): MayhemTier | undefined {
+  return augment.topChampions.find((c) => c.id === championId)?.tier;
+}
+
+/** Featured (large) augment card for Best-for-champ. */
+function FeaturedAugmentCard({
+  augment,
+  champTier,
+  rank,
+  highlighted,
+}: {
+  augment: MayhemAugment;
+  champTier?: MayhemTier;
+  rank: number;
+  highlighted?: boolean;
+}) {
+  return (
+    <li
+      className={cn(
+        'flex flex-col gap-2 rounded-sm border bg-hx-navy/40 p-3',
+        highlighted
+          ? 'border-hx-magic/50 bg-hx-magic/5'
+          : 'border-hx-gold-dark/35'
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <span className="mt-1 w-4 shrink-0 hex-label text-hx-gold/50">
+          {rank}
+        </span>
+        <Image
+          src={augment.iconUrl}
+          alt=""
+          width={48}
+          height={48}
+          className="h-12 w-12 shrink-0 rounded-sm border border-hx-gold-dark/40"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-sm tracking-wide text-hx-parchment">
+            {augment.name}
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <span className="hex-label text-[0.6rem]">Meta</span>
+            <TierChip tier={augment.metaTier} />
+            {champTier !== undefined && (
+              <>
+                <span className="hex-label text-[0.6rem]">Champ</span>
+                <TierChip tier={champTier} />
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+/** Compact augment tile for the top-20 list. */
+function CompactAugmentTile({
+  augment,
+  champTier,
+  rank,
+  highlighted,
+}: {
+  augment: MayhemAugment;
+  champTier?: MayhemTier;
+  rank: number;
+  highlighted?: boolean;
+}) {
+  return (
+    <li
+      className={cn(
+        'flex items-center gap-1.5 rounded-sm border px-1.5 py-1.5',
+        highlighted
+          ? 'border-hx-magic/40 bg-hx-magic/5'
+          : 'border-hx-gold-dark/25 bg-hx-black/30'
+      )}
+      title={augment.name}
+    >
+      <span className="w-3 shrink-0 text-center text-[0.6rem] text-hx-gold/40">
+        {rank}
+      </span>
+      <Image
+        src={augment.iconUrl}
+        alt=""
+        width={28}
+        height={28}
+        className="h-7 w-7 shrink-0 rounded-sm border border-hx-gold-dark/30"
+      />
+      <span className="min-w-0 flex-1 truncate text-[0.7rem] text-hx-parchment/85">
+        {augment.name}
+      </span>
+      <TierChip tier={augment.metaTier} />
+      {champTier !== undefined && <TierChip tier={champTier} />}
+    </li>
+  );
+}
+
+/** One augment row for the full All list. */
 function AugmentRow({
   augment,
   champTier,
@@ -142,6 +244,11 @@ export function MayhemClient() {
       selectedId ? filterBestForChampion(data?.augments ?? [], selectedId) : [],
     [data, selectedId]
   );
+  const bestByRarity = useMemo(
+    () =>
+      selectedId ? groupBestByRarity(data?.augments ?? [], selectedId) : [],
+    [data, selectedId]
+  );
   const bestIds = useMemo(() => new Set(best.map((a) => a.id)), [best]);
 
   const allSorted = useMemo(() => sortByMetaTier(data?.augments ?? []), [data]);
@@ -183,7 +290,7 @@ export function MayhemClient() {
         {data?.patch ? `Patch ${data.patch}` : 'Loading patch…'}
         {updatedLabel ? ` · Updated ${updatedLabel}` : ''}
         {' · '}
-        Pick a champion to see their best augments
+        Pick a champion to see their best augments by rarity
       </p>
 
       {loading && (
@@ -296,29 +403,78 @@ export function MayhemClient() {
                 accent="magic"
                 className="mt-8"
                 action={
-                  <span className="hex-label">{best.length} augments</span>
+                  <span className="hex-label">
+                    {bestByRarity.length} rarities · {FEATURED_COUNT} /{' '}
+                    {TOTAL_COUNT} each
+                  </span>
                 }
               >
-                {best.length === 0 ? (
+                {bestByRarity.length === 0 ? (
                   <p className="px-2 py-4 text-sm text-hx-parchment/70">
-                    {selected.name} is not in the top champions for any augment
-                    in the current feed.
+                    No ranked rarities available for {selected.name} in the
+                    current feed.
                   </p>
                 ) : (
-                  <ul>
-                    {best.map((augment) => {
-                      const champTier = augment.topChampions.find(
-                        (c) => c.id === selected.id
-                      )?.tier;
-                      return (
-                        <AugmentRow
-                          key={augment.id}
-                          augment={augment}
-                          {...(champTier !== undefined ? { champTier } : {})}
-                        />
-                      );
-                    })}
-                  </ul>
+                  <div className="space-y-8">
+                    {bestByRarity.map((bucket) => (
+                      <section key={bucket.id}>
+                        <div className="mb-3 flex items-baseline justify-between gap-2 border-b border-hx-gold-dark/30 pb-2">
+                          <h3 className="font-display text-base tracking-wide text-hx-gold">
+                            {bucket.label}
+                          </h3>
+                          <span className="hex-label">
+                            {bucket.featured.length} / {bucket.top20.length}
+                          </span>
+                        </div>
+
+                        <p className="mb-2 hex-label">
+                          Top {bucket.featured.length}
+                        </p>
+                        <ol className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                          {bucket.featured.map((augment, index) => {
+                            const champTier = champTierFor(
+                              augment,
+                              selected.id
+                            );
+                            return (
+                              <FeaturedAugmentCard
+                                key={augment.id}
+                                augment={augment}
+                                rank={index + 1}
+                                highlighted={bestIds.has(augment.id)}
+                                {...(champTier !== undefined
+                                  ? { champTier }
+                                  : {})}
+                              />
+                            );
+                          })}
+                        </ol>
+
+                        <p className="mt-5 mb-2 hex-label">
+                          Top {bucket.top20.length}
+                        </p>
+                        <ol className="grid gap-1.5 sm:grid-cols-2">
+                          {bucket.top20.map((augment, index) => {
+                            const champTier = champTierFor(
+                              augment,
+                              selected.id
+                            );
+                            return (
+                              <CompactAugmentTile
+                                key={augment.id}
+                                augment={augment}
+                                rank={index + 1}
+                                highlighted={bestIds.has(augment.id)}
+                                {...(champTier !== undefined
+                                  ? { champTier }
+                                  : {})}
+                              />
+                            );
+                          })}
+                        </ol>
+                      </section>
+                    ))}
+                  </div>
                 )}
               </HextechPanel>
 
