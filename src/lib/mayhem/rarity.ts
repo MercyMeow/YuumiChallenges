@@ -26,8 +26,8 @@ const RARITY_LABELS: Record<MayhemRarityId, string> = {
   kBronze: 'Bronze',
 };
 
-const FEATURED_COUNT = 5;
-const TOTAL_COUNT = 20;
+export const FEATURED_COUNT = 5;
+export const TOTAL_COUNT = 20;
 
 /** Normalize CDragon rarity string into a known bucket id. */
 export function normalizeRarity(
