@@ -423,12 +423,12 @@ export function MayhemClient() {
                             {bucket.label}
                           </h3>
                           <span className="hex-label">
-                            {FEATURED_COUNT} / {bucket.top20.length}
+                            {bucket.featured.length} / {bucket.top20.length}
                           </span>
                         </div>
 
                         <p className="mb-2 hex-label">
-                          Top {FEATURED_COUNT}
+                          Top {bucket.featured.length}
                         </p>
                         <ol className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                           {bucket.featured.map((augment, index) => {
@@ -451,7 +451,7 @@ export function MayhemClient() {
                         </ol>
 
                         <p className="mt-5 mb-2 hex-label">
-                          Top {TOTAL_COUNT}
+                          Top {bucket.top20.length}
                         </p>
                         <ol className="grid gap-1.5 sm:grid-cols-2">
                           {bucket.top20.map((augment, index) => {
