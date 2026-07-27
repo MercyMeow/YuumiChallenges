@@ -1,0 +1,218 @@
+convex/auth.test.ts
+  s_aaf6ddb4fd04c8::t_04c9d1c836067b 352
+  s_aaf6ddb4fd04c8::t_347ece214becfe 16-18,21-32,44-62,64-70
+  s_aaf6ddb4fd04c8::t_55f7120767624c 106-122,241,253-274,294,299
+  s_aaf6ddb4fd04c8::t_e855a14a2d046f 19,149-151,191
+  s_aaf6ddb4fd04c8::t_c6dad6e7cc8a20 123,129,135-147,155,157,160-162,164-172,177,182-190,192,195,199-201,203-212,218-227
+  s_aaf6ddb4fd04c8::t_483168ee06b998 2-10,33-35
+  s_aaf6ddb4fd04c8::t_b4a881dab987af 20
+src/app/api/match-details/[matchId]/route.test.ts
+  s_aaf6ddb4fd04c8::t_9059984927486b 85
+  s_aaf6ddb4fd04c8::t_7d23c09bd4941c 10-33
+  s_aaf6ddb4fd04c8::t_58ece9098c102c 1-2,55-67,86,95-115,117-120,122-141,224,238
+  s_aaf6ddb4fd04c8::t_3da848fd71fd07 5,80-81
+  s_aaf6ddb4fd04c8::t_b087832cd8e926 68-69,82-83
+src/lib/admin/resource-route.ts
+  s_aaf6ddb4fd04c8::t_20338bcb632155 27,29,43-48
+  s_aaf6ddb4fd04c8::t_9c84f0aef0ed17 1-12,28,30,32-42,49-95
+  s_aaf6ddb4fd04c8::t_b8cf5e002dd44b 13-26,31
+src/app/api/stripe/webhook/route.ts
+  s_aaf6ddb4fd04c8::t_8c5922a58634f7 171-174,187,262-267,271-275
+src/app/api/admin/session/route.ts
+  s_aaf6ddb4fd04c8::t_9d0b37c6bbcfcd 3,16
+src/lib/admin/dashboard-data.test.ts
+  s_aaf6ddb4fd04c8::t_eb7b844565e9bc 1,6-33,39-40
+  s_aaf6ddb4fd04c8::t_c29eeff189f7f0 2-5,34-38
+src/lib/admin/integer-input.ts
+  s_aaf6ddb4fd04c8::t_4c0bc0c69763ff 17
+  s_aaf6ddb4fd04c8::t_9c84f0aef0ed17 1-16,18-32
+next.config.ts
+  s_aaf6ddb4fd04c8::t_bfd3d80da6949b 39-41
+  s_aaf6ddb4fd04c8::t_0268237ad7353d 37-38,42
+src/providers/ConvexProvider.tsx
+  s_aaf6ddb4fd04c8::t_bfd3d80da6949b 7,19
+  s_aaf6ddb4fd04c8::t_9636a15e232802 21
+src/app/api/admin/builds/route.ts
+  s_aaf6ddb4fd04c8::t_209c2f71e67023 7,9-17,19-21
+src/app/api/admin/routes.test.ts
+  s_aaf6ddb4fd04c8::t_150ca0bd1f7bf6 185,200-208
+  s_aaf6ddb4fd04c8::t_9cfbc03764aeb3 116-118
+  s_aaf6ddb4fd04c8::t_f9f3fbc3aba1f9 18,20,74-115,119-129,131,133-134,139-163,165
+  s_aaf6ddb4fd04c8::t_587b004631900e 32,138
+  s_aaf6ddb4fd04c8::t_9270a817746d36 130,132
+  s_aaf6ddb4fd04c8::t_e855a14a2d046f 27,135-137,164
+  s_aaf6ddb4fd04c8::t_44f117ba0871f1 166
+src/lib/admin/skill-order.ts
+  s_aaf6ddb4fd04c8::t_51e57dcd5804c3 67-79,81-83
+  s_aaf6ddb4fd04c8::t_9c84f0aef0ed17 1-66,84
+  s_aaf6ddb4fd04c8::t_b536e3db4eda4e 80
+convex/test.setup.ts
+  s_aaf6ddb4fd04c8::t_a76db213f7d70e 8
+src/lib/admin/dashboard-data.ts
+  s_aaf6ddb4fd04c8::t_9c84f0aef0ed17 1-13,18-46
+  s_aaf6ddb4fd04c8::t_c29eeff189f7f0 14-17
+src/lib/admin/integer-input.test.ts
+  s_aaf6ddb4fd04c8::t_b536e3db4eda4e 2
+  s_aaf6ddb4fd04c8::t_4c0bc0c69763ff 7,16
+  s_aaf6ddb4fd04c8::t_eb7b844565e9bc 1,3-6,8-15,17-36
+docs/cloudflare-deploy.md
+  s_aaf6ddb4fd04c8::t_6341bf8f8830f6 38,50,71-79
+  s_aaf6ddb4fd04c8::t_a76db213f7d70e 12,32,54,64-70,80,100
+src/app/api/stripe/webhook/route.test.ts
+  s_aaf6ddb4fd04c8::t_ae59ba8cfff025 1,3-77,87-185
+  s_aaf6ddb4fd04c8::t_b334a36927f655 78-81,85
+  s_aaf6ddb4fd04c8::t_fb56e6f4775b32 2,82-84,86
+src/app/api/admin/resource-routes.test.ts
+  s_aaf6ddb4fd04c8::t_b536e3db4eda4e 17
+  s_aaf6ddb4fd04c8::t_20338bcb632155 37,128-136,138
+  s_aaf6ddb4fd04c8::t_65b4ff4ffce708 1-16,18-36,38-127,137,139-295
+README.md
+  s_aaf6ddb4fd04c8::t_a76db213f7d70e 241,269-272,333-334
+  s_aaf6ddb4fd04c8::t_6341bf8f8830f6 248,258-259,262-267
+  s_aaf6ddb4fd04c8::t_525f7b54fa5792 250
+  s_aaf6ddb4fd04c8::t_8090d0d780b05f 268
+src/lib/hooks/use-web-user.test.ts
+  s_aaf6ddb4fd04c8::t_eb290d6cd52590 1-79
+src/components/admin/StatusBanner.tsx
+  s_aaf6ddb4fd04c8::t_39cdef0a139e77 1-60
+src/app/players/[region]/[riotId]/profile-client.tsx
+  s_aaf6ddb4fd04c8::t_f405c2e6a7b954 585,643,650
+src/hooks/use-match-data.ts
+  s_aaf6ddb4fd04c8::t_7d23c09bd4941c 51
+.env.example
+  s_aaf6ddb4fd04c8::t_5b9a2e718fdf0f 25-28
+  s_d2ecb3e0cdd218::t_3350c2bae64331 29
+convex/guide.ts
+  s_aaf6ddb4fd04c8::t_ebec4e25a12df4 43-44,130-138,152-170,235,238,281-283,843-847,865-866
+  s_aaf6ddb4fd04c8::t_8beb6a83199d48 854-855,859,862
+  s_aaf6ddb4fd04c8::t_f57a85502f59a7 850-851,853,856,860-861
+src/lib/admin/build-icons.ts
+  s_aaf6ddb4fd04c8::t_9edf097dc870e0 10-13
+  s_aaf6ddb4fd04c8::t_9c84f0aef0ed17 1-9
+src/app/admin/page.tsx
+  s_aaf6ddb4fd04c8::t_7d0bd12c78e6fb 46-50,54-60,67-81,87-91
+  s_aaf6ddb4fd04c8::t_37d0b70878b614 12-15,25-26,65-66,82-86,304,307
+  s_aaf6ddb4fd04c8::t_03497b066fa59d 64
+src/contexts/AuthContext.test.tsx
+  s_aaf6ddb4fd04c8::t_eb290d6cd52590 14-21,64-147
+convex/webauth.ts
+  s_aaf6ddb4fd04c8::t_fdb75c2d450c08 630
+  s_aaf6ddb4fd04c8::t_d2cb5bb109fb89 564-566,568-570,572-590
+  s_aaf6ddb4fd04c8::t_f0d14a11a61d4d 10,34-40,311-321,324-376,389-396,421-424,426,433-440,466-469,471,475-478,483-488,495-497,502-505,507-563,591-623,625,627,631-642,644,648-650,669,674-690,693-711,727-741,762-765,777-784
+src/lib/safe-return-path.ts
+  s_aaf6ddb4fd04c8::t_7d23c09bd4941c 3-15,17-27,31-33,36,41-51,54,59
+  s_aaf6ddb4fd04c8::t_5dde909c77b17e 2
+  s_aaf6ddb4fd04c8::t_5f1f929407720d 16
+docs/plans/2026-07-06-high-elo-games-feed.md
+  s_aaf6ddb4fd04c8::t_a76db213f7d70e 1223-1224
+  s_aaf6ddb4fd04c8::t_b3f156a6cbfdd2 1219-1222
+src/app/admin/builds/build-form.ts
+  s_aaf6ddb4fd04c8::t_7009042c045b4d 4-7,21
+  s_aaf6ddb4fd04c8::t_3ddf422b58cc40 8,26,46,88,93,98
+src/app/admin/builds/page.tsx
+  s_aaf6ddb4fd04c8::t_20338bcb632155 191
+  s_aaf6ddb4fd04c8::t_a90fc6e7874c33 13-16,18,20-22,97,128-133,155-159,180-187,196,250,527,658
+  s_aaf6ddb4fd04c8::t_9edf097dc870e0 17,92
+  s_aaf6ddb4fd04c8::t_39cdef0a139e77 23
+convex/guide.test.ts
+  s_aaf6ddb4fd04c8::t_f57a85502f59a7 164,169-174
+  s_aaf6ddb4fd04c8::t_f399feafd898fa 1-139,152,154-163,165-168,175-193
+  s_aaf6ddb4fd04c8::t_1e677e860164b7 140-151,153
+src/app/admin/items/page.tsx
+  s_aaf6ddb4fd04c8::t_331c8265302304 13-16,18-20,59,62,68,71,99-103,107-112,119-127,130,133,148,343,346,466,495,498-499,538,541-543,604
+  s_aaf6ddb4fd04c8::t_39cdef0a139e77 21
+src/app/admin/builds/build-form-tabs.tsx
+  s_aaf6ddb4fd04c8::t_b536e3db4eda4e 27-31,40,91,94-96,117-122,319,325-328,335-339,343,389-390,393-397,418-422,433,526-530,537-541
+src/lib/admin/types.test.ts
+  s_aaf6ddb4fd04c8::t_193b2e35795d86 3,13,110-161,170-176
+  s_aaf6ddb4fd04c8::t_70cedb82eac2c5 162-169
+AGENTS.md
+  s_aaf6ddb4fd04c8::t_a76db213f7d70e 15,31
+  s_aaf6ddb4fd04c8::t_6341bf8f8830f6 46
+src/lib/stripe/invoice.ts
+  s_aaf6ddb4fd04c8::t_0c7acab7e8e444 16-24,31,43-44,70-71,75-76
+  s_aaf6ddb4fd04c8::t_e52f2f0cbbd3ee 39-42
+src/lib/admin/types.ts
+  s_aaf6ddb4fd04c8::t_b536e3db4eda4e 2
+  s_aaf6ddb4fd04c8::t_9edf097dc870e0 54,57
+  s_aaf6ddb4fd04c8::t_f8669fd5abd231 3-4,78,86,107-108,112,141,167-178
+src/lib/admin/server.ts
+  s_aaf6ddb4fd04c8::t_9d0b37c6bbcfcd 27-28,53-74,82-107,273-279,281-282,370-372,374-379,381-386,390
+  s_aaf6ddb4fd04c8::t_9e087ceb533ea0 75-81
+  s_aaf6ddb4fd04c8::t_e855a14a2d046f 373
+src/app/api/admin/logout/route.ts
+  s_aaf6ddb4fd04c8::t_9270a817746d36 3,21
+convex/webauth.test.ts
+  s_aaf6ddb4fd04c8::t_d30c364157d33f 374-468,549-570,581-726
+  s_aaf6ddb4fd04c8::t_50641707b2953f 295,299-303,305,307-310,318-322,355,360-364
+  s_aaf6ddb4fd04c8::t_dde2608b946258 469-548
+  s_aaf6ddb4fd04c8::t_368dbf4aaf56e6 571-580
+src/contexts/AuthContext.tsx
+  s_aaf6ddb4fd04c8::t_bfd3d80da6949b 34-38,51,53,59-67,94-116,133-160,168,172
+src/lib/admin/client.ts
+  s_aaf6ddb4fd04c8::t_bfd3d80da6949b 29,50-57,61-63,81-82,84,92-94,109,124-125,127,137
+convex/auth.ts
+  s_aaf6ddb4fd04c8::t_a520b9e5c50e9f 11,13-16,22,226-228,233-245,256-265,308-342,344-345,351-352,355,357-362,367-368,476-477,482-483,490-497,505,512,516-518
+  s_aaf6ddb4fd04c8::t_e855a14a2d046f 346,353
+  s_aaf6ddb4fd04c8::t_fb1caffbd35cd8 246-255,347-350,354,363-366
+src/lib/admin/skill-order.test.ts
+  s_aaf6ddb4fd04c8::t_eb7b844565e9bc 1-61,64-66
+  s_aaf6ddb4fd04c8::t_51e57dcd5804c3 62-63
+convex/schema.ts
+  s_aaf6ddb4fd04c8::t_a520b9e5c50e9f 27-40
+  s_aaf6ddb4fd04c8::t_16ed1ea97fc893 106-107,131-133,135-142
+  s_aaf6ddb4fd04c8::t_833a05831c88f2 108,110-111
+src/components/admin/StatusBanner.test.tsx
+  s_aaf6ddb4fd04c8::t_77beaef1ca8860 1-15,19-20
+  s_aaf6ddb4fd04c8::t_072078116579c2 16-18
+src/hooks/use-match-data.test.tsx
+  s_aaf6ddb4fd04c8::t_7d23c09bd4941c 81-91
+src/lib/safe-return-path.test.ts
+  s_aaf6ddb4fd04c8::t_dce2e4339968ed 29
+  s_aaf6ddb4fd04c8::t_7d23c09bd4941c 12-13,16,27-28,30
+  s_aaf6ddb4fd04c8::t_f86666bf108979 31-33
+  s_1fd92a1d214ded::t_1ba4d9cf37404d 34-40
+src/lib/stripe/invoice.test.ts
+  s_aaf6ddb4fd04c8::t_9eb83c9914e439 128-138
+  s_aaf6ddb4fd04c8::t_4c7eecb5fe0188 101-127,139-165
+src/app/api/admin/login/route.ts
+  s_aaf6ddb4fd04c8::t_9d0b37c6bbcfcd 18
+src/lib/hooks/use-web-user.ts
+  s_aaf6ddb4fd04c8::t_8e683b84e0aaf7 50-55
+  s_aaf6ddb4fd04c8::t_bfd3d80da6949b 36,38-45,70
+  s_aaf6ddb4fd04c8::t_369080e0655c8c 46
+src/app/api/admin/items/route.ts
+  s_aaf6ddb4fd04c8::t_209c2f71e67023 7,9-17,19-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "51554e739880ecd86c805c017d8590738859b502",
+  "prompts": {},
+  "sessions": {
+    "s_1fd92a1d214ded": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa157-7eae-7763-84ab-7024a5b39332",
+        "model": "unknown"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    },
+    "s_aaf6ddb4fd04c8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa0a1-8a84-7712-bfcf-462a499533a7",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    },
+    "s_d2ecb3e0cdd218": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "a94b303f-d751-43c4-8e0f-cd098c08a3c2",
+        "model": "default"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
