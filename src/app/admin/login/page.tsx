@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +19,12 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect if already authenticated
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.push('/admin');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
   if (authLoading) {
     return (
       <div
@@ -55,7 +60,6 @@ export default function AdminLoginPage() {
   }
 
   if (isAuthenticated) {
-    router.push('/admin');
     return null;
   }
 

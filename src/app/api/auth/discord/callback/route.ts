@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '@/../convex/_generated/api';
+import { createReturnUrl, sanitizeReturnPath } from '@/lib/safe-return-path';
 
 // Discord OAuth callback: code -> token -> identity -> Convex web session
 // (httpOnly cookie). Every failure lands back on the return page with
@@ -17,10 +18,12 @@ function siteUrl(request: NextRequest): string {
 
 export async function GET(request: NextRequest) {
   const site = siteUrl(request);
-  const returnTo = request.cookies.get('yq_oauth_return')?.value ?? '/';
+  const returnTo = sanitizeReturnPath(
+    request.cookies.get('yq_oauth_return')?.value
+  );
   const fail = (reason: string) => {
     const res = NextResponse.redirect(
-      `${site}${returnTo}${returnTo.includes('?') ? '&' : '?'}login=failed`
+      createReturnUrl(site, returnTo, { key: 'login', value: 'failed' })
     );
     console.error('[discord-auth]', reason);
     res.cookies.delete('yq_oauth_state');
@@ -80,7 +83,7 @@ export async function GET(request: NextRequest) {
       ...(identity.avatar ? { avatar: identity.avatar } : {}),
     });
 
-    const res = NextResponse.redirect(`${site}${returnTo}`);
+    const res = NextResponse.redirect(new URL(returnTo, `${site}/`));
     res.cookies.delete('yq_oauth_state');
     res.cookies.delete('yq_oauth_return');
     res.cookies.set(SESSION_COOKIE, session.token, {

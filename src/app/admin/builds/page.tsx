@@ -1,9 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  AdminClientError,
+  deleteAdminBuildRequest,
+  fetchAdminBuildsRequest,
+  saveAdminBuildRequest,
+} from '@/lib/admin/client';
+import type { AdminBuild } from '@/lib/admin/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +32,8 @@ import {
   Package,
   Target,
   Star,
+  CheckCircle2,
+  Loader2,
 } from 'lucide-react';
 import { Skeleton, PanelSkeleton } from '@/components/ui/skeleton';
 import {
@@ -39,46 +48,298 @@ import {
   BuildSkillsTab,
 } from './build-form-tabs';
 
-interface Build {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  color: string;
-  borderColor: string;
-  isRecommended: boolean;
-  isActive: boolean;
-  priority: number;
-  runes: {
-    name: string;
-    primaryTree: string;
-    keystone: string;
-    primary: string[];
-    secondaryTree: string;
-    secondary: string[];
-    shards: string[];
+type BuildId = string;
+type Build = AdminBuild;
+
+type StatusState = {
+  type: 'pending' | 'success' | 'error';
+  message: string;
+} | null;
+
+function cloneBuildItems(items: BuildItem[]): BuildItem[] {
+  return items.map((item) => ({ ...item }));
+}
+
+function createInitialBuildFormData(): BuildFormData {
+  return {
+    ...initialFormData,
+    runes: {
+      ...initialFormData.runes,
+      primary: [...initialFormData.runes.primary],
+      secondary: [...initialFormData.runes.secondary],
+      shards: [...initialFormData.runes.shards],
+    },
+    items: {
+      starter: cloneBuildItems(initialFormData.items.starter),
+      core: cloneBuildItems(initialFormData.items.core),
+      situational: cloneBuildItems(initialFormData.items.situational),
+    },
+    skillOrder: {
+      ...initialFormData.skillOrder,
+      levels: [...initialFormData.skillOrder.levels],
+    },
   };
-  items: {
-    starter: BuildItem[];
-    core: BuildItem[];
-    situational: BuildItem[];
+}
+
+function mapBuildToFormData(build: Build): BuildFormData {
+  return {
+    id: build.id,
+    name: build.name,
+    description: build.description,
+    icon: build.icon,
+    color: build.color,
+    borderColor: build.borderColor,
+    isRecommended: build.isRecommended,
+    isActive: build.isActive,
+    priority: build.priority,
+    runes: {
+      ...build.runes,
+      primary: [...build.runes.primary],
+      secondary: [...build.runes.secondary],
+      shards: [...build.runes.shards],
+    },
+    items: {
+      starter: cloneBuildItems(build.items.starter),
+      core: cloneBuildItems(build.items.core),
+      situational: cloneBuildItems(build.items.situational),
+    },
+    skillOrder: {
+      ...build.skillOrder,
+      levels: [...build.skillOrder.levels],
+    },
   };
-  skillOrder: {
-    priority: string;
-    levels: string[];
-    notes: string;
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
+function validateBuildFormData(formData: BuildFormData): string | null {
+  if (!formData.name.trim()) return 'Build name is required.';
+  if (!formData.description.trim()) return 'Build description is required.';
+  if (!formData.icon.trim()) return 'Build icon is required.';
+  if (!formData.color.trim()) return 'Build color class is required.';
+  if (!formData.borderColor.trim()) {
+    return 'Build border color class is required.';
+  }
+  if (!Number.isInteger(formData.priority) || formData.priority < 0) {
+    return 'Build priority must be a non-negative integer.';
+  }
+  if (!formData.runes.name.trim()) return 'Rune page name is required.';
+  if (!formData.runes.primaryTree.trim())
+    return 'Primary rune tree is required.';
+  if (!formData.runes.keystone.trim()) return 'Keystone is required.';
+  if (!formData.runes.secondaryTree.trim()) {
+    return 'Secondary rune tree is required.';
+  }
+  if (formData.runes.primary.filter((value) => value.trim()).length !== 3) {
+    return 'Exactly 3 primary runes are required.';
+  }
+  if (formData.runes.secondary.filter((value) => value.trim()).length !== 2) {
+    return 'Exactly 2 secondary runes are required.';
+  }
+  if (formData.runes.shards.filter((value) => value.trim()).length !== 3) {
+    return 'Exactly 3 rune shards are required.';
+  }
+  if (!formData.skillOrder.priority.trim()) {
+    return 'Skill order priority is required.';
+  }
+  if (formData.skillOrder.levels.length !== 18) {
+    return 'Skill order must have exactly 18 levels.';
+  }
+
+  const counts = { Q: 0, W: 0, E: 0, R: 0 };
+  for (const [index, rawLevel] of formData.skillOrder.levels.entries()) {
+    const level = rawLevel.trim().toUpperCase();
+    if (!['Q', 'W', 'E', 'R'].includes(level)) {
+      return `Skill level ${index + 1} must be Q, W, E, or R.`;
+    }
+    if (level === 'R' && ![5, 10, 15].includes(index)) {
+      return 'Ultimate can only be assigned at levels 6, 11, and 16.';
+    }
+    counts[level as keyof typeof counts] += 1;
+  }
+  if (counts.R !== 3) {
+    return 'Skill order must include exactly 3 ultimate levels.';
+  }
+  if (counts.Q > 5 || counts.W > 5 || counts.E > 5) {
+    return 'Q, W, and E can each be leveled at most 5 times.';
+  }
+
+  for (const [category, items] of Object.entries(formData.items)) {
+    for (const [index, item] of items.entries()) {
+      if (!Number.isInteger(item.id) || item.id <= 0) {
+        return `${category} item ${index + 1} must have a positive item ID.`;
+      }
+      if (!item.name.trim()) {
+        return `${category} item ${index + 1} name is required.`;
+      }
+      if (!item.reason.trim()) {
+        return `${category} item ${index + 1} reason is required.`;
+      }
+    }
+  }
+
+  return null;
+}
+
+function normalizeBuildPayload(formData: BuildFormData) {
+  return {
+    name: formData.name.trim(),
+    description: formData.description.trim(),
+    icon: formData.icon.trim(),
+    color: formData.color.trim(),
+    borderColor: formData.borderColor.trim(),
+    isRecommended: formData.isRecommended,
+    isActive: formData.isActive,
+    priority: formData.priority,
+    runes: {
+      name: formData.runes.name.trim(),
+      primaryTree: formData.runes.primaryTree.trim(),
+      keystone: formData.runes.keystone.trim(),
+      primary: formData.runes.primary
+        .map((value) => value.trim())
+        .filter(Boolean),
+      secondaryTree: formData.runes.secondaryTree.trim(),
+      secondary: formData.runes.secondary
+        .map((value) => value.trim())
+        .filter(Boolean),
+      shards: formData.runes.shards
+        .map((value) => value.trim())
+        .filter(Boolean),
+    },
+    items: {
+      starter: cloneBuildItems(formData.items.starter).map((item) => ({
+        ...item,
+        name: item.name.trim(),
+        reason: item.reason.trim(),
+      })),
+      core: cloneBuildItems(formData.items.core).map((item) => ({
+        ...item,
+        name: item.name.trim(),
+        reason: item.reason.trim(),
+      })),
+      situational: cloneBuildItems(formData.items.situational).map((item) => ({
+        ...item,
+        name: item.name.trim(),
+        reason: item.reason.trim(),
+      })),
+    },
+    skillOrder: {
+      priority: formData.skillOrder.priority.trim(),
+      levels: formData.skillOrder.levels.map((value) =>
+        value.trim().toUpperCase()
+      ),
+      notes: formData.skillOrder.notes.trim(),
+    },
   };
+}
+
+function StatusBanner({ status }: { status: Exclude<StatusState, null> }) {
+  const styles =
+    status.type === 'error'
+      ? {
+          card: 'border-red-500/30 bg-red-500/10',
+          icon: 'text-red-300',
+          title: 'text-red-200',
+          body: 'text-red-200/80',
+          Icon: AlertCircle,
+          titleText: 'Action failed',
+        }
+      : status.type === 'success'
+        ? {
+            card: 'border-emerald-500/30 bg-emerald-500/10',
+            icon: 'text-emerald-300',
+            title: 'text-emerald-200',
+            body: 'text-emerald-200/80',
+            Icon: CheckCircle2,
+            titleText: 'Saved',
+          }
+        : {
+            card: 'border-hx-gold/30 bg-hx-gold/10',
+            icon: 'text-hx-gold-bright',
+            title: 'text-hx-gold-bright',
+            body: 'text-hx-gold/80',
+            Icon: Loader2,
+            titleText: 'Working',
+          };
+
+  return (
+    <Card className={`rounded-sm backdrop-blur-md ${styles.card}`}>
+      <CardContent
+        className="flex items-start gap-3 p-4"
+        role={status.type === 'error' ? 'alert' : 'status'}
+      >
+        <styles.Icon
+          className={`mt-0.5 h-5 w-5 shrink-0 ${styles.icon} ${
+            status.type === 'pending' ? 'animate-spin' : ''
+          }`}
+        />
+        <div>
+          <h4 className={`font-medium ${styles.title}`}>{styles.titleText}</h4>
+          <p className={`mt-1 text-sm ${styles.body}`}>{status.message}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function BuildsEditorPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [formData, setFormData] = useState<BuildFormData>(initialFormData);
-  const [activeTab, setActiveTab] = useState('general');
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+  const [builds, setBuilds] = useState<Build[]>([]);
+  const [isDataLoading, setIsDataLoading] = useState(false);
 
-  // Placeholder - builds will come from Convex when connected
-  const builds: Build[] = [];
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState<BuildFormData>(
+    createInitialBuildFormData()
+  );
+  const [activeTab, setActiveTab] = useState('general');
+  const [status, setStatus] = useState<StatusState>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<BuildId | null>(null);
+
+  const isMutating = isSubmitting || deletingId !== null;
+
+  const getActionErrorMessage = useCallback(
+    (error: unknown, fallback: string): string => {
+      if (
+        error instanceof AdminClientError &&
+        (error.status === 401 || error.status === 403)
+      ) {
+        router.push('/admin/login');
+        return 'Your admin session expired. Log in again.';
+      }
+      return getErrorMessage(error, fallback);
+    },
+    [router]
+  );
+
+  const refreshBuilds = useCallback(async (): Promise<void> => {
+    if (!isAuthenticated) {
+      setBuilds([]);
+      return;
+    }
+
+    setIsDataLoading(true);
+    try {
+      const nextBuilds = await fetchAdminBuildsRequest();
+      setBuilds(nextBuilds);
+    } catch (error) {
+      if (
+        error instanceof AdminClientError &&
+        (error.status === 401 || error.status === 403)
+      ) {
+        setBuilds([]);
+        router.push('/admin/login');
+        return;
+      }
+      throw error;
+    } finally {
+      setIsDataLoading(false);
+    }
+  }, [isAuthenticated, router]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -86,12 +347,34 @@ export default function BuildsEditorPage() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  if (authLoading) {
+  useEffect(() => {
+    if (authLoading || !isAuthenticated) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      void refreshBuilds().catch((error) => {
+        setBuilds([]);
+        setStatus({
+          type: 'error',
+          message: getActionErrorMessage(
+            error,
+            'Unable to load guide builds right now.'
+          ),
+        });
+      });
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [authLoading, getActionErrorMessage, isAuthenticated, refreshBuilds]);
+
+  if (authLoading || isDataLoading) {
     return (
       <div role="status" aria-busy="true" className="min-h-screen hex-page-bg">
         <span className="sr-only">Loading builds editor…</span>
         <div className="container mx-auto max-w-7xl px-6 py-8">
-          {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
               <Skeleton className="mb-4 h-4 w-36" />
@@ -100,11 +383,9 @@ export default function BuildsEditorPage() {
             </div>
             <Skeleton className="h-9 w-28" />
           </div>
-
-          {/* Builds List */}
           <div className="space-y-4">
-            {Array.from({ length: 3 }, (_, i) => (
-              <PanelSkeleton key={i}>
+            {Array.from({ length: 3 }, (_, index) => (
+              <PanelSkeleton key={index}>
                 <div className="flex items-start justify-between p-6">
                   <div className="flex items-start gap-4">
                     <Skeleton className="h-12 w-12 shrink-0" />
@@ -135,53 +416,130 @@ export default function BuildsEditorPage() {
     return null;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Implement with Convex when connected
-    console.log('Submitting build:', formData);
-    setIsDialogOpen(false);
-    setFormData(initialFormData);
-    setActiveTab('general');
+  const handleDialogOpenChange = (open: boolean) => {
+    if (isMutating) {
+      return;
+    }
+    setIsDialogOpen(open);
+    if (!open) {
+      setSubmitError(null);
+      setActiveTab('general');
+      setFormData(createInitialBuildFormData());
+    }
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (user?.role !== 'admin' && user?.role !== 'editor') {
+      const message = 'Your account is not allowed to edit guide builds.';
+      setSubmitError(message);
+      setStatus({ type: 'error', message });
+      return;
+    }
+
+    const validationError = validateBuildFormData(formData);
+    if (validationError) {
+      setSubmitError(validationError);
+      setStatus({ type: 'error', message: validationError });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+    setStatus({
+      type: 'pending',
+      message: formData.id ? 'Updating build…' : 'Creating build…',
+    });
+
+    try {
+      const savedBuild = await saveAdminBuildRequest({
+        ...normalizeBuildPayload(formData),
+        ...(formData.id ? { id: formData.id } : {}),
+      });
+      setBuilds((currentBuilds) =>
+        [
+          ...currentBuilds.filter((build) => build.id !== savedBuild.id),
+          savedBuild,
+        ].sort((left, right) => left.priority - right.priority)
+      );
+      setStatus({
+        type: 'success',
+        message: formData.id
+          ? 'Build updated successfully.'
+          : 'Build created successfully.',
+      });
+      setIsDialogOpen(false);
+      setFormData(createInitialBuildFormData());
+      setActiveTab('general');
+    } catch (error) {
+      const message = getActionErrorMessage(
+        error,
+        'Unable to save the build right now.'
+      );
+      setSubmitError(message);
+      setStatus({ type: 'error', message });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleEdit = (build: Build) => {
-    setFormData({
-      id: build.id,
-      name: build.name,
-      description: build.description,
-      icon: build.icon,
-      color: build.color,
-      borderColor: build.borderColor,
-      isRecommended: build.isRecommended,
-      isActive: build.isActive,
-      priority: build.priority,
-      runes: { ...build.runes },
-      items: {
-        starter: [...build.items.starter],
-        core: [...build.items.core],
-        situational: [...build.items.situational],
-      },
-      skillOrder: { ...build.skillOrder },
-    });
+    if (isMutating) {
+      return;
+    }
+    setSubmitError(null);
+    setActiveTab('general');
+    setFormData(mapBuildToFormData(build));
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: BuildId) => {
+    if (isMutating) {
+      return;
+    }
     if (!confirm('Are you sure you want to delete this build?')) return;
-    // TODO: Implement with Convex when connected
-    console.log('Delete build:', id);
+
+    setDeletingId(id);
+    setStatus({ type: 'pending', message: 'Deleting build…' });
+    try {
+      const deletedId = await deleteAdminBuildRequest(id);
+      setBuilds((currentBuilds) =>
+        currentBuilds.filter((build) => build.id !== deletedId)
+      );
+      if (formData.id === deletedId) {
+        setIsDialogOpen(false);
+        setFormData(createInitialBuildFormData());
+        setActiveTab('general');
+        setSubmitError(null);
+      }
+      setStatus({ type: 'success', message: 'Build deleted successfully.' });
+    } catch (error) {
+      setStatus({
+        type: 'error',
+        message: getActionErrorMessage(
+          error,
+          'Unable to delete the build right now.'
+        ),
+      });
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleAddNew = () => {
-    setFormData(initialFormData);
+    if (isMutating) {
+      return;
+    }
+    setSubmitError(null);
     setActiveTab('general');
+    setFormData(createInitialBuildFormData());
     setIsDialogOpen(true);
   };
 
   return (
     <div className="min-h-screen hex-page-bg">
       <div className="container mx-auto max-w-7xl px-6 py-8 duration-500 animate-in fade-in slide-in-from-bottom-4">
-        {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
             <Link
@@ -198,28 +556,26 @@ export default function BuildsEditorPage() {
               Manage complete builds (Runes + Items + Skill Order)
             </p>
           </div>
-          <Button onClick={handleAddNew} className="btn-hextech rounded-sm">
-            <Plus className="mr-2 h-4 w-4" />
+          <Button
+            onClick={handleAddNew}
+            className="btn-hextech rounded-sm"
+            disabled={isMutating}
+          >
+            {isSubmitting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="mr-2 h-4 w-4" />
+            )}
             Add Build
           </Button>
         </div>
 
-        {/* Convex Connection Notice */}
-        <Card className="mb-6 rounded-sm border-yellow-500/30 bg-yellow-500/10 backdrop-blur-md">
-          <CardContent className="flex items-start gap-3 p-4">
-            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-400" />
-            <div>
-              <h4 className="font-medium text-yellow-200">Connect Convex</h4>
-              <p className="mt-1 text-sm text-yellow-200/80">
-                Run{' '}
-                <code className="rounded bg-black/30 px-1">npx convex dev</code>{' '}
-                to connect your Convex database and enable build management.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        {status && (
+          <div className="mb-6">
+            <StatusBanner status={status} />
+          </div>
+        )}
 
-        {/* Builds List */}
         <div className="space-y-4">
           {builds.length > 0 ? (
             builds.map((build) => (
@@ -277,6 +633,7 @@ export default function BuildsEditorPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleEdit(build)}
+                        disabled={isMutating}
                         className="rounded-sm border-hx-gold-dark/60 text-hx-gold hover:border-hx-gold hover:text-hx-gold-bright"
                       >
                         <Pencil className="mr-1 h-3 w-3" />
@@ -286,9 +643,14 @@ export default function BuildsEditorPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleDelete(build.id)}
+                        disabled={isMutating}
                         className="rounded-sm border-red-400/40 text-red-300 hover:bg-red-500/10"
                       >
-                        <Trash2 className="mr-1 h-3 w-3" />
+                        {deletingId === build.id ? (
+                          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="mr-1 h-3 w-3" />
+                        )}
                         Delete
                       </Button>
                     </div>
@@ -304,11 +666,12 @@ export default function BuildsEditorPage() {
                   No builds yet
                 </p>
                 <p className="mb-4 text-sm text-hx-gold/60">
-                  Connect Convex and add your first build
+                  Create your first build to populate the live guide.
                 </p>
                 <Button
                   onClick={handleAddNew}
                   className="btn-hextech rounded-sm"
+                  disabled={isMutating}
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Create First Build
@@ -318,90 +681,117 @@ export default function BuildsEditorPage() {
           )}
         </div>
 
-        {/* Build Editor Dialog */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="hex-card max-h-[90vh] max-w-4xl overflow-y-auto rounded-sm border-0 text-hx-parchment">
+        <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
+          <DialogContent
+            className="hex-card max-h-[90vh] max-w-4xl overflow-y-auto rounded-sm border-0 text-hx-parchment"
+            onEscapeKeyDown={(event) => {
+              if (isMutating) {
+                event.preventDefault();
+              }
+            }}
+            onInteractOutside={(event) => {
+              if (isMutating) {
+                event.preventDefault();
+              }
+            }}
+          >
             <DialogHeader>
               <DialogTitle>
                 {formData.id ? 'Edit Build' : 'Create New Build'}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
-              <Tabs
-                value={activeTab}
-                onValueChange={setActiveTab}
-                className="mt-4"
+              {submitError && (
+                <div className="mb-4">
+                  <StatusBanner
+                    status={{ type: 'error', message: submitError }}
+                  />
+                </div>
+              )}
+
+              <div
+                className={isSubmitting ? 'pointer-events-none opacity-70' : ''}
               >
-                <TabsList className="hex-card mb-4 w-full rounded-sm p-1">
-                  <TabsTrigger
-                    value="general"
-                    className="flex-1 rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
-                  >
-                    General
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="runes"
-                    className="flex-1 rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
-                  >
-                    Runes
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="items"
-                    className="flex-1 rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
-                  >
-                    Items
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="skills"
-                    className="flex-1 rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
-                  >
-                    Skill Order
-                  </TabsTrigger>
-                </TabsList>
+                <Tabs
+                  value={activeTab}
+                  onValueChange={setActiveTab}
+                  className="mt-4"
+                >
+                  <TabsList className="hex-card mb-4 w-full rounded-sm p-1">
+                    <TabsTrigger
+                      value="general"
+                      className="flex-1 rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+                    >
+                      General
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="runes"
+                      className="flex-1 rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+                    >
+                      Runes
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="items"
+                      className="flex-1 rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+                    >
+                      Items
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="skills"
+                      className="flex-1 rounded-sm hex-title text-xs data-[state=active]:bg-hx-gold/15 data-[state=active]:text-hx-gold-bright"
+                    >
+                      Skill Order
+                    </TabsTrigger>
+                  </TabsList>
 
-                {/* General Tab */}
-                <TabsContent value="general">
-                  <BuildGeneralTab
-                    formData={formData}
-                    setFormData={setFormData}
-                  />
-                </TabsContent>
+                  <TabsContent value="general">
+                    <BuildGeneralTab
+                      formData={formData}
+                      setFormData={setFormData}
+                    />
+                  </TabsContent>
 
-                {/* Runes Tab */}
-                <TabsContent value="runes">
-                  <BuildRunesTab
-                    formData={formData}
-                    setFormData={setFormData}
-                  />
-                </TabsContent>
+                  <TabsContent value="runes">
+                    <BuildRunesTab
+                      formData={formData}
+                      setFormData={setFormData}
+                    />
+                  </TabsContent>
 
-                {/* Items Tab */}
-                <TabsContent value="items">
-                  <BuildItemsTab
-                    formData={formData}
-                    setFormData={setFormData}
-                  />
-                </TabsContent>
+                  <TabsContent value="items">
+                    <BuildItemsTab
+                      formData={formData}
+                      setFormData={setFormData}
+                    />
+                  </TabsContent>
 
-                {/* Skill Order Tab */}
-                <TabsContent value="skills">
-                  <BuildSkillsTab
-                    formData={formData}
-                    setFormData={setFormData}
-                  />
-                </TabsContent>
-              </Tabs>
+                  <TabsContent value="skills">
+                    <BuildSkillsTab
+                      formData={formData}
+                      setFormData={setFormData}
+                    />
+                  </TabsContent>
+                </Tabs>
+              </div>
 
               <div className="mt-6 flex justify-end gap-2">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
+                  onClick={() => handleDialogOpenChange(false)}
+                  disabled={isMutating}
                   className="rounded-sm border-hx-gold-dark/60 text-hx-gold hover:border-hx-gold hover:text-hx-gold-bright"
                 >
                   Cancel
                 </Button>
-                <Button type="submit" className="btn-hextech rounded-sm">
+                <Button
+                  type="submit"
+                  className="btn-hextech rounded-sm"
+                  disabled={isMutating}
+                >
+                  {isSubmitting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   {formData.id ? 'Update Build' : 'Create Build'}
                 </Button>
               </div>

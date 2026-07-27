@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Gem, LogIn, LogOut, Menu, Settings, X } from 'lucide-react';
 import { PawEmblem } from './PawEmblem';
@@ -51,9 +52,7 @@ function AccountCluster({ account }: { account: AccountState }) {
         type="button"
         className="flex items-center gap-2 rounded-sm border border-hx-gold-dark/40 px-2 py-1 transition-colors hover:border-hx-gold"
       >
-        {/* Discord CDN isn't in next.config remotePatterns; plain img. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={discordAvatarUrl(user)}
           alt=""
           width={22}
@@ -115,8 +114,7 @@ function MobileAccountRow({
   return (
     <div className="flex items-center justify-between gap-2 border-t border-hx-gold-dark/40 pt-2">
       <span className="flex min-w-0 items-center gap-2 px-3 py-2 text-xs text-hx-gold-bright">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={discordAvatarUrl(user)}
           alt=""
           width={20}

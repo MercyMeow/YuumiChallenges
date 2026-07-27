@@ -1,22 +1,27 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  AdminClientError,
+  fetchAdminBuildsRequest,
+  fetchAdminItemsRequest,
+} from '@/lib/admin/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton, PanelSkeleton } from '@/components/ui/skeleton';
-import { LogOut, Layers, Users, Settings, FileText } from 'lucide-react';
+import { LogOut, Layers, Settings, FileText } from 'lucide-react';
 
 export default function AdminDashboard() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading, logout } = useAuth();
-
-  // Placeholder counts - replace with Convex queries when connected
-  const buildsCount = 0;
-  const matchupsCount = 0;
+  const [buildsCount, setBuildsCount] = useState(0);
+  const [itemsCount, setItemsCount] = useState(0);
+  const [isDataLoading, setIsDataLoading] = useState(false);
+  const [dataError, setDataError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -24,7 +29,57 @@ export default function AdminDashboard() {
     }
   }, [isLoading, isAuthenticated, router]);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    let cancelled = false;
+    const timeoutId = window.setTimeout(() => {
+      setIsDataLoading(true);
+      setDataError(null);
+
+      void Promise.all([fetchAdminBuildsRequest(), fetchAdminItemsRequest()])
+        .then(([builds, items]) => {
+          if (cancelled) {
+            return;
+          }
+          setBuildsCount(builds.length);
+          setItemsCount(items.length);
+        })
+        .catch((error) => {
+          if (cancelled) {
+            return;
+          }
+          if (
+            error instanceof AdminClientError &&
+            (error.status === 401 || error.status === 403)
+          ) {
+            router.push('/admin/login');
+            return;
+          }
+          setBuildsCount(0);
+          setItemsCount(0);
+          setDataError(
+            error instanceof Error
+              ? error.message
+              : 'Unable to load admin dashboard data.'
+          );
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setIsDataLoading(false);
+          }
+        });
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [isAuthenticated, router]);
+
+  if (isLoading || isDataLoading) {
     return (
       <div role="status" aria-busy="true" className="min-h-screen hex-page-bg">
         <span className="sr-only">Loading admin dashboard…</span>
@@ -81,8 +136,14 @@ export default function AdminDashboard() {
   }
 
   const handleLogout = async () => {
-    await logout();
-    router.push('/admin/login');
+    try {
+      await logout();
+      router.push('/admin/login');
+    } catch (error) {
+      setDataError(
+        error instanceof Error ? error.message : 'Unable to log out right now.'
+      );
+    }
   };
 
   const stats = [
@@ -96,13 +157,13 @@ export default function AdminDashboard() {
       description: 'Runes, Items & Skills combined',
     },
     {
-      title: 'Matchups',
-      value: matchupsCount,
-      icon: Users,
+      title: 'Items',
+      value: itemsCount,
+      icon: Settings,
       color: 'text-hx-magic',
       bgColor: 'bg-hx-magic/15',
-      href: null,
-      description: 'Enemy & Ally matchups (managed in code)',
+      href: '/admin/items',
+      description: 'Guide item recommendations',
     },
   ];
 
@@ -137,6 +198,15 @@ export default function AdminDashboard() {
             </Button>
           </div>
         </div>
+
+        {dataError && (
+          <div
+            role="alert"
+            className="mb-6 rounded-sm border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+          >
+            {dataError}
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

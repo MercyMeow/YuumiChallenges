@@ -17,6 +17,3 @@ export const SUPPORT_MATCHUPS: Record<string, SupportMatchup> =
 export const ADC_MATCHUPS: Record<string, BotLaneSynergy> = Object.fromEntries(
   Object.entries(ADCModules).map(([k, v]) => [k, v as BotLaneSynergy])
 );
-
-// Also re export namespaces for any advanced usage
-export { SupportModules as SupportMatchups, ADCModules as ADCSynergies };

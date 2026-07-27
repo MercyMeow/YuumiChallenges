@@ -1,180 +1,95 @@
-/**
- * Test examples for match timeline utilities
- * This file demonstrates the functionality of the utility functions
- */
-
+import { describe, expect, it } from 'vitest';
 import {
+  arrayIndexToRiotParticipantId,
+  detectSupportItemCompletion,
   formatMillisecondsToTime,
   formatSecondsToTime,
-  parseTimeToMilliseconds,
   getDurationBetween,
-  isSupportItem,
-  getSupportItemCompletion,
   getNextEvolutionItemId,
-  isFinalSupportItemEvolution,
   getSupportItemChain,
-  detectSupportItemCompletion,
+  getSupportItemCompletion,
+  isFinalSupportItemEvolution,
+  isSupportItem,
+  parseTimeToMilliseconds,
   riotParticipantIdToArrayIndex,
-  arrayIndexToRiotParticipantId,
   validateParticipantMapping,
 } from './match-timeline-utils';
 
-// =============================================
-// TIME FORMATTING EXAMPLES
-// =============================================
+describe('timeline time formatting', () => {
+  it('formats milliseconds and seconds consistently', () => {
+    expect(formatMillisecondsToTime(65_000)).toBe('1:05');
+    expect(formatMillisecondsToTime(3_665_000)).toBe('61:05');
+    expect(formatSecondsToTime(125)).toBe('2:05');
+    expect(getDurationBetween(0, 65_000)).toBe('1:05');
+  });
 
-console.log('=== TIME FORMATTING EXAMPLES ===');
-
-// Convert milliseconds to MM:SS format
-console.log(
-  'formatMillisecondsToTime(65000):',
-  formatMillisecondsToTime(65000)
-); // "1:05"
-console.log(
-  'formatMillisecondsToTime(125000):',
-  formatMillisecondsToTime(125000)
-); // "2:05"
-console.log(
-  'formatMillisecondsToTime(-1000):',
-  formatMillisecondsToTime(-1000)
-); // "0:00"
-console.log('formatMillisecondsToTime(null):', formatMillisecondsToTime(null)); // "0:00"
-console.log(
-  'formatMillisecondsToTime(3665000):',
-  formatMillisecondsToTime(3665000)
-); // "61:05"
-
-// Convert seconds to MM:SS format
-console.log('formatSecondsToTime(65):', formatSecondsToTime(65)); // "1:05"
-console.log('formatSecondsToTime(125):', formatSecondsToTime(125)); // "2:05"
-console.log('formatSecondsToTime(-10):', formatSecondsToTime(-10)); // "0:00"
-
-// Parse MM:SS back to milliseconds
-console.log(
-  'parseTimeToMilliseconds("1:05"):',
-  parseTimeToMilliseconds('1:05')
-); // 65000
-console.log(
-  'parseTimeToMilliseconds("65:42"):',
-  parseTimeToMilliseconds('65:42')
-); // 3942000
-console.log(
-  'parseTimeToMilliseconds("invalid"):',
-  parseTimeToMilliseconds('invalid')
-); // null
-
-// Duration between timestamps
-console.log('getDurationBetween(0, 65000):', getDurationBetween(0, 65000)); // "1:05"
-
-// =============================================
-// SUPPORT ITEM DETECTION EXAMPLES
-// =============================================
-
-console.log('\n=== SUPPORT ITEM DETECTION EXAMPLES ===');
-
-// Check if items are support items
-console.log('isSupportItem(3850):', isSupportItem(3850)); // true (Relic Shield)
-console.log('isSupportItem(1001):', isSupportItem(1001)); // false (Boots)
-console.log('isSupportItem(null):', isSupportItem(null)); // false
-
-// Get support item completion information
-console.log('getSupportItemCompletion(3850):', getSupportItemCompletion(3850));
-// { isSupportItem: true, tier: 'base', chainType: 'relic', isFinalEvolution: false, ... }
-
-console.log('getSupportItemCompletion(3853):', getSupportItemCompletion(3853));
-// { isSupportItem: true, tier: 'tier2', isFinalEvolution: true, ... }
-
-console.log('getSupportItemCompletion(1001):', getSupportItemCompletion(1001));
-// { isSupportItem: false, tier: null, ... }
-
-// Get next evolution item ID
-console.log('getNextEvolutionItemId(3850):', getNextEvolutionItemId(3850)); // 3851
-console.log('getNextEvolutionItemId(3853):', getNextEvolutionItemId(3853)); // 0 (final)
-console.log('getNextEvolutionItemId(1001):', getNextEvolutionItemId(1001)); // 0 (not support)
-
-// Check if final evolution
-console.log(
-  'isFinalSupportItemEvolution(3853):',
-  isFinalSupportItemEvolution(3853)
-); // true
-console.log(
-  'isFinalSupportItemEvolution(3857):',
-  isFinalSupportItemEvolution(3857)
-); // true
-console.log(
-  'isFinalSupportItemEvolution(3850):',
-  isFinalSupportItemEvolution(3850)
-); // false
-
-// Get evolution chain
-console.log('getSupportItemChain(3851):', getSupportItemChain(3851)); // [3850, 3851, 3853]
-console.log('getSupportItemChain(3857):', getSupportItemChain(3857)); // [3854, 3855, 3857]
-console.log('getSupportItemChain(1001):', getSupportItemChain(1001)); // []
-
-// =============================================
-// PARTICIPANT ID MAPPING EXAMPLES
-// =============================================
-
-console.log('\n=== PARTICIPANT ID MAPPING EXAMPLES ===');
-
-// Convert between ID systems
-console.log(
-  'riotParticipantIdToArrayIndex(1):',
-  riotParticipantIdToArrayIndex(1)
-); // 0
-console.log(
-  'riotParticipantIdToArrayIndex(10):',
-  riotParticipantIdToArrayIndex(10)
-); // 9
-console.log(
-  'arrayIndexToRiotParticipantId(0):',
-  arrayIndexToRiotParticipantId(0)
-); // 1
-console.log(
-  'arrayIndexToRiotParticipantId(9):',
-  arrayIndexToRiotParticipantId(9)
-); // 10
-
-// Validate participant mapping
-console.log(
-  'validateParticipantMapping(1, true):',
-  validateParticipantMapping(1, true)
-);
-// { valid: true, arrayIndex: 0, riotId: 1 }
-console.log(
-  'validateParticipantMapping(0, false):',
-  validateParticipantMapping(0, false)
-);
-// { valid: true, arrayIndex: 0, riotId: 1 }
-
-// =============================================
-// SUPPORT ITEM COMPLETION DETECTION EXAMPLE
-// =============================================
-
-console.log('\n=== SUPPORT ITEM COMPLETION DETECTION EXAMPLE ===');
-
-// Example timeline events for support item progression
-const exampleTimelineEvents = [
-  { itemId: 3850, timestamp: 60000, type: 'ITEM_PURCHASED' }, // 1:00 - Relic Shield
-  { itemId: 3851, timestamp: 180000, type: 'ITEM_PURCHASED' }, // 3:00 - Tier 1 Evolution
-  { itemId: 3853, timestamp: 420000, type: 'ITEM_PURCHASED' }, // 7:00 - Final Evolution
-];
-
-const completionTimes = detectSupportItemCompletion(
-  null,
-  exampleTimelineEvents
-);
-console.log('Support item completion times:', completionTimes);
-// { base: 60000, tier1: 180000, tier2: 420000, tier3: null }
-
-console.log('Formatted completion times:');
-Object.entries(completionTimes).forEach(([tier, timestamp]) => {
-  if (timestamp !== null) {
-    console.log(`  ${tier}: ${formatMillisecondsToTime(timestamp)}`);
-  }
+  it('handles invalid and boundary inputs', () => {
+    expect(formatMillisecondsToTime(-1)).toBe('0:00');
+    expect(formatMillisecondsToTime(null)).toBe('0:00');
+    expect(formatSecondsToTime(Number.NaN)).toBe('0:00');
+    expect(parseTimeToMilliseconds('1:05')).toBe(65_000);
+    expect(parseTimeToMilliseconds('65:42')).toBe(3_942_000);
+    expect(parseTimeToMilliseconds('invalid')).toBeNull();
+  });
 });
-// base: 1:00
-// tier1: 3:00
-// tier2: 7:00
 
-export {}; // Make this a module to avoid global scope issues
+describe('support item progression', () => {
+  it('identifies support items and their evolution chain', () => {
+    expect(isSupportItem(3865)).toBe(true);
+    expect(isSupportItem(1001)).toBe(false);
+    expect(isSupportItem(null)).toBe(false);
+
+    expect(getSupportItemCompletion(3865)).toMatchObject({
+      isSupportItem: true,
+      tier: 'base',
+      isFinalEvolution: false,
+    });
+    expect(getNextEvolutionItemId(3865)).toBe(3866);
+    expect(getNextEvolutionItemId(3866)).toBe(3867);
+    expect(getNextEvolutionItemId(3867)).toBe(0);
+    expect(isFinalSupportItemEvolution(3870)).toBe(true);
+    expect(getSupportItemChain(3866)).toEqual([
+      3865, 3866, 3867, 3869, 3870, 3871, 3876, 3877,
+    ]);
+  });
+
+  it('finds the first completion time for each support-item tier', () => {
+    const events = [
+      { itemId: 3865, timestamp: 60_000, type: 'ITEM_PURCHASED' },
+      { itemId: 3866, timestamp: 180_000, type: 'ITEM_PURCHASED' },
+      { itemId: 3867, timestamp: 300_000, type: 'ITEM_PURCHASED' },
+      { itemId: 3870, timestamp: 420_000, type: 'ITEM_PURCHASED' },
+    ];
+
+    expect(detectSupportItemCompletion(null, events)).toEqual({
+      base: 60_000,
+      tier1: 180_000,
+      tier2: 300_000,
+      tier3: 420_000,
+    });
+  });
+});
+
+describe('participant id mapping', () => {
+  it('converts between Riot ids and array indexes', () => {
+    expect(riotParticipantIdToArrayIndex(1)).toBe(0);
+    expect(riotParticipantIdToArrayIndex(10)).toBe(9);
+    expect(riotParticipantIdToArrayIndex(0)).toBe(-1);
+    expect(arrayIndexToRiotParticipantId(0)).toBe(1);
+    expect(arrayIndexToRiotParticipantId(9)).toBe(10);
+    expect(arrayIndexToRiotParticipantId(10)).toBe(0);
+  });
+
+  it('reports invalid mappings instead of inventing ids', () => {
+    expect(validateParticipantMapping(1, true)).toEqual({
+      valid: true,
+      arrayIndex: 0,
+      riotId: 1,
+    });
+    expect(validateParticipantMapping(11, true)).toEqual({
+      valid: false,
+      arrayIndex: -1,
+      riotId: 0,
+    });
+  });
+});

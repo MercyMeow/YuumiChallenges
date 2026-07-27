@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readFile } from 'fs/promises';
 import path from 'path';
-import { RiotAPI } from '@/lib/apis/riot';
+import {
+  getRiotMatchIdValidationError,
+  parseRiotMatchId,
+  RiotAPI,
+  RiotApiError,
+} from '@/lib/apis/riot';
 import {
   getMatchCache,
   generateCacheKey,
@@ -21,12 +26,17 @@ type MatchCacheEntry = {
   timelineData: TimelinePayload;
 };
 
-function shouldUseExampleData(req: NextRequest, riotApiKey?: string) {
+type MatchErrorResponseOptions = {
+  status: number;
+  retryAfterSeconds?: number | null | undefined;
+  code?: string | undefined;
+};
+
+function shouldUseExampleData(req: NextRequest) {
   const envToggle = process.env.NEXT_PUBLIC_USE_EXAMPLE_DATA === 'true';
-  const noKey = !riotApiKey;
   const url = new URL(req.url);
   const queryToggle = url.searchParams.get('useExample') === '1';
-  return envToggle || noKey || queryToggle;
+  return envToggle || queryToggle;
 }
 
 function normalizeParticipants(matchData: DetailedMatchData) {
@@ -68,6 +78,84 @@ function normalizeParticipants(matchData: DetailedMatchData) {
   matchData.info.participants = normalized;
 }
 
+function createErrorResponse(
+  error: string,
+  options: MatchErrorResponseOptions
+) {
+  const headers = new Headers();
+
+  if (
+    typeof options.retryAfterSeconds === 'number' &&
+    options.retryAfterSeconds >= 0
+  ) {
+    headers.set('Retry-After', String(options.retryAfterSeconds));
+  }
+
+  return NextResponse.json(
+    {
+      success: false,
+      error,
+      status: options.status,
+      retryAfterSeconds: options.retryAfterSeconds ?? null,
+      code: options.code,
+    },
+    {
+      status: options.status,
+      headers,
+    }
+  );
+}
+
+function toClientError(error: RiotApiError) {
+  if (error.status === 404) {
+    return createErrorResponse(
+      'Match not found. Please check the match ID and try again.',
+      {
+        status: 404,
+        code: error.code,
+      }
+    );
+  }
+
+  if (error.status === 429) {
+    return createErrorResponse('Rate limit exceeded. Please try again later.', {
+      status: 429,
+      retryAfterSeconds: error.retryAfterSeconds,
+      code: error.code,
+    });
+  }
+
+  if (error.status === 403) {
+    return createErrorResponse('API access denied. Invalid API key.', {
+      status: 403,
+      code: error.code,
+    });
+  }
+
+  if (error.status === 400) {
+    return createErrorResponse(error.message, {
+      status: 400,
+      code: error.code,
+    });
+  }
+
+  if (error.status === 503 && error.code === 'MISSING_RIOT_API_KEY') {
+    return createErrorResponse(
+      'Live match lookup is not configured. Add a Riot API key or explicitly enable example data.',
+      {
+        status: 503,
+        code: error.code,
+      }
+    );
+  }
+
+  return createErrorResponse('Failed to fetch match data from Riot API', {
+    status: error.status ?? 500,
+    retryAfterSeconds: error.retryAfterSeconds,
+    code: error.code,
+  });
+}
+
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ matchId: string }> }
@@ -77,206 +165,168 @@ export async function GET(
     const cache = getMatchCache();
 
     if (!matchId) {
-      return NextResponse.json(
-        { error: 'Match ID is required' },
-        { status: 400 }
-      );
+      return createErrorResponse('Match ID is required.', {
+        status: 400,
+        code: 'INVALID_MATCH_ID',
+      });
     }
 
     const riotApiKey = process.env.RIOT_API_KEY;
+    const matchIdError = getRiotMatchIdValidationError(matchId);
+    if (matchIdError) {
+      return createErrorResponse(matchIdError, {
+        status: 400,
+        code: 'INVALID_MATCH_ID',
+      });
+    }
+
+    const parsedMatchId = parseRiotMatchId(matchId);
+    if (!parsedMatchId) {
+      return createErrorResponse('Enter a valid match ID.', {
+        status: 400,
+        code: 'INVALID_MATCH_ID',
+      });
+    }
+
+    const useExample = shouldUseExampleData(request);
+    const cacheKey = generateCacheKey(
+      CACHE_KEYS.MATCH_DETAILS,
+      useExample ? 'example' : 'live',
+      parsedMatchId.matchId
+    );
 
     // Check cache first
-    const cacheKey = generateCacheKey(CACHE_KEYS.MATCH_DETAILS, matchId);
     const cachedData = cache.get<MatchCacheEntry>(cacheKey);
     if (cachedData) {
       return NextResponse.json({
         success: true,
         ...cachedData,
-        matchId,
+        matchId:
+          cachedData.matchData.metadata?.matchId ?? parsedMatchId.matchId,
         cached: true,
+        example: useExample,
       });
     }
 
-    if (shouldUseExampleData(request, riotApiKey)) {
-      try {
-        const rootDir = process.cwd();
-        const matchPath = path.join(rootDir, 'exampleMatchData.json');
-        const timelinePath = path.join(rootDir, 'exampleTimelineData.json');
-
-        const [matchRaw, timelineRaw] = await Promise.all([
-          readFile(matchPath, 'utf-8'),
-          readFile(timelinePath, 'utf-8').catch(() => null),
-        ]);
-
-        const parsedMatch = JSON.parse(matchRaw) as unknown;
-        if (!isDetailedMatchData(parsedMatch)) {
-          throw new Error('Example match data is malformed');
-        }
-
-        const matchData = parsedMatch;
-        const timelineData = timelineRaw
-          ? (JSON.parse(timelineRaw) as TimelinePayload)
-          : null;
-
-        normalizeParticipants(matchData);
-
-        const dataToCache = { matchData, timelineData };
-        cache.set(cacheKey, dataToCache, CACHE_TTL.MATCH_DETAILS);
-
-        return NextResponse.json({
-          success: true,
-          ...dataToCache,
-          matchId: matchData.metadata?.matchId ?? matchId,
-          cached: false,
-          example: true,
-        });
-      } catch (fileErr) {
-        console.error('Failed to read example data files:', fileErr);
-        return NextResponse.json(
-          { error: 'Failed to load example data files' },
-          { status: 500 }
-        );
-      }
-    }
-
-    if (!riotApiKey) {
-      return NextResponse.json(
-        { error: 'Riot API key not configured' },
-        { status: 500 }
-      );
-    }
-
-    // Extract region from match ID (format: REGION_MATCHID)
-    const regionMatch = matchId.match(/^([A-Z0-9]+)_/);
-    if (!regionMatch) {
-      return NextResponse.json(
-        { error: 'Invalid match ID format' },
-        { status: 400 }
-      );
-    }
-
-    // Map platform to region codes (must match database region_type enum)
-    const platformToRegion: Record<string, string> = {
-      BR1: 'br1',
-      EUN1: 'eun1',
-      EUW1: 'euw1',
-      JP1: 'jp1',
-      KR: 'kr',
-      LA1: 'la1',
-      LA2: 'la2',
-      NA1: 'na1',
-      OC1: 'oc1',
-      PH2: 'ph2',
-      RU: 'ru',
-      SG2: 'sg2',
-      TH2: 'th2',
-      TR1: 'tr1',
-      TW2: 'tw2',
-      VN2: 'vn2',
-    };
-
-    const platform = regionMatch[1];
-    if (!platform) {
-      console.error('Failed to extract platform from match ID:', matchId);
-      return NextResponse.json(
-        { error: 'Invalid match ID format - no platform found' },
-        { status: 400 }
-      );
-    }
-
-    const region = platformToRegion[platform];
-    if (!region) {
-      console.error(
-        'Unsupported platform:',
-        platform,
-        'Available platforms:',
-        Object.keys(platformToRegion)
-      );
-      return NextResponse.json(
-        { error: `Unsupported region: ${platform}` },
-        { status: 400 }
-      );
-    }
-
-    console.log('Processing match request:', { matchId, platform, region });
-
-    const riotAPI = new RiotAPI(riotApiKey);
-
     try {
-      // Fetch match details
-      const matchDataRaw = await riotAPI.getMatchDetails(matchId, region);
-      if (!isDetailedMatchData(matchDataRaw)) {
-        throw new Error('Riot API returned unexpected match shape');
-      }
+      const dataToCache = await cache.getOrCreateInFlight(
+        cacheKey,
+        async (): Promise<MatchCacheEntry> => {
+          if (useExample) {
+            const rootDir = process.cwd();
+            const matchPath = path.join(rootDir, 'exampleMatchData.json');
+            const timelinePath = path.join(rootDir, 'exampleTimelineData.json');
 
-      const matchData = matchDataRaw;
+            const [matchRaw, timelineRaw] = await Promise.all([
+              readFile(matchPath, 'utf-8'),
+              readFile(timelinePath, 'utf-8').catch(() => null),
+            ]);
 
-      // Normalize participants
-      normalizeParticipants(matchData);
+            const parsedMatch = JSON.parse(matchRaw) as unknown;
+            if (!isDetailedMatchData(parsedMatch)) {
+              throw new Error('Example match data is malformed');
+            }
 
-      // Fetch timeline data as well
-      let timelineData = null;
-      try {
-        timelineData = (await riotAPI.getMatchTimeline(
-          matchId,
-          region
-        )) as TimelinePayload;
-      } catch (timelineError) {
-        console.warn('Failed to fetch match timeline:', timelineError);
-        // Timeline is optional
-      }
+            const matchData = parsedMatch;
+            const timelineData = timelineRaw
+              ? (JSON.parse(timelineRaw) as TimelinePayload)
+              : null;
 
-      // Cache the data
-      const dataToCache = { matchData, timelineData };
-      cache.set(cacheKey, dataToCache, CACHE_TTL.MATCH_DETAILS);
+            normalizeParticipants(matchData);
+
+            const nextEntry = { matchData, timelineData };
+            cache.set(cacheKey, nextEntry, CACHE_TTL.MATCH_DETAILS);
+            return nextEntry;
+          }
+
+          if (!riotApiKey) {
+            throw new RiotApiError('Riot API key not configured', {
+              status: 503,
+              code: 'MISSING_RIOT_API_KEY',
+            });
+          }
+
+          const riotAPI = new RiotAPI(riotApiKey);
+          const matchDataRaw = await riotAPI.getMatchDetails(
+            parsedMatchId.matchId,
+            parsedMatchId.region
+          );
+
+          if (!isDetailedMatchData(matchDataRaw)) {
+            throw new RiotApiError('Riot API returned unexpected match shape', {
+              status: 502,
+              code: 'INVALID_MATCH_PAYLOAD',
+            });
+          }
+
+          const matchData = matchDataRaw;
+          normalizeParticipants(matchData);
+
+          let timelineData: TimelinePayload = null;
+          try {
+            timelineData = (await riotAPI.getMatchTimeline(
+              parsedMatchId.matchId,
+              parsedMatchId.region
+            )) as TimelinePayload;
+          } catch (timelineError) {
+            if (timelineError instanceof RiotApiError) {
+              console.warn('Failed to fetch match timeline:', {
+                matchId: parsedMatchId.matchId,
+                message: timelineError.message,
+                status: timelineError.status,
+                retryAfterSeconds: timelineError.retryAfterSeconds,
+                code: timelineError.code,
+              });
+            } else {
+              console.warn('Failed to fetch match timeline:', timelineError);
+            }
+          }
+
+          const nextEntry = { matchData, timelineData };
+          cache.set(cacheKey, nextEntry, CACHE_TTL.MATCH_DETAILS);
+          return nextEntry;
+        }
+      );
 
       return NextResponse.json({
         success: true,
-        matchData,
-        timelineData,
-        matchId,
+        ...dataToCache,
+        matchId:
+          dataToCache.matchData.metadata?.matchId ?? parsedMatchId.matchId,
         cached: false,
+        example: useExample,
       });
-    } catch (riotError: unknown) {
-      console.error('Error fetching match from Riot API:', riotError);
-
-      const status =
-        typeof riotError === 'object' && riotError && 'status' in riotError
-          ? Number((riotError as { status?: number }).status)
-          : undefined;
-
-      // Handle specific Riot API errors
-      if (status === 404) {
-        return NextResponse.json(
-          {
-            error: 'Match not found. Please check the match ID and try again.',
-          },
-          { status: 404 }
-        );
-      }
-      if (status === 429) {
-        return NextResponse.json(
-          { error: 'Rate limit exceeded. Please try again later.' },
-          { status: 429 }
-        );
-      }
-      if (status === 403) {
-        return NextResponse.json(
-          { error: 'API access denied. Invalid API key.' },
-          { status: 403 }
-        );
+    } catch (error) {
+      if (error instanceof RiotApiError) {
+        console.error('Error fetching match from Riot API:', {
+          matchId: parsedMatchId.matchId,
+          message: error.message,
+          status: error.status,
+          retryAfterSeconds: error.retryAfterSeconds,
+          code: error.code,
+        });
+        return toClientError(error);
       }
 
-      return NextResponse.json(
-        { error: 'Failed to fetch match data from Riot API' },
-        { status: 500 }
-      );
+      if (useExample) {
+        console.error('Failed to read example data files:', error);
+        return createErrorResponse('Failed to load example data files', {
+          status: 500,
+          code: 'EXAMPLE_DATA_ERROR',
+        });
+      }
+
+      console.error('Error in match details data pipeline:', error);
+      return createErrorResponse('Failed to fetch match data from Riot API', {
+        status: 500,
+        code: 'MATCH_DATA_FETCH_FAILED',
+      });
     }
   } catch (error) {
     console.error('Error in match details API:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return createErrorResponse('Internal server error', {
+      status: 500,
+      code: 'INTERNAL_SERVER_ERROR',
+    });
   }
 }

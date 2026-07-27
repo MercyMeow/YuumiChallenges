@@ -397,6 +397,8 @@ function ProfileAccountRow({ puuid }: { puuid: string }) {
 
   const [busy, setBusy] = useState(false);
   const [linkBusy, setLinkBusy] = useState(false);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const [unlinkBusy, setUnlinkBusy] = useState(false);
   const [nextAllowedAt, setNextAllowedAt] = useState(0);
   const [now, setNow] = useState(() => Date.now());
   const [notice, setNotice] = useState<string | null>(null);
@@ -467,6 +469,48 @@ function ProfileAccountRow({ puuid }: { puuid: string }) {
       ? user.pendingLink
       : null;
 
+  const startCheckout = useCallback(async () => {
+    setCheckoutBusy(true);
+    setNotice(null);
+    try {
+      const res = await fetch(
+        `/api/stripe/checkout?return=${encodeURIComponent(window.location.pathname)}`,
+        { method: 'POST' }
+      );
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (res.ok && data.url) {
+        window.location.assign(data.url);
+        return;
+      }
+      if (res.status === 409) {
+        await refreshMe();
+      }
+      setNotice(data.error ?? 'Subscriptions are unavailable right now.');
+    } catch {
+      setNotice('Subscriptions are unavailable right now.');
+    } finally {
+      setCheckoutBusy(false);
+    }
+  }, [refreshMe]);
+
+  const unlinkAccount = useCallback(async () => {
+    setUnlinkBusy(true);
+    setNotice(null);
+    try {
+      const res = await fetch('/api/account/unlink', { method: 'POST' });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setNotice(data.error ?? 'Could not unlink this account right now.');
+        return;
+      }
+      await refreshMe();
+    } catch {
+      setNotice('Could not unlink this account right now.');
+    } finally {
+      setUnlinkBusy(false);
+    }
+  }, [refreshMe]);
+
   return (
     <div className="hex-card mt-3 rounded-sm px-4 py-3">
       <div className="flex flex-wrap items-center gap-3">
@@ -493,22 +537,14 @@ function ProfileAccountRow({ puuid }: { puuid: string }) {
         {user && isOwner && !user.subscribed && (
           <button
             type="button"
-            onClick={() => {
-              void fetch(
-                `/api/stripe/checkout?return=${encodeURIComponent(window.location.pathname)}`,
-                { method: 'POST' }
-              )
-                .then((res) => res.json())
-                .then((data: { url?: string; error?: string }) => {
-                  if (data.url) window.location.assign(data.url);
-                  else setNotice(data.error ?? 'Subscriptions open soon.');
-                })
-                .catch(() => setNotice('Subscriptions open soon.'));
-            }}
-            className="inline-flex items-center gap-1.5 rounded-sm border border-hx-magic/50 bg-hx-magic/10 px-3 py-1.5 text-xs text-hx-magic-bright transition-colors hover:bg-hx-magic/20"
+            onClick={() => void startCheckout()}
+            disabled={checkoutBusy}
+            className="inline-flex items-center gap-1.5 rounded-sm border border-hx-magic/50 bg-hx-magic/10 px-3 py-1.5 text-xs text-hx-magic-bright transition-colors hover:bg-hx-magic/20 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Gem className="h-3.5 w-3.5" aria-hidden />
-            Support for 1€/mo — unlock auto-refresh
+            {checkoutBusy
+              ? 'Starting checkout…'
+              : 'Support for 1€/mo — unlock auto-refresh'}
           </button>
         )}
         {user && isOwner && (
@@ -517,14 +553,11 @@ function ProfileAccountRow({ puuid }: { puuid: string }) {
             Verified — this is you
             <button
               type="button"
-              onClick={() => {
-                void fetch('/api/account/unlink', { method: 'POST' }).then(
-                  refreshMe
-                );
-              }}
-              className="text-hx-gold/40 underline-offset-2 hover:underline"
+              onClick={() => void unlinkAccount()}
+              disabled={unlinkBusy}
+              className="text-hx-gold/40 underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50"
             >
-              Unlink
+              {unlinkBusy ? 'Unlinking…' : 'Unlink'}
             </button>
           </span>
         )}
@@ -578,8 +611,7 @@ function ProfileAccountRow({ puuid }: { puuid: string }) {
       {user && !isOwner && pending && (
         <div className="mt-3 flex flex-wrap items-center gap-4 border-t border-hx-gold-dark/30 pt-3">
           {ddVersion && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={`https://ddragon.leagueoflegends.com/cdn/${ddVersion}/img/profileicon/${pending.iconId}.png`}
               alt={`Summoner icon ${pending.iconId}`}
               width={48}

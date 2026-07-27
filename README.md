@@ -210,6 +210,20 @@ npx convex deploy               # push schema & functions
 npx convex run seed:seedAll     # seed builds, matchups & sections
 ```
 
+**First admin bootstrap?** Create exactly one admin with the internal Convex
+mutation in the target deployment:
+
+```bash
+# personal dev deployment
+npx convex run auth:createAdminUser '{"username":"admin","password":"change-me-now"}'
+
+# default production deployment
+npx convex run auth:createAdminUser '{"username":"admin","password":"change-me-now"}' --prod
+```
+
+`convex/auth.ts` enforces this as a one-shot bootstrap: the command fails once
+an admin already exists.
+
 > The site degrades gracefully — without Convex it falls back to the very same static data the seeder uses, so the database and the fallback never drift apart. The recommended build refreshes itself daily, and the high-elo feed fills in within minutes of the first scheduled run.
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:785A28,50:C8AA6E,100:785A28&height=3" width="100%" alt="" />
@@ -223,18 +237,26 @@ npx convex run seed:seedAll     # seed builds, matchups & sections
 
 | Variable | Required | Purpose |
 | --- | :---: | --- |
-| `RIOT_API_KEY` | live data | Server-side Riot API access (match viewer + high-elo feed) |
-| `NEXT_PUBLIC_CONVEX_URL` | ✅ | Convex deployment URL |
-| `CONVEX_SELF_HOSTED_URL` | self-host | Self-hosted Convex endpoint |
-| `CONVEX_SELF_HOSTED_ADMIN_KEY` | self-host | Self-hosted Convex admin key |
-| `CONVEX_DEPLOY_KEY` | cloud prod | Convex cloud deploy key |
-| `NEXT_PUBLIC_SITE_URL` | prod | Canonical & Open Graph URLs |
+| `NEXT_PUBLIC_CONVEX_URL` | ✅ | Convex deployment URL used by Next.js routes and clients |
+| `NEXT_PUBLIC_SITE_URL` | prod | Canonical site URL for redirects, metadata, and webhooks |
+| `NEXT_PUBLIC_APP_URL` | recommended | Explicit share/OG origin when it differs from request headers |
 | `NEXT_PUBLIC_USE_EXAMPLE_DATA` | optional | Serve bundled example match payloads |
-| `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` | accounts | Discord OAuth web sign-in |
-| `AUTH_BRIDGE_SECRET` | accounts | Shared secret between Next API routes and Convex (set the same value in both) |
-| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | supporter | 1€/month Supporter subscription + webhook verification |
+| `YUUMI_DISCORD_SERVER_ID` | optional | Discord community links and embeds |
+| `RIOT_API_KEY` | live data | Required in both the Cloudflare/Next runtime and the Convex environment |
+| `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` | accounts | Discord OAuth web sign-in on the Next.js side |
+| `AUTH_BRIDGE_SECRET` | accounts | Shared secret between Next API routes and Convex bridge mutations; the value must match in both environments |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | supporter | Stripe checkout + webhook verification on the Next.js side |
+| `CONVEX_DEPLOY_KEY` | cloud deploy | Lets `build:cloudflare` / `build:vercel` run `convex deploy` before the app build |
+| `CONVEX_SELF_HOSTED_URL` | self-host | Self-hosted Convex endpoint for deploy/build flows |
+| `CONVEX_SELF_HOSTED_ADMIN_KEY` | self-host | Self-hosted Convex admin key for deploy/build flows |
 
 Grab a development key from the [Riot Developer Portal](https://developer.riotgames.com/). Convex runs in the cloud **or fully self-hosted** — both are supported.
+
+Deployment secret split:
+
+- Cloudflare / Next runtime: `NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_APP_URL`, `RIOT_API_KEY`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `AUTH_BRIDGE_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, plus `YUUMI_DISCORD_SERVER_ID` if you use community links there.
+- Convex environment: `RIOT_API_KEY` and `AUTH_BRIDGE_SECRET`.
+- Build-time only: `CONVEX_DEPLOY_KEY` for Convex Cloud, or `CONVEX_SELF_HOSTED_URL` + `CONVEX_SELF_HOSTED_ADMIN_KEY` for self-hosted Convex.
 
 </details>
 
@@ -294,10 +316,14 @@ YuumiChallenges/
 | --- | --- |
 | `npm run dev` | Next.js (Turbopack) + Convex dev servers together |
 | `npm run dev:next` | Next.js only — Convex-less, static fallbacks |
-| `npm run build` | Production build (deploys Convex first) |
+| `npm run convex:dev` | Convex dev server only |
+| `npm run build` | Local production-style Next.js build (`next build --webpack`) |
+| `npm run build:cloudflare` | OpenNext Cloudflare bundle; deploys Convex first when deploy credentials are present |
+| `npm run build:vercel` | Legacy Vercel build path; deploys Convex first when configured |
 | `npm run lint` / `lint:fix` | ESLint — check / auto-fix |
 | `npm run format` / `format:check` | Prettier — write / check |
 | `npm run type-check` | TypeScript diagnostics, no emit |
+| `npm run test` / `test:run` / `test:watch` | Vitest default, CI-style single run, and watch mode |
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:785A28,50:C8AA6E,100:785A28&height=3" width="100%" alt="" />
 
@@ -306,7 +332,7 @@ YuumiChallenges/
 Contributions are welcome, friend! Before opening a PR:
 
 1. Follow **[Conventional Commits](https://www.conventionalcommits.org/)** (`feat:`, `fix:`, `chore:`).
-2. Run `npm run lint`, `npm run format:check`, `npm run type-check`, and `npm run build`.
+2. Run `npm run lint`, `npm run format:check`, `npm run type-check`, `npm run test:run`, and `npm run build`.
 3. Link related issues (`Closes #123`) and attach captures for visual changes.
 4. If you touch guide data under `src/lib/`, re-run `npx convex run seed:seedAll` so the database matches.
 

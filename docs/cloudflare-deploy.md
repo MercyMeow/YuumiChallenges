@@ -7,27 +7,72 @@ The Next.js app runs on Cloudflare via [@opennextjs/cloudflare](https://opennext
 | Command | Purpose |
 |--------|---------|
 | `npm run dev` | Next + Convex (unchanged) |
-| `npm run build:next` | Next-only production build |
-| `npm run build:cloudflare` | OpenNext bundle for Workers |
+| `npm run build` | Local production-style Next.js build (`next build --webpack`) |
+| `npm run build:next` | Plain `next build` without OpenNext |
+| `npm run build:cloudflare` | OpenNext Workers bundle; runs `convex deploy --cmd "npx opennextjs-cloudflare build"` when deploy credentials exist |
 | `npm run preview` | Build + `wrangler dev` (production-like runtime) |
 | `npm run deploy` | Build + deploy to Worker `yuumi-challenges` |
+| `npm run test` | Run Vitest suite (supports TS/React and jsdom by default) |
+| `npm run test:discover` | Discover and execute tests in CI-like mode with no-fail empty suite |
+| `npm run test:run` | One-shot test run with explicit pass-through for empty test sets |
 
 OpenNext warns on native Windows; **WSL** or **Workers Builds** (Linux) is recommended for production deploys.
 
 ## Environment variables
 
-Set these in the Cloudflare dashboard (**Workers & Pages → yuumi-challenges → Settings → Variables**) or in **Workers Builds → Build variables and secrets**:
+Set these in the Cloudflare dashboard (**Workers & Pages → yuumi-challenges → Settings → Variables**) or in **Workers Builds → Build variables and secrets**.
+
+### Cloudflare / Next runtime
 
 | Variable | Required | Notes |
 |----------|----------|--------|
-| `NEXT_PUBLIC_CONVEX_URL` | Yes | Convex deployment URL |
-| `NEXT_PUBLIC_SITE_URL` | Yes (prod) | `https://yuumi.quest` |
-| `NEXT_PUBLIC_APP_URL` | Recommended | Same as site URL for OG/metadata |
-| `RIOT_API_KEY` | Yes | Server-only; match API routes |
-| `CONVEX_DEPLOY_KEY` | CI only | If build runs `convex deploy` |
-| `YUUMI_DISCORD_SERVER_ID` | Optional | Discord embeds |
+| `NEXT_PUBLIC_CONVEX_URL` | Yes | Convex deployment URL used by server routes and the client |
+| `NEXT_PUBLIC_SITE_URL` | Yes (prod) | `https://yuumi.quest`; used for metadata, auth redirects, and Stripe return URLs |
+| `NEXT_PUBLIC_APP_URL` | Recommended | Explicit canonical origin for match share URLs and metadata |
+| `YUUMI_DISCORD_SERVER_ID` | Optional | Community links / embeds |
+| `RIOT_API_KEY` | Yes | Required by Next.js match APIs |
+| `DISCORD_CLIENT_ID` | Yes for web auth | Discord OAuth login route |
+| `DISCORD_CLIENT_SECRET` | Yes for web auth | Discord OAuth callback route |
+| `AUTH_BRIDGE_SECRET` | Yes for web auth / Stripe | Shared secret for Next.js bridge calls into Convex; must exactly match the Convex environment value |
+| `STRIPE_SECRET_KEY` | Yes for Supporter checkout | Stripe Checkout session creation |
+| `STRIPE_WEBHOOK_SECRET` | Yes for Supporter webhooks | Stripe signature verification |
+
+### Convex environment
+
+Set these with `npx convex env set ...` on the target deployment:
+
+| Variable | Required | Notes |
+|----------|----------|--------|
+| `RIOT_API_KEY` | Yes | Required by Convex actions that call Riot |
+| `AUTH_BRIDGE_SECRET` | Yes for web auth / Stripe | Must exactly match the Cloudflare / Next runtime value |
+
+### Build-only variables
+
+These are only needed when a build step should deploy Convex before building the app:
+
+| Variable | Required | Notes |
+|----------|----------|--------|
+| `CONVEX_DEPLOY_KEY` | Convex Cloud only | Enables `convex deploy` inside `build:cloudflare` / `build:vercel` |
+| `CONVEX_SELF_HOSTED_URL` | Self-hosted Convex only | Self-hosted deployment endpoint |
+| `CONVEX_SELF_HOSTED_ADMIN_KEY` | Self-hosted Convex only | Self-hosted admin key |
 
 Public `NEXT_PUBLIC_*` and server secrets must be available at **build time** for OpenNext (see [env vars guide](https://opennext.js.org/cloudflare/howtos/env-vars#workers-builds)).
+
+## First admin bootstrap
+
+The admin console is backed by `convex/auth.ts` `createAdminUser`, an
+internal-only one-shot mutation that refuses to run once an admin exists.
+
+```bash
+# personal dev deployment
+npx convex run auth:createAdminUser '{"username":"admin","password":"change-me-now"}'
+
+# default production deployment
+npx convex run auth:createAdminUser '{"username":"admin","password":"change-me-now"}' --prod
+```
+
+If you target a non-default deployment, use `--deployment <name>` instead of
+`--prod`.
 
 ## Workers Builds (GitHub)
 

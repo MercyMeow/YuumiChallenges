@@ -304,33 +304,6 @@ export interface RankedInfo {
   losses: number;
   queue_type: string;
 }
-
-export interface RefreshResponse {
-  success: boolean;
-  message: string;
-  data?: {
-    summoner_updated: boolean;
-    ranked_updated: boolean;
-    matches_added: number;
-    matches_removed: number;
-    errors: string[];
-    warnings: string[];
-    partial_success?: boolean;
-  };
-  next_refresh_available?: Date;
-}
-
-export interface RefreshStatus {
-  can_refresh: boolean;
-  can_manual_refresh: boolean;
-  last_refreshed_at?: string | null;
-  last_manual_refresh_at?: string | null;
-  next_auto_refresh?: string | null;
-  next_manual_refresh?: string | null;
-  total_matches?: number;
-  last_match_date?: string | null;
-}
-
 // Enhanced typed interfaces for dashboard components
 
 export interface RankedQueueInfo {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sanitizeReturnPath } from '@/lib/safe-return-path';
 
 // Kicks off the Discord OAuth code flow. The state nonce round-trips via
 // an httpOnly cookie and is checked in the callback (CSRF guard).
@@ -20,7 +21,9 @@ export async function GET(request: NextRequest) {
   }
   const state = crypto.randomUUID();
   // Return the visitor to the page they clicked from.
-  const returnTo = request.nextUrl.searchParams.get('return') ?? '/';
+  const returnTo = sanitizeReturnPath(
+    request.nextUrl.searchParams.get('return')
+  );
   const authorize = new URL('https://discord.com/oauth2/authorize');
   authorize.searchParams.set('client_id', clientId);
   authorize.searchParams.set('response_type', 'code');
@@ -40,11 +43,6 @@ export async function GET(request: NextRequest) {
     maxAge: 600,
   };
   res.cookies.set('yq_oauth_state', state, cookie);
-  // Only same-site relative paths — never an absolute URL (open redirect).
-  res.cookies.set(
-    'yq_oauth_return',
-    returnTo.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/',
-    cookie
-  );
+  res.cookies.set('yq_oauth_return', returnTo, cookie);
   return res;
 }

@@ -73,6 +73,7 @@ function ChampionSquare({
     );
   }
   return (
+    // eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse renders Satori markup, not a Next.js client component tree.
     <img
       src={src}
       alt={champion}

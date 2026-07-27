@@ -10,7 +10,11 @@
 
 **Working directory:** `D:\YuumiChallenges\.worktrees\high-elo-games-feed` (branch `feat/high-elo-games-feed`). All paths below are relative to it.
 
-**Validation:** No unit test framework exists in this repo. Per CLAUDE.md, every task verifies with `npm run type-check` + `npm run lint`, and the final task runs `npm run build` + manual verification. Format with `npm run format` before each commit (Prettier is strict here).
+**Historical validation context:** This plan was written before the repository
+adopted Vitest. The current validation gates are `npm run lint`,
+`npm run type-check`, and `npm run test:run`; the final task also runs
+`npm run build` plus manual verification. Format with `npm run format` before
+each commit (Prettier is strict here).
 
 **Strict TS warning:** `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noUnusedLocals` are all on. Array indexing returns `T | undefined`; don't pass `undefined` to optional props.
 
@@ -1209,10 +1213,14 @@ git commit -m "feat: add High Elo games feed to navigation"
 **Step 1:** Full local gates, all must pass:
 
 ```bash
-npm run lint && npm run type-check && npm run format:check && npm run build
+npm run lint && npm run type-check && npm run test:run && npm run format:check && npm run build
 ```
 
-Note: `npm run build` deploys Convex first (per package.json) — if that is undesired from the worktree, use `npx next build` instead and say so in the report.
+Historical note: when this plan was written, `npm run build` deployed Convex
+first. The current script runs only `next build --webpack` and does not deploy
+Convex. Use `npm run convex:deploy` for an explicit Convex deployment;
+`npm run build:cloudflare` creates the OpenNext bundle and may deploy Convex
+first when deployment credentials are configured.
 
 **Step 2:** Deploy backend + set the API key (Convex env, NOT .env):
 

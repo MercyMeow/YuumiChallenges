@@ -7,7 +7,8 @@ import {
   query,
 } from './_generated/server';
 import { internal } from './_generated/api';
-import type { Doc } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
+import { canFinishStripeWebhookAttempt } from '../src/lib/stripe/supporter';
 
 // ============ DISCORD WEB AUTH, ACCOUNT LINKING & SUPPORTER SUBS ============
 //
@@ -28,8 +29,51 @@ const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 // and the per-login cleanup scan.
 const MAX_ACTIVE_SESSIONS = 10;
 const LINK_CHALLENGE_TTL_MS = 15 * 60 * 1000;
+const STRIPE_CHECKOUT_SESSION_TTL_MS = 30 * 60 * 1000;
+const STRIPE_WEBHOOK_PROCESSING_LEASE_MS = 5 * 60 * 1000;
 // Starter summoner icons every account owns.
 const STARTER_ICON_MAX = 29;
+
+type StripeCheckoutStatus = 'pending' | 'open' | 'completed' | 'expired';
+type StripeWebhookEventStatus = 'processing' | 'processed' | 'failed';
+
+type StripeCheckoutSessionDoc = {
+  _id: string;
+  userId: Id<'webUsers'>;
+  returnTo: string;
+  status: StripeCheckoutStatus;
+  idempotencyKey: string;
+  stripeSessionId?: string;
+  stripeSubscriptionId?: string;
+  checkoutUrl?: string;
+  expiresAt?: number;
+  lastError?: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
+type StripeWebhookEventDoc = {
+  _id: string;
+  eventId: string;
+  type: string;
+  status: StripeWebhookEventStatus;
+  stripeCreatedAt?: number;
+  processingUntil?: number;
+  lastReceivedAt: number;
+  processedAt?: number;
+  attemptCount: number;
+  leaseToken?: string;
+  customerId?: string;
+  objectId?: string;
+  lastError?: string;
+};
+
+type UntypedIndexRange = {
+  eq(field: string, value: unknown): unknown;
+};
+
+const STRIPE_CHECKOUT_SESSIONS_TABLE = 'stripeCheckoutSessions' as never;
+const STRIPE_WEBHOOK_EVENTS_TABLE = 'stripeWebhookEvents' as never;
 
 function requireBridgeSecret(secret: string): void {
   const expected = process.env.AUTH_BRIDGE_SECRET;
@@ -43,6 +87,14 @@ function randomToken(): string {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
   return [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+function byField(field: string, value: unknown): never {
+  return ((q: UntypedIndexRange) => q.eq(field, value)) as never;
+}
+
+function untypedWrite<T extends object>(value: T): never {
+  return value as unknown as never;
 }
 
 // ---------- session plumbing ----------
@@ -193,6 +245,7 @@ export const applySubscription = mutation({
     secret: v.string(),
     userId: v.optional(v.id('webUsers')),
     stripeCustomerId: v.optional(v.string()),
+    stripeSubscriptionId: v.optional(v.string()),
     subscribedUntil: v.number(),
     // 'extend' never shortens an existing entitlement (max of old/new), so
     // out-of-order or replayed payment webhooks are harmless; 'end' stamps
@@ -203,12 +256,20 @@ export const applySubscription = mutation({
     // resurrect access after a cancellation.
     eventAt: v.optional(v.number()),
     setCustomerId: v.optional(v.string()),
+    setSubscriptionId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     requireBridgeSecret(args.secret);
     let user: Doc<'webUsers'> | null = null;
     if (args.userId) {
       user = await ctx.db.get(args.userId);
+    } else if (args.stripeSubscriptionId) {
+      user = await ctx.db
+        .query('webUsers')
+        .withIndex('by_stripeSubscriptionId', (q) =>
+          q.eq('stripeSubscriptionId', args.stripeSubscriptionId)
+        )
+        .unique();
     } else if (args.stripeCustomerId) {
       user = await ctx.db
         .query('webUsers')
@@ -217,20 +278,35 @@ export const applySubscription = mutation({
         )
         .unique();
     }
-    if (!user) return { applied: false };
-    if (args.eventAt !== undefined && user.subEventAt !== undefined) {
+    if (!user) {
+      return { applied: false as const, reason: 'not_found' as const };
+    }
+    const eventSubscriptionId =
+      args.setSubscriptionId ?? args.stripeSubscriptionId;
+    const appliesToCurrentSubscription =
+      eventSubscriptionId === undefined ||
+      eventSubscriptionId === user.stripeSubscriptionId;
+    if (
+      appliesToCurrentSubscription &&
+      args.eventAt !== undefined &&
+      user.subEventAt !== undefined
+    ) {
       // Ordering guard: drop events older than the newest applied one.
       // Stripe's Event.created has second resolution, so a payment and a
       // cancellation can share a timestamp — cancellation wins the tie
       // (an entitlement must never be resurrected by an equal-aged
-      // payment event).
-      if (args.eventAt < user.subEventAt) return { applied: false };
+      // payment event). A newly paid replacement subscription is a separate
+      // ordering stream and must not be blocked by the old subscription's
+      // cancellation timestamp.
+      if (args.eventAt < user.subEventAt) {
+        return { applied: false as const, reason: 'stale' as const };
+      }
       if (
         args.eventAt === user.subEventAt &&
         args.mode === 'extend' &&
         user.subEventMode === 'end'
       ) {
-        return { applied: false };
+        return { applied: false as const, reason: 'stale' as const };
       }
     }
     const subscribedUntil =
@@ -245,8 +321,361 @@ export const applySubscription = mutation({
       ...(args.setCustomerId !== undefined
         ? { stripeCustomerId: args.setCustomerId }
         : {}),
+      ...(args.setSubscriptionId !== undefined
+        ? { stripeSubscriptionId: args.setSubscriptionId }
+        : {}),
     });
-    return { applied: true };
+    return { applied: true as const, reason: 'applied' as const };
+  },
+});
+
+/**
+ * Bridge (Stripe checkout route): create or reuse the single active
+ * Checkout intent for a user. The stored idempotency key is reused across
+ * retries so a timeout or double-click cannot fan out into parallel Stripe
+ * subscription sessions.
+ */
+export const prepareStripeCheckout = mutation({
+  args: {
+    secret: v.string(),
+    userId: v.id('webUsers'),
+    returnTo: v.string(),
+    now: v.number(),
+  },
+  handler: async (ctx, args) => {
+    requireBridgeSecret(args.secret);
+    const user = await ctx.db.get(args.userId);
+    if (!user) throw new Error('User not found');
+    if ((user.subscribedUntil ?? 0) > args.now) {
+      return { state: 'already_subscribed' as const };
+    }
+
+    const sessions = (await (ctx.db
+      .query(STRIPE_CHECKOUT_SESSIONS_TABLE)
+      .withIndex('by_userId' as never, byField('userId', args.userId))
+      .collect() as Promise<
+      StripeCheckoutSessionDoc[]
+    >)) as StripeCheckoutSessionDoc[];
+
+    const ordered = sessions.sort((a, b) => b.updatedAt - a.updatedAt);
+    for (const session of ordered) {
+      const expiresAt = session.expiresAt ?? 0;
+      const stalePending =
+        session.status === 'pending' &&
+        session.updatedAt + STRIPE_CHECKOUT_SESSION_TTL_MS <= args.now;
+      const expiredOpen =
+        session.status === 'open' && expiresAt > 0 && expiresAt <= args.now;
+      if (stalePending || expiredOpen) {
+        await ctx.db.patch(
+          session._id as never,
+          untypedWrite({
+            status: 'expired',
+            updatedAt: args.now,
+          })
+        );
+        session.status = 'expired';
+      }
+    }
+
+    const reusable = ordered.find((session) => {
+      if (session.status === 'open') {
+        return Boolean(
+          session.checkoutUrl &&
+          session.expiresAt !== undefined &&
+          session.expiresAt > args.now
+        );
+      }
+      return (
+        session.status === 'pending' &&
+        session.updatedAt + STRIPE_CHECKOUT_SESSION_TTL_MS > args.now
+      );
+    });
+
+    if (reusable) {
+      return {
+        state: 'reuse' as const,
+        idempotencyKey: reusable.idempotencyKey,
+        returnTo: reusable.returnTo,
+        checkoutUrl: reusable.checkoutUrl ?? null,
+        stripeCustomerId: user.stripeCustomerId ?? null,
+      };
+    }
+
+    const idempotencyKey = `stripe_checkout_${args.userId}_${randomToken()}`;
+    await ctx.db.insert(
+      STRIPE_CHECKOUT_SESSIONS_TABLE,
+      untypedWrite({
+        userId: args.userId,
+        returnTo: args.returnTo,
+        status: 'pending',
+        idempotencyKey,
+        createdAt: args.now,
+        updatedAt: args.now,
+      })
+    );
+    return {
+      state: 'create' as const,
+      idempotencyKey,
+      returnTo: args.returnTo,
+      checkoutUrl: null,
+      stripeCustomerId: user.stripeCustomerId ?? null,
+    };
+  },
+});
+
+/** Bridge (Stripe checkout route): persist the reusable Checkout session. */
+export const completeStripeCheckout = mutation({
+  args: {
+    secret: v.string(),
+    userId: v.id('webUsers'),
+    idempotencyKey: v.string(),
+    checkoutUrl: v.string(),
+    stripeSessionId: v.string(),
+    expiresAt: v.number(),
+    stripeCustomerId: v.optional(v.string()),
+    now: v.number(),
+  },
+  handler: async (ctx, args) => {
+    requireBridgeSecret(args.secret);
+    const session = (await (ctx.db
+      .query(STRIPE_CHECKOUT_SESSIONS_TABLE)
+      .withIndex(
+        'by_idempotencyKey' as never,
+        byField('idempotencyKey', args.idempotencyKey)
+      )
+      .unique() as Promise<StripeCheckoutSessionDoc | null>)) as StripeCheckoutSessionDoc | null;
+    if (!session || session.userId !== args.userId) {
+      return { applied: false as const };
+    }
+    if (session.status === 'completed' || session.status === 'expired') {
+      return { applied: false as const };
+    }
+    await ctx.db.patch(
+      session._id as never,
+      untypedWrite({
+        status: 'open',
+        checkoutUrl: args.checkoutUrl,
+        stripeSessionId: args.stripeSessionId,
+        expiresAt: args.expiresAt,
+        lastError: undefined,
+        updatedAt: args.now,
+      })
+    );
+    const user = await ctx.db.get(args.userId);
+    if (user && !user.stripeCustomerId && args.stripeCustomerId) {
+      await ctx.db.patch(args.userId, {
+        stripeCustomerId: args.stripeCustomerId,
+      });
+    }
+    return { applied: true as const };
+  },
+});
+
+/**
+ * Bridge (Stripe checkout route): retain the same idempotency key after a
+ * failed Stripe round-trip so the next retry can safely ask Stripe for the
+ * same Checkout session instead of minting a parallel one.
+ */
+export const recordStripeCheckoutFailure = mutation({
+  args: {
+    secret: v.string(),
+    userId: v.id('webUsers'),
+    idempotencyKey: v.string(),
+    error: v.string(),
+    now: v.number(),
+  },
+  handler: async (ctx, args) => {
+    requireBridgeSecret(args.secret);
+    const session = (await (ctx.db
+      .query(STRIPE_CHECKOUT_SESSIONS_TABLE)
+      .withIndex(
+        'by_idempotencyKey' as never,
+        byField('idempotencyKey', args.idempotencyKey)
+      )
+      .unique() as Promise<StripeCheckoutSessionDoc | null>)) as StripeCheckoutSessionDoc | null;
+    if (!session || session.userId !== args.userId) {
+      return { applied: false as const };
+    }
+    await ctx.db.patch(
+      session._id as never,
+      untypedWrite({
+        lastError: args.error,
+        updatedAt: args.now,
+      })
+    );
+    return { applied: true as const };
+  },
+});
+
+/** Bridge (Stripe webhook route): mark a Checkout session as settled. */
+export const settleStripeCheckout = mutation({
+  args: {
+    secret: v.string(),
+    stripeSessionId: v.string(),
+    status: v.union(v.literal('completed'), v.literal('expired')),
+    stripeSubscriptionId: v.optional(v.string()),
+    now: v.number(),
+  },
+  handler: async (ctx, args) => {
+    requireBridgeSecret(args.secret);
+    const session = (await (ctx.db
+      .query(STRIPE_CHECKOUT_SESSIONS_TABLE)
+      .withIndex(
+        'by_stripeSessionId' as never,
+        byField('stripeSessionId', args.stripeSessionId)
+      )
+      .unique() as Promise<StripeCheckoutSessionDoc | null>)) as StripeCheckoutSessionDoc | null;
+    if (!session) return { applied: false as const };
+    // Paid fulfillment is the dominant terminal state. Stripe does not
+    // guarantee webhook delivery order, so a delayed completion must be able
+    // to replace an earlier expiry, while a late expiry can never replace a
+    // completion.
+    if (
+      session.status === 'completed' ||
+      (session.status === 'expired' && args.status === 'expired')
+    ) {
+      return {
+        applied: session.status === args.status,
+        userId: session.userId,
+      };
+    }
+    await ctx.db.patch(
+      session._id as never,
+      untypedWrite({
+        status: args.status,
+        ...(args.stripeSubscriptionId !== undefined
+          ? { stripeSubscriptionId: args.stripeSubscriptionId }
+          : {}),
+        updatedAt: args.now,
+      })
+    );
+    return {
+      applied: true as const,
+      userId: session.userId,
+    };
+  },
+});
+
+/**
+ * Bridge (Stripe webhook route): acquire the event-processing lease. The
+ * database row is the dedupe source of truth, so duplicate deliveries and
+ * replayed retries cannot apply the same Stripe event twice.
+ */
+export const beginStripeWebhookEvent = mutation({
+  args: {
+    secret: v.string(),
+    eventId: v.string(),
+    type: v.string(),
+    now: v.number(),
+    stripeCreatedAt: v.optional(v.number()),
+    customerId: v.optional(v.string()),
+    objectId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    requireBridgeSecret(args.secret);
+    const leaseToken = randomToken();
+    const existing = (await (ctx.db
+      .query(STRIPE_WEBHOOK_EVENTS_TABLE)
+      .withIndex('by_eventId' as never, byField('eventId', args.eventId))
+      .unique() as Promise<StripeWebhookEventDoc | null>)) as StripeWebhookEventDoc | null;
+
+    if (!existing) {
+      await ctx.db.insert(
+        STRIPE_WEBHOOK_EVENTS_TABLE,
+        untypedWrite({
+          eventId: args.eventId,
+          type: args.type,
+          status: 'processing',
+          stripeCreatedAt: args.stripeCreatedAt,
+          processingUntil: args.now + STRIPE_WEBHOOK_PROCESSING_LEASE_MS,
+          lastReceivedAt: args.now,
+          attemptCount: 1,
+          leaseToken,
+          ...(args.customerId !== undefined
+            ? { customerId: args.customerId }
+            : {}),
+          ...(args.objectId !== undefined ? { objectId: args.objectId } : {}),
+        })
+      );
+      return {
+        shouldProcess: true as const,
+        duplicate: false as const,
+        leaseToken,
+      };
+    }
+
+    if (
+      existing.status === 'processed' ||
+      (existing.status === 'processing' &&
+        (existing.processingUntil ?? 0) > args.now)
+    ) {
+      return { shouldProcess: false as const, duplicate: true as const };
+    }
+
+    await ctx.db.patch(
+      existing._id as never,
+      untypedWrite({
+        type: args.type,
+        status: 'processing',
+        stripeCreatedAt: args.stripeCreatedAt,
+        processingUntil: args.now + STRIPE_WEBHOOK_PROCESSING_LEASE_MS,
+        lastReceivedAt: args.now,
+        attemptCount: existing.attemptCount + 1,
+        leaseToken,
+        lastError: undefined,
+        ...(args.customerId !== undefined
+          ? { customerId: args.customerId }
+          : {}),
+        ...(args.objectId !== undefined ? { objectId: args.objectId } : {}),
+      })
+    );
+    return {
+      shouldProcess: true as const,
+      duplicate: false as const,
+      leaseToken,
+    };
+  },
+});
+
+/** Bridge (Stripe webhook route): close out the event-processing lease. */
+export const finishStripeWebhookEvent = mutation({
+  args: {
+    secret: v.string(),
+    eventId: v.string(),
+    leaseToken: v.string(),
+    success: v.boolean(),
+    now: v.number(),
+    error: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    requireBridgeSecret(args.secret);
+    const existing = (await (ctx.db
+      .query(STRIPE_WEBHOOK_EVENTS_TABLE)
+      .withIndex('by_eventId' as never, byField('eventId', args.eventId))
+      .unique() as Promise<StripeWebhookEventDoc | null>)) as StripeWebhookEventDoc | null;
+    if (!existing) return { applied: false as const, stale: true as const };
+    if (
+      !canFinishStripeWebhookAttempt(
+        existing.status,
+        existing.leaseToken,
+        args.leaseToken
+      )
+    ) {
+      return { applied: false as const, stale: true as const };
+    }
+
+    await ctx.db.patch(
+      existing._id as never,
+      untypedWrite({
+        status: args.success ? 'processed' : 'failed',
+        leaseToken: undefined,
+        processingUntil: undefined,
+        processedAt: args.success ? args.now : undefined,
+        lastReceivedAt: args.now,
+        lastError: args.success ? undefined : args.error,
+      })
+    );
+    return { applied: true as const, stale: false as const };
   },
 });
 
@@ -333,8 +762,11 @@ async function fetchProfileIconId(
 ): Promise<number> {
   const key = process.env.RIOT_API_KEY;
   if (!key) throw new Error('RIOT_API_KEY is not set');
+  if (!/^[a-z0-9]{2,4}$/i.test(platform)) {
+    throw new Error('Invalid Riot platform');
+  }
   const res = await fetch(
-    `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+    `https://${platform.toLowerCase()}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encodeURIComponent(puuid)}`,
     { headers: { 'X-Riot-Token': key } }
   );
   if (!res.ok) throw new Error(`Riot summoner lookup failed (${res.status})`);

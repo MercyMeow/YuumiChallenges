@@ -12,17 +12,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  REGIONS,
   REGION_NAMES,
+  REGIONS,
   YUUMI_DISCORD_INVITE_URL,
 } from '@/lib/utils/constants';
+import {
+  getRiotMatchIdValidationError,
+  getRiotMatchNumberValidationError,
+  normalizeRiotMatchId,
+} from '@/lib/apis/riot';
 import { ExternalLink, Search, Swords } from 'lucide-react';
 
 type RegionValue = (typeof REGIONS)[keyof typeof REGIONS];
-
-const VALID_REGION_PREFIXES = new Set(
-  Object.values(REGIONS).map((regionValue) => regionValue.toUpperCase())
-);
 
 export default function MatchLandingPage() {
   const router = useRouter();
@@ -32,29 +33,27 @@ export default function MatchLandingPage() {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const normalized = matchId.trim();
+    const normalized = normalizeRiotMatchId(matchId);
     setMatchIdError('');
+
     if (!normalized.length) {
       return;
     }
 
-    const fullMatchIdMatch = normalized.match(/^([A-Za-z0-9]+)_(\d+)$/);
-    if (fullMatchIdMatch) {
-      const [, rawRegion, rawMatchNumber] = fullMatchIdMatch;
-      if (!rawRegion || !rawMatchNumber) {
-        setMatchIdError('Enter a valid match ID.');
+    if (normalized.includes('_')) {
+      const validationError = getRiotMatchIdValidationError(normalized);
+      if (validationError) {
+        setMatchIdError(validationError);
         return;
       }
 
-      const normalizedRegion = rawRegion.toUpperCase();
-      if (!VALID_REGION_PREFIXES.has(normalizedRegion)) {
-        setMatchIdError('Unrecognized region prefix.');
-        return;
-      }
+      router.push('/match/' + encodeURIComponent(normalized));
+      return;
+    }
 
-      router.push(
-        '/match/' + encodeURIComponent(`${normalizedRegion}_${rawMatchNumber}`)
-      );
+    const matchNumberError = getRiotMatchNumberValidationError(normalized);
+    if (matchNumberError) {
+      setMatchIdError(matchNumberError);
       return;
     }
 

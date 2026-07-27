@@ -246,10 +246,20 @@ export default function MatchDetailsPage() {
             Back
           </Button>
 
+          {data.example && (
+            <div
+              role="status"
+              className="mb-4 rounded-sm border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm text-amber-100"
+            >
+              Example data is active. The match shown below is the bundled demo,
+              not a live Riot match lookup.
+            </div>
+          )}
+
           {/* Match Header */}
           <MatchHeader
             matchData={matchData}
-            matchId={matchId}
+            matchId={data.matchId}
             gameMode={gameMode}
             gameModeColor={gameModeColor}
             blueTeamData={blueTeamData}

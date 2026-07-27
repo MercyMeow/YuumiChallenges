@@ -295,7 +295,7 @@ const TIER_COMPLETION_MAP: Record<SupportItemTier, number> = {
  *
  * @example
  * ```typescript
- * isSupportItem(3850) // true (Relic Shield)
+ * isSupportItem(3865) // true (World Atlas)
  * isSupportItem(1001) // false (Boots)
  * isSupportItem(null) // false
  * ```
@@ -316,8 +316,8 @@ export function isSupportItem(itemId: number | null | undefined): boolean {
  *
  * @example
  * ```typescript
- * getSupportItemCompletion(3850) // { isSupportItem: true, tier: 'base', chainType: 'relic', ... }
- * getSupportItemCompletion(3853) // { isSupportItem: true, tier: 'tier2', isFinalEvolution: true, ... }
+ * getSupportItemCompletion(3865) // { isSupportItem: true, tier: 'base', chainType: 'world_atlas', ... }
+ * getSupportItemCompletion(3870) // { isSupportItem: true, tier: 'tier3', isFinalEvolution: true, ... }
  * getSupportItemCompletion(1001) // { isSupportItem: false, tier: null, ... }
  * ```
  */
@@ -362,8 +362,9 @@ export function getSupportItemCompletion(
  *
  * @example
  * ```typescript
- * getNextEvolutionItemId(3850) // 3851 (Relic Shield -> Spectral Sickle)
- * getNextEvolutionItemId(3853) // 0 (Pauldrons is final)
+ * getNextEvolutionItemId(3865) // 3866 (World Atlas -> Runic Compass)
+ * getNextEvolutionItemId(3866) // 3867 (Runic Compass -> Bounty of Worlds)
+ * getNextEvolutionItemId(3867) // 0 (the final upgrade is player-selected)
  * getNextEvolutionItemId(1001) // 0 (not a support item)
  * ```
  */
@@ -374,7 +375,8 @@ export function getNextEvolutionItemId(
     return 0;
   }
 
-  // Simplified: since we don't track next item IDs in the new system, just return 0
+  if (itemId === 3865) return 3866;
+  if (itemId === 3866) return 3867;
   return 0;
 }
 
@@ -386,9 +388,9 @@ export function getNextEvolutionItemId(
  *
  * @example
  * ```typescript
- * isFinalSupportItemEvolution(3853) // true (Pauldrons of Whiterock)
- * isFinalSupportItemEvolution(3857) // true (Bulwark of the Mountain)
- * isFinalSupportItemEvolution(3850) // false (Relic Shield - base item)
+ * isFinalSupportItemEvolution(3870) // true (Dream Maker)
+ * isFinalSupportItemEvolution(3869) // true (Celestial Opposition)
+ * isFinalSupportItemEvolution(3865) // false (World Atlas - base item)
  * isFinalSupportItemEvolution(1001) // false (not a support item)
  * ```
  */
@@ -407,8 +409,7 @@ export function isFinalSupportItemEvolution(
  *
  * @example
  * ```typescript
- * getSupportItemChain(3851) // [3850, 3851, 3853] (Relic Shield chain)
- * getSupportItemChain(3857) // [3854, 3855, 3857] (Steel Shoulderguards chain)
+ * getSupportItemChain(3866) // [3865, 3866, 3867, 3869, 3870, 3871, 3876, 3877]
  * getSupportItemChain(1001) // [] (not a support item)
  * ```
  */

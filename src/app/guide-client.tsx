@@ -27,7 +27,7 @@ import {
   ADC_CHAMPIONS,
   SUPPORT_MATCHUPS,
   ADC_MATCHUPS,
-} from '@/lib/matchups/index';
+} from '@/lib/matchups';
 import { cn } from '@/lib/utils';
 import {
   Download,
