@@ -12,6 +12,10 @@ import {
   isMatchDetailsSuccess,
 } from '@/components/match-details';
 import {
+  getRiotMatchIdValidationError,
+  normalizeRiotMatchId,
+} from '@/lib/riot-match-id';
+import {
   getGameModeDisplayName,
   getGameModeCategoryColor,
 } from '@/lib/utils/game-modes';
@@ -21,59 +25,114 @@ import {
   RawTimelineEvent,
 } from '@/lib/types/item-timeline-new';
 
+function getMatchRequestError(
+  payload: MatchDetailsResponse,
+  fallbackMessage: string
+) {
+  const errorMessage =
+    typeof payload === 'object' && payload && 'error' in payload
+      ? String(payload.error)
+      : fallbackMessage;
+
+  if (
+    typeof payload === 'object' &&
+    payload &&
+    'retryAfterSeconds' in payload &&
+    typeof payload.retryAfterSeconds === 'number'
+  ) {
+    return `${errorMessage} Retry after ${payload.retryAfterSeconds} seconds.`;
+  }
+
+  return errorMessage;
+}
+
 export function useMatchData(matchId: string) {
+  const normalizedMatchId = normalizeRiotMatchId(matchId);
+  const validationError = getRiotMatchIdValidationError(normalizedMatchId);
   const [data, setData] = useState<MatchDetailsSuccessPayload | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [requestError, setRequestError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!matchId) return;
+    if (!normalizedMatchId || validationError) {
+      return;
+    }
+
+    const abortController = new AbortController();
+    let ignoreResponse = false;
 
     const fetchMatchDetails = async () => {
       setLoading(true);
-      setError(null);
+      setRequestError(null);
+      setData(null);
 
       try {
         const url = new URL(window.location.href);
         const useExample = url.searchParams.get('useExample') === '1';
-        const apiUrl = `/api/match-details/${matchId}${useExample ? '?useExample=1' : ''}`;
+        const apiUrl = `/api/match-details/${encodeURIComponent(normalizedMatchId)}${useExample ? '?useExample=1' : ''}`;
 
-        const response = await fetch(apiUrl, { cache: 'no-store' });
+        const response = await fetch(apiUrl, {
+          cache: 'no-store',
+          signal: abortController.signal,
+        });
         const payload = (await response.json()) as MatchDetailsResponse;
 
+        if (ignoreResponse) {
+          return;
+        }
+
         if (!response.ok || !isMatchDetailsSuccess(payload)) {
-          const errorMessage =
-            (typeof payload === 'object' && payload && 'error' in payload
-              ? String(payload.error)
-              : undefined) || 'Failed to fetch match details';
-          throw new Error(errorMessage);
+          throw new Error(
+            getMatchRequestError(payload, 'Failed to fetch match details')
+          );
         }
 
         setData(payload);
       } catch (err) {
+        if (
+          ignoreResponse ||
+          abortController.signal.aborted ||
+          (err instanceof DOMException && err.name === 'AbortError')
+        ) {
+          return;
+        }
+
         console.error('Error fetching match details:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error occurred');
+        setRequestError(
+          err instanceof Error ? err.message : 'Unknown error occurred'
+        );
       } finally {
-        setLoading(false);
+        if (!ignoreResponse) {
+          setLoading(false);
+        }
       }
     };
 
     fetchMatchDetails();
-  }, [matchId]);
+
+    return () => {
+      ignoreResponse = true;
+      abortController.abort();
+    };
+  }, [normalizedMatchId, validationError]);
+
+  const resolvedData = !normalizedMatchId || validationError ? null : data;
+  const error = validationError ?? requestError;
+  const isLoading = normalizedMatchId && !validationError ? loading : false;
 
   // Calculate team totals
   const teamTotals = useMemo<TeamTotalsBySide>(() => {
-    if (!data?.matchData?.info?.participants) {
+    if (!resolvedData?.matchData?.info?.participants) {
       return {
         blue: { damage: 0, taken: 0, gold: 0, kills: 0 },
         red: { damage: 0, taken: 0, gold: 0, kills: 0 },
       };
     }
 
-    const blueTeam = data.matchData.info.participants.filter(
+    const blueTeam = resolvedData.matchData.info.participants.filter(
       (p) => p.teamId === 100
     );
-    const redTeam = data.matchData.info.participants.filter(
+    const redTeam = resolvedData.matchData.info.participants.filter(
       (p) => p.teamId === 200
     );
 
@@ -96,10 +155,10 @@ export function useMatchData(matchId: string) {
       kills: redTeam.reduce((sum, p) => sum + p.kills, 0),
     };
     return { blue: blueTotals, red: redTotals };
-  }, [data]);
+  }, [resolvedData]);
 
   // Process raw timeline data
-  const timelineData = data?.timelineData;
+  const timelineData = resolvedData?.timelineData;
   const rawTimelineData = useMemo<RawTimelineData | null>(() => {
     if (
       !timelineData?.info ||
@@ -121,7 +180,7 @@ export function useMatchData(matchId: string) {
   }, [timelineData]);
 
   // Game mode information
-  const queueId = data?.matchData?.info?.queueId;
+  const queueId = resolvedData?.matchData?.info?.queueId;
   const gameModeInfo = useMemo(() => {
     if (!queueId) {
       return { gameMode: 'Unknown', gameModeColor: 'text-white' };
@@ -140,7 +199,7 @@ export function useMatchData(matchId: string) {
   }, [queueId]);
 
   // Team data
-  const matchInfo = data?.matchData?.info;
+  const matchInfo = resolvedData?.matchData?.info;
   const teams = useMemo(() => {
     if (!matchInfo) {
       return {
@@ -164,8 +223,8 @@ export function useMatchData(matchId: string) {
   }, [matchInfo]);
 
   return {
-    data,
-    loading,
+    data: resolvedData,
+    loading: isLoading,
     error,
     teamTotals,
     rawTimelineData,

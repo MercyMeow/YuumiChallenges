@@ -44,20 +44,21 @@ function FeaturedAugmentCard({
   augment,
   champTier,
   rank,
-  highlighted,
+  isChampFit,
   theme,
 }: {
   augment: MayhemAugment;
   champTier?: MayhemTier;
   rank: number;
-  highlighted?: boolean;
+  isChampFit?: boolean;
   theme: MayhemRarityTheme;
 }) {
   return (
     <li
       className={cn(
         'flex flex-col gap-2 rounded-sm border p-3',
-        highlighted ? theme.cardHighlight : theme.card
+        theme.card,
+        isChampFit && 'ring-1 ring-hx-magic-bright/40'
       )}
     >
       <div className="flex items-start gap-3">
@@ -69,10 +70,10 @@ function FeaturedAugmentCard({
           alt=""
           width={48}
           height={48}
-          className="h-12 w-12 shrink-0 rounded-sm border border-hx-gold-dark/40"
+          className={cn('h-12 w-12 shrink-0 rounded-sm border', theme.card)}
         />
         <div className="min-w-0 flex-1">
-          <p className="font-display text-sm tracking-wide text-hx-parchment">
+          <p className={cn('font-display text-sm tracking-wide', theme.title)}>
             {augment.name}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -96,20 +97,21 @@ function CompactAugmentTile({
   augment,
   champTier,
   rank,
-  highlighted,
+  isChampFit,
   theme,
 }: {
   augment: MayhemAugment;
   champTier?: MayhemTier;
   rank: number;
-  highlighted?: boolean;
+  isChampFit?: boolean;
   theme: MayhemRarityTheme;
 }) {
   return (
     <li
       className={cn(
         'flex items-center gap-1.5 rounded-sm border px-1.5 py-1.5',
-        highlighted ? theme.compactHighlight : theme.compact
+        theme.card,
+        isChampFit && 'ring-1 ring-hx-magic-bright/35'
       )}
       title={augment.name}
     >
@@ -123,9 +125,11 @@ function CompactAugmentTile({
         alt=""
         width={28}
         height={28}
-        className="h-7 w-7 shrink-0 rounded-sm border border-hx-gold-dark/30"
+        className={cn('h-7 w-7 shrink-0 rounded-sm border', theme.card)}
       />
-      <span className="min-w-0 flex-1 truncate text-[0.7rem] text-hx-parchment/85">
+      <span
+        className={cn('min-w-0 flex-1 truncate text-[0.7rem]', theme.title)}
+      >
         {augment.name}
       </span>
       <TierChip tier={augment.metaTier} />
@@ -462,7 +466,7 @@ export function MayhemClient() {
                                   augment={augment}
                                   rank={index + 1}
                                   theme={theme}
-                                  highlighted={bestIds.has(augment.id)}
+                                  isChampFit={bestIds.has(augment.id)}
                                   {...(champTier !== undefined
                                     ? { champTier }
                                     : {})}
@@ -494,7 +498,7 @@ export function MayhemClient() {
                                     augment={augment}
                                     rank={index + 1}
                                     theme={theme}
-                                    highlighted={bestIds.has(augment.id)}
+                                    isChampFit={bestIds.has(augment.id)}
                                     {...(champTier !== undefined
                                       ? { champTier }
                                       : {})}

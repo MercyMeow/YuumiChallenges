@@ -25,6 +25,11 @@ import {
 import { ItemSlot } from '@/components/match-history/item-slots';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import {
+  MAX_ADMIN_PRIORITY,
+  parseAdminIntegerInput,
+} from '@/lib/admin/integer-input';
+import { canAssignSkillAtLevel } from '@/lib/admin/skill-order';
+import {
   ICONS,
   KEYSTONES,
   RUNE_TREES,
@@ -32,11 +37,9 @@ import {
   type ItemCategory,
   type NewItemState,
 } from './build-form';
+import type { AdminBuildIcon } from '@/lib/admin/build-icons';
 
 type SetForm = Dispatch<SetStateAction<BuildFormData>>;
-
-const SKILL_CAPS = { Q: 5, W: 5, E: 5, R: 3 } as const;
-type SkillKey = keyof typeof SKILL_CAPS;
 
 /** Split comma-separated admin input, dropping empty tokens from trailing commas. */
 function splitCsv(value: string): string[] {
@@ -44,20 +47,6 @@ function splitCsv(value: string): string[] {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
-}
-
-/** True when assigning `skill` at `index` would stay within rank caps. */
-function canAssignSkill(
-  levels: string[],
-  index: number,
-  skill: string
-): boolean {
-  if (!(skill in SKILL_CAPS)) return false;
-  const counts: Record<SkillKey, number> = { Q: 0, W: 0, E: 0, R: 0 };
-  levels.forEach((s, i) => {
-    if (i !== index && s in counts) counts[s as SkillKey]++;
-  });
-  return counts[skill as SkillKey] < SKILL_CAPS[skill as SkillKey];
 }
 
 /** Shared hextech styling for form controls in the editor. */
@@ -99,9 +88,12 @@ export function BuildGeneralTab({
             onChange={(e) =>
               setFormData({
                 ...formData,
-                priority: parseInt(e.target.value) || 0,
+                priority: e.target.value,
               })
             }
+            min="0"
+            max={MAX_ADMIN_PRIORITY}
+            step="1"
             className={FIELD_CLASS}
           />
         </Field>
@@ -122,7 +114,12 @@ export function BuildGeneralTab({
         <Field label="Icon">
           <Select
             value={formData.icon}
-            onValueChange={(v) => setFormData({ ...formData, icon: v })}
+            onValueChange={(value) =>
+              setFormData({
+                ...formData,
+                icon: value as AdminBuildIcon,
+              })
+            }
           >
             <SelectTrigger className={FIELD_CLASS}>
               <SelectValue />
@@ -319,24 +316,31 @@ export function BuildItemsTab({
 }) {
   const [newItem, setNewItem] = useState<NewItemState>({
     category: 'core',
-    id: 0,
+    id: '',
     name: '',
     reason: '',
   });
 
   const addItem = () => {
-    if (!newItem.name || newItem.id <= 0) return;
+    const itemId = parseAdminIntegerInput(newItem.id, { minimum: 1 });
+    if (itemId === null || !newItem.name.trim() || !newItem.reason.trim()) {
+      return;
+    }
     setFormData((prev) => ({
       ...prev,
       items: {
         ...prev.items,
         [newItem.category]: [
           ...prev.items[newItem.category],
-          { id: newItem.id, name: newItem.name, reason: newItem.reason },
+          {
+            id: itemId,
+            name: newItem.name.trim(),
+            reason: newItem.reason.trim(),
+          },
         ],
       },
     }));
-    setNewItem({ category: newItem.category, id: 0, name: '', reason: '' });
+    setNewItem({ category: newItem.category, id: '', name: '', reason: '' });
   };
 
   const removeItem = (category: ItemCategory, index: number) => {
@@ -382,14 +386,15 @@ export function BuildItemsTab({
               <Label className="text-xs">Item ID</Label>
               <Input
                 type="number"
-                value={newItem.id || ''}
-                onChange={(e) => {
-                  const parsed = parseInt(e.target.value, 10);
+                value={newItem.id}
+                onChange={(e) =>
                   setNewItem({
                     ...newItem,
-                    id: Number.isFinite(parsed) && parsed > 0 ? parsed : 0,
-                  });
-                }}
+                    id: e.target.value,
+                  })
+                }
+                min="1"
+                step="1"
                 className={FIELD_CLASS}
                 placeholder="3850"
               />
@@ -410,7 +415,11 @@ export function BuildItemsTab({
                 type="button"
                 onClick={addItem}
                 className="btn-hextech w-full rounded-sm"
-                disabled={!newItem.name || newItem.id <= 0}
+                disabled={
+                  parseAdminIntegerInput(newItem.id, { minimum: 1 }) === null ||
+                  !newItem.name.trim() ||
+                  !newItem.reason.trim()
+                }
               >
                 <Plus className="mr-1 h-4 w-4" />
                 Add
@@ -421,7 +430,7 @@ export function BuildItemsTab({
             value={newItem.reason}
             onChange={(e) => setNewItem({ ...newItem, reason: e.target.value })}
             className={FIELD_CLASS}
-            placeholder="Reason for this item..."
+            placeholder="Reason for this item (required)..."
           />
         </CardContent>
       </Card>
@@ -514,16 +523,22 @@ export function BuildSkillsTab({
                 <SelectContent>
                   {(['Q', 'W', 'E'] as const).map(
                     (key) =>
-                      canAssignSkill(formData.skillOrder.levels, idx, key) && (
+                      canAssignSkillAtLevel(
+                        formData.skillOrder.levels,
+                        idx,
+                        key
+                      ) && (
                         <SelectItem key={key} value={key}>
                           {key}
                         </SelectItem>
                       )
                   )}
                   {(idx === 5 || idx === 10 || idx === 15) &&
-                    canAssignSkill(formData.skillOrder.levels, idx, 'R') && (
-                      <SelectItem value="R">R</SelectItem>
-                    )}
+                    canAssignSkillAtLevel(
+                      formData.skillOrder.levels,
+                      idx,
+                      'R'
+                    ) && <SelectItem value="R">R</SelectItem>}
                 </SelectContent>
               </Select>
             </div>

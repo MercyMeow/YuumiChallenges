@@ -9,6 +9,9 @@ export default defineSchema({
     role: v.union(v.literal('admin'), v.literal('editor')),
     createdAt: v.number(),
     lastLogin: v.optional(v.number()),
+    failedLoginAttempts: v.optional(v.number()),
+    lastFailedLoginAt: v.optional(v.number()),
+    lockoutUntil: v.optional(v.number()),
   }).index('by_username', ['username']),
 
   // Sessions for auth
@@ -20,6 +23,20 @@ export default defineSchema({
   })
     .index('by_token', ['token'])
     .index('by_userId', ['userId']),
+
+  // Failed admin logins are throttled by a keyed, server-generated source
+  // identifier rather than by account. This prevents an anonymous caller from
+  // locking a known administrator out while keeping raw client addresses out
+  // of Convex.
+  adminLoginAttempts: defineTable({
+    attemptKey: v.string(),
+    failedAttempts: v.number(),
+    windowStartedAt: v.number(),
+    blockedUntil: v.optional(v.number()),
+    updatedAt: v.number(),
+  })
+    .index('by_attemptKey', ['attemptKey'])
+    .index('by_updatedAt', ['updatedAt']),
 
   // Site visitors signed in via Discord OAuth (distinct from admin
   // `users`). Subscription state is stamped by the Stripe webhook route;
@@ -34,6 +51,7 @@ export default defineSchema({
     // Supporter subscription (ms epoch; subscribed while > now)
     subscribedUntil: v.optional(v.number()),
     stripeCustomerId: v.optional(v.string()),
+    stripeSubscriptionId: v.optional(v.string()),
     // Creation time (ms) + mode of the newest Stripe event applied —
     // ordering guard against delayed/replayed webhooks (end wins ties).
     subEventAt: v.optional(v.number()),
@@ -51,7 +69,8 @@ export default defineSchema({
   })
     .index('by_discordId', ['discordId'])
     .index('by_linkedPuuid', ['linkedPuuid'])
-    .index('by_stripeCustomerId', ['stripeCustomerId']),
+    .index('by_stripeCustomerId', ['stripeCustomerId'])
+    .index('by_stripeSubscriptionId', ['stripeSubscriptionId']),
 
   // Web sessions (Discord-auth); token lives in an httpOnly cookie.
   webSessions: defineTable({
@@ -62,6 +81,66 @@ export default defineSchema({
   })
     .index('by_token', ['token'])
     .index('by_userId', ['userId']),
+
+  // Stripe Checkout intents are persisted so retries and double-clicks reuse
+  // one provider-side session instead of creating parallel subscriptions.
+  stripeCheckoutSessions: defineTable({
+    userId: v.id('webUsers'),
+    returnTo: v.string(),
+    status: v.union(
+      v.literal('pending'),
+      v.literal('open'),
+      v.literal('payment_pending'),
+      v.literal('completed'),
+      v.literal('expired')
+    ),
+    idempotencyKey: v.string(),
+    stripeSessionId: v.optional(v.string()),
+    stripeSubscriptionId: v.optional(v.string()),
+    checkoutUrl: v.optional(v.string()),
+    expiresAt: v.optional(v.number()),
+    lastError: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_userId', ['userId'])
+    .index('by_userId_status_updatedAt', ['userId', 'status', 'updatedAt'])
+    .index('by_userId_status_expiresAt', ['userId', 'status', 'expiresAt'])
+    .index('by_updatedAt', ['updatedAt'])
+    .index('by_idempotencyKey', ['idempotencyKey'])
+    .index('by_stripeSessionId', ['stripeSessionId'])
+    .index('by_stripeSubscriptionId', ['stripeSubscriptionId']),
+
+  // Stripe can deliver the same webhook more than once. This event ledger
+  // leases processing and makes every event idempotent across worker retries.
+  stripeWebhookEvents: defineTable({
+    eventId: v.string(),
+    type: v.string(),
+    status: v.union(
+      v.literal('processing'),
+      v.literal('processed'),
+      v.literal('failed')
+    ),
+    stripeCreatedAt: v.optional(v.number()),
+    processingUntil: v.optional(v.number()),
+    lastReceivedAt: v.number(),
+    processedAt: v.optional(v.number()),
+    attemptCount: v.number(),
+    leaseToken: v.optional(v.string()),
+    customerId: v.optional(v.string()),
+    objectId: v.optional(v.string()),
+    // Preserves a deletion's authoritative access horizon when the
+    // cancellation races ahead of the Checkout completion that binds it.
+    subscriptionEndAt: v.optional(v.number()),
+    lastError: v.optional(v.string()),
+  })
+    .index('by_eventId', ['eventId'])
+    .index('by_objectId_type_lastReceivedAt', [
+      'objectId',
+      'type',
+      'lastReceivedAt',
+    ])
+    .index('by_lastReceivedAt', ['lastReceivedAt']),
 
   // Guide sections (editable text content)
   guideSections: defineTable({

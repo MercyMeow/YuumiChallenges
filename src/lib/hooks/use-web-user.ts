@@ -33,22 +33,26 @@ export function useWebUser() {
   // the result of a later one (e.g. the post-logout refresh).
   const requestSeq = useRef(0);
 
-  const refresh = useCallback(() => {
+  const refresh = useCallback(async (): Promise<void> => {
     const seq = ++requestSeq.current;
-    fetch('/api/auth/me')
-      .then((res) => res.json())
-      .then((data: MePayload) => {
-        if (seq !== requestSeq.current) return; // superseded
-        setState({ user: data.user ?? null, loading: false });
-      })
-      .catch(() => {
-        if (seq !== requestSeq.current) return;
-        setState({ user: null, loading: false });
-      });
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = (await res.json()) as MePayload;
+      if (seq !== requestSeq.current) return; // superseded
+      setState({ user: data.user ?? null, loading: false });
+    } catch {
+      if (seq !== requestSeq.current) return;
+      setState({ user: null, loading: false });
+    }
   }, []);
 
   useEffect(() => {
-    refresh();
+    const timeoutId = window.setTimeout(() => {
+      void refresh();
+    }, 0);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [refresh]);
 
   /**
@@ -63,7 +67,7 @@ export function useWebUser() {
     } catch {
       return false;
     }
-    refresh();
+    await refresh();
     return true;
   }, [refresh]);
 

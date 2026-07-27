@@ -181,75 +181,6 @@ export const logout = mutation({
   },
 });
 
-// ---------- supporter subscription (Stripe webhook bridge) ----------
-
-/**
- * Bridge (Stripe routes): stamp subscription state. Accepts either the
- * Convex user id (checkout completion, via client_reference_id) or the
- * Stripe customer id (renewals/cancellations).
- */
-export const applySubscription = mutation({
-  args: {
-    secret: v.string(),
-    userId: v.optional(v.id('webUsers')),
-    stripeCustomerId: v.optional(v.string()),
-    subscribedUntil: v.number(),
-    // 'extend' never shortens an existing entitlement (max of old/new), so
-    // out-of-order or replayed payment webhooks are harmless; 'end' stamps
-    // the supplied timestamp exactly (cancellation).
-    mode: v.union(v.literal('extend'), v.literal('end')),
-    // Stripe event creation time (ms). Events older than the newest one
-    // already applied are dropped, so a delayed payment webhook can't
-    // resurrect access after a cancellation.
-    eventAt: v.optional(v.number()),
-    setCustomerId: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    requireBridgeSecret(args.secret);
-    let user: Doc<'webUsers'> | null = null;
-    if (args.userId) {
-      user = await ctx.db.get(args.userId);
-    } else if (args.stripeCustomerId) {
-      user = await ctx.db
-        .query('webUsers')
-        .withIndex('by_stripeCustomerId', (q) =>
-          q.eq('stripeCustomerId', args.stripeCustomerId)
-        )
-        .unique();
-    }
-    if (!user) return { applied: false };
-    if (args.eventAt !== undefined && user.subEventAt !== undefined) {
-      // Ordering guard: drop events older than the newest applied one.
-      // Stripe's Event.created has second resolution, so a payment and a
-      // cancellation can share a timestamp — cancellation wins the tie
-      // (an entitlement must never be resurrected by an equal-aged
-      // payment event).
-      if (args.eventAt < user.subEventAt) return { applied: false };
-      if (
-        args.eventAt === user.subEventAt &&
-        args.mode === 'extend' &&
-        user.subEventMode === 'end'
-      ) {
-        return { applied: false };
-      }
-    }
-    const subscribedUntil =
-      args.mode === 'extend'
-        ? Math.max(user.subscribedUntil ?? 0, args.subscribedUntil)
-        : args.subscribedUntil;
-    await ctx.db.patch(user._id, {
-      subscribedUntil,
-      ...(args.eventAt !== undefined
-        ? { subEventAt: args.eventAt, subEventMode: args.mode }
-        : {}),
-      ...(args.setCustomerId !== undefined
-        ? { stripeCustomerId: args.setCustomerId }
-        : {}),
-    });
-    return { applied: true };
-  },
-});
-
 /** Supporter badge for a profile: linked + active subscription. */
 export const getSupporterBadge = query({
   args: { puuid: v.string() },
@@ -333,8 +264,11 @@ async function fetchProfileIconId(
 ): Promise<number> {
   const key = process.env.RIOT_API_KEY;
   if (!key) throw new Error('RIOT_API_KEY is not set');
+  if (!/^[a-z0-9]{2,4}$/i.test(platform)) {
+    throw new Error('Invalid Riot platform');
+  }
   const res = await fetch(
-    `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
+    `https://${platform.toLowerCase()}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encodeURIComponent(puuid)}`,
     { headers: { 'X-Riot-Token': key } }
   );
   if (!res.ok) throw new Error(`Riot summoner lookup failed (${res.status})`);

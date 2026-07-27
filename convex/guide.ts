@@ -2,9 +2,15 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import type { DatabaseReader } from './_generated/server';
 import { Id } from './_generated/dataModel';
+import {
+  adminBuildPayloadSchema,
+  adminItemPayloadSchema,
+} from '../src/lib/admin/guide-validation';
+import { MAX_ADMIN_PRIORITY } from '../src/lib/admin/integer-input';
+import { getSkillOrderValidationError } from '../src/lib/admin/skill-order';
 
 // Helper to verify session
-async function verifyAuth(
+async function verifyGuideEditor(
   ctx: { db: DatabaseReader },
   sessionToken: string
 ): Promise<Id<'users'> | null> {
@@ -17,7 +23,12 @@ async function verifyAuth(
     return null;
   }
 
-  return session.userId ?? null;
+  const user = session.userId ? await ctx.db.get(session.userId) : null;
+  if (!user || (user.role !== 'admin' && user.role !== 'editor')) {
+    return null;
+  }
+
+  return user._id;
 }
 
 // Shared matchup enum validators — used by upsertMatchup and
@@ -45,19 +56,62 @@ function stripSessionToken<T extends { sessionToken: string }>(
   return rest;
 }
 
+function requireGuideEditorSession(userId: Id<'users'> | null): Id<'users'> {
+  if (!userId) {
+    throw new Error('Unauthorized');
+  }
+  return userId;
+}
+
+function normalizeRequiredString(value: string, fieldName: string): string {
+  const normalized = value.trim();
+  if (!normalized) {
+    throw new Error(`${fieldName} is required`);
+  }
+  return normalized;
+}
+
+function normalizePriority(value: number, fieldName: string): number {
+  if (!Number.isInteger(value) || value < 0 || value > MAX_ADMIN_PRIORITY) {
+    throw new Error(
+      `${fieldName} must be an integer from 0 to ${MAX_ADMIN_PRIORITY}`
+    );
+  }
+  return value;
+}
+
+function normalizeSkillLevels(levels: string[]): string[] {
+  const normalized = levels.map((level) => level.trim().toUpperCase());
+  const validationError = getSkillOrderValidationError(normalized);
+  if (validationError) {
+    throw new Error(validationError);
+  }
+  return normalized;
+}
+
+function normalizeGuideItemPayload(args: unknown) {
+  return adminItemPayloadSchema.parse(args);
+}
+
+function normalizeBuildPayload(args: unknown) {
+  return adminBuildPayloadSchema.parse(args);
+}
+
 // ============ ITEMS ============
 
 export const getItems = query({
   args: {},
   handler: async (ctx) => {
     const items = await ctx.db.query('guideItems').collect();
-    return items.sort((a, b) => {
-      const categoryOrder = ['starter', 'early', 'core', 'situational'];
-      const catDiff =
-        categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category);
-      if (catDiff !== 0) return catDiff;
-      return a.priority - b.priority;
-    });
+    return items
+      .filter((item) => item.isActive)
+      .sort((a, b) => {
+        const categoryOrder = ['starter', 'early', 'core', 'situational'];
+        const catDiff =
+          categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category);
+        if (catDiff !== 0) return catDiff;
+        return a.priority - b.priority;
+      });
   },
 });
 
@@ -71,10 +125,31 @@ export const getItemsByCategory = query({
     ),
   },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const items = await ctx.db
       .query('guideItems')
       .withIndex('by_category', (q) => q.eq('category', args.category))
       .collect();
+    return items
+      .filter((item) => item.isActive)
+      .sort((a, b) => a.priority - b.priority);
+  },
+});
+
+export const getAllItems = query({
+  args: {
+    sessionToken: v.string(),
+  },
+  handler: async (ctx, args) => {
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
+
+    const items = await ctx.db.query('guideItems').collect();
+    return items.sort((a, b) => {
+      const categoryOrder = ['starter', 'early', 'core', 'situational'];
+      const catDiff =
+        categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category);
+      if (catDiff !== 0) return catDiff;
+      return a.priority - b.priority;
+    });
   },
 });
 
@@ -95,17 +170,24 @@ export const upsertItem = mutation({
     isActive: v.boolean(),
   },
   handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
 
     const { id, ...data } = stripSessionToken(args);
-    const itemData = { ...data, updatedAt: Date.now() };
+    const itemData = {
+      ...normalizeGuideItemPayload(data),
+      updatedAt: Date.now(),
+    };
 
     if (id) {
       await ctx.db.patch(id, itemData);
-      return id;
+      const saved = await ctx.db.get(id);
+      if (!saved) throw new Error('Saved item was not found');
+      return saved;
     } else {
-      return await ctx.db.insert('guideItems', itemData);
+      const savedId = await ctx.db.insert('guideItems', itemData);
+      const saved = await ctx.db.get(savedId);
+      if (!saved) throw new Error('Saved item was not found');
+      return saved;
     }
   },
 });
@@ -116,8 +198,7 @@ export const deleteItem = mutation({
     id: v.id('guideItems'),
   },
   handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
 
     await ctx.db.delete(args.id);
     return { success: true };
@@ -155,8 +236,7 @@ export const upsertRune = mutation({
     priority: v.number(),
   },
   handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
 
     const { id, ...data } = stripSessionToken(args);
     const runeData = { ...data, updatedAt: Date.now() };
@@ -176,8 +256,7 @@ export const deleteRune = mutation({
     id: v.id('guideRunes'),
   },
   handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
 
     await ctx.db.delete(args.id);
     return { success: true };
@@ -205,15 +284,20 @@ export const upsertSkillOrder = mutation({
     priority: v.number(),
   },
   handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
-
-    if (args.levels.length !== 18) {
-      throw new Error('Skill order must have exactly 18 levels');
-    }
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
 
     const { id, ...data } = stripSessionToken(args);
-    const skillData = { ...data, updatedAt: Date.now() };
+    const skillData = {
+      ...data,
+      name: normalizeRequiredString(data.name, 'Skill order name'),
+      description: normalizeRequiredString(
+        data.description,
+        'Skill order description'
+      ),
+      levels: normalizeSkillLevels(data.levels),
+      priority: normalizePriority(data.priority, 'Skill order priority'),
+      updatedAt: Date.now(),
+    };
 
     if (id) {
       await ctx.db.patch(id, skillData);
@@ -230,8 +314,7 @@ export const deleteSkillOrder = mutation({
     id: v.id('guideSkillOrder'),
   },
   handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
 
     await ctx.db.delete(args.id);
     return { success: true };
@@ -251,8 +334,12 @@ export const getBuilds = query({
 });
 
 export const getAllBuilds = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    sessionToken: v.string(),
+  },
+  handler: async (ctx, args) => {
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
+
     const builds = await ctx.db.query('guideBuilds').collect();
     return builds.sort((a, b) => a.priority - b.priority);
   },
@@ -263,7 +350,8 @@ export const getBuildById = query({
     id: v.id('guideBuilds'),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.id);
+    const build = await ctx.db.get(args.id);
+    return build?.isActive ? build : null;
   },
 });
 
@@ -318,22 +406,24 @@ export const upsertBuild = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
-
-    // Validate skill order has 18 levels
-    if (args.skillOrder.levels.length !== 18) {
-      throw new Error('Skill order must have exactly 18 levels');
-    }
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
 
     const { id, ...data } = stripSessionToken(args);
-    const buildData = { ...data, updatedAt: Date.now() };
+    const buildData = {
+      ...normalizeBuildPayload(data),
+      updatedAt: Date.now(),
+    };
 
     if (id) {
       await ctx.db.patch(id, buildData);
-      return id;
+      const saved = await ctx.db.get(id);
+      if (!saved) throw new Error('Saved build was not found');
+      return saved;
     } else {
-      return await ctx.db.insert('guideBuilds', buildData);
+      const savedId = await ctx.db.insert('guideBuilds', buildData);
+      const saved = await ctx.db.get(savedId);
+      if (!saved) throw new Error('Saved build was not found');
+      return saved;
     }
   },
 });
@@ -344,8 +434,7 @@ export const deleteBuild = mutation({
     id: v.id('guideBuilds'),
   },
   handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
 
     await ctx.db.delete(args.id);
     return { success: true };
@@ -406,18 +495,12 @@ export const bulkImportBuilds = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
 
     const ids = [];
     for (const build of args.builds) {
-      if (build.skillOrder.levels.length !== 18) {
-        throw new Error(
-          `Build "${build.name}" skill order must have exactly 18 levels`
-        );
-      }
       const id = await ctx.db.insert('guideBuilds', {
-        ...build,
+        ...normalizeBuildPayload(build),
         updatedAt: Date.now(),
       });
       ids.push(id);
@@ -479,8 +562,7 @@ export const upsertMatchup = mutation({
     buildAdjustments: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
 
     const { id, ...data } = stripSessionToken(args);
     const matchupData = { ...data, updatedAt: Date.now() };
@@ -500,8 +582,7 @@ export const deleteMatchup = mutation({
     id: v.id('guideMatchups'),
   },
   handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
 
     await ctx.db.delete(args.id);
     return { success: true };
@@ -540,11 +621,20 @@ export const upsertSection = mutation({
     order: v.number(),
   },
   handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
+    const userId = requireGuideEditorSession(
+      await verifyGuideEditor(ctx, args.sessionToken)
+    );
 
     const { id, ...data } = stripSessionToken(args);
-    const sectionData = { ...data, updatedAt: Date.now(), updatedBy: userId };
+    const sectionData = {
+      ...data,
+      sectionKey: normalizeRequiredString(data.sectionKey, 'Section key'),
+      title: normalizeRequiredString(data.title, 'Section title'),
+      content: normalizeRequiredString(data.content, 'Section content'),
+      order: normalizePriority(data.order, 'Section order'),
+      updatedAt: Date.now(),
+      updatedBy: userId,
+    };
 
     if (id) {
       await ctx.db.patch(id, sectionData);
@@ -572,24 +662,32 @@ export const setMetadata = mutation({
     value: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
 
+    const normalizedKey = normalizeRequiredString(args.key, 'Metadata key');
+    const normalizedValue = normalizeRequiredString(
+      args.value,
+      'Metadata value'
+    );
     const existing = await ctx.db
       .query('guideMetadata')
-      .withIndex('by_key', (q) => q.eq('key', args.key))
-      .first();
+      .withIndex('by_key', (q) => q.eq('key', normalizedKey))
+      .collect();
 
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        value: args.value,
+    if (existing.length > 0) {
+      const canonical = existing[0]!;
+      await ctx.db.patch(canonical._id, {
+        value: normalizedValue,
         updatedAt: Date.now(),
       });
-      return existing._id;
+      for (const duplicate of existing.slice(1)) {
+        await ctx.db.delete(duplicate._id);
+      }
+      return canonical._id;
     } else {
       return await ctx.db.insert('guideMetadata', {
-        key: args.key,
-        value: args.value,
+        key: normalizedKey,
+        value: normalizedValue,
         updatedAt: Date.now(),
       });
     }
@@ -618,13 +716,12 @@ export const bulkImportItems = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
 
     const ids = [];
     for (const item of args.items) {
       const id = await ctx.db.insert('guideItems', {
-        ...item,
+        ...normalizeGuideItemPayload(item),
         updatedAt: Date.now(),
       });
       ids.push(id);
@@ -655,8 +752,7 @@ export const bulkImportMatchups = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
+    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
 
     const ids = [];
     for (const matchup of args.matchups) {

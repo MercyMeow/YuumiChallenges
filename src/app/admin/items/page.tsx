@@ -1,9 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import {
+  deleteAdminItemRequest,
+  fetchAdminItemsRequest,
+  saveAdminItemRequest,
+} from '@/lib/admin/client';
+import { useAdminResourceEditor } from '@/hooks/use-admin-resource-editor';
+import {
+  MAX_ADMIN_PRIORITY,
+  parseAdminIntegerInput,
+} from '@/lib/admin/integer-input';
+import {
+  adminItemPayloadSchema,
+  describeAdminValidationIssue,
+  type AdminItem,
+  type AdminItemCategory,
+} from '@/lib/admin/types';
+import { AdminStatusBanner } from '@/components/admin/StatusBanner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,62 +46,111 @@ import {
   Pencil,
   Trash2,
   Package,
-  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import { Skeleton, PanelSkeleton } from '@/components/ui/skeleton';
 
-type ItemCategory = 'starter' | 'early' | 'core' | 'situational';
-
-interface GuideItem {
-  id: string;
-  name: string;
-  itemId: number;
-  category: ItemCategory;
-  reason: string;
-  priority: number;
-  isActive: boolean;
-}
+type ItemCategory = AdminItemCategory;
+type GuideItemId = string;
 
 interface ItemFormData {
-  id?: string;
+  id?: GuideItemId;
   name: string;
-  itemId: number;
+  itemId: string;
   category: ItemCategory;
   reason: string;
-  priority: number;
+  priority: string;
   isActive: boolean;
 }
 
 const initialFormData: ItemFormData = {
   name: '',
-  itemId: 0,
+  itemId: '',
   category: 'core',
   reason: '',
-  priority: 0,
+  priority: '0',
   isActive: true,
 };
 
+const itemCategoryOrder: Record<ItemCategory, number> = {
+  starter: 0,
+  early: 1,
+  core: 2,
+  situational: 3,
+};
+
+function createInitialFormData(): ItemFormData {
+  return { ...initialFormData };
+}
+
+function compareAdminItems(left: AdminItem, right: AdminItem): number {
+  return (
+    itemCategoryOrder[left.category] - itemCategoryOrder[right.category] ||
+    left.priority - right.priority
+  );
+}
+
+function getAdminItemId(item: AdminItem): string {
+  return item.id;
+}
+
+function sortAdminItems(items: AdminItem[]): AdminItem[] {
+  return [...items].sort(compareAdminItems);
+}
+
+function parseItemFormData(formData: ItemFormData) {
+  const itemId = parseAdminIntegerInput(formData.itemId, { minimum: 1 });
+  const priority = parseAdminIntegerInput(formData.priority, {
+    minimum: 0,
+    maximum: MAX_ADMIN_PRIORITY,
+  });
+  return adminItemPayloadSchema.safeParse({
+    name: formData.name.trim(),
+    itemId: itemId ?? Number.NaN,
+    category: formData.category,
+    reason: formData.reason.trim(),
+    priority: priority ?? Number.NaN,
+    isActive: formData.isActive,
+  });
+}
+
 export default function ItemsEditorPage() {
-  const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [formData, setFormData] = useState<ItemFormData>(initialFormData);
+  const [formData, setFormData] = useState<ItemFormData>(
+    createInitialFormData()
+  );
+  const {
+    authLoading,
+    clearSubmitError,
+    deletingId,
+    isAuthenticated,
+    isDataLoading,
+    isMutating,
+    isSubmitting,
+    remove,
+    reportValidationError,
+    resources: items,
+    status,
+    submit,
+    submitError,
+    user,
+  } = useAdminResourceEditor<
+    AdminItem,
+    Parameters<typeof saveAdminItemRequest>[0]
+  >({
+    resourceName: 'item',
+    fetchResources: fetchAdminItemsRequest,
+    saveResource: saveAdminItemRequest,
+    deleteResource: deleteAdminItemRequest,
+    getId: getAdminItemId,
+    sortResources: sortAdminItems,
+  });
 
-  // Placeholder - items will come from Convex when connected
-  const items: GuideItem[] = [];
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/admin/login');
-    }
-  }, [authLoading, isAuthenticated, router]);
-
-  if (authLoading) {
+  if (authLoading || isDataLoading) {
     return (
       <div role="status" aria-busy="true" className="min-h-screen hex-page-bg">
         <span className="sr-only">Loading items editor…</span>
         <div className="container mx-auto max-w-7xl px-6 py-8">
-          {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
               <Skeleton className="mb-4 h-4 w-36" />
@@ -95,16 +159,14 @@ export default function ItemsEditorPage() {
             </div>
             <Skeleton className="h-9 w-24" />
           </div>
-
-          {/* Items by Category */}
           <div className="space-y-6">
-            {Array.from({ length: 2 }, (_, i) => (
-              <PanelSkeleton key={i}>
+            {Array.from({ length: 2 }, (_, index) => (
+              <PanelSkeleton key={index}>
                 <div className="p-6">
                   <Skeleton className="h-5 w-40" />
                   <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {Array.from({ length: 3 }, (_, j) => (
-                      <div key={j} className="flex items-start gap-3">
+                    {Array.from({ length: 3 }, (_, itemIndex) => (
+                      <div key={itemIndex} className="flex items-start gap-3">
                         <Skeleton className="h-12 w-12 shrink-0" />
                         <div className="min-w-0 flex-1 space-y-2">
                           <Skeleton className="h-4 w-24" />
@@ -130,44 +192,94 @@ export default function ItemsEditorPage() {
     return null;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Implement with Convex when connected
-    setIsDialogOpen(false);
-    setFormData(initialFormData);
+  const handleDialogOpenChange = (open: boolean) => {
+    if (isMutating) {
+      return;
+    }
+    setIsDialogOpen(open);
+    if (!open) {
+      clearSubmitError();
+      setFormData(createInitialFormData());
+    }
   };
 
-  const handleEdit = (item: GuideItem) => {
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (user?.role !== 'admin' && user?.role !== 'editor') {
+      const message = 'Your account is not allowed to edit guide items.';
+      reportValidationError(message);
+      return;
+    }
+
+    const parsed = parseItemFormData(formData);
+    if (!parsed.success) {
+      reportValidationError(
+        describeAdminValidationIssue(parsed.error.issues[0]!)
+      );
+      return;
+    }
+
+    const result = await submit(
+      {
+        ...parsed.data,
+        ...(formData.id ? { id: formData.id } : {}),
+      },
+      Boolean(formData.id)
+    );
+    if (result.ok) {
+      setIsDialogOpen(false);
+      setFormData(createInitialFormData());
+    }
+  };
+
+  const handleEdit = (item: AdminItem) => {
+    if (isMutating) {
+      return;
+    }
+    clearSubmitError();
     setFormData({
       id: item.id,
       name: item.name,
-      itemId: item.itemId,
+      itemId: String(item.itemId),
       category: item.category,
       reason: item.reason,
-      priority: item.priority,
+      priority: String(item.priority),
       isActive: item.isActive,
     });
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: GuideItemId) => {
+    if (isMutating) {
+      return;
+    }
     if (!confirm('Are you sure you want to delete this item?')) return;
-    // TODO: Implement with Convex when connected
-    console.log('Delete item:', id);
+
+    const result = await remove(id);
+    if (result.ok) {
+      const deletedId = result.value;
+      if (formData.id === deletedId) {
+        setIsDialogOpen(false);
+        setFormData(createInitialFormData());
+        clearSubmitError();
+      }
+    }
   };
 
   const handleAddNew = () => {
-    setFormData(initialFormData);
+    if (isMutating) {
+      return;
+    }
+    clearSubmitError();
+    setFormData(createInitialFormData());
     setIsDialogOpen(true);
   };
 
-  const groupedItems = items.reduce<Record<ItemCategory, GuideItem[]>>(
-    (acc, item) => {
-      if (!acc[item.category]) {
-        acc[item.category] = [];
-      }
-      acc[item.category].push(item);
-      return acc;
+  const groupedItems = items.reduce<Record<ItemCategory, AdminItem[]>>(
+    (accumulator, item) => {
+      accumulator[item.category].push(item);
+      return accumulator;
     },
     { starter: [], early: [], core: [], situational: [] }
   );
@@ -186,7 +298,6 @@ export default function ItemsEditorPage() {
   return (
     <div className="min-h-screen hex-page-bg">
       <div className="container mx-auto max-w-7xl px-6 py-8 duration-500 animate-in fade-in slide-in-from-bottom-4">
-        {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
             <Link
@@ -203,120 +314,169 @@ export default function ItemsEditorPage() {
               Manage recommended items for the Yuumi guide
             </p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
             <DialogTrigger asChild>
-              <Button onClick={handleAddNew} className="btn-hextech rounded-sm">
-                <Plus className="mr-2 h-4 w-4" />
+              <Button
+                onClick={handleAddNew}
+                className="btn-hextech rounded-sm"
+                disabled={isMutating}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="mr-2 h-4 w-4" />
+                )}
                 Add Item
               </Button>
             </DialogTrigger>
-            <DialogContent className="hex-card rounded-sm border-0 text-hx-parchment">
+            <DialogContent
+              className="hex-card rounded-sm border-0 text-hx-parchment"
+              onEscapeKeyDown={(event) => {
+                if (isMutating) {
+                  event.preventDefault();
+                }
+              }}
+              onInteractOutside={(event) => {
+                if (isMutating) {
+                  event.preventDefault();
+                }
+              }}
+            >
               <DialogHeader>
                 <DialogTitle>
                   {formData.id ? 'Edit Item' : 'Add New Item'}
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                {submitError && (
+                  <AdminStatusBanner
+                    status={{ type: 'error', message: submitError }}
+                  />
+                )}
+                <div
+                  className={
+                    isSubmitting ? 'pointer-events-none opacity-70' : ''
+                  }
+                >
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Item Name</Label>
+                      <Input
+                        value={formData.name}
+                        onChange={(event) =>
+                          setFormData({ ...formData, name: event.target.value })
+                        }
+                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Data Dragon Item ID</Label>
+                      <Input
+                        type="number"
+                        value={formData.itemId}
+                        onChange={(event) =>
+                          setFormData({
+                            ...formData,
+                            itemId: event.target.value,
+                          })
+                        }
+                        min="1"
+                        step="1"
+                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Category</Label>
+                      <Select
+                        value={formData.category}
+                        onValueChange={(value) =>
+                          setFormData({
+                            ...formData,
+                            category: value as ItemCategory,
+                          })
+                        }
+                      >
+                        <SelectTrigger className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="starter">Starter</SelectItem>
+                          <SelectItem value="early">Early Game</SelectItem>
+                          <SelectItem value="core">Core</SelectItem>
+                          <SelectItem value="situational">
+                            Situational
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Priority (lower = first)</Label>
+                      <Input
+                        type="number"
+                        value={formData.priority}
+                        onChange={(event) =>
+                          setFormData({
+                            ...formData,
+                            priority: event.target.value,
+                          })
+                        }
+                        min="0"
+                        max={MAX_ADMIN_PRIORITY}
+                        step="1"
+                        className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
+                      />
+                    </div>
+                  </div>
                   <div className="space-y-2">
-                    <Label>Item Name</Label>
-                    <Input
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
+                    <Label>Reason / Description</Label>
+                    <Textarea
+                      value={formData.reason}
+                      onChange={(event) =>
+                        setFormData({ ...formData, reason: event.target.value })
                       }
                       className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
+                      rows={3}
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Data Dragon Item ID</Label>
-                    <Input
-                      type="number"
-                      value={formData.itemId}
-                      onChange={(e) =>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="isActive"
+                      checked={formData.isActive}
+                      onChange={(event) =>
                         setFormData({
                           ...formData,
-                          itemId: parseInt(e.target.value) || 0,
+                          isActive: event.target.checked,
                         })
                       }
-                      className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                      required
+                      className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60"
                     />
+                    <Label htmlFor="isActive">Active (show in guide)</Label>
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Category</Label>
-                    <Select
-                      value={formData.category}
-                      onValueChange={(v) =>
-                        setFormData({
-                          ...formData,
-                          category: v as ItemCategory,
-                        })
-                      }
-                    >
-                      <SelectTrigger className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="starter">Starter</SelectItem>
-                        <SelectItem value="early">Early Game</SelectItem>
-                        <SelectItem value="core">Core</SelectItem>
-                        <SelectItem value="situational">Situational</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Priority (lower = first)</Label>
-                    <Input
-                      type="number"
-                      value={formData.priority}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          priority: parseInt(e.target.value) || 0,
-                        })
-                      }
-                      className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Reason / Description</Label>
-                  <Textarea
-                    value={formData.reason}
-                    onChange={(e) =>
-                      setFormData({ ...formData, reason: e.target.value })
-                    }
-                    className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
-                    rows={3}
-                    required
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="isActive"
-                    checked={formData.isActive}
-                    onChange={(e) =>
-                      setFormData({ ...formData, isActive: e.target.checked })
-                    }
-                    className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60"
-                  />
-                  <Label htmlFor="isActive">Active (show in guide)</Label>
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setIsDialogOpen(false)}
+                    onClick={() => handleDialogOpenChange(false)}
+                    disabled={isMutating}
                     className="rounded-sm border-hx-gold-dark/60 text-hx-gold hover:border-hx-gold hover:text-hx-gold-bright"
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" className="btn-hextech rounded-sm">
+                  <Button
+                    type="submit"
+                    className="btn-hextech rounded-sm"
+                    disabled={isMutating}
+                  >
+                    {isSubmitting && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
                     Save Item
                   </Button>
                 </div>
@@ -325,22 +485,12 @@ export default function ItemsEditorPage() {
           </Dialog>
         </div>
 
-        {/* Convex Connection Notice */}
-        <Card className="mb-6 rounded-sm border-yellow-500/30 bg-yellow-500/10 backdrop-blur-md">
-          <CardContent className="flex items-start gap-3 p-4">
-            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-400" />
-            <div>
-              <h4 className="font-medium text-yellow-200">Connect Convex</h4>
-              <p className="mt-1 text-sm text-yellow-200/80">
-                Run{' '}
-                <code className="rounded bg-black/30 px-1">npx convex dev</code>{' '}
-                to connect your Convex database and enable item management.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        {status && (
+          <div className="mb-6">
+            <AdminStatusBanner status={status} />
+          </div>
+        )}
 
-        {/* Items by Category */}
         <div className="space-y-6">
           {categories.map((category) => (
             <Card key={category.key} className="hex-card rounded-sm border-0">
@@ -383,6 +533,7 @@ export default function ItemsEditorPage() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleEdit(item)}
+                              disabled={isMutating}
                               className="h-7 rounded-sm border-hx-gold-dark/60 px-2 text-xs text-hx-gold hover:border-hx-gold hover:text-hx-gold-bright"
                             >
                               <Pencil className="mr-1 h-3 w-3" />
@@ -392,9 +543,14 @@ export default function ItemsEditorPage() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleDelete(item.id)}
+                              disabled={isMutating}
                               className="h-7 rounded-sm border-red-400/40 px-2 text-xs text-red-300 hover:bg-red-500/10"
                             >
-                              <Trash2 className="mr-1 h-3 w-3" />
+                              {deletingId === item.id ? (
+                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                              ) : (
+                                <Trash2 className="mr-1 h-3 w-3" />
+                              )}
                               Delete
                             </Button>
                           </div>
@@ -404,7 +560,7 @@ export default function ItemsEditorPage() {
                   </div>
                 ) : (
                   <p className="py-4 text-center text-landing-text-secondary">
-                    No items in this category yet. Connect Convex to add items.
+                    No items in this category yet.
                   </p>
                 )}
               </CardContent>

@@ -6,11 +6,13 @@ interface CacheEntry<T> {
 
 class MatchCache {
   private cache: Map<string, CacheEntry<unknown>>;
+  private inFlight: Map<string, Promise<unknown>>;
   private readonly DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes
   private readonly MAX_ENTRIES = 100; // Maximum cache entries
 
   constructor() {
     this.cache = new Map();
+    this.inFlight = new Map();
   }
 
   /**
@@ -71,6 +73,7 @@ class MatchCache {
    */
   clear(): void {
     this.cache.clear();
+    this.inFlight.clear();
   }
 
   /**
@@ -78,6 +81,27 @@ class MatchCache {
    */
   size(): number {
     return this.cache.size;
+  }
+
+  /**
+   * Reuse a single promise for identical cache misses until it settles.
+   */
+  getOrCreateInFlight<T>(key: string, factory: () => Promise<T>): Promise<T> {
+    const existingPromise = this.inFlight.get(key);
+    if (existingPromise) {
+      return existingPromise as Promise<T>;
+    }
+
+    const pendingPromise = Promise.resolve()
+      .then(factory)
+      .finally(() => {
+        if (this.inFlight.get(key) === pendingPromise) {
+          this.inFlight.delete(key);
+        }
+      });
+
+    this.inFlight.set(key, pendingPromise);
+    return pendingPromise;
   }
 
   /**
@@ -133,6 +157,7 @@ class MatchCache {
       totalEntries: this.cache.size,
       activeEntries,
       expiredEntries,
+      inFlightEntries: this.inFlight.size,
       approximateSizeBytes: totalSize,
       approximateSizeKB: (totalSize / 1024).toFixed(2),
     };

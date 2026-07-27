@@ -2,162 +2,209 @@
 
 import {
   createContext,
-  useContext,
-  ReactNode,
   useCallback,
-  useSyncExternalStore,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
 } from 'react';
-import { useMutation, useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
-import { useConvexAvailable } from '@/providers/ConvexProvider';
-
-interface User {
-  id: string;
-  username: string;
-  role: 'admin' | 'editor';
-}
+import {
+  advanceAdminSessionEpoch,
+  AdminClientError,
+  fetchAdminSession,
+  getAdminSessionEpoch,
+  loginAdminRequest,
+  logoutAdminRequest,
+  subscribeToAdminAuthorizationFailures,
+} from '@/lib/admin/client';
+import type { AdminUser } from '@/lib/admin/types';
 
 interface AuthContextType {
-  user: User | null;
+  user: AdminUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  sessionToken: string | null;
+  refreshSession: () => Promise<AdminUser | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const SESSION_KEY = 'yuumi_guide_session';
+const LEGACY_SESSION_KEY = 'yuumi_guide_session';
+const ADMIN_AUTH_CHANNEL = 'yuumi-guide-admin-auth';
 
-// Session token store backed by localStorage, read via useSyncExternalStore.
-// The server snapshot is `null` so SSR and the first client paint render the
-// logged-out state; the stored token is picked up right after hydration
-// (same timing as the previous read-localStorage-on-mount effect).
-const sessionTokenListeners = new Set<() => void>();
+type AdminAuthMessage = {
+  type: 'session-changed' | 'signed-out';
+};
 
-function subscribeToSessionToken(onStoreChange: () => void): () => void {
-  sessionTokenListeners.add(onStoreChange);
-  return () => {
-    sessionTokenListeners.delete(onStoreChange);
-  };
-}
-
-function getSessionTokenSnapshot(): string | null {
-  // `|| null` treats an empty stored value as "no session", matching the old
-  // `if (stored) setSessionToken(stored)` behavior.
-  return localStorage.getItem(SESSION_KEY) || null;
-}
-
-function getServerSessionTokenSnapshot(): null {
-  return null;
-}
-
-function setStoredSessionToken(token: string | null): void {
-  if (token === null) {
-    localStorage.removeItem(SESSION_KEY);
-  } else {
-    localStorage.setItem(SESSION_KEY, token);
+function readErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof AdminClientError || error instanceof Error) {
+    return error.message;
   }
-  sessionTokenListeners.forEach((listener) => listener());
-}
-
-// Hydration flag: `false` on the server / during hydration, `true` right
-// after — mirrors the old `isLoading` state that flipped in a mount effect.
-const subscribeToNothing = () => () => {};
-const getHydratedSnapshot = () => true;
-const getServerHydratedSnapshot = () => false;
-
-// Auth provider that uses Convex for authentication
-function AuthProviderWithConvex({ children }: { children: ReactNode }) {
-  const sessionToken = useSyncExternalStore(
-    subscribeToSessionToken,
-    getSessionTokenSnapshot,
-    getServerSessionTokenSnapshot
-  );
-  const isHydrated = useSyncExternalStore(
-    subscribeToNothing,
-    getHydratedSnapshot,
-    getServerHydratedSnapshot
-  );
-
-  const loginMutation = useMutation(api.auth.login);
-  const logoutMutation = useMutation(api.auth.logout);
-
-  // Verify session
-  const sessionData = useQuery(
-    api.auth.verifySession,
-    sessionToken ? { sessionToken } : 'skip'
-  );
-
-  const user = sessionData?.user ?? null;
-
-  const login = useCallback(
-    async (username: string, password: string) => {
-      const result = await loginMutation({ username, password });
-      setStoredSessionToken(result.token);
-    },
-    [loginMutation]
-  );
-
-  const logout = useCallback(async () => {
-    if (sessionToken) {
-      await logoutMutation({ sessionToken });
-    }
-    setStoredSessionToken(null);
-  }, [sessionToken, logoutMutation]);
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading:
-          !isHydrated || (sessionToken !== null && sessionData === undefined),
-        isAuthenticated: !!user,
-        login,
-        logout,
-        sessionToken,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-}
-
-// Fallback auth provider when Convex is not available
-function AuthProviderFallback({ children }: { children: ReactNode }) {
-  const noopLogin = useCallback(async () => {
-    throw new Error('Authentication not available: Convex is not configured');
-  }, []);
-
-  const noopLogout = useCallback(async () => {
-    // No-op when Convex is not available
-  }, []);
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user: null,
-        isLoading: false,
-        isAuthenticated: false,
-        login: noopLogin,
-        logout: noopLogout,
-        sessionToken: null,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  return fallback;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const isConvexAvailable = useConvexAvailable();
+  const [user, setUser] = useState<AdminUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const userRef = useRef<AdminUser | null>(null);
+  const authChannelRef = useRef<BroadcastChannel | null>(null);
 
-  if (!isConvexAvailable) {
-    return <AuthProviderFallback>{children}</AuthProviderFallback>;
-  }
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
-  return <AuthProviderWithConvex>{children}</AuthProviderWithConvex>;
+  const clearSession = useCallback(() => {
+    advanceAdminSessionEpoch();
+    userRef.current = null;
+    setUser(null);
+    setIsLoading(false);
+  }, []);
+
+  const broadcastAuthMessage = useCallback((message: AdminAuthMessage) => {
+    authChannelRef.current?.postMessage(message);
+  }, []);
+
+  const invalidateSession = useCallback(() => {
+    clearSession();
+    broadcastAuthMessage({ type: 'signed-out' });
+  }, [broadcastAuthMessage, clearSession]);
+
+  const refreshSession = useCallback(async (): Promise<AdminUser | null> => {
+    const requestEpoch = getAdminSessionEpoch();
+    try {
+      const sessionUser = await fetchAdminSession();
+      if (requestEpoch === getAdminSessionEpoch()) {
+        userRef.current = sessionUser;
+        setUser(sessionUser);
+        return sessionUser;
+      }
+      return null;
+    } catch (error) {
+      if (requestEpoch === getAdminSessionEpoch()) {
+        if (
+          error instanceof AdminClientError &&
+          (error.status === 401 || error.status === 403)
+        ) {
+          userRef.current = null;
+          setUser(null);
+          return null;
+        }
+        // A network failure or 5xx is not evidence that the cookie is
+        // invalid. Preserve the last authoritative session.
+        return userRef.current;
+      }
+      return null;
+    } finally {
+      if (requestEpoch === getAdminSessionEpoch()) {
+        setIsLoading(false);
+      }
+    }
+  }, []);
+
+  useEffect(
+    () => subscribeToAdminAuthorizationFailures(invalidateSession),
+    [invalidateSession]
+  );
+
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') {
+      return;
+    }
+
+    const channel = new BroadcastChannel(ADMIN_AUTH_CHANNEL);
+    authChannelRef.current = channel;
+    channel.onmessage = (event: MessageEvent<AdminAuthMessage>) => {
+      if (event.data?.type === 'signed-out') {
+        clearSession();
+        return;
+      }
+      if (event.data?.type === 'session-changed') {
+        advanceAdminSessionEpoch();
+        void refreshSession();
+      }
+    };
+
+    return () => {
+      authChannelRef.current = null;
+      channel.close();
+    };
+  }, [clearSession, refreshSession]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.removeItem(LEGACY_SESSION_KEY);
+    } catch {
+      // Ignore storage access errors; session auth no longer relies on it.
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      void refreshSession();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [refreshSession]);
+
+  useEffect(() => {
+    const refreshOnFocus = () => {
+      void refreshSession();
+    };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') {
+        void refreshSession();
+      }
+    };
+
+    window.addEventListener('focus', refreshOnFocus);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => {
+      window.removeEventListener('focus', refreshOnFocus);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    };
+  }, [refreshSession]);
+
+  const login = useCallback(
+    async (username: string, password: string) => {
+      const nextUser = await loginAdminRequest(username, password);
+      advanceAdminSessionEpoch();
+      userRef.current = nextUser;
+      setUser(nextUser);
+      setIsLoading(false);
+      broadcastAuthMessage({ type: 'session-changed' });
+    },
+    [broadcastAuthMessage]
+  );
+
+  const logout = useCallback(async () => {
+    try {
+      await logoutAdminRequest();
+      advanceAdminSessionEpoch();
+      userRef.current = null;
+      setUser(null);
+      setIsLoading(false);
+      broadcastAuthMessage({ type: 'signed-out' });
+    } catch (error) {
+      throw new Error(readErrorMessage(error, 'Unable to log out right now.'));
+    }
+  }, [broadcastAuthMessage]);
+
+  const value = useMemo<AuthContextType>(
+    () => ({
+      user,
+      isLoading,
+      isAuthenticated: user !== null,
+      login,
+      logout,
+      refreshSession,
+    }),
+    [isLoading, login, logout, refreshSession, user]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

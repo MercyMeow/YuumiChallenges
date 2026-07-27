@@ -3,6 +3,10 @@ import { ConvexHttpClient } from 'convex/browser';
 import { api } from '@/../convex/_generated/api';
 
 export async function POST(request: NextRequest) {
+  if (request.headers.get('origin') !== request.nextUrl.origin) {
+    return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+  }
+
   const token = request.cookies.get('yq_session')?.value;
   const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
   if (token && convexUrl) {

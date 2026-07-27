@@ -1,6 +1,11 @@
 // Shared types + constants for the builds editor form (page.tsx renders the
 // list + dialog shell; build-form-tabs.tsx renders the tab panels).
 
+import {
+  ADMIN_BUILD_ICON_KEYS,
+  type AdminBuildIcon,
+} from '@/lib/admin/build-icons';
+
 export type ItemCategory = 'starter' | 'core' | 'situational';
 
 export interface BuildItem {
@@ -13,12 +18,12 @@ export interface BuildFormData {
   id?: string;
   name: string;
   description: string;
-  icon: string;
+  icon: AdminBuildIcon;
   color: string;
   borderColor: string;
   isRecommended: boolean;
   isActive: boolean;
-  priority: number;
+  priority: string;
   runes: {
     name: string;
     primaryTree: string;
@@ -38,7 +43,7 @@ export interface BuildFormData {
 
 export interface NewItemState {
   category: ItemCategory;
-  id: number;
+  id: string;
   name: string;
   reason: string;
 }
@@ -80,26 +85,17 @@ export const KEYSTONES: Record<string, string[]> = {
   Inspiration: ['GlacialAugment', 'UnsealedSpellbook', 'FirstStrike'],
 };
 
-export const ICONS = [
-  'wand',
-  'shield',
-  'flame',
-  'zap',
-  'star',
-  'heart',
-  'target',
-  'sparkles',
-];
+export const ICONS = ADMIN_BUILD_ICON_KEYS;
 
 export const initialFormData: BuildFormData = {
   name: '',
   description: '',
-  icon: 'wand',
+  icon: 'star',
   color: 'bg-purple-500/20',
   borderColor: 'border-purple-500/50',
   isRecommended: false,
   isActive: true,
-  priority: 0,
+  priority: '0',
   runes: {
     name: 'New Rune Page',
     primaryTree: 'Sorcery',
