@@ -119,7 +119,7 @@ describe('guide mutation validation', () => {
     build.items.starter[0]!.reason = '   ';
 
     await expect(t.mutation(api.guide.upsertBuild, build)).rejects.toThrow(
-      'Starter item 1 reason is required'
+      '"reason"'
     );
   });
 
@@ -130,7 +130,7 @@ describe('guide mutation validation', () => {
     build.icon = 'wand';
 
     await expect(t.mutation(api.guide.upsertBuild, build)).rejects.toThrow(
-      'Build icon must be one of star, shield, or zap'
+      'Invalid option'
     );
   });
 
@@ -138,17 +138,17 @@ describe('guide mutation validation', () => {
     const t = convexTest(schema, modules);
     const sessionToken = await createGuideEditorSession(t);
     const baseBuild = validBuild(sessionToken);
+    const largeItem = {
+      id: 6617,
+      name: 'Moonstone Renewer',
+      reason: 'x'.repeat(10_000),
+    };
     const build = {
       ...baseBuild,
       items: {
-        ...baseBuild.items,
-        core: [
-          {
-            id: 6617,
-            name: 'Moonstone Renewer',
-            reason: 'x'.repeat(910_000),
-          },
-        ],
+        starter: Array.from({ length: 50 }, () => ({ ...largeItem })),
+        core: Array.from({ length: 50 }, () => ({ ...largeItem })),
+        situational: baseBuild.items.situational,
       },
     };
 

@@ -69,6 +69,16 @@ describe('parseStripeInvoiceSnapshot', () => {
 });
 
 describe('parseStripeSubscriptionSummary', () => {
+  it('refuses to classify an incomplete embedded item page', () => {
+    expect(
+      parseStripeSubscriptionSummary({
+        id: 'sub_incomplete',
+        items: { data: [], has_more: true },
+        metadata: { [SUPPORTER_PLAN.metadataKey]: SUPPORTER_PLAN.value },
+      })
+    ).toBeNull();
+  });
+
   it('uses item billing periods and validates the expected Supporter plan', () => {
     expect(
       parseStripeSubscriptionSummary({
@@ -104,6 +114,7 @@ describe('parseStripeSubscriptionSummary', () => {
         [SUPPORTER_PLAN.metadataKey]: SUPPORTER_PLAN.value,
         [SUPPORTER_PLAN.userIdKey]: 'user_123',
       },
+      hasSupporterPriceShape: true,
       planMatches: true,
       supporterItemIds: [],
       supporterPriceIds: [],
@@ -136,6 +147,7 @@ describe('parseStripeSubscriptionSummary', () => {
         metadata: { [SUPPORTER_PLAN.metadataKey]: 'something_else' },
       })
     ).toMatchObject({
+      hasSupporterPriceShape: false,
       planMatches: false,
       subscriptionId: 'sub_other',
     });
@@ -165,6 +177,7 @@ describe('parseStripeSubscriptionSummary', () => {
         metadata: { [SUPPORTER_PLAN.metadataKey]: SUPPORTER_PLAN.value },
       })
     ).toMatchObject({
+      hasSupporterPriceShape: false,
       planMatches: false,
       subscriptionId: 'sub_near_match',
     });

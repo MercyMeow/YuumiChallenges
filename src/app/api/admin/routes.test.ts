@@ -54,7 +54,29 @@ describe('admin API route contracts', () => {
     expect(convexMocks.mutation).not.toHaveBeenCalled();
   });
 
-  it('clears an invalid session cookie over local HTTP', async () => {
+  it('rejects an oversized login body before parsing or hashing', async () => {
+    const response = await login(
+      new NextRequest('https://yuumi.quest/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: 'https://yuumi.quest',
+        },
+        body: JSON.stringify({
+          username: 'admin',
+          password: 'x'.repeat(5 * 1024),
+        }),
+      })
+    );
+
+    expect(response.status).toBe(413);
+    await expect(response.json()).resolves.toEqual({
+      error: 'Request body too large',
+    });
+    expect(convexMocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it('does not let a stale session probe delete a newer login cookie', async () => {
     convexMocks.query.mockResolvedValue(null);
     const response = await readSession(
       new NextRequest('http://localhost/api/admin/session', {
@@ -64,11 +86,7 @@ describe('admin API route contracts', () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ user: null });
-    const setCookie = response.headers.get('set-cookie') ?? '';
-    expect(setCookie).toContain('yq_admin_session=');
-    expect(setCookie).toContain('Path=/api/admin');
-    expect(setCookie).toContain('Expires=Thu, 01 Jan 1970');
-    expect(setCookie).not.toContain('Secure');
+    expect(response.headers.get('set-cookie')).toBeNull();
   });
 
   it('does not mutate cookies when a cross-site session GET has no cookie', async () => {
@@ -109,7 +127,7 @@ describe('admin API route contracts', () => {
     expect(convexMocks.mutation).not.toHaveBeenCalled();
   });
 
-  it('keeps the admin cookie when server-side logout revocation fails', async () => {
+  it('clears the admin cookie when server-side logout revocation fails', async () => {
     const consoleError = vi
       .spyOn(console, 'error')
       .mockImplementation(() => undefined);
@@ -127,11 +145,15 @@ describe('admin API route contracts', () => {
       })
     );
 
-    expect(response.status).toBe(502);
+    expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
-      error: 'Unable to revoke admin session',
+      ok: true,
+      revoked: false,
     });
-    expect(response.headers.get('set-cookie')).toBeNull();
+    expect(response.headers.get('set-cookie')).toContain('yq_admin_session=');
+    expect(response.headers.get('set-cookie')).toContain(
+      'Expires=Thu, 01 Jan 1970'
+    );
     expect(convexMocks.mutation).toHaveBeenCalledWith(expect.anything(), {
       sessionToken: 'session-token',
     });
@@ -139,17 +161,13 @@ describe('admin API route contracts', () => {
   });
 
   it('translates a late Convex authorization failure to 401', async () => {
-    convexMocks.query
-      .mockResolvedValueOnce({
-        user: { id: 'admin-id', username: 'admin', role: 'admin' },
-      })
-      .mockRejectedValueOnce(
-        new Error(
-          '[CONVEX Q(guide:getAllItems)] Server Error\n' +
-            'Uncaught Error: Unauthorized\n' +
-            '    at handler'
-        )
-      );
+    convexMocks.query.mockRejectedValueOnce(
+      new Error(
+        '[CONVEX Q(guide:getAllItems)] Server Error\n' +
+          'Uncaught Error: Unauthorized\n' +
+          '    at handler'
+      )
+    );
 
     const response = await readItems(
       new NextRequest('https://yuumi.quest/api/admin/items', {
@@ -161,7 +179,7 @@ describe('admin API route contracts', () => {
     await expect(response.json()).resolves.toEqual({
       error: 'Unauthorized',
     });
-    expect(response.headers.get('set-cookie')).toContain('yq_admin_session=');
+    expect(response.headers.get('set-cookie')).toBeNull();
   });
 
   it.each([

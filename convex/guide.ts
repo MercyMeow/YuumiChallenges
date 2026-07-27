@@ -2,6 +2,12 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import type { DatabaseReader } from './_generated/server';
 import { Id } from './_generated/dataModel';
+import {
+  adminBuildPayloadSchema,
+  adminItemPayloadSchema,
+} from '../src/lib/admin/guide-validation';
+import { MAX_ADMIN_PRIORITY } from '../src/lib/admin/integer-input';
+import { getSkillOrderValidationError } from '../src/lib/admin/skill-order';
 
 // Helper to verify session
 async function verifyGuideEditor(
@@ -40,8 +46,6 @@ const synergyValidator = v.union(
   v.literal('Situational'),
   v.literal('Poor')
 );
-const GUIDE_BUILD_ICONS = new Set(['star', 'shield', 'zap']);
-const MAX_GUIDE_BUILD_DOCUMENT_BYTES = 900_000;
 
 // Drops the auth token from mutation args before persisting the rest.
 function stripSessionToken<T extends { sessionToken: string }>(
@@ -67,220 +71,30 @@ function normalizeRequiredString(value: string, fieldName: string): string {
   return normalized;
 }
 
-function normalizeOptionalString(value: string): string {
-  return value.trim();
-}
-
 function normalizePriority(value: number, fieldName: string): number {
-  if (!Number.isInteger(value) || value < 0) {
-    throw new Error(`${fieldName} must be a non-negative integer`);
-  }
-  return value;
-}
-
-function normalizePositiveItemId(value: number, fieldName: string): number {
-  if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`${fieldName} must be a positive integer`);
-  }
-  return value;
-}
-
-function normalizeStringArray(
-  values: string[],
-  fieldName: string,
-  minimumLength = 1,
-  exactLength?: number
-): string[] {
-  const normalized = values
-    .map((value) => value.trim())
-    .filter((value) => value.length > 0);
-
-  if (exactLength !== undefined && normalized.length !== exactLength) {
+  if (!Number.isInteger(value) || value < 0 || value > MAX_ADMIN_PRIORITY) {
     throw new Error(
-      `${fieldName} must include exactly ${exactLength} value${exactLength === 1 ? '' : 's'}`
+      `${fieldName} must be an integer from 0 to ${MAX_ADMIN_PRIORITY}`
     );
   }
-
-  if (normalized.length < minimumLength) {
-    throw new Error(
-      `${fieldName} must include at least ${minimumLength} value${minimumLength === 1 ? '' : 's'}`
-    );
-  }
-
-  return normalized;
+  return value;
 }
 
 function normalizeSkillLevels(levels: string[]): string[] {
-  if (levels.length !== 18) {
-    throw new Error('Skill order must have exactly 18 levels');
-  }
-
-  const counts = { Q: 0, W: 0, E: 0, R: 0 };
-  const ultimateIndices = new Set([5, 10, 15]);
-
-  const normalizedLevels = levels.map((level, index) => {
-    const normalized = level.trim().toUpperCase();
-    if (!['Q', 'W', 'E', 'R'].includes(normalized)) {
-      throw new Error(`Skill level ${index + 1} must be one of Q, W, E, or R`);
-    }
-    if (normalized === 'R' && !ultimateIndices.has(index)) {
-      throw new Error('Ultimate can only be assigned at levels 6, 11, and 16');
-    }
-    counts[normalized as keyof typeof counts] += 1;
-    if (normalized !== 'R') {
-      const championLevel = index + 1;
-      const availableRanks = Math.min(5, Math.ceil(championLevel / 2));
-      if (counts[normalized as 'Q' | 'W' | 'E'] > availableRanks) {
-        throw new Error(
-          `${normalized} rank ${counts[normalized as 'Q' | 'W' | 'E']} is not available at level ${championLevel}`
-        );
-      }
-    }
-    return normalized;
-  });
-
-  if (counts.R !== 3) {
-    throw new Error('Skill order must include exactly 3 ultimate levels');
-  }
-  if (counts.Q > 5 || counts.W > 5 || counts.E > 5) {
-    throw new Error('Q, W, and E can each be leveled at most 5 times');
-  }
-
-  return normalizedLevels;
-}
-
-function normalizeBuildIcon(value: string): string {
-  const normalized = normalizeRequiredString(value, 'Build icon');
-  if (!GUIDE_BUILD_ICONS.has(normalized)) {
-    throw new Error('Build icon must be one of star, shield, or zap');
+  const normalized = levels.map((level) => level.trim().toUpperCase());
+  const validationError = getSkillOrderValidationError(normalized);
+  if (validationError) {
+    throw new Error(validationError);
   }
   return normalized;
 }
 
-function assertBuildDocumentSize(build: unknown): void {
-  const documentBytes = new TextEncoder().encode(
-    JSON.stringify(build)
-  ).byteLength;
-  if (documentBytes > MAX_GUIDE_BUILD_DOCUMENT_BYTES) {
-    throw new Error(
-      `Build exceeds the ${MAX_GUIDE_BUILD_DOCUMENT_BYTES} byte storage budget`
-    );
-  }
+function normalizeGuideItemPayload(args: unknown) {
+  return adminItemPayloadSchema.parse(args);
 }
 
-function normalizeBuildItems(
-  items: Array<{ id: number; name: string; reason: string }>,
-  fieldName: string
-) {
-  return items.map((item, index) => ({
-    id: normalizePositiveItemId(item.id, `${fieldName} item ${index + 1} ID`),
-    name: normalizeRequiredString(
-      item.name,
-      `${fieldName} item ${index + 1} name`
-    ),
-    reason: normalizeRequiredString(
-      item.reason,
-      `${fieldName} item ${index + 1} reason`
-    ),
-  }));
-}
-
-function normalizeGuideItemPayload(args: {
-  name: string;
-  itemId: number;
-  category: 'starter' | 'early' | 'core' | 'situational';
-  reason: string;
-  priority: number;
-  isActive: boolean;
-}) {
-  return {
-    name: normalizeRequiredString(args.name, 'Item name'),
-    itemId: normalizePositiveItemId(args.itemId, 'Item ID'),
-    category: args.category,
-    reason: normalizeRequiredString(args.reason, 'Item reason'),
-    priority: normalizePriority(args.priority, 'Item priority'),
-    isActive: args.isActive,
-  };
-}
-
-function normalizeBuildPayload(args: {
-  name: string;
-  description: string;
-  icon: string;
-  color: string;
-  borderColor: string;
-  isRecommended: boolean;
-  isActive: boolean;
-  priority: number;
-  runes: {
-    name: string;
-    primaryTree: string;
-    keystone: string;
-    primary: string[];
-    secondaryTree: string;
-    secondary: string[];
-    shards: string[];
-  };
-  items: {
-    starter: Array<{ id: number; name: string; reason: string }>;
-    core: Array<{ id: number; name: string; reason: string }>;
-    situational: Array<{ id: number; name: string; reason: string }>;
-  };
-  skillOrder: {
-    priority: string;
-    levels: string[];
-    notes: string;
-  };
-}) {
-  const normalizedBuild = {
-    name: normalizeRequiredString(args.name, 'Build name'),
-    description: normalizeRequiredString(args.description, 'Build description'),
-    icon: normalizeBuildIcon(args.icon),
-    color: normalizeRequiredString(args.color, 'Build color class'),
-    borderColor: normalizeRequiredString(
-      args.borderColor,
-      'Build border color class'
-    ),
-    isRecommended: args.isRecommended,
-    isActive: args.isActive,
-    priority: normalizePriority(args.priority, 'Build priority'),
-    runes: {
-      name: normalizeRequiredString(args.runes.name, 'Rune page name'),
-      primaryTree: normalizeRequiredString(
-        args.runes.primaryTree,
-        'Primary rune tree'
-      ),
-      keystone: normalizeRequiredString(args.runes.keystone, 'Keystone'),
-      primary: normalizeStringArray(args.runes.primary, 'Primary runes', 1, 3),
-      secondaryTree: normalizeRequiredString(
-        args.runes.secondaryTree,
-        'Secondary rune tree'
-      ),
-      secondary: normalizeStringArray(
-        args.runes.secondary,
-        'Secondary runes',
-        1,
-        2
-      ),
-      shards: normalizeStringArray(args.runes.shards, 'Rune shards', 1, 3),
-    },
-    items: {
-      starter: normalizeBuildItems(args.items.starter, 'Starter'),
-      core: normalizeBuildItems(args.items.core, 'Core'),
-      situational: normalizeBuildItems(args.items.situational, 'Situational'),
-    },
-    skillOrder: {
-      priority: normalizeRequiredString(
-        args.skillOrder.priority,
-        'Skill order priority'
-      ),
-      levels: normalizeSkillLevels(args.skillOrder.levels),
-      notes: normalizeOptionalString(args.skillOrder.notes),
-    },
-  };
-
-  assertBuildDocumentSize(normalizedBuild);
-  return normalizedBuild;
+function normalizeBuildPayload(args: unknown) {
+  return adminBuildPayloadSchema.parse(args);
 }
 
 // ============ ITEMS ============
@@ -366,9 +180,14 @@ export const upsertItem = mutation({
 
     if (id) {
       await ctx.db.patch(id, itemData);
-      return id;
+      const saved = await ctx.db.get(id);
+      if (!saved) throw new Error('Saved item was not found');
+      return saved;
     } else {
-      return await ctx.db.insert('guideItems', itemData);
+      const savedId = await ctx.db.insert('guideItems', itemData);
+      const saved = await ctx.db.get(savedId);
+      if (!saved) throw new Error('Saved item was not found');
+      return saved;
     }
   },
 });
@@ -597,9 +416,14 @@ export const upsertBuild = mutation({
 
     if (id) {
       await ctx.db.patch(id, buildData);
-      return id;
+      const saved = await ctx.db.get(id);
+      if (!saved) throw new Error('Saved build was not found');
+      return saved;
     } else {
-      return await ctx.db.insert('guideBuilds', buildData);
+      const savedId = await ctx.db.insert('guideBuilds', buildData);
+      const saved = await ctx.db.get(savedId);
+      if (!saved) throw new Error('Saved build was not found');
+      return saved;
     }
   },
 });

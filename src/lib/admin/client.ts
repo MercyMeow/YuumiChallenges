@@ -26,7 +26,7 @@ type AdminAuthorizationFailureListener = (
 
 const authorizationFailureListeners =
   new Set<AdminAuthorizationFailureListener>();
-let authorizationGeneration = 0;
+let adminSessionEpoch = 0;
 
 export class AdminClientError extends Error {
   status: number;
@@ -47,8 +47,17 @@ export function subscribeToAdminAuthorizationFailures(
   };
 }
 
-function establishAdminAuthorizationState(): void {
-  authorizationGeneration += 1;
+export function getAdminSessionEpoch(): number {
+  return adminSessionEpoch;
+}
+
+/**
+ * Establishes a new authoritative browser-session epoch and fences every
+ * request started under the preceding cookie state.
+ */
+export function advanceAdminSessionEpoch(): number {
+  adminSessionEpoch += 1;
+  return adminSessionEpoch;
 }
 
 function reportAdminAuthorizationFailure(
@@ -58,7 +67,7 @@ function reportAdminAuthorizationFailure(
   if (status !== 401 && status !== 403) {
     return;
   }
-  if (requestGeneration !== authorizationGeneration) {
+  if (requestGeneration !== adminSessionEpoch) {
     return;
   }
 
@@ -81,7 +90,7 @@ async function adminRequest<T>(
   fallbackMessage: string,
   reportAuthorizationFailure = true
 ): Promise<T> {
-  const requestGeneration = authorizationGeneration;
+  const requestGeneration = adminSessionEpoch;
   const response = await fetch(input, {
     cache: 'no-store',
     credentials: 'same-origin',
@@ -106,7 +115,6 @@ export async function fetchAdminSession(): Promise<AdminUser | null> {
     { method: 'GET' },
     'Unable to verify your admin session.'
   );
-  establishAdminAuthorizationState();
   return payload.user;
 }
 
@@ -124,7 +132,6 @@ export async function loginAdminRequest(
     'Invalid credentials',
     false
   );
-  establishAdminAuthorizationState();
   return payload.user;
 }
 
@@ -134,7 +141,6 @@ export async function logoutAdminRequest(): Promise<void> {
     { method: 'POST' },
     'Unable to log out right now.'
   );
-  establishAdminAuthorizationState();
 }
 
 export async function fetchAdminBuildsRequest(): Promise<AdminBuild[]> {

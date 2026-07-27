@@ -11,8 +11,10 @@ import {
   type ReactNode,
 } from 'react';
 import {
+  advanceAdminSessionEpoch,
   AdminClientError,
   fetchAdminSession,
+  getAdminSessionEpoch,
   loginAdminRequest,
   logoutAdminRequest,
   subscribeToAdminAuthorizationFailures,
@@ -47,11 +49,16 @@ function readErrorMessage(error: unknown, fallback: string): string {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const sessionGenerationRef = useRef(0);
+  const userRef = useRef<AdminUser | null>(null);
   const authChannelRef = useRef<BroadcastChannel | null>(null);
 
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
   const clearSession = useCallback(() => {
-    sessionGenerationRef.current += 1;
+    advanceAdminSessionEpoch();
+    userRef.current = null;
     setUser(null);
     setIsLoading(false);
   }, []);
@@ -66,21 +73,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [broadcastAuthMessage, clearSession]);
 
   const refreshSession = useCallback(async (): Promise<AdminUser | null> => {
-    const requestGeneration = sessionGenerationRef.current;
+    const requestEpoch = getAdminSessionEpoch();
     try {
       const sessionUser = await fetchAdminSession();
-      if (requestGeneration === sessionGenerationRef.current) {
+      if (requestEpoch === getAdminSessionEpoch()) {
+        userRef.current = sessionUser;
         setUser(sessionUser);
         return sessionUser;
       }
       return null;
-    } catch {
-      if (requestGeneration === sessionGenerationRef.current) {
-        setUser(null);
+    } catch (error) {
+      if (requestEpoch === getAdminSessionEpoch()) {
+        if (
+          error instanceof AdminClientError &&
+          (error.status === 401 || error.status === 403)
+        ) {
+          userRef.current = null;
+          setUser(null);
+          return null;
+        }
+        // A network failure or 5xx is not evidence that the cookie is
+        // invalid. Preserve the last authoritative session.
+        return userRef.current;
       }
       return null;
     } finally {
-      if (requestGeneration === sessionGenerationRef.current) {
+      if (requestEpoch === getAdminSessionEpoch()) {
         setIsLoading(false);
       }
     }
@@ -104,6 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       if (event.data?.type === 'session-changed') {
+        advanceAdminSessionEpoch();
         void refreshSession();
       }
     };
@@ -151,7 +170,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (username: string, password: string) => {
       const nextUser = await loginAdminRequest(username, password);
-      sessionGenerationRef.current += 1;
+      advanceAdminSessionEpoch();
+      userRef.current = nextUser;
       setUser(nextUser);
       setIsLoading(false);
       broadcastAuthMessage({ type: 'session-changed' });
@@ -162,7 +182,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     try {
       await logoutAdminRequest();
-      sessionGenerationRef.current += 1;
+      advanceAdminSessionEpoch();
+      userRef.current = null;
       setUser(null);
       setIsLoading(false);
       broadcastAuthMessage({ type: 'signed-out' });

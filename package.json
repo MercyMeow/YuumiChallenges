@@ -26,7 +26,8 @@
     "test": "vitest",
     "test:run": "vitest run --passWithNoTests",
     "test:watch": "vitest --watch",
-    "test:discover": "vitest --passWithNoTests",
+    "test:discover": "vitest run --passWithNoTests",
+    "dev:convex": "convex dev",
     "convex:dev": "convex dev",
     "convex:deploy": "convex deploy"
   },

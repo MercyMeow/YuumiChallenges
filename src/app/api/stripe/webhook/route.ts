@@ -13,7 +13,8 @@ import { resolvePaidSupporterInvoicePeriodEnd } from '@/lib/stripe/invoice';
 // Web Crypto (portable to the Cloudflare Workers runtime — no node:crypto,
 // no Stripe SDK). Configure the endpoint for:
 //   checkout.session.completed, checkout.session.async_payment_succeeded,
-//   checkout.session.expired, invoice.paid, customer.subscription.deleted
+//   checkout.session.async_payment_failed, checkout.session.expired,
+//   invoice.paid, customer.subscription.deleted
 
 // A month of access plus grace, applied on payment events. Renewals land
 // via invoice.paid before the previous window lapses, so the horizon
@@ -109,7 +110,47 @@ async function fetchStripeSubscription(
     );
     return null;
   }
-  return parseStripeSubscriptionSummary(await res.json());
+  const payload = await res.json();
+  if (!isRecord(payload)) return null;
+  const embeddedItems = isRecord(payload.items) ? payload.items : null;
+  if (embeddedItems?.has_more === true) {
+    const allItems = Array.isArray(embeddedItems.data)
+      ? embeddedItems.data.filter(isRecord)
+      : [];
+    let hasMore = true;
+    let pageCount = 0;
+    while (hasMore && pageCount < 100) {
+      const lastItem = allItems.at(-1);
+      const startingAfter = lastItem ? readString(lastItem.id) : undefined;
+      if (!startingAfter) return null;
+      const query = new URLSearchParams({
+        subscription: subscriptionId,
+        limit: '100',
+        starting_after: startingAfter,
+      });
+      const pageResponse = await fetch(
+        `https://api.stripe.com/v1/subscription_items?${query}`,
+        { headers: { Authorization: `Bearer ${stripeKey}` } }
+      );
+      if (!pageResponse.ok) return null;
+      const page = await pageResponse.json();
+      if (
+        !isRecord(page) ||
+        !Array.isArray(page.data) ||
+        typeof page.has_more !== 'boolean'
+      ) {
+        return null;
+      }
+      const pageItems = page.data.filter(isRecord);
+      if (pageItems.length === 0 && page.has_more) return null;
+      allItems.push(...pageItems);
+      hasMore = page.has_more;
+      pageCount += 1;
+    }
+    if (hasMore) return null;
+    payload.items = { ...embeddedItems, data: allItems, has_more: false };
+  }
+  return parseStripeSubscriptionSummary(payload);
 }
 
 export async function POST(request: NextRequest) {
@@ -143,6 +184,7 @@ export async function POST(request: NextRequest) {
   ) {
     return NextResponse.json({ error: 'bad event' }, { status: 400 });
   }
+  const eventId = event.id;
   const object =
     isRecord(event.data) && isRecord(event.data.object)
       ? event.data.object
@@ -174,57 +216,35 @@ export async function POST(request: NextRequest) {
       : undefined;
 
   const convex = new ConvexHttpClient(convexUrl);
-  const eventLease = await convex.mutation(
-    api.webauth.beginStripeWebhookEvent,
-    {
-      secret: bridgeSecret,
-      eventId: event.id,
-      type: event.type,
-      now: Date.now(),
-      ...(eventAt !== undefined ? { stripeCreatedAt: eventAt } : {}),
-      ...(customer !== undefined ? { customerId: customer } : {}),
-      ...(objectId !== undefined ? { objectId } : {}),
-      ...(subscriptionEndAt !== undefined ? { subscriptionEndAt } : {}),
-    }
-  );
+  const eventLease = await convex.mutation(api.stripe.beginStripeWebhookEvent, {
+    secret: bridgeSecret,
+    eventId,
+    type: event.type,
+    now: Date.now(),
+    ...(eventAt !== undefined ? { stripeCreatedAt: eventAt } : {}),
+    ...(customer !== undefined ? { customerId: customer } : {}),
+    ...(objectId !== undefined ? { objectId } : {}),
+    ...(subscriptionEndAt !== undefined ? { subscriptionEndAt } : {}),
+  });
   if (!eventLease.shouldProcess) {
+    if (eventLease.inProgress) {
+      return NextResponse.json(
+        { error: 'event processing is already in progress' },
+        {
+          status: 503,
+          headers: { 'Retry-After': '5' },
+        }
+      );
+    }
     return NextResponse.json({ received: true, duplicate: true });
   }
   const leaseToken = eventLease.leaseToken;
   if (!leaseToken) {
     return NextResponse.json({ error: 'missing lease token' }, { status: 500 });
   }
-  const apply = (args: {
-    stripeCustomerId?: string;
-    stripeSubscriptionId?: string;
-    subscribedUntil: number;
-    mode: 'extend' | 'end';
-    setCustomerId?: string;
-    setSubscriptionId?: string;
-  }) =>
-    convex.mutation(api.webauth.applySubscription, {
-      secret: bridgeSecret,
-      ...(eventAt !== undefined ? { eventAt } : {}),
-      ...(args.stripeCustomerId !== undefined
-        ? { stripeCustomerId: args.stripeCustomerId }
-        : {}),
-      ...(args.stripeSubscriptionId !== undefined
-        ? { stripeSubscriptionId: args.stripeSubscriptionId }
-        : {}),
-      subscribedUntil: args.subscribedUntil,
-      mode: args.mode,
-      ...(args.setCustomerId !== undefined
-        ? { setCustomerId: args.setCustomerId }
-        : {}),
-      ...(args.setSubscriptionId !== undefined
-        ? { setSubscriptionId: args.setSubscriptionId }
-        : {}),
-    });
-
   try {
     const needsSubscriptionLookup =
       event.type === 'invoice.paid' ||
-      event.type === 'customer.subscription.deleted' ||
       ((event.type === 'checkout.session.completed' ||
         event.type === 'checkout.session.async_payment_succeeded') &&
         object.payment_status === 'paid');
@@ -244,7 +264,7 @@ export async function POST(request: NextRequest) {
       case 'checkout.session.completed':
       case 'checkout.session.async_payment_succeeded': {
         if (object.payment_status === 'paid') {
-          if (!subscriptionSummary?.planMatches) {
+          if (!subscriptionSummary?.hasSupporterPriceShape) {
             throw new Error(
               'Checkout completed with an unexpected subscription'
             );
@@ -252,62 +272,156 @@ export async function POST(request: NextRequest) {
           if (!objectId) {
             throw new Error('Checkout completed without a session id');
           }
-          const settled = await convex.mutation(
-            api.webauth.settleStripeCheckout,
+          let fulfilled = false;
+          if (subscriptionSummary.planMatches) {
+            const settled = await convex.mutation(
+              api.stripe.settleStripeCheckout,
+              {
+                secret: bridgeSecret,
+                eventId,
+                leaseToken,
+                stripeSessionId: objectId,
+                status: 'completed',
+                stripeSubscriptionId: subscriptionSummary.subscriptionId,
+                // Checkout entitlement is anchored to the paid event, not the
+                // live subscription's potentially much newer billing period.
+                subscribedUntil: fallbackExtendUntil,
+                ...(authoritativeCustomer !== undefined
+                  ? { stripeCustomerId: authoritativeCustomer }
+                  : {}),
+                ...(eventAt !== undefined ? { eventAt } : {}),
+                now: Date.now(),
+              }
+            );
+            if (
+              settled.applied ||
+              settled.reason === 'already_completed' ||
+              settled.reason === 'superseded' ||
+              settled.reason === 'stale'
+            ) {
+              fulfilled = true;
+            } else if (settled.reason !== 'not_found') {
+              throw new Error(
+                `Checkout settlement was rejected: ${settled.reason}`
+              );
+            }
+          }
+
+          if (!fulfilled) {
+            const legacyUserId = readString(object.client_reference_id);
+            if (!legacyUserId) {
+              throw new Error(
+                'Checkout completed without a fulfillable local session'
+              );
+            }
+            const legacy = await convex.mutation(
+              api.stripe.settleLegacyStripeCheckout,
+              {
+                secret: bridgeSecret,
+                eventId,
+                leaseToken,
+                userId: legacyUserId as never,
+                stripeSubscriptionId: subscriptionSummary.subscriptionId,
+                subscribedUntil: fallbackExtendUntil,
+                ...(authoritativeCustomer !== undefined
+                  ? { stripeCustomerId: authoritativeCustomer }
+                  : {}),
+                ...(eventAt !== undefined ? { eventAt } : {}),
+                now: Date.now(),
+              }
+            );
+            if (
+              !legacy.applied &&
+              legacy.reason !== 'superseded' &&
+              legacy.reason !== 'stale'
+            ) {
+              throw new Error(
+                `Legacy Checkout settlement was rejected: ${legacy.reason}`
+              );
+            }
+          }
+        } else if (event.type === 'checkout.session.completed' && objectId) {
+          const pending = await convex.mutation(
+            api.stripe.settleStripeCheckout,
             {
               secret: bridgeSecret,
+              eventId,
+              leaseToken,
               stripeSessionId: objectId,
-              status: 'completed',
-              stripeSubscriptionId: subscriptionSummary.subscriptionId,
-              subscribedUntil:
-                subscriptionSummary.currentPeriodEnd ?? fallbackExtendUntil,
-              ...(authoritativeCustomer !== undefined
-                ? { stripeCustomerId: authoritativeCustomer }
+              status: 'payment_pending',
+              ...(subscriptionId !== undefined
+                ? { stripeSubscriptionId: subscriptionId }
                 : {}),
-              ...(eventAt !== undefined ? { eventAt } : {}),
               now: Date.now(),
             }
           );
-          if (
-            !settled.applied &&
-            settled.reason !== 'superseded' &&
-            settled.reason !== 'stale'
-          ) {
-            throw new Error('Checkout completed for an unknown local session');
+          if (pending.reason === 'stale_lease') {
+            throw new Error(
+              'Webhook lease expired before recording pending payment'
+            );
           }
         }
         break;
       }
       case 'invoice.paid': {
-        if (!subscriptionSummary?.planMatches) {
+        // Subscriptions created before plan metadata was introduced are
+        // accepted only when their immutable price shape still matches. The
+        // Convex mutation additionally requires an existing customer binding
+        // before it will backfill the subscription id.
+        if (
+          !subscriptionSummary?.planMatches &&
+          !subscriptionSummary?.hasSupporterPriceShape
+        ) {
           break;
         }
         if (!objectId) {
           throw new Error('Paid invoice is missing its id');
         }
-        const subscribedUntil = await resolvePaidSupporterInvoicePeriodEnd(
+        const invoicePeriodEnd = await resolvePaidSupporterInvoicePeriodEnd(
           stripeKey,
           objectId,
           object,
           subscriptionSummary
         );
-        if (!subscribedUntil) {
+        if (!invoicePeriodEnd) {
           // Mixed-interval subscriptions can emit an invoice for a different
           // item. Only a paid line tied to the Supporter item is a renewal.
           break;
         }
-        const result = await apply({
+        const subscribedUntil = Math.max(invoicePeriodEnd, fallbackExtendUntil);
+        let result = await convex.mutation(api.stripe.renewStripeSubscription, {
+          secret: bridgeSecret,
+          eventId,
+          leaseToken,
           stripeSubscriptionId: subscriptionSummary.subscriptionId,
           subscribedUntil,
-          mode: 'extend',
           ...(authoritativeCustomer !== undefined
-            ? {
-                stripeCustomerId: authoritativeCustomer,
-                setCustomerId: authoritativeCustomer,
-              }
+            ? { stripeCustomerId: authoritativeCustomer }
             : {}),
-          setSubscriptionId: subscriptionSummary.subscriptionId,
+          ...(eventAt !== undefined ? { eventAt } : {}),
         });
+        if (
+          result.reason === 'not_found' &&
+          !subscriptionSummary.planMatches &&
+          subscriptionSummary.hasSupporterPriceShape &&
+          authoritativeCustomer
+        ) {
+          result = await convex.mutation(
+            api.stripe.migrateLegacyStripeSubscription,
+            {
+              secret: bridgeSecret,
+              eventId,
+              leaseToken,
+              stripeCustomerId: authoritativeCustomer,
+              stripeSubscriptionId: subscriptionSummary.subscriptionId,
+              subscribedUntil,
+              ...(eventAt !== undefined ? { eventAt } : {}),
+            }
+          );
+        }
+        if (result.reason === 'stale_lease') {
+          throw new Error('Webhook lease expired before invoice settlement');
+        }
         // An invoice can race ahead of checkout fulfillment, or belong to an
         // older Supporter subscription that has since been replaced. The
         // checkout event is authoritative for initial binding, so unmatched
@@ -316,34 +430,39 @@ export async function POST(request: NextRequest) {
         break;
       }
       case 'customer.subscription.deleted': {
-        if (!subscriptionSummary?.planMatches) {
-          break;
+        if (!subscriptionId) {
+          throw new Error('Deleted subscription is missing its id');
         }
-        const result = await apply({
-          stripeSubscriptionId: subscriptionSummary.subscriptionId,
-          subscribedUntil:
-            getCancellationEnd(object) ??
-            subscriptionSummary.currentPeriodEnd ??
-            eventAt ??
-            Date.now(),
-          mode: 'end',
-          ...(authoritativeCustomer !== undefined
-            ? {
-                stripeCustomerId: authoritativeCustomer,
-                setCustomerId: authoritativeCustomer,
-              }
-            : {}),
-          setSubscriptionId: subscriptionSummary.subscriptionId,
-        });
+        const result = await convex.mutation(
+          api.stripe.cancelStripeSubscription,
+          {
+            secret: bridgeSecret,
+            eventId,
+            leaseToken,
+            stripeSubscriptionId: subscriptionId,
+            subscribedUntil:
+              getCancellationEnd(object) ?? eventAt ?? Date.now(),
+            ...(authoritativeCustomer !== undefined
+              ? { stripeCustomerId: authoritativeCustomer }
+              : {}),
+            ...(eventAt !== undefined ? { eventAt } : {}),
+          }
+        );
+        if (result.reason === 'stale_lease') {
+          throw new Error('Webhook lease expired before cancellation');
+        }
         // Never revoke another subscription on the same customer. If this
         // exact subscription is no longer tracked, the event is irrelevant.
         void result;
         break;
       }
+      case 'checkout.session.async_payment_failed':
       case 'checkout.session.expired': {
         if (objectId) {
-          await convex.mutation(api.webauth.settleStripeCheckout, {
+          await convex.mutation(api.stripe.settleStripeCheckout, {
             secret: bridgeSecret,
+            eventId,
+            leaseToken,
             stripeSessionId: objectId,
             status: 'expired',
             now: Date.now(),
@@ -355,25 +474,28 @@ export async function POST(request: NextRequest) {
         break; // unhandled event types are acknowledged
     }
     const finished = await convex.mutation(
-      api.webauth.finishStripeWebhookEvent,
+      api.stripe.finishStripeWebhookEvent,
       {
         secret: bridgeSecret,
-        eventId: event.id,
+        eventId,
         leaseToken,
         success: true,
         now: Date.now(),
       }
     );
     if (!finished.applied && finished.stale) {
-      return NextResponse.json({ received: true, duplicate: true });
+      return NextResponse.json(
+        { error: 'event lease changed before completion' },
+        { status: 503, headers: { 'Retry-After': '5' } }
+      );
     }
   } catch (error) {
     console.error('[stripe] webhook apply failed:', error);
     const finished = await convex.mutation(
-      api.webauth.finishStripeWebhookEvent,
+      api.stripe.finishStripeWebhookEvent,
       {
         secret: bridgeSecret,
-        eventId: event.id,
+        eventId,
         leaseToken,
         success: false,
         error:
@@ -382,7 +504,10 @@ export async function POST(request: NextRequest) {
       }
     );
     if (!finished.applied && finished.stale) {
-      return NextResponse.json({ received: true, duplicate: true });
+      return NextResponse.json(
+        { error: 'event lease changed before failure recording' },
+        { status: 503, headers: { 'Retry-After': '5' } }
+      );
     }
     return NextResponse.json({ error: 'apply failed' }, { status: 500 });
   }

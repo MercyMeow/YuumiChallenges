@@ -1,24 +1,24 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
 import {
-  AdminClientError,
   deleteAdminItemRequest,
   fetchAdminItemsRequest,
   saveAdminItemRequest,
 } from '@/lib/admin/client';
+import { useAdminResourceEditor } from '@/hooks/use-admin-resource-editor';
 import {
   MAX_ADMIN_PRIORITY,
   parseAdminIntegerInput,
 } from '@/lib/admin/integer-input';
-import type { AdminItem, AdminItemCategory } from '@/lib/admin/types';
 import {
-  AdminStatusBanner,
-  type AdminStatusState,
-} from '@/components/admin/StatusBanner';
+  adminItemPayloadSchema,
+  describeAdminValidationIssue,
+  type AdminItem,
+  type AdminItemCategory,
+} from '@/lib/admin/types';
+import { AdminStatusBanner } from '@/components/admin/StatusBanner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,135 +90,61 @@ function compareAdminItems(left: AdminItem, right: AdminItem): number {
   );
 }
 
-function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : fallback;
+function getAdminItemId(item: AdminItem): string {
+  return item.id;
 }
 
-function validateItemFormData(formData: ItemFormData): string | null {
-  if (!formData.name.trim()) return 'Item name is required.';
-  if (
-    parseAdminIntegerInput(formData.itemId, {
-      minimum: 1,
-    }) === null
-  ) {
-    return 'Item ID must be a positive integer.';
-  }
-  if (!formData.reason.trim()) return 'Item reason is required.';
-  if (
-    parseAdminIntegerInput(formData.priority, {
-      minimum: 0,
-      maximum: MAX_ADMIN_PRIORITY,
-    }) === null
-  ) {
-    return 'Item priority must be a non-negative integer.';
-  }
-  return null;
+function sortAdminItems(items: AdminItem[]): AdminItem[] {
+  return [...items].sort(compareAdminItems);
 }
 
-function normalizeItemPayload(formData: ItemFormData) {
+function parseItemFormData(formData: ItemFormData) {
   const itemId = parseAdminIntegerInput(formData.itemId, { minimum: 1 });
   const priority = parseAdminIntegerInput(formData.priority, {
     minimum: 0,
     maximum: MAX_ADMIN_PRIORITY,
   });
-  if (itemId === null || priority === null) {
-    throw new Error('Item numeric fields must be valid integers.');
-  }
-
-  return {
+  return adminItemPayloadSchema.safeParse({
     name: formData.name.trim(),
-    itemId,
+    itemId: itemId ?? Number.NaN,
     category: formData.category,
     reason: formData.reason.trim(),
-    priority,
+    priority: priority ?? Number.NaN,
     isActive: formData.isActive,
-  };
+  });
 }
 
 export default function ItemsEditorPage() {
-  const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
-  const [items, setItems] = useState<AdminItem[]>([]);
-  const [isDataLoading, setIsDataLoading] = useState(false);
-
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState<ItemFormData>(
     createInitialFormData()
   );
-  const [status, setStatus] = useState<AdminStatusState>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [deletingId, setDeletingId] = useState<GuideItemId | null>(null);
-
-  const isMutating = isSubmitting || deletingId !== null;
-
-  const getActionErrorMessage = useCallback(
-    (error: unknown, fallback: string): string => {
-      if (
-        error instanceof AdminClientError &&
-        (error.status === 401 || error.status === 403)
-      ) {
-        router.push('/admin/login');
-        return 'Your admin session expired. Log in again.';
-      }
-      return getErrorMessage(error, fallback);
-    },
-    [router]
-  );
-
-  const refreshItems = useCallback(async (): Promise<void> => {
-    if (!isAuthenticated) {
-      setItems([]);
-      return;
-    }
-
-    setIsDataLoading(true);
-    try {
-      const nextItems = await fetchAdminItemsRequest();
-      setItems(nextItems);
-    } catch (error) {
-      if (
-        error instanceof AdminClientError &&
-        (error.status === 401 || error.status === 403)
-      ) {
-        setItems([]);
-        router.push('/admin/login');
-        return;
-      }
-      throw error;
-    } finally {
-      setIsDataLoading(false);
-    }
-  }, [isAuthenticated, router]);
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/admin/login');
-    }
-  }, [authLoading, isAuthenticated, router]);
-
-  useEffect(() => {
-    if (authLoading || !isAuthenticated) {
-      return undefined;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      void refreshItems().catch((error) => {
-        setItems([]);
-        setStatus({
-          type: 'error',
-          message: getActionErrorMessage(
-            error,
-            'Unable to load guide items right now.'
-          ),
-        });
-      });
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [authLoading, getActionErrorMessage, isAuthenticated, refreshItems]);
+  const {
+    authLoading,
+    clearSubmitError,
+    deletingId,
+    isAuthenticated,
+    isDataLoading,
+    isMutating,
+    isSubmitting,
+    remove,
+    reportValidationError,
+    resources: items,
+    status,
+    submit,
+    submitError,
+    user,
+  } = useAdminResourceEditor<
+    AdminItem,
+    Parameters<typeof saveAdminItemRequest>[0]
+  >({
+    resourceName: 'item',
+    fetchResources: fetchAdminItemsRequest,
+    saveResource: saveAdminItemRequest,
+    deleteResource: deleteAdminItemRequest,
+    getId: getAdminItemId,
+    sortResources: sortAdminItems,
+  });
 
   if (authLoading || isDataLoading) {
     return (
@@ -272,7 +198,7 @@ export default function ItemsEditorPage() {
     }
     setIsDialogOpen(open);
     if (!open) {
-      setSubmitError(null);
+      clearSubmitError();
       setFormData(createInitialFormData());
     }
   };
@@ -282,53 +208,28 @@ export default function ItemsEditorPage() {
 
     if (user?.role !== 'admin' && user?.role !== 'editor') {
       const message = 'Your account is not allowed to edit guide items.';
-      setSubmitError(message);
-      setStatus({ type: 'error', message });
+      reportValidationError(message);
       return;
     }
 
-    const validationError = validateItemFormData(formData);
-    if (validationError) {
-      setSubmitError(validationError);
-      setStatus({ type: 'error', message: validationError });
-      return;
-    }
-
-    setIsSubmitting(true);
-    setSubmitError(null);
-    setStatus({
-      type: 'pending',
-      message: formData.id ? 'Updating item…' : 'Creating item…',
-    });
-
-    try {
-      const savedItem = await saveAdminItemRequest({
-        ...normalizeItemPayload(formData),
-        ...(formData.id ? { id: formData.id } : {}),
-      });
-      setItems((currentItems) =>
-        [
-          ...currentItems.filter((item) => item.id !== savedItem.id),
-          savedItem,
-        ].sort(compareAdminItems)
+    const parsed = parseItemFormData(formData);
+    if (!parsed.success) {
+      reportValidationError(
+        describeAdminValidationIssue(parsed.error.issues[0]!)
       );
-      setStatus({
-        type: 'success',
-        message: formData.id
-          ? 'Item updated successfully.'
-          : 'Item created successfully.',
-      });
+      return;
+    }
+
+    const result = await submit(
+      {
+        ...parsed.data,
+        ...(formData.id ? { id: formData.id } : {}),
+      },
+      Boolean(formData.id)
+    );
+    if (result.ok) {
       setIsDialogOpen(false);
       setFormData(createInitialFormData());
-    } catch (error) {
-      const message = getActionErrorMessage(
-        error,
-        'Unable to save the item right now.'
-      );
-      setSubmitError(message);
-      setStatus({ type: 'error', message });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -336,7 +237,7 @@ export default function ItemsEditorPage() {
     if (isMutating) {
       return;
     }
-    setSubmitError(null);
+    clearSubmitError();
     setFormData({
       id: item.id,
       name: item.name,
@@ -355,29 +256,14 @@ export default function ItemsEditorPage() {
     }
     if (!confirm('Are you sure you want to delete this item?')) return;
 
-    setDeletingId(id);
-    setStatus({ type: 'pending', message: 'Deleting item…' });
-    try {
-      const deletedId = await deleteAdminItemRequest(id);
-      setItems((currentItems) =>
-        currentItems.filter((item) => item.id !== deletedId)
-      );
+    const result = await remove(id);
+    if (result.ok) {
+      const deletedId = result.value;
       if (formData.id === deletedId) {
         setIsDialogOpen(false);
         setFormData(createInitialFormData());
-        setSubmitError(null);
+        clearSubmitError();
       }
-      setStatus({ type: 'success', message: 'Item deleted successfully.' });
-    } catch (error) {
-      setStatus({
-        type: 'error',
-        message: getActionErrorMessage(
-          error,
-          'Unable to delete the item right now.'
-        ),
-      });
-    } finally {
-      setDeletingId(null);
     }
   };
 
@@ -385,7 +271,7 @@ export default function ItemsEditorPage() {
     if (isMutating) {
       return;
     }
-    setSubmitError(null);
+    clearSubmitError();
     setFormData(createInitialFormData());
     setIsDialogOpen(true);
   };

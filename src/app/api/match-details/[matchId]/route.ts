@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readFile } from 'fs/promises';
 import path from 'path';
+import { RiotAPI, RiotApiError } from '@/lib/apis/riot';
 import {
   getRiotMatchIdValidationError,
   parseRiotMatchId,
-  RiotAPI,
-  RiotApiError,
-} from '@/lib/apis/riot';
+} from '@/lib/riot-match-id';
 import {
   getMatchCache,
   generateCacheKey,

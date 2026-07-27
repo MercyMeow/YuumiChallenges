@@ -24,14 +24,6 @@ import {
 const ITEM_ID = 'a'.repeat(32);
 const BUILD_ID = 'b'.repeat(32);
 const ADMIN_ORIGIN = 'https://yuumi.quest';
-const ADMIN_SESSION = {
-  user: {
-    id: 'admin-id',
-    username: 'admin',
-    role: 'admin',
-  },
-};
-
 function createRequest(
   path: string,
   init: Omit<RequestInit, 'signal'> = {},
@@ -147,24 +139,25 @@ describe('admin guide resource routes', () => {
     }
   );
 
-  it('rejects an unauthorized item mutation before reading its payload', async () => {
-    convexMocks.query.mockResolvedValue(null);
+  it('uses the mutation itself as the single authorization boundary', async () => {
+    convexMocks.mutation.mockRejectedValue(
+      new Error('Uncaught Error: Unauthorized')
+    );
 
     const response = await saveItem(
       createRequest('/api/admin/items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: '{not-json',
+        body: JSON.stringify(validItemPayload()),
       })
     );
 
     expect(response.status).toBe(401);
-    expect(convexMocks.query).toHaveBeenCalledTimes(1);
-    expect(convexMocks.mutation).not.toHaveBeenCalled();
+    expect(convexMocks.query).not.toHaveBeenCalled();
+    expect(convexMocks.mutation).toHaveBeenCalledTimes(1);
   });
 
   it('rejects invalid JSON and invalid item payloads after authentication', async () => {
-    convexMocks.query.mockResolvedValue(ADMIN_SESSION);
     const invalidJsonResponse = await saveItem(
       createRequest('/api/admin/items', {
         method: 'POST',
@@ -175,7 +168,6 @@ describe('admin guide resource routes', () => {
     expect(invalidJsonResponse.status).toBe(400);
     expect(convexMocks.mutation).not.toHaveBeenCalled();
 
-    convexMocks.query.mockResolvedValue(ADMIN_SESSION);
     const invalidPayloadResponse = await saveItem(
       createRequest('/api/admin/items', {
         method: 'POST',
@@ -190,9 +182,23 @@ describe('admin guide resource routes', () => {
     expect(convexMocks.mutation).not.toHaveBeenCalled();
   });
 
-  it('rejects an invalid item id before deletion', async () => {
-    convexMocks.query.mockResolvedValue(ADMIN_SESSION);
+  it('rejects an oversized resource body before JSON parsing', async () => {
+    const response = await saveItem(
+      createRequest('/api/admin/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...validItemPayload(),
+          reason: 'x'.repeat(33 * 1024),
+        }),
+      })
+    );
 
+    expect(response.status).toBe(413);
+    expect(convexMocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it('rejects an invalid item id before deletion', async () => {
     const response = await deleteItem(
       createRequest('/api/admin/items?id=invalid', { method: 'DELETE' })
     );
@@ -202,16 +208,14 @@ describe('admin guide resource routes', () => {
   });
 
   it('returns authenticated item reads through the shared route flow', async () => {
-    convexMocks.query
-      .mockResolvedValueOnce(ADMIN_SESSION)
-      .mockResolvedValueOnce([
-        {
-          _id: ITEM_ID,
-          _creationTime: 1,
-          ...validItemPayload(),
-          updatedAt: 2,
-        },
-      ]);
+    convexMocks.query.mockResolvedValueOnce([
+      {
+        _id: ITEM_ID,
+        _creationTime: 1,
+        ...validItemPayload(),
+        updatedAt: 2,
+      },
+    ]);
 
     const response = await getItems(
       createRequest('/api/admin/items', { method: 'GET' })
@@ -222,11 +226,17 @@ describe('admin guide resource routes', () => {
       items: [{ id: ITEM_ID, ...validItemPayload(), updatedAt: 2 }],
     });
     expect(response.headers.get('cache-control')).toBe('no-store');
+    expect(convexMocks.query).toHaveBeenCalledTimes(1);
   });
 
   it('saves and deletes an authenticated item', async () => {
-    convexMocks.query.mockResolvedValue(ADMIN_SESSION);
-    convexMocks.mutation.mockResolvedValueOnce(ITEM_ID);
+    convexMocks.mutation.mockResolvedValueOnce({
+      _id: ITEM_ID,
+      _creationTime: 1,
+      ...validItemPayload(),
+      name: 'Persisted item name',
+      updatedAt: 123,
+    });
     const saveResponse = await saveItem(
       createRequest('/api/admin/items', {
         method: 'POST',
@@ -240,7 +250,8 @@ describe('admin guide resource routes', () => {
       item: {
         id: ITEM_ID,
         ...validItemPayload(),
-        updatedAt: expect.any(Number),
+        name: 'Persisted item name',
+        updatedAt: 123,
       },
     });
 
@@ -255,7 +266,6 @@ describe('admin guide resource routes', () => {
   });
 
   it('uses the same validation and persistence flow for builds', async () => {
-    convexMocks.query.mockResolvedValue(ADMIN_SESSION);
     const unsupportedIconResponse = await saveBuild(
       createRequest('/api/admin/builds', {
         method: 'POST',
@@ -266,7 +276,13 @@ describe('admin guide resource routes', () => {
     expect(unsupportedIconResponse.status).toBe(422);
     expect(convexMocks.mutation).not.toHaveBeenCalled();
 
-    convexMocks.mutation.mockResolvedValueOnce(BUILD_ID);
+    convexMocks.mutation.mockResolvedValueOnce({
+      _id: BUILD_ID,
+      _creationTime: 1,
+      ...validBuildPayload(),
+      description: 'Persisted build description',
+      updatedAt: 456,
+    });
     const saveResponse = await saveBuild(
       createRequest('/api/admin/builds', {
         method: 'POST',
@@ -279,7 +295,8 @@ describe('admin guide resource routes', () => {
       build: {
         id: BUILD_ID,
         ...validBuildPayload(),
-        updatedAt: expect.any(Number),
+        description: 'Persisted build description',
+        updatedAt: 456,
       },
     });
 

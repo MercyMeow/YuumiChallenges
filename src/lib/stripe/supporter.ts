@@ -22,6 +22,7 @@ export type StripeInvoiceSnapshot = {
 export type StripeSubscriptionSummary = {
   currentPeriodEnd?: number;
   customerId?: string;
+  hasSupporterPriceShape: boolean;
   metadata: Record<string, string>;
   planMatches: boolean;
   supporterItemIds: string[];
@@ -198,7 +199,11 @@ export function parseStripeSubscriptionSummary(
   const subscriptionId = readString(value.id);
   if (!subscriptionId) return null;
 
-  const items = readItems(isRecord(value.items) ? value.items : null);
+  const itemList = isRecord(value.items) ? value.items : null;
+  // Callers must retrieve all subscription-item pages before classification;
+  // treating an embedded partial page as complete can silently miss the plan.
+  if (itemList?.has_more === true) return null;
+  const items = readItems(itemList);
   const supporterItems = items.filter(hasSupporterPriceShape);
   const itemPeriodEnds = supporterItems
     .map(readSubscriptionItemPeriodEnd)
@@ -222,6 +227,7 @@ export function parseStripeSubscriptionSummary(
     ...(customerId !== undefined ? { customerId } : {}),
     ...(currentPeriodEnd !== undefined ? { currentPeriodEnd } : {}),
     metadata,
+    hasSupporterPriceShape: supporterItems.length > 0,
     planMatches: isSupporterPlanMetadata(metadata) && supporterItems.length > 0,
     supporterItemIds,
     supporterPriceIds,
@@ -254,14 +260,4 @@ export function getStripeInvoiceSupporterPeriodEnd(
     : undefined;
 }
 
-export function canFinishStripeWebhookAttempt(
-  status: 'failed' | 'processed' | 'processing',
-  activeLeaseToken: string | undefined,
-  attemptLeaseToken: string
-): boolean {
-  return (
-    status === 'processing' &&
-    typeof activeLeaseToken === 'string' &&
-    activeLeaseToken === attemptLeaseToken
-  );
-}
+export { canFinishStripeWebhookAttempt } from './webhook-lease';

@@ -1,26 +1,24 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
 import {
-  AdminClientError,
   deleteAdminBuildRequest,
   fetchAdminBuildsRequest,
   saveAdminBuildRequest,
 } from '@/lib/admin/client';
+import { useAdminResourceEditor } from '@/hooks/use-admin-resource-editor';
 import {
   MAX_ADMIN_PRIORITY,
   parseAdminIntegerInput,
 } from '@/lib/admin/integer-input';
 import { isAdminBuildIcon } from '@/lib/admin/build-icons';
-import { getSkillOrderValidationError } from '@/lib/admin/skill-order';
-import type { AdminBuild } from '@/lib/admin/types';
 import {
-  AdminStatusBanner,
-  type AdminStatusState,
-} from '@/components/admin/StatusBanner';
+  adminBuildPayloadSchema,
+  describeAdminValidationIssue,
+  type AdminBuild,
+} from '@/lib/admin/types';
+import { AdminStatusBanner } from '@/components/admin/StatusBanner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -84,6 +82,14 @@ function createInitialBuildFormData(): BuildFormData {
   };
 }
 
+function getAdminBuildId(build: Build): string {
+  return build.id;
+}
+
+function sortAdminBuilds(builds: Build[]): Build[] {
+  return [...builds].sort((left, right) => left.priority - right.priority);
+}
+
 function mapBuildToFormData(build: Build): BuildFormData {
   return {
     id: build.id,
@@ -113,79 +119,13 @@ function mapBuildToFormData(build: Build): BuildFormData {
   };
 }
 
-function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : fallback;
-}
-
-function validateBuildFormData(formData: BuildFormData): string | null {
-  if (!formData.name.trim()) return 'Build name is required.';
-  if (!formData.description.trim()) return 'Build description is required.';
-  if (!formData.icon.trim()) return 'Build icon is required.';
-  if (!formData.color.trim()) return 'Build color class is required.';
-  if (!formData.borderColor.trim()) {
-    return 'Build border color class is required.';
-  }
-  if (
-    parseAdminIntegerInput(formData.priority, {
-      minimum: 0,
-      maximum: MAX_ADMIN_PRIORITY,
-    }) === null
-  ) {
-    return 'Build priority must be a non-negative integer.';
-  }
-  if (!formData.runes.name.trim()) return 'Rune page name is required.';
-  if (!formData.runes.primaryTree.trim())
-    return 'Primary rune tree is required.';
-  if (!formData.runes.keystone.trim()) return 'Keystone is required.';
-  if (!formData.runes.secondaryTree.trim()) {
-    return 'Secondary rune tree is required.';
-  }
-  if (formData.runes.primary.filter((value) => value.trim()).length !== 3) {
-    return 'Exactly 3 primary runes are required.';
-  }
-  if (formData.runes.secondary.filter((value) => value.trim()).length !== 2) {
-    return 'Exactly 2 secondary runes are required.';
-  }
-  if (formData.runes.shards.filter((value) => value.trim()).length !== 3) {
-    return 'Exactly 3 rune shards are required.';
-  }
-  if (!formData.skillOrder.priority.trim()) {
-    return 'Skill order priority is required.';
-  }
-  const skillOrderError = getSkillOrderValidationError(
-    formData.skillOrder.levels
-  );
-  if (skillOrderError) {
-    return skillOrderError;
-  }
-
-  for (const [category, items] of Object.entries(formData.items)) {
-    for (const [index, item] of items.entries()) {
-      if (!Number.isInteger(item.id) || item.id <= 0) {
-        return `${category} item ${index + 1} must have a positive item ID.`;
-      }
-      if (!item.name.trim()) {
-        return `${category} item ${index + 1} name is required.`;
-      }
-      if (!item.reason.trim()) {
-        return `${category} item ${index + 1} reason is required.`;
-      }
-    }
-  }
-
-  return null;
-}
-
-function normalizeBuildPayload(formData: BuildFormData) {
+function parseBuildFormData(formData: BuildFormData) {
   const priority = parseAdminIntegerInput(formData.priority, {
     minimum: 0,
     maximum: MAX_ADMIN_PRIORITY,
   });
-  if (priority === null) {
-    throw new Error('Build priority must be a valid integer.');
-  }
 
-  return {
+  return adminBuildPayloadSchema.safeParse({
     name: formData.name.trim(),
     description: formData.description.trim(),
     icon: formData.icon,
@@ -193,7 +133,7 @@ function normalizeBuildPayload(formData: BuildFormData) {
     borderColor: formData.borderColor.trim(),
     isRecommended: formData.isRecommended,
     isActive: formData.isActive,
-    priority,
+    priority: priority ?? Number.NaN,
     runes: {
       name: formData.runes.name.trim(),
       primaryTree: formData.runes.primaryTree.trim(),
@@ -233,94 +173,41 @@ function normalizeBuildPayload(formData: BuildFormData) {
       ),
       notes: formData.skillOrder.notes.trim(),
     },
-  };
+  });
 }
 
 export default function BuildsEditorPage() {
-  const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
-  const [builds, setBuilds] = useState<Build[]>([]);
-  const [isDataLoading, setIsDataLoading] = useState(false);
-
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState<BuildFormData>(
     createInitialBuildFormData()
   );
   const [activeTab, setActiveTab] = useState('general');
-  const [status, setStatus] = useState<AdminStatusState>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [deletingId, setDeletingId] = useState<BuildId | null>(null);
-
-  const isMutating = isSubmitting || deletingId !== null;
-
-  const getActionErrorMessage = useCallback(
-    (error: unknown, fallback: string): string => {
-      if (
-        error instanceof AdminClientError &&
-        (error.status === 401 || error.status === 403)
-      ) {
-        router.push('/admin/login');
-        return 'Your admin session expired. Log in again.';
-      }
-      return getErrorMessage(error, fallback);
-    },
-    [router]
-  );
-
-  const refreshBuilds = useCallback(async (): Promise<void> => {
-    if (!isAuthenticated) {
-      setBuilds([]);
-      return;
-    }
-
-    setIsDataLoading(true);
-    try {
-      const nextBuilds = await fetchAdminBuildsRequest();
-      setBuilds(nextBuilds);
-    } catch (error) {
-      if (
-        error instanceof AdminClientError &&
-        (error.status === 401 || error.status === 403)
-      ) {
-        setBuilds([]);
-        router.push('/admin/login');
-        return;
-      }
-      throw error;
-    } finally {
-      setIsDataLoading(false);
-    }
-  }, [isAuthenticated, router]);
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/admin/login');
-    }
-  }, [authLoading, isAuthenticated, router]);
-
-  useEffect(() => {
-    if (authLoading || !isAuthenticated) {
-      return undefined;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      void refreshBuilds().catch((error) => {
-        setBuilds([]);
-        setStatus({
-          type: 'error',
-          message: getActionErrorMessage(
-            error,
-            'Unable to load guide builds right now.'
-          ),
-        });
-      });
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [authLoading, getActionErrorMessage, isAuthenticated, refreshBuilds]);
+  const {
+    authLoading,
+    clearSubmitError,
+    deletingId,
+    isAuthenticated,
+    isDataLoading,
+    isMutating,
+    isSubmitting,
+    remove,
+    reportValidationError,
+    resources: builds,
+    status,
+    submit,
+    submitError,
+    user,
+  } = useAdminResourceEditor<
+    Build,
+    Parameters<typeof saveAdminBuildRequest>[0]
+  >({
+    resourceName: 'build',
+    fetchResources: fetchAdminBuildsRequest,
+    saveResource: saveAdminBuildRequest,
+    deleteResource: deleteAdminBuildRequest,
+    getId: getAdminBuildId,
+    sortResources: sortAdminBuilds,
+  });
 
   if (authLoading || isDataLoading) {
     return (
@@ -374,7 +261,7 @@ export default function BuildsEditorPage() {
     }
     setIsDialogOpen(open);
     if (!open) {
-      setSubmitError(null);
+      clearSubmitError();
       setActiveTab('general');
       setFormData(createInitialBuildFormData());
     }
@@ -385,54 +272,29 @@ export default function BuildsEditorPage() {
 
     if (user?.role !== 'admin' && user?.role !== 'editor') {
       const message = 'Your account is not allowed to edit guide builds.';
-      setSubmitError(message);
-      setStatus({ type: 'error', message });
+      reportValidationError(message);
       return;
     }
 
-    const validationError = validateBuildFormData(formData);
-    if (validationError) {
-      setSubmitError(validationError);
-      setStatus({ type: 'error', message: validationError });
-      return;
-    }
-
-    setIsSubmitting(true);
-    setSubmitError(null);
-    setStatus({
-      type: 'pending',
-      message: formData.id ? 'Updating build…' : 'Creating build…',
-    });
-
-    try {
-      const savedBuild = await saveAdminBuildRequest({
-        ...normalizeBuildPayload(formData),
-        ...(formData.id ? { id: formData.id } : {}),
-      });
-      setBuilds((currentBuilds) =>
-        [
-          ...currentBuilds.filter((build) => build.id !== savedBuild.id),
-          savedBuild,
-        ].sort((left, right) => left.priority - right.priority)
+    const parsed = parseBuildFormData(formData);
+    if (!parsed.success) {
+      reportValidationError(
+        describeAdminValidationIssue(parsed.error.issues[0]!)
       );
-      setStatus({
-        type: 'success',
-        message: formData.id
-          ? 'Build updated successfully.'
-          : 'Build created successfully.',
-      });
+      return;
+    }
+
+    const result = await submit(
+      {
+        ...parsed.data,
+        ...(formData.id ? { id: formData.id } : {}),
+      },
+      Boolean(formData.id)
+    );
+    if (result.ok) {
       setIsDialogOpen(false);
       setFormData(createInitialBuildFormData());
       setActiveTab('general');
-    } catch (error) {
-      const message = getActionErrorMessage(
-        error,
-        'Unable to save the build right now.'
-      );
-      setSubmitError(message);
-      setStatus({ type: 'error', message });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -440,7 +302,7 @@ export default function BuildsEditorPage() {
     if (isMutating) {
       return;
     }
-    setSubmitError(null);
+    clearSubmitError();
     setActiveTab('general');
     setFormData(mapBuildToFormData(build));
     setIsDialogOpen(true);
@@ -452,30 +314,15 @@ export default function BuildsEditorPage() {
     }
     if (!confirm('Are you sure you want to delete this build?')) return;
 
-    setDeletingId(id);
-    setStatus({ type: 'pending', message: 'Deleting build…' });
-    try {
-      const deletedId = await deleteAdminBuildRequest(id);
-      setBuilds((currentBuilds) =>
-        currentBuilds.filter((build) => build.id !== deletedId)
-      );
+    const result = await remove(id);
+    if (result.ok) {
+      const deletedId = result.value;
       if (formData.id === deletedId) {
         setIsDialogOpen(false);
         setFormData(createInitialBuildFormData());
         setActiveTab('general');
-        setSubmitError(null);
+        clearSubmitError();
       }
-      setStatus({ type: 'success', message: 'Build deleted successfully.' });
-    } catch (error) {
-      setStatus({
-        type: 'error',
-        message: getActionErrorMessage(
-          error,
-          'Unable to delete the build right now.'
-        ),
-      });
-    } finally {
-      setDeletingId(null);
     }
   };
 
@@ -483,7 +330,7 @@ export default function BuildsEditorPage() {
     if (isMutating) {
       return;
     }
-    setSubmitError(null);
+    clearSubmitError();
     setActiveTab('general');
     setFormData(createInitialBuildFormData());
     setIsDialogOpen(true);

@@ -5,6 +5,10 @@ import schema from './schema';
 import { modules } from './test.setup';
 
 const BRIDGE_SECRET = 'test-bridge-secret';
+const WEBHOOK_LEASE = {
+  eventId: 'evt_test_transition',
+  leaseToken: 'test-transition-lease',
+} as const;
 
 beforeEach(() => {
   process.env.AUTH_BRIDGE_SECRET = BRIDGE_SECRET;
@@ -16,6 +20,15 @@ async function insertWebUser(
 ) {
   return await t.run(async (ctx) => {
     const now = 1_000;
+    await ctx.db.insert('stripeWebhookEvents', {
+      eventId: WEBHOOK_LEASE.eventId,
+      type: 'test.transition',
+      status: 'processing',
+      processingUntil: Date.now() + 60_000,
+      lastReceivedAt: Date.now(),
+      attemptCount: 1,
+      leaseToken: WEBHOOK_LEASE.leaseToken,
+    });
     return await ctx.db.insert('webUsers', {
       discordId,
       username: 'supporter',
@@ -30,45 +43,43 @@ describe('Stripe entitlement state', () => {
     const t = convexTest(schema, modules);
     const userId = await insertWebUser(t);
 
-    await expect(
-      t.mutation(api.webauth.applySubscription, {
-        secret: BRIDGE_SECRET,
-        userId,
+    await t.run(async (ctx) => {
+      await ctx.db.patch(userId, {
+        stripeCustomerId: 'cus_1',
+        stripeSubscriptionId: 'sub_1',
         subscribedUntil: 10_000,
-        mode: 'extend',
-        eventAt: 2_000,
-        setCustomerId: 'cus_1',
-        setSubscriptionId: 'sub_1',
-      })
-    ).resolves.toMatchObject({ applied: true });
+        subEventAt: 2_000,
+        subEventMode: 'extend',
+      });
+    });
 
     await expect(
-      t.mutation(api.webauth.applySubscription, {
+      t.mutation(api.stripe.renewStripeSubscription, {
+        ...WEBHOOK_LEASE,
         secret: BRIDGE_SECRET,
         stripeSubscriptionId: 'sub_other',
         stripeCustomerId: 'cus_1',
         subscribedUntil: 20_000,
-        mode: 'extend',
         eventAt: 3_000,
       })
     ).resolves.toEqual({ applied: false, reason: 'not_found' });
 
     await expect(
-      t.mutation(api.webauth.applySubscription, {
+      t.mutation(api.stripe.cancelStripeSubscription, {
+        ...WEBHOOK_LEASE,
         secret: BRIDGE_SECRET,
         stripeSubscriptionId: 'sub_1',
         subscribedUntil: 4_000,
-        mode: 'end',
         eventAt: 4_000,
       })
     ).resolves.toMatchObject({ applied: true });
 
     await expect(
-      t.mutation(api.webauth.applySubscription, {
+      t.mutation(api.stripe.renewStripeSubscription, {
+        ...WEBHOOK_LEASE,
         secret: BRIDGE_SECRET,
         stripeSubscriptionId: 'sub_1',
         subscribedUntil: 30_000,
-        mode: 'extend',
         eventAt: 4_000,
       })
     ).resolves.toEqual({ applied: false, reason: 'stale' });
@@ -87,30 +98,43 @@ describe('Stripe entitlement state', () => {
     const t = convexTest(schema, modules);
     const userId = await insertWebUser(t, 'replacement-user');
 
-    await t.mutation(api.webauth.applySubscription, {
-      secret: BRIDGE_SECRET,
-      userId,
-      subscribedUntil: 10_000,
-      mode: 'extend',
-      eventAt: 2_000,
-      setSubscriptionId: 'sub_old',
+    await t.run(async (ctx) => {
+      await ctx.db.patch(userId, {
+        stripeSubscriptionId: 'sub_old',
+        subscribedUntil: 10_000,
+        subEventAt: 2_000,
+        subEventMode: 'extend',
+      });
     });
-    await t.mutation(api.webauth.applySubscription, {
+    await t.mutation(api.stripe.cancelStripeSubscription, {
+      ...WEBHOOK_LEASE,
       secret: BRIDGE_SECRET,
       stripeSubscriptionId: 'sub_old',
       subscribedUntil: 4_000,
-      mode: 'end',
       eventAt: 4_000,
+    });
+    await t.run(async (ctx) => {
+      await ctx.db.insert('stripeCheckoutSessions', {
+        userId,
+        returnTo: '/',
+        status: 'open',
+        idempotencyKey: 'replacement_checkout',
+        stripeSessionId: 'cs_replacement',
+        createdAt: 5_000,
+        updatedAt: 5_000,
+      });
     });
 
     await expect(
-      t.mutation(api.webauth.applySubscription, {
+      t.mutation(api.stripe.settleStripeCheckout, {
+        ...WEBHOOK_LEASE,
         secret: BRIDGE_SECRET,
-        userId,
+        stripeSessionId: 'cs_replacement',
+        stripeSubscriptionId: 'sub_new',
         subscribedUntil: 30_000,
-        mode: 'extend',
+        status: 'completed',
         eventAt: 3_000,
-        setSubscriptionId: 'sub_new',
+        now: 5_000,
       })
     ).resolves.toMatchObject({ applied: true });
 
@@ -123,9 +147,143 @@ describe('Stripe entitlement state', () => {
     });
   });
 
+  it('backfills a legacy subscription id through the existing customer', async () => {
+    const t = convexTest(schema, modules);
+    const userId = await insertWebUser(t, 'legacy-supporter');
+    await t.run(async (ctx) => {
+      await ctx.db.patch(userId, {
+        stripeCustomerId: 'cus_legacy',
+        subscribedUntil: 5_000,
+      });
+    });
+
+    await expect(
+      t.mutation(api.stripe.migrateLegacyStripeSubscription, {
+        ...WEBHOOK_LEASE,
+        secret: BRIDGE_SECRET,
+        stripeCustomerId: 'cus_legacy',
+        stripeSubscriptionId: 'sub_legacy',
+        subscribedUntil: 20_000,
+        eventAt: 6_000,
+      })
+    ).resolves.toEqual({ applied: true, reason: 'applied' });
+
+    const user = await t.run(async (ctx) => await ctx.db.get(userId));
+    expect(user).toMatchObject({
+      stripeCustomerId: 'cus_legacy',
+      stripeSubscriptionId: 'sub_legacy',
+      subscribedUntil: 20_000,
+    });
+  });
+
+  it('settles a predeployment Checkout without a local session record', async () => {
+    const t = convexTest(schema, modules);
+    const userId = await insertWebUser(t, 'predeployment-checkout-user');
+
+    await expect(
+      t.mutation(api.stripe.settleLegacyStripeCheckout, {
+        ...WEBHOOK_LEASE,
+        secret: BRIDGE_SECRET,
+        userId,
+        stripeCustomerId: 'cus_predeployment',
+        stripeSubscriptionId: 'sub_predeployment',
+        subscribedUntil: 20_000,
+        eventAt: 6_000,
+        now: 7_000,
+      })
+    ).resolves.toEqual({ applied: true, reason: 'completed' });
+
+    const user = await t.run(async (ctx) => await ctx.db.get(userId));
+    expect(user).toMatchObject({
+      stripeCustomerId: 'cus_predeployment',
+      stripeSubscriptionId: 'sub_predeployment',
+      subscribedUntil: 20_000,
+      subEventAt: 6_000,
+    });
+  });
+
+  it('does not let a delayed legacy renewal overwrite a newer cancellation', async () => {
+    const t = convexTest(schema, modules);
+    const userId = await insertWebUser(t, 'legacy-cancelled-supporter');
+    await t.run(async (ctx) => {
+      await ctx.db.patch(userId, {
+        stripeCustomerId: 'cus_legacy_cancelled',
+        subscribedUntil: 7_000,
+        subEventAt: 7_000,
+        subEventMode: 'end',
+      });
+    });
+
+    await expect(
+      t.mutation(api.stripe.migrateLegacyStripeSubscription, {
+        ...WEBHOOK_LEASE,
+        secret: BRIDGE_SECRET,
+        stripeCustomerId: 'cus_legacy_cancelled',
+        stripeSubscriptionId: 'sub_legacy_cancelled',
+        subscribedUntil: 20_000,
+        eventAt: 6_000,
+      })
+    ).resolves.toEqual({ applied: false, reason: 'stale' });
+
+    const user = await t.run(async (ctx) => await ctx.db.get(userId));
+    expect(user).toMatchObject({
+      stripeCustomerId: 'cus_legacy_cancelled',
+      subscribedUntil: 7_000,
+      subEventAt: 7_000,
+      subEventMode: 'end',
+    });
+    expect(user?.stripeSubscriptionId).toBeUndefined();
+  });
+
+  it('rejects an entitlement transition from a superseded webhook lease', async () => {
+    const t = convexTest(schema, modules);
+    const userId = await insertWebUser(t, 'stale-lease-supporter');
+    await t.run(async (ctx) => {
+      await ctx.db.patch(userId, {
+        stripeSubscriptionId: 'sub_stale_lease',
+      });
+      const event = await ctx.db
+        .query('stripeWebhookEvents')
+        .withIndex('by_eventId', (q) => q.eq('eventId', WEBHOOK_LEASE.eventId))
+        .unique();
+      await ctx.db.patch(event!._id, { leaseToken: 'new-owner' });
+    });
+
+    await expect(
+      t.mutation(api.stripe.renewStripeSubscription, {
+        ...WEBHOOK_LEASE,
+        secret: BRIDGE_SECRET,
+        stripeSubscriptionId: 'sub_stale_lease',
+        subscribedUntil: 20_000,
+      })
+    ).resolves.toEqual({ applied: false, reason: 'stale_lease' });
+  });
+
+  it('does not use customer fallback to replace a different binding', async () => {
+    const t = convexTest(schema, modules);
+    const userId = await insertWebUser(t, 'bound-supporter');
+    await t.run(async (ctx) => {
+      await ctx.db.patch(userId, {
+        stripeCustomerId: 'cus_bound',
+        stripeSubscriptionId: 'sub_current',
+        subscribedUntil: 50_000,
+      });
+    });
+
+    await expect(
+      t.mutation(api.stripe.migrateLegacyStripeSubscription, {
+        ...WEBHOOK_LEASE,
+        secret: BRIDGE_SECRET,
+        stripeCustomerId: 'cus_bound',
+        stripeSubscriptionId: 'sub_old',
+        subscribedUntil: 60_000,
+      })
+    ).resolves.toEqual({ applied: false, reason: 'not_found' });
+  });
+
   it('prevents an expired webhook worker from finishing a newer lease', async () => {
     const t = convexTest(schema, modules);
-    const first = await t.mutation(api.webauth.beginStripeWebhookEvent, {
+    const first = await t.mutation(api.stripe.beginStripeWebhookEvent, {
       secret: BRIDGE_SECRET,
       eventId: 'evt_lease',
       type: 'invoice.paid',
@@ -133,7 +291,7 @@ describe('Stripe entitlement state', () => {
     });
     expect(first.shouldProcess).toBe(true);
 
-    const duplicate = await t.mutation(api.webauth.beginStripeWebhookEvent, {
+    const duplicate = await t.mutation(api.stripe.beginStripeWebhookEvent, {
       secret: BRIDGE_SECRET,
       eventId: 'evt_lease',
       type: 'invoice.paid',
@@ -141,10 +299,11 @@ describe('Stripe entitlement state', () => {
     });
     expect(duplicate).toMatchObject({
       shouldProcess: false,
-      duplicate: true,
+      duplicate: false,
+      inProgress: true,
     });
 
-    const retry = await t.mutation(api.webauth.beginStripeWebhookEvent, {
+    const retry = await t.mutation(api.stripe.beginStripeWebhookEvent, {
       secret: BRIDGE_SECRET,
       eventId: 'evt_lease',
       type: 'invoice.paid',
@@ -154,7 +313,7 @@ describe('Stripe entitlement state', () => {
     expect(retry.leaseToken).not.toBe(first.leaseToken);
 
     await expect(
-      t.mutation(api.webauth.finishStripeWebhookEvent, {
+      t.mutation(api.stripe.finishStripeWebhookEvent, {
         secret: BRIDGE_SECRET,
         eventId: 'evt_lease',
         leaseToken: first.leaseToken!,
@@ -165,7 +324,7 @@ describe('Stripe entitlement state', () => {
     ).resolves.toEqual({ applied: false, stale: true });
 
     await expect(
-      t.mutation(api.webauth.finishStripeWebhookEvent, {
+      t.mutation(api.stripe.finishStripeWebhookEvent, {
         secret: BRIDGE_SECRET,
         eventId: 'evt_lease',
         leaseToken: retry.leaseToken!,
@@ -189,11 +348,71 @@ describe('Stripe entitlement state', () => {
 });
 
 describe('Stripe checkout intent reuse', () => {
+  it('blocks a second Checkout while asynchronous payment is pending', async () => {
+    const t = convexTest(schema, modules);
+    const userId = await insertWebUser(t, 'async-payment-user');
+
+    const first = await t.mutation(api.stripe.prepareStripeCheckout, {
+      secret: BRIDGE_SECRET,
+      userId,
+      returnTo: '/',
+      now: 1_000,
+    });
+    if (first.state !== 'create') {
+      throw new Error('Expected a new checkout intent');
+    }
+    await t.mutation(api.stripe.completeStripeCheckout, {
+      secret: BRIDGE_SECRET,
+      userId,
+      idempotencyKey: first.idempotencyKey,
+      checkoutUrl: 'https://checkout.stripe.test/async',
+      stripeSessionId: 'cs_async',
+      expiresAt: 2_000,
+      now: 1_500,
+    });
+    await t.mutation(api.stripe.settleStripeCheckout, {
+      ...WEBHOOK_LEASE,
+      secret: BRIDGE_SECRET,
+      stripeSessionId: 'cs_async',
+      stripeSubscriptionId: 'sub_async',
+      status: 'payment_pending',
+      now: 3_000,
+    });
+
+    await expect(
+      t.mutation(api.stripe.prepareStripeCheckout, {
+        secret: BRIDGE_SECRET,
+        userId,
+        returnTo: '/new',
+        now: 4_000,
+      })
+    ).resolves.toMatchObject({
+      state: 'payment_pending',
+      idempotencyKey: first.idempotencyKey,
+    });
+
+    await t.mutation(api.stripe.settleStripeCheckout, {
+      ...WEBHOOK_LEASE,
+      secret: BRIDGE_SECRET,
+      stripeSessionId: 'cs_async',
+      status: 'expired',
+      now: 5_000,
+    });
+    await expect(
+      t.mutation(api.stripe.prepareStripeCheckout, {
+        secret: BRIDGE_SECRET,
+        userId,
+        returnTo: '/retry',
+        now: 6_000,
+      })
+    ).resolves.toMatchObject({ state: 'create', returnTo: '/retry' });
+  });
+
   it('reuses the same checkout intent after a recorded provider failure', async () => {
     const t = convexTest(schema, modules);
     const userId = await insertWebUser(t, 'failed-checkout-user');
 
-    const first = await t.mutation(api.webauth.prepareStripeCheckout, {
+    const first = await t.mutation(api.stripe.prepareStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       returnTo: '/players/euw/example',
@@ -205,7 +424,7 @@ describe('Stripe checkout intent reuse', () => {
     }
 
     await expect(
-      t.mutation(api.webauth.recordStripeCheckoutFailure, {
+      t.mutation(api.stripe.recordStripeCheckoutFailure, {
         secret: BRIDGE_SECRET,
         userId,
         idempotencyKey: first.idempotencyKey,
@@ -214,7 +433,7 @@ describe('Stripe checkout intent reuse', () => {
       })
     ).resolves.toEqual({ applied: true });
 
-    const retry = await t.mutation(api.webauth.prepareStripeCheckout, {
+    const retry = await t.mutation(api.stripe.prepareStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       returnTo: '/ignored-on-retry',
@@ -245,7 +464,7 @@ describe('Stripe checkout intent reuse', () => {
     const t = convexTest(schema, modules);
     const userId = await insertWebUser(t, 'checkout-user');
 
-    const first = await t.mutation(api.webauth.prepareStripeCheckout, {
+    const first = await t.mutation(api.stripe.prepareStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       returnTo: '/players/euw/example',
@@ -253,7 +472,7 @@ describe('Stripe checkout intent reuse', () => {
     });
     expect(first.state).toBe('create');
 
-    const pendingRetry = await t.mutation(api.webauth.prepareStripeCheckout, {
+    const pendingRetry = await t.mutation(api.stripe.prepareStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       returnTo: '/ignored-on-retry',
@@ -266,7 +485,7 @@ describe('Stripe checkout intent reuse', () => {
       checkoutUrl: null,
     });
 
-    await t.mutation(api.webauth.completeStripeCheckout, {
+    await t.mutation(api.stripe.completeStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       idempotencyKey: first.idempotencyKey,
@@ -276,7 +495,7 @@ describe('Stripe checkout intent reuse', () => {
       now: 3_000,
     });
 
-    const openRetry = await t.mutation(api.webauth.prepareStripeCheckout, {
+    const openRetry = await t.mutation(api.stripe.prepareStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       returnTo: '/another-path',
@@ -288,7 +507,8 @@ describe('Stripe checkout intent reuse', () => {
       checkoutUrl: 'https://checkout.stripe.test/session',
     });
 
-    const settled = await t.mutation(api.webauth.settleStripeCheckout, {
+    const settled = await t.mutation(api.stripe.settleStripeCheckout, {
+      ...WEBHOOK_LEASE,
       secret: BRIDGE_SECRET,
       stripeSessionId: 'cs_1',
       stripeSubscriptionId: 'sub_1',
@@ -309,7 +529,8 @@ describe('Stripe checkout intent reuse', () => {
       subscribedUntil: 5_500,
     });
 
-    const lateExpiry = await t.mutation(api.webauth.settleStripeCheckout, {
+    const lateExpiry = await t.mutation(api.stripe.settleStripeCheckout, {
+      ...WEBHOOK_LEASE,
       secret: BRIDGE_SECRET,
       stripeSessionId: 'cs_1',
       status: 'expired',
@@ -321,7 +542,7 @@ describe('Stripe checkout intent reuse', () => {
       reason: 'already_completed',
     });
 
-    const second = await t.mutation(api.webauth.prepareStripeCheckout, {
+    const second = await t.mutation(api.stripe.prepareStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       returnTo: '/players/euw/example',
@@ -331,7 +552,7 @@ describe('Stripe checkout intent reuse', () => {
     if (second.state !== 'create') {
       throw new Error('Expected a second checkout intent');
     }
-    await t.mutation(api.webauth.completeStripeCheckout, {
+    await t.mutation(api.stripe.completeStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       idempotencyKey: second.idempotencyKey,
@@ -340,15 +561,17 @@ describe('Stripe checkout intent reuse', () => {
       expiresAt: 100_000,
       now: 8_000,
     });
-    await t.mutation(api.webauth.settleStripeCheckout, {
+    await t.mutation(api.stripe.settleStripeCheckout, {
+      ...WEBHOOK_LEASE,
       secret: BRIDGE_SECRET,
       stripeSessionId: 'cs_2',
       status: 'expired',
       now: 9_000,
     });
     const delayedCompletion = await t.mutation(
-      api.webauth.settleStripeCheckout,
+      api.stripe.settleStripeCheckout,
       {
+        ...WEBHOOK_LEASE,
         secret: BRIDGE_SECRET,
         stripeSessionId: 'cs_2',
         stripeSubscriptionId: 'sub_2',
@@ -376,7 +599,7 @@ describe('Stripe checkout intent reuse', () => {
     const t = convexTest(schema, modules);
     const userId = await insertWebUser(t, 'superseded-checkout-user');
 
-    const oldIntent = await t.mutation(api.webauth.prepareStripeCheckout, {
+    const oldIntent = await t.mutation(api.stripe.prepareStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       returnTo: '/old',
@@ -385,7 +608,7 @@ describe('Stripe checkout intent reuse', () => {
     if (oldIntent.state !== 'create') {
       throw new Error('Expected the old Checkout intent');
     }
-    await t.mutation(api.webauth.completeStripeCheckout, {
+    await t.mutation(api.stripe.completeStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       idempotencyKey: oldIntent.idempotencyKey,
@@ -394,14 +617,15 @@ describe('Stripe checkout intent reuse', () => {
       expiresAt: 2_500,
       now: 2_000,
     });
-    await t.mutation(api.webauth.settleStripeCheckout, {
+    await t.mutation(api.stripe.settleStripeCheckout, {
+      ...WEBHOOK_LEASE,
       secret: BRIDGE_SECRET,
       stripeSessionId: 'cs_old',
       status: 'expired',
       now: 3_000,
     });
 
-    const newIntent = await t.mutation(api.webauth.prepareStripeCheckout, {
+    const newIntent = await t.mutation(api.stripe.prepareStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       returnTo: '/new',
@@ -410,7 +634,7 @@ describe('Stripe checkout intent reuse', () => {
     if (newIntent.state !== 'create') {
       throw new Error('Expected the replacement Checkout intent');
     }
-    await t.mutation(api.webauth.completeStripeCheckout, {
+    await t.mutation(api.stripe.completeStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       idempotencyKey: newIntent.idempotencyKey,
@@ -420,7 +644,8 @@ describe('Stripe checkout intent reuse', () => {
       now: 5_000,
     });
     await expect(
-      t.mutation(api.webauth.settleStripeCheckout, {
+      t.mutation(api.stripe.settleStripeCheckout, {
+        ...WEBHOOK_LEASE,
         secret: BRIDGE_SECRET,
         stripeSessionId: 'cs_new',
         stripeSubscriptionId: 'sub_new',
@@ -433,7 +658,8 @@ describe('Stripe checkout intent reuse', () => {
 
     // This payment event is delivered later, but belongs to the older intent.
     await expect(
-      t.mutation(api.webauth.settleStripeCheckout, {
+      t.mutation(api.stripe.settleStripeCheckout, {
+        ...WEBHOOK_LEASE,
         secret: BRIDGE_SECRET,
         stripeSessionId: 'cs_old',
         stripeSubscriptionId: 'sub_old',
@@ -470,7 +696,7 @@ describe('Stripe checkout intent reuse', () => {
     const t = convexTest(schema, modules);
     const userId = await insertWebUser(t, 'completion-order-user');
 
-    const oldIntent = await t.mutation(api.webauth.prepareStripeCheckout, {
+    const oldIntent = await t.mutation(api.stripe.prepareStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       returnTo: '/old-first',
@@ -479,7 +705,7 @@ describe('Stripe checkout intent reuse', () => {
     if (oldIntent.state !== 'create') {
       throw new Error('Expected the old Checkout intent');
     }
-    await t.mutation(api.webauth.completeStripeCheckout, {
+    await t.mutation(api.stripe.completeStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       idempotencyKey: oldIntent.idempotencyKey,
@@ -488,14 +714,15 @@ describe('Stripe checkout intent reuse', () => {
       expiresAt: 2_500,
       now: 2_000,
     });
-    await t.mutation(api.webauth.settleStripeCheckout, {
+    await t.mutation(api.stripe.settleStripeCheckout, {
+      ...WEBHOOK_LEASE,
       secret: BRIDGE_SECRET,
       stripeSessionId: 'cs_old_first',
       status: 'expired',
       now: 3_000,
     });
 
-    const newIntent = await t.mutation(api.webauth.prepareStripeCheckout, {
+    const newIntent = await t.mutation(api.stripe.prepareStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       returnTo: '/new-second',
@@ -504,7 +731,7 @@ describe('Stripe checkout intent reuse', () => {
     if (newIntent.state !== 'create') {
       throw new Error('Expected the newer Checkout intent');
     }
-    await t.mutation(api.webauth.completeStripeCheckout, {
+    await t.mutation(api.stripe.completeStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       idempotencyKey: newIntent.idempotencyKey,
@@ -515,7 +742,8 @@ describe('Stripe checkout intent reuse', () => {
     });
 
     await expect(
-      t.mutation(api.webauth.settleStripeCheckout, {
+      t.mutation(api.stripe.settleStripeCheckout, {
+        ...WEBHOOK_LEASE,
         secret: BRIDGE_SECRET,
         stripeSessionId: 'cs_old_first',
         stripeSubscriptionId: 'sub_old_first',
@@ -526,7 +754,8 @@ describe('Stripe checkout intent reuse', () => {
       })
     ).resolves.toMatchObject({ applied: true, reason: 'completed' });
     await expect(
-      t.mutation(api.webauth.settleStripeCheckout, {
+      t.mutation(api.stripe.settleStripeCheckout, {
+        ...WEBHOOK_LEASE,
         secret: BRIDGE_SECRET,
         stripeSessionId: 'cs_new_second',
         stripeSubscriptionId: 'sub_new_second',
@@ -546,10 +775,89 @@ describe('Stripe checkout intent reuse', () => {
     });
   });
 
+  it('keeps a newer Checkout binding authoritative after access expires', async () => {
+    const t = convexTest(schema, modules);
+    const userId = await insertWebUser(t, 'expired-ordering-user');
+
+    const oldIntent = await t.mutation(api.stripe.prepareStripeCheckout, {
+      secret: BRIDGE_SECRET,
+      userId,
+      returnTo: '/old-expired',
+      now: 1_000,
+    });
+    if (oldIntent.state !== 'create') throw new Error('Expected old intent');
+    await t.mutation(api.stripe.completeStripeCheckout, {
+      secret: BRIDGE_SECRET,
+      userId,
+      idempotencyKey: oldIntent.idempotencyKey,
+      checkoutUrl: 'https://checkout.stripe.test/old-expired',
+      stripeSessionId: 'cs_old_expired',
+      expiresAt: 2_500,
+      now: 2_000,
+    });
+    await t.mutation(api.stripe.settleStripeCheckout, {
+      ...WEBHOOK_LEASE,
+      secret: BRIDGE_SECRET,
+      stripeSessionId: 'cs_old_expired',
+      status: 'expired',
+      now: 3_000,
+    });
+
+    const newIntent = await t.mutation(api.stripe.prepareStripeCheckout, {
+      secret: BRIDGE_SECRET,
+      userId,
+      returnTo: '/new-expired',
+      now: 4_000,
+    });
+    if (newIntent.state !== 'create') throw new Error('Expected new intent');
+    await t.mutation(api.stripe.completeStripeCheckout, {
+      secret: BRIDGE_SECRET,
+      userId,
+      idempotencyKey: newIntent.idempotencyKey,
+      checkoutUrl: 'https://checkout.stripe.test/new-expired',
+      stripeSessionId: 'cs_new_expired',
+      expiresAt: 100_000,
+      now: 5_000,
+    });
+    await t.mutation(api.stripe.settleStripeCheckout, {
+      ...WEBHOOK_LEASE,
+      secret: BRIDGE_SECRET,
+      stripeSessionId: 'cs_new_expired',
+      stripeSubscriptionId: 'sub_new_expired',
+      subscribedUntil: 6_000,
+      eventAt: 5_500,
+      status: 'completed',
+      now: 5_500,
+    });
+
+    await expect(
+      t.mutation(api.stripe.settleStripeCheckout, {
+        ...WEBHOOK_LEASE,
+        secret: BRIDGE_SECRET,
+        stripeSessionId: 'cs_old_expired',
+        stripeSubscriptionId: 'sub_old_expired',
+        subscribedUntil: 50_000,
+        eventAt: 7_000,
+        status: 'completed',
+        now: 7_000,
+      })
+    ).resolves.toEqual({
+      applied: false,
+      userId,
+      reason: 'superseded',
+    });
+
+    const user = await t.run(async (ctx) => await ctx.db.get(userId));
+    expect(user).toMatchObject({
+      stripeSubscriptionId: 'sub_new_expired',
+      subscribedUntil: 6_000,
+    });
+  });
+
   it('reconciles a cancellation that arrives before Checkout fulfillment', async () => {
     const t = convexTest(schema, modules);
     const userId = await insertWebUser(t, 'cancel-before-checkout-user');
-    const intent = await t.mutation(api.webauth.prepareStripeCheckout, {
+    const intent = await t.mutation(api.stripe.prepareStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       returnTo: '/cancelled',
@@ -558,7 +866,7 @@ describe('Stripe checkout intent reuse', () => {
     if (intent.state !== 'create') {
       throw new Error('Expected a Checkout intent');
     }
-    await t.mutation(api.webauth.completeStripeCheckout, {
+    await t.mutation(api.stripe.completeStripeCheckout, {
       secret: BRIDGE_SECRET,
       userId,
       idempotencyKey: intent.idempotencyKey,
@@ -568,7 +876,7 @@ describe('Stripe checkout intent reuse', () => {
       now: 2_000,
     });
 
-    const deletion = await t.mutation(api.webauth.beginStripeWebhookEvent, {
+    const deletion = await t.mutation(api.stripe.beginStripeWebhookEvent, {
       secret: BRIDGE_SECRET,
       eventId: 'evt_deleted_before_fulfillment',
       type: 'customer.subscription.deleted',
@@ -578,7 +886,7 @@ describe('Stripe checkout intent reuse', () => {
       subscriptionEndAt: 8_000,
       now: 3_000,
     });
-    await t.mutation(api.webauth.finishStripeWebhookEvent, {
+    await t.mutation(api.stripe.finishStripeWebhookEvent, {
       secret: BRIDGE_SECRET,
       eventId: 'evt_deleted_before_fulfillment',
       leaseToken: deletion.leaseToken!,
@@ -587,7 +895,8 @@ describe('Stripe checkout intent reuse', () => {
     });
 
     await expect(
-      t.mutation(api.webauth.settleStripeCheckout, {
+      t.mutation(api.stripe.settleStripeCheckout, {
+        ...WEBHOOK_LEASE,
         secret: BRIDGE_SECRET,
         stripeSessionId: 'cs_cancelled',
         stripeSubscriptionId: 'sub_cancelled',
@@ -658,7 +967,7 @@ describe('Stripe checkout intent reuse', () => {
     });
 
     await expect(
-      t.mutation(api.webauth.prepareStripeCheckout, {
+      t.mutation(api.stripe.prepareStripeCheckout, {
         secret: BRIDGE_SECRET,
         userId,
         returnTo: '/fresh',
@@ -705,7 +1014,7 @@ describe('Stripe webhook retention', () => {
       return { old, recent };
     });
 
-    await t.mutation(api.webauth.beginStripeWebhookEvent, {
+    await t.mutation(api.stripe.beginStripeWebhookEvent, {
       secret: BRIDGE_SECRET,
       eventId: 'evt_new',
       type: 'invoice.paid',

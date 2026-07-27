@@ -145,4 +145,82 @@ describe('AuthProvider', () => {
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
   });
+
+  it('preserves the authenticated user across a transient session-check failure', async () => {
+    const user = {
+      id: 'admin-user',
+      username: 'admin',
+      role: 'admin' as const,
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ user }))
+      .mockRejectedValueOnce(new Error('temporary network outage'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: AuthProvider,
+    });
+    await waitFor(() => expect(result.current.user).toEqual(user));
+
+    act(() => window.dispatchEvent(new Event('focus')));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(result.current.user).toEqual(user);
+    expect(result.current.isAuthenticated).toBe(true);
+  });
+
+  it('fences an older refresh when another tab logs in', async () => {
+    const originalUser = {
+      id: 'original-admin',
+      username: 'original',
+      role: 'admin' as const,
+    };
+    const newerUser = {
+      id: 'new-admin',
+      username: 'new-admin',
+      role: 'admin' as const,
+    };
+    const delayedRefresh = deferred<Response>();
+    let broadcastHandler: ((event: MessageEvent) => void) | null = null;
+    vi.stubGlobal(
+      'BroadcastChannel',
+      class {
+        get onmessage() {
+          return broadcastHandler;
+        }
+        set onmessage(handler: ((event: MessageEvent) => void) | null) {
+          broadcastHandler = handler;
+        }
+
+        postMessage() {}
+        close() {}
+      }
+    );
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ user: originalUser }))
+      .mockReturnValueOnce(delayedRefresh.promise)
+      .mockResolvedValueOnce(jsonResponse({ user: newerUser }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: AuthProvider,
+    });
+    await waitFor(() => expect(result.current.user).toEqual(originalUser));
+
+    act(() => window.dispatchEvent(new Event('focus')));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    act(() => {
+      broadcastHandler?.({
+        data: { type: 'session-changed' },
+      } as MessageEvent);
+    });
+    await waitFor(() => expect(result.current.user).toEqual(newerUser));
+
+    await act(async () => {
+      delayedRefresh.resolve(jsonResponse({ user: null }));
+      await delayedRefresh.promise;
+    });
+    expect(result.current.user).toEqual(newerUser);
+  });
 });

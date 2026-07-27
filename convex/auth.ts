@@ -305,8 +305,8 @@ async function deleteSessionsForUser(
   }
 }
 
-function buildLoginAttemptKey(sourceId: string, username: string): string {
-  return `${sourceId}:${username.toLowerCase()}`;
+function buildLoginAttemptKey(sourceId: string): string {
+  return sourceId;
 }
 
 async function pruneExpiredLoginAttempts(
@@ -488,10 +488,13 @@ export const login = mutation({
     }
     const now = Date.now();
     await pruneExpiredLoginAttempts(ctx, now);
-    const attemptKey = buildLoginAttemptKey(sourceId, username);
+    // Throttle the authenticated bridge's source, not the attacker-controlled
+    // username. Cycling valid-looking usernames must not mint fresh buckets.
+    const attemptKey = buildLoginAttemptKey(sourceId);
     const previousAttempt = await readLoginAttempt(ctx, attemptKey);
     if ((previousAttempt?.blockedUntil ?? 0) > now) {
-      await burnInvalidPasswordAttempt(password);
+      // A blocked source has already paid the password-hash cost enough
+      // times. Reject it before another expensive PBKDF2 operation.
       return { ok: false as const };
     }
 

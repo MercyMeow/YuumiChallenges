@@ -1,7 +1,5 @@
 import { NextRequest } from 'next/server';
 import {
-  ADMIN_SESSION_COOKIE,
-  clearAdminSessionCookie,
   createAdminErrorResponse,
   createNoStoreJsonResponse,
   getAdminSession,
@@ -10,13 +8,9 @@ import {
 export async function GET(request: NextRequest) {
   try {
     const session = await getAdminSession(request);
-    const response = createNoStoreJsonResponse({
+    return createNoStoreJsonResponse({
       user: session?.user ?? null,
     });
-    if (!session && request.cookies.has(ADMIN_SESSION_COOKIE)) {
-      clearAdminSessionCookie(response, request);
-    }
-    return response;
   } catch (error) {
     return createAdminErrorResponse(error, request);
   }

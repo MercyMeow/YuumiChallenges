@@ -90,6 +90,7 @@ export default defineSchema({
     status: v.union(
       v.literal('pending'),
       v.literal('open'),
+      v.literal('payment_pending'),
       v.literal('completed'),
       v.literal('expired')
     ),

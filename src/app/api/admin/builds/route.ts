@@ -1,4 +1,5 @@
 import {
+  ADMIN_BUILD_BODY_MAX_BYTES,
   deleteAdminBuild,
   fetchAdminBuilds,
   parseAdminBuildPayload,
@@ -7,6 +8,7 @@ import {
 import { createAdminResourceRouteHandlers } from '@/lib/admin/resource-route';
 
 const handlers = createAdminResourceRouteHandlers({
+  maxBodyBytes: ADMIN_BUILD_BODY_MAX_BYTES,
   subject: 'build',
   collectionKey: 'builds',
   resourceKey: 'build',

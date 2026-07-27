@@ -1,4 +1,5 @@
 import {
+  ADMIN_ITEM_BODY_MAX_BYTES,
   deleteAdminItem,
   fetchAdminItems,
   parseAdminItemPayload,
@@ -7,6 +8,7 @@ import {
 import { createAdminResourceRouteHandlers } from '@/lib/admin/resource-route';
 
 const handlers = createAdminResourceRouteHandlers({
+  maxBodyBytes: ADMIN_ITEM_BODY_MAX_BYTES,
   subject: 'item',
   collectionKey: 'items',
   resourceKey: 'item',

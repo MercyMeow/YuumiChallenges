@@ -14,7 +14,7 @@ import {
 import {
   getRiotMatchIdValidationError,
   normalizeRiotMatchId,
-} from '@/lib/apis/riot';
+} from '@/lib/riot-match-id';
 import {
   getGameModeDisplayName,
   getGameModeCategoryColor,

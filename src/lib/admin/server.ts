@@ -8,6 +8,7 @@ import {
   adminBuildPayloadSchema,
   adminDocumentIdSchema,
   adminItemPayloadSchema,
+  describeAdminValidationIssue,
 } from './types';
 import type {
   AdminBuild,
@@ -23,6 +24,9 @@ import {
 } from './utils';
 
 export const ADMIN_SESSION_COOKIE = 'yq_admin_session';
+export const ADMIN_LOGIN_BODY_MAX_BYTES = 4 * 1024;
+export const ADMIN_ITEM_BODY_MAX_BYTES = 32 * 1024;
+export const ADMIN_BUILD_BODY_MAX_BYTES = 960 * 1024;
 const ADMIN_SESSION_COOKIE_PATH = '/api/admin';
 const ADMIN_LOGIN_SOURCE_HEADER = 'cf-connecting-ip';
 const ADMIN_LOGIN_SOURCE_MAX_LENGTH = 128;
@@ -157,11 +161,51 @@ export function enforceAdminOrigin(request: NextRequest): void {
 }
 
 export async function readAdminJsonBody(
-  request: NextRequest
+  request: NextRequest,
+  maxBytes: number
 ): Promise<Record<string, unknown>> {
+  const contentLength = request.headers.get('content-length');
+  if (contentLength !== null) {
+    const declaredBytes = Number(contentLength);
+    if (
+      !Number.isSafeInteger(declaredBytes) ||
+      declaredBytes < 0 ||
+      declaredBytes > maxBytes
+    ) {
+      throw new AdminApiError(413, 'Request body too large');
+    }
+  }
+
+  const reader = request.body?.getReader();
+  if (!reader) {
+    throw new AdminApiError(400, 'Invalid JSON body');
+  }
+
+  const decoder = new TextDecoder('utf-8', { fatal: true });
+  let totalBytes = 0;
+  let body = '';
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        await reader.cancel();
+        throw new AdminApiError(413, 'Request body too large');
+      }
+      body += decoder.decode(value, { stream: true });
+    }
+    body += decoder.decode();
+  } catch (error) {
+    if (error instanceof AdminApiError) {
+      throw error;
+    }
+    throw new AdminApiError(400, 'Invalid JSON body');
+  }
+
   let parsed: unknown;
   try {
-    parsed = await request.json();
+    parsed = JSON.parse(body);
   } catch {
     throw new AdminApiError(400, 'Invalid JSON body');
   }
@@ -173,14 +217,6 @@ export async function readAdminJsonBody(
   return parsed;
 }
 
-function describeValidationIssue(issue: {
-  path: PropertyKey[];
-  message: string;
-}): string {
-  const field = issue.path.map(String).join('.');
-  return field ? `${field}: ${issue.message}` : issue.message;
-}
-
 export function parseAdminItemPayload(
   body: Record<string, unknown>
 ): AdminItemPayload {
@@ -188,7 +224,7 @@ export function parseAdminItemPayload(
   if (!result.success) {
     throw new AdminApiError(
       422,
-      `Invalid item payload: ${describeValidationIssue(result.error.issues[0]!)}`
+      `Invalid item payload: ${describeAdminValidationIssue(result.error.issues[0]!)}`
     );
   }
   const { id, ...payload } = result.data;
@@ -202,7 +238,7 @@ export function parseAdminBuildPayload(
   if (!result.success) {
     throw new AdminApiError(
       422,
-      `Invalid build payload: ${describeValidationIssue(result.error.issues[0]!)}`
+      `Invalid build payload: ${describeAdminValidationIssue(result.error.issues[0]!)}`
     );
   }
   const { id, ...payload } = result.data;
@@ -236,6 +272,14 @@ function readAdminSessionToken(request: NextRequest): string | null {
   return request.cookies.get(ADMIN_SESSION_COOKIE)?.value ?? null;
 }
 
+export function requireAdminSessionToken(request: NextRequest): string {
+  const token = readAdminSessionToken(request);
+  if (!token) {
+    throw new AdminApiError(401, 'Unauthorized');
+  }
+  return token;
+}
+
 export async function getAdminSession(
   request: NextRequest
 ): Promise<AdminSessionRecord | null> {
@@ -255,19 +299,6 @@ export async function getAdminSession(
     token,
     user: session.user,
   };
-}
-
-export async function requireGuideEditorSession(
-  request: NextRequest
-): Promise<AdminSessionRecord> {
-  const session = await getAdminSession(request);
-  if (!session) {
-    throw new AdminApiError(401, 'Unauthorized');
-  }
-  if (session.user.role !== 'admin' && session.user.role !== 'editor') {
-    throw new AdminApiError(403, 'Forbidden');
-  }
-  return session;
 }
 
 export async function loginAdmin(
@@ -310,15 +341,18 @@ export async function saveAdminBuild(
   payload: AdminBuildPayload
 ): Promise<AdminBuild> {
   const { id, ...rest } = payload;
-  const savedId = await getConvexClient().mutation(api.guide.upsertBuild, {
+  const saved = await getConvexClient().mutation(api.guide.upsertBuild, {
     sessionToken,
     ...rest,
     ...(id ? { id: id as Id<'guideBuilds'> } : {}),
   });
+  const { _id, _creationTime: _ignored, ...build } = saved;
+  void _ignored;
+  const { updatedAt, ...persistedPayload } = build;
   return {
-    ...rest,
-    id: savedId,
-    updatedAt: Date.now(),
+    ...adminBuildPayloadSchema.parse({ id: _id, ...persistedPayload }),
+    id: _id,
+    updatedAt,
   };
 }
 
@@ -344,15 +378,18 @@ export async function saveAdminItem(
   payload: AdminItemPayload
 ): Promise<AdminItem> {
   const { id, ...rest } = payload;
-  const savedId = await getConvexClient().mutation(api.guide.upsertItem, {
+  const saved = await getConvexClient().mutation(api.guide.upsertItem, {
     sessionToken,
     ...rest,
     ...(id ? { id: id as Id<'guideItems'> } : {}),
   });
+  const { _id, _creationTime: _ignored, ...item } = saved;
+  void _ignored;
+  const { updatedAt, ...persistedPayload } = item;
   return {
-    ...rest,
-    id: savedId,
-    updatedAt: Date.now(),
+    ...adminItemPayloadSchema.parse({ id: _id, ...persistedPayload }),
+    id: _id,
+    updatedAt,
   };
 }
 
@@ -365,8 +402,9 @@ export async function deleteAdminItem(sessionToken: string, id: string) {
 
 export function createAdminErrorResponse(
   error: unknown,
-  request: NextRequest
+  _request: NextRequest
 ): NextResponse {
+  void _request;
   const isUnauthorizedConvexError =
     error instanceof Error &&
     (error.message.trim() === 'Unauthorized' ||
@@ -386,9 +424,5 @@ export function createAdminErrorResponse(
   if (!(error instanceof AdminApiError) && !isUnauthorizedConvexError) {
     console.error('[admin] API request failed:', error);
   }
-  const response = createNoStoreJsonResponse({ error: message }, { status });
-  if (status === 401 && readAdminSessionToken(request)) {
-    clearAdminSessionCookie(response, request);
-  }
-  return response;
+  return createNoStoreJsonResponse({ error: message }, { status });
 }

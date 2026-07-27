@@ -7,7 +7,7 @@ import {
   enforceAdminOrigin,
   parseAdminDocumentId,
   readAdminJsonBody,
-  requireGuideEditorSession,
+  requireAdminSessionToken,
 } from './server';
 
 type AdminResourceDescriptor =
@@ -24,6 +24,7 @@ type AdminResourceDescriptor =
 
 type AdminResourceRouteConfig<Payload, FetchedResource, SavedResource> =
   AdminResourceDescriptor & {
+    maxBodyBytes: number;
     fetchAll: (sessionToken: string) => Promise<FetchedResource[]>;
     parsePayload: (body: Record<string, unknown>) => Payload;
     save: (sessionToken: string, payload: Payload) => Promise<SavedResource>;
@@ -50,8 +51,8 @@ export function createAdminResourceRouteHandlers<
   return {
     GET: async (request) => {
       try {
-        const session = await requireGuideEditorSession(request);
-        const resources = await config.fetchAll(session.token);
+        const token = requireAdminSessionToken(request);
+        const resources = await config.fetchAll(token);
         return createNoStoreJsonResponse({
           [config.collectionKey]: resources,
         });
@@ -63,12 +64,9 @@ export function createAdminResourceRouteHandlers<
     POST: async (request) => {
       try {
         enforceAdminOrigin(request);
-        const session = await requireGuideEditorSession(request);
-        const body = await readAdminJsonBody(request);
-        const resource = await config.save(
-          session.token,
-          config.parsePayload(body)
-        );
+        const token = requireAdminSessionToken(request);
+        const body = await readAdminJsonBody(request, config.maxBodyBytes);
+        const resource = await config.save(token, config.parsePayload(body));
         return createNoStoreJsonResponse({
           [config.resourceKey]: resource,
         });
@@ -80,12 +78,12 @@ export function createAdminResourceRouteHandlers<
     DELETE: async (request) => {
       try {
         enforceAdminOrigin(request);
-        const session = await requireGuideEditorSession(request);
+        const token = requireAdminSessionToken(request);
         const id = parseAdminDocumentId(
           request.nextUrl.searchParams.get('id'),
           config.subject
         );
-        await config.remove(session.token, id);
+        await config.remove(token, id);
         return createNoStoreJsonResponse({ deletedId: id });
       } catch (error) {
         return createAdminErrorResponse(error, request);

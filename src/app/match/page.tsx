@@ -18,9 +18,9 @@ import {
 } from '@/lib/utils/constants';
 import {
   getRiotMatchIdValidationError,
-  getRiotMatchNumberValidationError,
   normalizeRiotMatchId,
-} from '@/lib/apis/riot';
+  getRiotMatchNumberValidationError,
+} from '@/lib/riot-match-id';
 import { ExternalLink, Search, Swords } from 'lucide-react';
 
 type RegionValue = (typeof REGIONS)[keyof typeof REGIONS];

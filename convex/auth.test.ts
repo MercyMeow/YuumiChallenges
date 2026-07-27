@@ -141,7 +141,7 @@ describe('admin authentication', () => {
     expect(state.user?.lockoutUntil).toBeUndefined();
     expect(state.attempts).toHaveLength(1);
     expect(state.attempts[0]).toMatchObject({
-      attemptKey: `${LOGIN_SOURCE_A}:admin`,
+      attemptKey: LOGIN_SOURCE_A,
       failedAttempts: 5,
     });
     expect(state.attempts[0]?.blockedUntil).toBeGreaterThan(Date.now());
@@ -163,9 +163,7 @@ describe('admin authentication', () => {
     await t.run(async (ctx) => {
       const loginAttempt = await ctx.db
         .query('adminLoginAttempts')
-        .withIndex('by_attemptKey', (q) =>
-          q.eq('attemptKey', `${LOGIN_SOURCE_A}:admin`)
-        )
+        .withIndex('by_attemptKey', (q) => q.eq('attemptKey', LOGIN_SOURCE_A))
         .unique();
       if (!loginAttempt) throw new Error('Expected a login-attempt record');
       await ctx.db.patch(loginAttempt._id, {
@@ -182,9 +180,7 @@ describe('admin authentication', () => {
     const loginAttempt = await t.run(async (ctx) => {
       return await ctx.db
         .query('adminLoginAttempts')
-        .withIndex('by_attemptKey', (q) =>
-          q.eq('attemptKey', `${LOGIN_SOURCE_A}:admin`)
-        )
+        .withIndex('by_attemptKey', (q) => q.eq('attemptKey', LOGIN_SOURCE_A))
         .unique();
     });
     expect(loginAttempt?.failedAttempts).toBe(1);
@@ -202,9 +198,7 @@ describe('admin authentication', () => {
     await t.run(async (ctx) => {
       const loginAttempt = await ctx.db
         .query('adminLoginAttempts')
-        .withIndex('by_attemptKey', (q) =>
-          q.eq('attemptKey', `${LOGIN_SOURCE_A}:admin`)
-        )
+        .withIndex('by_attemptKey', (q) => q.eq('attemptKey', LOGIN_SOURCE_A))
         .unique();
       if (!loginAttempt) throw new Error('Expected a login-attempt record');
       await ctx.db.patch(loginAttempt._id, {
@@ -225,6 +219,28 @@ describe('admin authentication', () => {
     expect(state.user?.lockoutUntil).toBeUndefined();
     expect(state.user?.lastLogin).toBeTypeOf('number');
     expect(state.attempts).toHaveLength(0);
+  });
+
+  it('shares one throttle bucket across usernames from the same source', async () => {
+    const t = convexTest(schema, modules);
+    await bootstrapAdmin(t);
+
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await requestLogin(t, {
+        username: `missing-admin-${attempt}`,
+        password: 'wrong-password',
+      });
+    }
+
+    await expect(requestLogin(t)).resolves.toEqual({ ok: false });
+    const attempts = await t.run(
+      async (ctx) => await ctx.db.query('adminLoginAttempts').collect()
+    );
+    expect(attempts).toHaveLength(1);
+    expect(attempts[0]).toMatchObject({
+      attemptKey: LOGIN_SOURCE_A,
+      failedAttempts: 5,
+    });
   });
 
   it('migrates a valid legacy password hash after login', async () => {
@@ -375,6 +391,6 @@ describe('guide authorization and validation', () => {
           notes: '',
         },
       })
-    ).rejects.toThrow('Primary runes must include exactly 3 values');
+    ).rejects.toThrow('"primary"');
   });
 });

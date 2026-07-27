@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
   );
   const convex = new ConvexHttpClient(convexUrl);
   const now = Date.now();
-  const checkout = await convex.mutation(api.webauth.prepareStripeCheckout, {
+  const checkout = await convex.mutation(api.stripe.prepareStripeCheckout, {
     secret: bridgeSecret,
     userId: user.id,
     returnTo,
@@ -79,6 +79,15 @@ export async function POST(request: NextRequest) {
   if (checkout.state === 'already_subscribed') {
     return NextResponse.json(
       { error: 'You already have an active Supporter subscription. 💛' },
+      { status: 409 }
+    );
+  }
+  if (checkout.state === 'payment_pending') {
+    return NextResponse.json(
+      {
+        error:
+          'Your previous subscription payment is still processing. Please wait for it to finish before trying again.',
+      },
       { status: 409 }
     );
   }
@@ -131,7 +140,7 @@ export async function POST(request: NextRequest) {
   if (!res.ok || !session.url || !session.id || !session.expires_at) {
     const message =
       session.error?.message ?? 'Could not confirm checkout with Stripe.';
-    await convex.mutation(api.webauth.recordStripeCheckoutFailure, {
+    await convex.mutation(api.stripe.recordStripeCheckoutFailure, {
       secret: bridgeSecret,
       userId: user.id,
       idempotencyKey: checkout.idempotencyKey,
@@ -150,7 +159,7 @@ export async function POST(request: NextRequest) {
       { status: 502 }
     );
   }
-  await convex.mutation(api.webauth.completeStripeCheckout, {
+  await convex.mutation(api.stripe.completeStripeCheckout, {
     secret: bridgeSecret,
     userId: user.id,
     idempotencyKey: checkout.idempotencyKey,

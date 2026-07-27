@@ -5,6 +5,7 @@ import { resolvePaidSupporterInvoicePeriodEnd } from './invoice';
 const SUPPORTER_SUMMARY: StripeSubscriptionSummary = {
   currentPeriodEnd: 1_900_000_000_000,
   customerId: 'cus_123',
+  hasSupporterPriceShape: true,
   metadata: { yuumi_plan: 'supporter_v1' },
   planMatches: true,
   supporterItemIds: ['si_supporter'],
