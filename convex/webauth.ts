@@ -7,7 +7,7 @@ import {
   query,
 } from './_generated/server';
 import { internal } from './_generated/api';
-import type { Doc, Id } from './_generated/dataModel';
+import type { Doc } from './_generated/dataModel';
 import { canFinishStripeWebhookAttempt } from '../src/lib/stripe/supporter';
 
 // ============ DISCORD WEB AUTH, ACCOUNT LINKING & SUPPORTER SUBS ============
@@ -31,49 +31,15 @@ const MAX_ACTIVE_SESSIONS = 10;
 const LINK_CHALLENGE_TTL_MS = 15 * 60 * 1000;
 const STRIPE_CHECKOUT_SESSION_TTL_MS = 30 * 60 * 1000;
 const STRIPE_WEBHOOK_PROCESSING_LEASE_MS = 5 * 60 * 1000;
+// Checkout records outlive Stripe's 30-day manual event replay window.
+const STRIPE_CHECKOUT_RECORD_RETENTION_MS = 32 * 24 * 60 * 60 * 1000;
+// Cancellation tombstones must outlive Checkout records so an old paid event
+// cannot resurrect a subscription after its deletion event was pruned.
+const STRIPE_WEBHOOK_EVENT_RETENTION_MS = 90 * 24 * 60 * 60 * 1000;
+const STRIPE_RETENTION_DELETE_BATCH = 64;
+const STRIPE_STALE_SESSION_BATCH = 32;
 // Starter summoner icons every account owns.
 const STARTER_ICON_MAX = 29;
-
-type StripeCheckoutStatus = 'pending' | 'open' | 'completed' | 'expired';
-type StripeWebhookEventStatus = 'processing' | 'processed' | 'failed';
-
-type StripeCheckoutSessionDoc = {
-  _id: string;
-  userId: Id<'webUsers'>;
-  returnTo: string;
-  status: StripeCheckoutStatus;
-  idempotencyKey: string;
-  stripeSessionId?: string;
-  stripeSubscriptionId?: string;
-  checkoutUrl?: string;
-  expiresAt?: number;
-  lastError?: string;
-  createdAt: number;
-  updatedAt: number;
-};
-
-type StripeWebhookEventDoc = {
-  _id: string;
-  eventId: string;
-  type: string;
-  status: StripeWebhookEventStatus;
-  stripeCreatedAt?: number;
-  processingUntil?: number;
-  lastReceivedAt: number;
-  processedAt?: number;
-  attemptCount: number;
-  leaseToken?: string;
-  customerId?: string;
-  objectId?: string;
-  lastError?: string;
-};
-
-type UntypedIndexRange = {
-  eq(field: string, value: unknown): unknown;
-};
-
-const STRIPE_CHECKOUT_SESSIONS_TABLE = 'stripeCheckoutSessions' as never;
-const STRIPE_WEBHOOK_EVENTS_TABLE = 'stripeWebhookEvents' as never;
 
 function requireBridgeSecret(secret: string): void {
   const expected = process.env.AUTH_BRIDGE_SECRET;
@@ -87,14 +53,6 @@ function randomToken(): string {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
   return [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-function byField(field: string, value: unknown): never {
-  return ((q: UntypedIndexRange) => q.eq(field, value)) as never;
-}
-
-function untypedWrite<T extends object>(value: T): never {
-  return value as unknown as never;
 }
 
 // ---------- session plumbing ----------
@@ -350,46 +308,72 @@ export const prepareStripeCheckout = mutation({
       return { state: 'already_subscribed' as const };
     }
 
-    const sessions = (await (ctx.db
-      .query(STRIPE_CHECKOUT_SESSIONS_TABLE)
-      .withIndex('by_userId' as never, byField('userId', args.userId))
-      .collect() as Promise<
-      StripeCheckoutSessionDoc[]
-    >)) as StripeCheckoutSessionDoc[];
-
-    const ordered = sessions.sort((a, b) => b.updatedAt - a.updatedAt);
-    for (const session of ordered) {
-      const expiresAt = session.expiresAt ?? 0;
-      const stalePending =
-        session.status === 'pending' &&
-        session.updatedAt + STRIPE_CHECKOUT_SESSION_TTL_MS <= args.now;
-      const expiredOpen =
-        session.status === 'open' && expiresAt > 0 && expiresAt <= args.now;
-      if (stalePending || expiredOpen) {
-        await ctx.db.patch(
-          session._id as never,
-          untypedWrite({
-            status: 'expired',
-            updatedAt: args.now,
-          })
-        );
-        session.status = 'expired';
-      }
+    // Opportunistic, bounded retention: every new intent removes a small
+    // batch outside the Stripe replay window. Continued traffic therefore
+    // converges on time-bounded storage without making this hot path scan.
+    const oldSessions = await ctx.db
+      .query('stripeCheckoutSessions')
+      .withIndex('by_updatedAt', (q) =>
+        q.lt('updatedAt', args.now - STRIPE_CHECKOUT_RECORD_RETENTION_MS)
+      )
+      .take(STRIPE_RETENTION_DELETE_BATCH);
+    for (const session of oldSessions) {
+      await ctx.db.delete(session._id);
     }
 
-    const reusable = ordered.find((session) => {
-      if (session.status === 'open') {
-        return Boolean(
-          session.checkoutUrl &&
-          session.expiresAt !== undefined &&
-          session.expiresAt > args.now
-        );
-      }
-      return (
-        session.status === 'pending' &&
-        session.updatedAt + STRIPE_CHECKOUT_SESSION_TTL_MS > args.now
-      );
-    });
+    // Close stale active candidates using bounded, status-specific indexes.
+    // The active lookup below never loads terminal checkout history.
+    const stalePending = await ctx.db
+      .query('stripeCheckoutSessions')
+      .withIndex('by_userId_status_updatedAt', (q) =>
+        q
+          .eq('userId', args.userId)
+          .eq('status', 'pending')
+          .lte('updatedAt', args.now - STRIPE_CHECKOUT_SESSION_TTL_MS)
+      )
+      .take(STRIPE_STALE_SESSION_BATCH);
+    const expiredOpen = await ctx.db
+      .query('stripeCheckoutSessions')
+      .withIndex('by_userId_status_expiresAt', (q) =>
+        q
+          .eq('userId', args.userId)
+          .eq('status', 'open')
+          .lte('expiresAt', args.now)
+      )
+      .take(STRIPE_STALE_SESSION_BATCH);
+    for (const session of [...stalePending, ...expiredOpen]) {
+      await ctx.db.patch(session._id, {
+        status: 'expired',
+        updatedAt: args.now,
+      });
+    }
+
+    const pending = await ctx.db
+      .query('stripeCheckoutSessions')
+      .withIndex('by_userId_status_updatedAt', (q) =>
+        q
+          .eq('userId', args.userId)
+          .eq('status', 'pending')
+          .gt('updatedAt', args.now - STRIPE_CHECKOUT_SESSION_TTL_MS)
+      )
+      .order('desc')
+      .first();
+    const open = await ctx.db
+      .query('stripeCheckoutSessions')
+      .withIndex('by_userId_status_expiresAt', (q) =>
+        q
+          .eq('userId', args.userId)
+          .eq('status', 'open')
+          .gt('expiresAt', args.now)
+      )
+      .order('desc')
+      .first();
+    const reusable =
+      pending && open
+        ? pending.updatedAt >= open.updatedAt
+          ? pending
+          : open
+        : (pending ?? open);
 
     if (reusable) {
       return {
@@ -402,17 +386,14 @@ export const prepareStripeCheckout = mutation({
     }
 
     const idempotencyKey = `stripe_checkout_${args.userId}_${randomToken()}`;
-    await ctx.db.insert(
-      STRIPE_CHECKOUT_SESSIONS_TABLE,
-      untypedWrite({
-        userId: args.userId,
-        returnTo: args.returnTo,
-        status: 'pending',
-        idempotencyKey,
-        createdAt: args.now,
-        updatedAt: args.now,
-      })
-    );
+    await ctx.db.insert('stripeCheckoutSessions', {
+      userId: args.userId,
+      returnTo: args.returnTo,
+      status: 'pending',
+      idempotencyKey,
+      createdAt: args.now,
+      updatedAt: args.now,
+    });
     return {
       state: 'create' as const,
       idempotencyKey,
@@ -437,30 +418,26 @@ export const completeStripeCheckout = mutation({
   },
   handler: async (ctx, args) => {
     requireBridgeSecret(args.secret);
-    const session = (await (ctx.db
-      .query(STRIPE_CHECKOUT_SESSIONS_TABLE)
-      .withIndex(
-        'by_idempotencyKey' as never,
-        byField('idempotencyKey', args.idempotencyKey)
+    const session = await ctx.db
+      .query('stripeCheckoutSessions')
+      .withIndex('by_idempotencyKey', (q) =>
+        q.eq('idempotencyKey', args.idempotencyKey)
       )
-      .unique() as Promise<StripeCheckoutSessionDoc | null>)) as StripeCheckoutSessionDoc | null;
+      .unique();
     if (!session || session.userId !== args.userId) {
       return { applied: false as const };
     }
     if (session.status === 'completed' || session.status === 'expired') {
       return { applied: false as const };
     }
-    await ctx.db.patch(
-      session._id as never,
-      untypedWrite({
-        status: 'open',
-        checkoutUrl: args.checkoutUrl,
-        stripeSessionId: args.stripeSessionId,
-        expiresAt: args.expiresAt,
-        lastError: undefined,
-        updatedAt: args.now,
-      })
-    );
+    await ctx.db.patch(session._id, {
+      status: 'open',
+      checkoutUrl: args.checkoutUrl,
+      stripeSessionId: args.stripeSessionId,
+      expiresAt: args.expiresAt,
+      lastError: undefined,
+      updatedAt: args.now,
+    });
     const user = await ctx.db.get(args.userId);
     if (user && !user.stripeCustomerId && args.stripeCustomerId) {
       await ctx.db.patch(args.userId, {
@@ -486,72 +463,191 @@ export const recordStripeCheckoutFailure = mutation({
   },
   handler: async (ctx, args) => {
     requireBridgeSecret(args.secret);
-    const session = (await (ctx.db
-      .query(STRIPE_CHECKOUT_SESSIONS_TABLE)
-      .withIndex(
-        'by_idempotencyKey' as never,
-        byField('idempotencyKey', args.idempotencyKey)
+    const session = await ctx.db
+      .query('stripeCheckoutSessions')
+      .withIndex('by_idempotencyKey', (q) =>
+        q.eq('idempotencyKey', args.idempotencyKey)
       )
-      .unique() as Promise<StripeCheckoutSessionDoc | null>)) as StripeCheckoutSessionDoc | null;
+      .unique();
     if (!session || session.userId !== args.userId) {
       return { applied: false as const };
     }
-    await ctx.db.patch(
-      session._id as never,
-      untypedWrite({
-        lastError: args.error,
-        updatedAt: args.now,
-      })
-    );
+    await ctx.db.patch(session._id, {
+      lastError: args.error,
+      updatedAt: args.now,
+    });
     return { applied: true as const };
   },
 });
 
-/** Bridge (Stripe webhook route): mark a Checkout session as settled. */
+/**
+ * Bridge (Stripe webhook route): settle a Checkout session and, for paid
+ * completion, bind its entitlement in the same transaction. The atomic write
+ * closes the gap where two out-of-order completion workers could each observe
+ * the pre-fulfillment user and let an older Checkout replace the newer one.
+ */
 export const settleStripeCheckout = mutation({
   args: {
     secret: v.string(),
     stripeSessionId: v.string(),
     status: v.union(v.literal('completed'), v.literal('expired')),
     stripeSubscriptionId: v.optional(v.string()),
+    stripeCustomerId: v.optional(v.string()),
+    subscribedUntil: v.optional(v.number()),
+    eventAt: v.optional(v.number()),
     now: v.number(),
   },
   handler: async (ctx, args) => {
     requireBridgeSecret(args.secret);
-    const session = (await (ctx.db
-      .query(STRIPE_CHECKOUT_SESSIONS_TABLE)
-      .withIndex(
-        'by_stripeSessionId' as never,
-        byField('stripeSessionId', args.stripeSessionId)
+    const session = await ctx.db
+      .query('stripeCheckoutSessions')
+      .withIndex('by_stripeSessionId', (q) =>
+        q.eq('stripeSessionId', args.stripeSessionId)
       )
-      .unique() as Promise<StripeCheckoutSessionDoc | null>)) as StripeCheckoutSessionDoc | null;
-    if (!session) return { applied: false as const };
-    // Paid fulfillment is the dominant terminal state. Stripe does not
-    // guarantee webhook delivery order, so a delayed completion must be able
-    // to replace an earlier expiry, while a late expiry can never replace a
-    // completion.
-    if (
-      session.status === 'completed' ||
-      (session.status === 'expired' && args.status === 'expired')
-    ) {
+      .unique();
+    if (!session) {
       return {
-        applied: session.status === args.status,
-        userId: session.userId,
+        applied: false as const,
+        reason: 'not_found' as const,
       };
     }
-    await ctx.db.patch(
-      session._id as never,
-      untypedWrite({
-        status: args.status,
-        ...(args.stripeSubscriptionId !== undefined
-          ? { stripeSubscriptionId: args.stripeSubscriptionId }
-          : {}),
+
+    if (args.status === 'expired') {
+      // Paid fulfillment is the dominant terminal state. A late expiry never
+      // replaces completion, while repeated expiry delivery is idempotent.
+      if (session.status === 'completed') {
+        return {
+          applied: false as const,
+          userId: session.userId,
+          reason: 'already_completed' as const,
+        };
+      }
+      if (session.status === 'expired') {
+        return {
+          applied: true as const,
+          userId: session.userId,
+          reason: 'already_expired' as const,
+        };
+      }
+      await ctx.db.patch(session._id, {
+        status: 'expired',
         updatedAt: args.now,
-      })
-    );
+      });
+      return {
+        applied: true as const,
+        userId: session.userId,
+        reason: 'expired' as const,
+      };
+    }
+
+    if (!args.stripeSubscriptionId || args.subscribedUntil === undefined) {
+      throw new Error('Paid Checkout settlement is missing entitlement data');
+    }
+    if (
+      session.stripeSubscriptionId !== undefined &&
+      session.stripeSubscriptionId !== args.stripeSubscriptionId
+    ) {
+      return {
+        applied: false as const,
+        userId: session.userId,
+        reason: 'subscription_mismatch' as const,
+      };
+    }
+
+    const user = await ctx.db.get(session.userId);
+    if (!user) {
+      return {
+        applied: false as const,
+        reason: 'user_not_found' as const,
+      };
+    }
+    // Compare intent creation order when another Checkout is active. This
+    // makes the newest intent win regardless of which completion mutation
+    // reaches Convex first.
+    if (
+      user.stripeSubscriptionId !== undefined &&
+      user.stripeSubscriptionId !== args.stripeSubscriptionId &&
+      (user.subscribedUntil ?? 0) > args.now
+    ) {
+      const currentCheckout = await ctx.db
+        .query('stripeCheckoutSessions')
+        .withIndex('by_stripeSubscriptionId', (q) =>
+          q.eq('stripeSubscriptionId', user.stripeSubscriptionId)
+        )
+        .unique();
+      const currentBindingIsNewer =
+        !currentCheckout ||
+        currentCheckout.createdAt > session.createdAt ||
+        (currentCheckout.createdAt === session.createdAt &&
+          currentCheckout._creationTime > session._creationTime);
+      if (currentBindingIsNewer) {
+        return {
+          applied: false as const,
+          userId: session.userId,
+          reason: 'superseded' as const,
+        };
+      }
+    }
+
+    // The deletion ledger is written before cancellation processing starts.
+    // If cancellation raced ahead of initial binding, reconcile its exact end
+    // state here instead of losing it as an unmatched webhook.
+    const deletion = await ctx.db
+      .query('stripeWebhookEvents')
+      .withIndex('by_objectId_type_lastReceivedAt', (q) =>
+        q
+          .eq('objectId', args.stripeSubscriptionId)
+          .eq('type', 'customer.subscription.deleted')
+      )
+      .order('desc')
+      .first();
+    const completionEventAt = args.eventAt ?? args.now;
+    const deletedEventAt = deletion?.stripeCreatedAt ?? completionEventAt;
+    const deletedUntil = deletion
+      ? (deletion.subscriptionEndAt ?? deletedEventAt)
+      : undefined;
+
+    // A same-subscription cancellation remains terminal even if a completion
+    // event is delivered later with the same or an older Stripe timestamp.
+    const staleCompletion =
+      user.stripeSubscriptionId === args.stripeSubscriptionId &&
+      user.subEventAt !== undefined &&
+      (completionEventAt < user.subEventAt ||
+        (completionEventAt === user.subEventAt && user.subEventMode === 'end'));
+
+    await ctx.db.patch(session._id, {
+      status: 'completed',
+      stripeSubscriptionId: args.stripeSubscriptionId,
+      updatedAt: args.now,
+    });
+    if (staleCompletion && !deletion) {
+      return {
+        applied: false as const,
+        userId: session.userId,
+        reason: 'stale' as const,
+      };
+    }
+
+    const mode = deletion ? ('end' as const) : ('extend' as const);
+    await ctx.db.patch(user._id, {
+      subscribedUntil:
+        deletedUntil ??
+        Math.max(user.subscribedUntil ?? 0, args.subscribedUntil),
+      stripeSubscriptionId: args.stripeSubscriptionId,
+      subEventAt: deletion ? deletedEventAt : completionEventAt,
+      subEventMode: mode,
+      ...(args.stripeCustomerId !== undefined
+        ? { stripeCustomerId: args.stripeCustomerId }
+        : deletion?.customerId !== undefined
+          ? { stripeCustomerId: deletion.customerId }
+          : {}),
+    });
     return {
       applied: true as const,
       userId: session.userId,
+      reason: deletion
+        ? ('subscription_deleted' as const)
+        : ('completed' as const),
     };
   },
 });
@@ -570,33 +666,49 @@ export const beginStripeWebhookEvent = mutation({
     stripeCreatedAt: v.optional(v.number()),
     customerId: v.optional(v.string()),
     objectId: v.optional(v.string()),
+    subscriptionEndAt: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     requireBridgeSecret(args.secret);
     const leaseToken = randomToken();
-    const existing = (await (ctx.db
-      .query(STRIPE_WEBHOOK_EVENTS_TABLE)
-      .withIndex('by_eventId' as never, byField('eventId', args.eventId))
-      .unique() as Promise<StripeWebhookEventDoc | null>)) as StripeWebhookEventDoc | null;
+    // Bounded opportunistic retention. A 90-day dedupe window intentionally
+    // exceeds Checkout-record retention so cancellation tombstones remain
+    // available for every locally fulfillable delayed payment.
+    const oldEvents = await ctx.db
+      .query('stripeWebhookEvents')
+      .withIndex('by_lastReceivedAt', (q) =>
+        q.lt('lastReceivedAt', args.now - STRIPE_WEBHOOK_EVENT_RETENTION_MS)
+      )
+      .take(STRIPE_RETENTION_DELETE_BATCH);
+    for (const event of oldEvents) {
+      await ctx.db.delete(event._id);
+    }
+
+    const existing = await ctx.db
+      .query('stripeWebhookEvents')
+      .withIndex('by_eventId', (q) => q.eq('eventId', args.eventId))
+      .unique();
 
     if (!existing) {
-      await ctx.db.insert(
-        STRIPE_WEBHOOK_EVENTS_TABLE,
-        untypedWrite({
-          eventId: args.eventId,
-          type: args.type,
-          status: 'processing',
-          stripeCreatedAt: args.stripeCreatedAt,
-          processingUntil: args.now + STRIPE_WEBHOOK_PROCESSING_LEASE_MS,
-          lastReceivedAt: args.now,
-          attemptCount: 1,
-          leaseToken,
-          ...(args.customerId !== undefined
-            ? { customerId: args.customerId }
-            : {}),
-          ...(args.objectId !== undefined ? { objectId: args.objectId } : {}),
-        })
-      );
+      await ctx.db.insert('stripeWebhookEvents', {
+        eventId: args.eventId,
+        type: args.type,
+        status: 'processing',
+        processingUntil: args.now + STRIPE_WEBHOOK_PROCESSING_LEASE_MS,
+        lastReceivedAt: args.now,
+        attemptCount: 1,
+        leaseToken,
+        ...(args.stripeCreatedAt !== undefined
+          ? { stripeCreatedAt: args.stripeCreatedAt }
+          : {}),
+        ...(args.customerId !== undefined
+          ? { customerId: args.customerId }
+          : {}),
+        ...(args.objectId !== undefined ? { objectId: args.objectId } : {}),
+        ...(args.subscriptionEndAt !== undefined
+          ? { subscriptionEndAt: args.subscriptionEndAt }
+          : {}),
+      });
       return {
         shouldProcess: true as const,
         duplicate: false as const,
@@ -612,23 +724,21 @@ export const beginStripeWebhookEvent = mutation({
       return { shouldProcess: false as const, duplicate: true as const };
     }
 
-    await ctx.db.patch(
-      existing._id as never,
-      untypedWrite({
-        type: args.type,
-        status: 'processing',
-        stripeCreatedAt: args.stripeCreatedAt,
-        processingUntil: args.now + STRIPE_WEBHOOK_PROCESSING_LEASE_MS,
-        lastReceivedAt: args.now,
-        attemptCount: existing.attemptCount + 1,
-        leaseToken,
-        lastError: undefined,
-        ...(args.customerId !== undefined
-          ? { customerId: args.customerId }
-          : {}),
-        ...(args.objectId !== undefined ? { objectId: args.objectId } : {}),
-      })
-    );
+    await ctx.db.patch(existing._id, {
+      type: args.type,
+      status: 'processing',
+      stripeCreatedAt: args.stripeCreatedAt,
+      processingUntil: args.now + STRIPE_WEBHOOK_PROCESSING_LEASE_MS,
+      lastReceivedAt: args.now,
+      attemptCount: existing.attemptCount + 1,
+      leaseToken,
+      lastError: undefined,
+      ...(args.customerId !== undefined ? { customerId: args.customerId } : {}),
+      ...(args.objectId !== undefined ? { objectId: args.objectId } : {}),
+      ...(args.subscriptionEndAt !== undefined
+        ? { subscriptionEndAt: args.subscriptionEndAt }
+        : {}),
+    });
     return {
       shouldProcess: true as const,
       duplicate: false as const,
@@ -649,10 +759,10 @@ export const finishStripeWebhookEvent = mutation({
   },
   handler: async (ctx, args) => {
     requireBridgeSecret(args.secret);
-    const existing = (await (ctx.db
-      .query(STRIPE_WEBHOOK_EVENTS_TABLE)
-      .withIndex('by_eventId' as never, byField('eventId', args.eventId))
-      .unique() as Promise<StripeWebhookEventDoc | null>)) as StripeWebhookEventDoc | null;
+    const existing = await ctx.db
+      .query('stripeWebhookEvents')
+      .withIndex('by_eventId', (q) => q.eq('eventId', args.eventId))
+      .unique();
     if (!existing) return { applied: false as const, stale: true as const };
     if (
       !canFinishStripeWebhookAttempt(
@@ -664,17 +774,14 @@ export const finishStripeWebhookEvent = mutation({
       return { applied: false as const, stale: true as const };
     }
 
-    await ctx.db.patch(
-      existing._id as never,
-      untypedWrite({
-        status: args.success ? 'processed' : 'failed',
-        leaseToken: undefined,
-        processingUntil: undefined,
-        processedAt: args.success ? args.now : undefined,
-        lastReceivedAt: args.now,
-        lastError: args.success ? undefined : args.error,
-      })
-    );
+    await ctx.db.patch(existing._id, {
+      status: args.success ? 'processed' : 'failed',
+      leaseToken: undefined,
+      processingUntil: undefined,
+      processedAt: args.success ? args.now : undefined,
+      lastReceivedAt: args.now,
+      lastError: args.success ? undefined : args.error,
+    });
     return { applied: true as const, stale: false as const };
   },
 });

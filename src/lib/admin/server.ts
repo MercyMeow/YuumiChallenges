@@ -24,6 +24,8 @@ import {
 
 export const ADMIN_SESSION_COOKIE = 'yq_admin_session';
 const ADMIN_SESSION_COOKIE_PATH = '/api/admin';
+const ADMIN_LOGIN_SOURCE_HEADER = 'cf-connecting-ip';
+const ADMIN_LOGIN_SOURCE_MAX_LENGTH = 128;
 
 type AdminSessionRecord = {
   token: string;
@@ -46,6 +48,61 @@ function getConvexClient(): ConvexHttpClient {
     throw new AdminApiError(503, 'Admin API unavailable');
   }
   return new ConvexHttpClient(convexUrl);
+}
+
+function requireAdminLoginBridgeSecret(): string {
+  const secret = process.env.ADMIN_LOGIN_BRIDGE_SECRET;
+  if (!secret) {
+    throw new AdminApiError(503, 'Admin login unavailable');
+  }
+  return secret;
+}
+
+function readAdminLoginSource(request: NextRequest): string {
+  const cloudflareSource = request.headers
+    .get(ADMIN_LOGIN_SOURCE_HEADER)
+    ?.trim();
+  if (
+    cloudflareSource &&
+    cloudflareSource.length <= ADMIN_LOGIN_SOURCE_MAX_LENGTH
+  ) {
+    return cloudflareSource;
+  }
+
+  // Cloudflare supplies cf-connecting-ip in production. Local development
+  // deliberately uses a single fallback bucket; arbitrary forwarded headers
+  // are not trusted as attacker-controlled rate-limit identities.
+  const hostname = request.nextUrl.hostname.toLowerCase();
+  const isLoopback =
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '[::1]' ||
+    hostname === '::1';
+  if (isLoopback || process.env.NODE_ENV !== 'production') {
+    return 'local-development';
+  }
+  throw new AdminApiError(503, 'Admin login unavailable');
+}
+
+async function createAdminLoginSourceId(
+  request: NextRequest,
+  secret: string
+): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const digest = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    new TextEncoder().encode(readAdminLoginSource(request))
+  );
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 export function createNoStoreJsonResponse(
@@ -213,8 +270,16 @@ export async function requireGuideEditorSession(
   return session;
 }
 
-export async function loginAdmin(username: string, password: string) {
+export async function loginAdmin(
+  request: NextRequest,
+  username: string,
+  password: string
+) {
+  const secret = requireAdminLoginBridgeSecret();
+  const sourceId = await createAdminLoginSourceId(request, secret);
   const result = await getConvexClient().mutation(api.auth.login, {
+    secret,
+    sourceId,
     username,
     password,
   });
@@ -302,14 +367,27 @@ export function createAdminErrorResponse(
   error: unknown,
   request: NextRequest
 ): NextResponse {
-  const status = error instanceof AdminApiError ? error.status : 500;
+  const isUnauthorizedConvexError =
+    error instanceof Error &&
+    (error.message.trim() === 'Unauthorized' ||
+      /(?:^|\r?\n)Uncaught Error: Unauthorized(?:\r?\n|$)/.test(error.message));
+  const status =
+    error instanceof AdminApiError
+      ? error.status
+      : isUnauthorizedConvexError
+        ? 401
+        : 500;
   const message =
-    error instanceof AdminApiError ? error.message : 'Internal server error';
-  if (!(error instanceof AdminApiError)) {
+    error instanceof AdminApiError
+      ? error.message
+      : isUnauthorizedConvexError
+        ? 'Unauthorized'
+        : 'Internal server error';
+  if (!(error instanceof AdminApiError) && !isUnauthorizedConvexError) {
     console.error('[admin] API request failed:', error);
   }
   const response = createNoStoreJsonResponse({ error: message }, { status });
-  if (status === 401) {
+  if (status === 401 && readAdminSessionToken(request)) {
     clearAdminSessionCookie(response, request);
   }
   return response;

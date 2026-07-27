@@ -1,10 +1,38 @@
 import { convexTest } from 'convex-test';
-import { describe, expect, it } from 'vitest';
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 import { api, internal } from './_generated/api';
 import schema from './schema';
 import { modules } from './test.setup';
 
 const ADMIN_PASSWORD = 'correct-horse';
+const ADMIN_LOGIN_BRIDGE_SECRET = 'test-admin-login-bridge-secret';
+const LOGIN_SOURCE_A = 'a'.repeat(64);
+const LOGIN_SOURCE_B = 'b'.repeat(64);
+const previousAdminLoginBridgeSecret = process.env.ADMIN_LOGIN_BRIDGE_SECRET;
+
+beforeAll(() => {
+  process.env.ADMIN_LOGIN_BRIDGE_SECRET = ADMIN_LOGIN_BRIDGE_SECRET;
+});
+
+afterAll(() => {
+  if (previousAdminLoginBridgeSecret === undefined) {
+    delete process.env.ADMIN_LOGIN_BRIDGE_SECRET;
+  } else {
+    process.env.ADMIN_LOGIN_BRIDGE_SECRET = previousAdminLoginBridgeSecret;
+  }
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 async function bootstrapAdmin(t: ReturnType<typeof convexTest>) {
   return await t.mutation(internal.auth.createAdminUser, {
@@ -13,11 +41,33 @@ async function bootstrapAdmin(t: ReturnType<typeof convexTest>) {
   });
 }
 
-async function loginAdmin(t: ReturnType<typeof convexTest>) {
-  const login = await t.mutation(api.auth.login, {
-    username: 'admin',
-    password: ADMIN_PASSWORD,
+async function requestLogin(
+  t: ReturnType<typeof convexTest>,
+  {
+    username = 'admin',
+    password = ADMIN_PASSWORD,
+    sourceId = LOGIN_SOURCE_A,
+    secret = ADMIN_LOGIN_BRIDGE_SECRET,
+  }: {
+    username?: string;
+    password?: string;
+    sourceId?: string;
+    secret?: string;
+  } = {}
+) {
+  return await t.mutation(api.auth.login, {
+    secret,
+    sourceId,
+    username,
+    password,
   });
+}
+
+async function loginAdmin(
+  t: ReturnType<typeof convexTest>,
+  sourceId = LOGIN_SOURCE_A
+) {
+  const login = await requestLogin(t, { sourceId });
   if (!login.ok) {
     throw new Error('Expected admin login to succeed');
   }
@@ -53,91 +103,128 @@ describe('admin authentication', () => {
     ).rejects.toThrow('Admin user already exists');
   });
 
-  it('commits failed-attempt counters and keeps locked login errors generic', async () => {
+  it('rejects login calls that do not carry the server bridge secret', async () => {
+    const t = convexTest(schema, modules);
+    await bootstrapAdmin(t);
+
+    await expect(
+      requestLogin(t, { secret: 'wrong-bridge-secret' })
+    ).rejects.toThrow('Unauthorized bridge call');
+    await expect(
+      requestLogin(t, { sourceId: 'not-a-source-hmac' })
+    ).rejects.toThrow('Unauthorized bridge call');
+
+    const attempts = await t.run(
+      async (ctx) => await ctx.db.query('adminLoginAttempts').collect()
+    );
+    expect(attempts).toHaveLength(0);
+  });
+
+  it('blocks repeated failures by source without locking the account', async () => {
     const t = convexTest(schema, modules);
     const { userId } = await bootstrapAdmin(t);
 
     for (let attempt = 0; attempt < 5; attempt++) {
       await expect(
-        t.mutation(api.auth.login, {
-          username: 'admin',
+        requestLogin(t, {
           password: 'wrong-password',
         })
       ).resolves.toEqual({ ok: false });
     }
 
-    const lockedUser = await t.run(async (ctx) => await ctx.db.get(userId));
-    expect(lockedUser?.failedLoginAttempts).toBe(5);
-    expect(lockedUser?.lockoutUntil).toBeGreaterThan(Date.now());
-
-    await expect(
-      t.mutation(api.auth.login, {
-        username: 'admin',
-        password: ADMIN_PASSWORD,
-      })
-    ).resolves.toEqual({ ok: false });
-    await expect(
-      t.mutation(api.auth.login, {
-        username: 'missing-user',
-        password: ADMIN_PASSWORD,
-      })
-    ).resolves.toEqual({ ok: false });
-
-    await t.run(async (ctx) => {
-      await ctx.db.patch(userId, {
-        failedLoginAttempts: undefined,
-        lastFailedLoginAt: undefined,
-        lockoutUntil: undefined,
-      });
+    const state = await t.run(async (ctx) => {
+      const user = await ctx.db.get(userId);
+      const attempts = await ctx.db.query('adminLoginAttempts').collect();
+      return { user, attempts };
     });
-    await expect(loginAdmin(t)).resolves.toMatchObject({ ok: true });
+    expect(state.user?.failedLoginAttempts).toBeUndefined();
+    expect(state.user?.lockoutUntil).toBeUndefined();
+    expect(state.attempts).toHaveLength(1);
+    expect(state.attempts[0]).toMatchObject({
+      attemptKey: `${LOGIN_SOURCE_A}:admin`,
+      failedAttempts: 5,
+    });
+    expect(state.attempts[0]?.blockedUntil).toBeGreaterThan(Date.now());
+
+    await expect(requestLogin(t)).resolves.toEqual({ ok: false });
+    await expect(loginAdmin(t, LOGIN_SOURCE_B)).resolves.toMatchObject({
+      ok: true,
+    });
   });
 
-  it('restarts the failed-attempt counter after the failure window expires', async () => {
+  it('restarts a source counter after its failure window expires', async () => {
     const t = convexTest(schema, modules);
-    const { userId } = await bootstrapAdmin(t);
+    await bootstrapAdmin(t);
     const expiredFailureWindow = Date.now() - 16 * 60 * 1_000;
 
+    for (let attempt = 0; attempt < 4; attempt++) {
+      await requestLogin(t, { password: 'wrong-password' });
+    }
     await t.run(async (ctx) => {
-      await ctx.db.patch(userId, {
-        failedLoginAttempts: 4,
-        lastFailedLoginAt: expiredFailureWindow,
-        lockoutUntil: undefined,
+      const loginAttempt = await ctx.db
+        .query('adminLoginAttempts')
+        .withIndex('by_attemptKey', (q) =>
+          q.eq('attemptKey', `${LOGIN_SOURCE_A}:admin`)
+        )
+        .unique();
+      if (!loginAttempt) throw new Error('Expected a login-attempt record');
+      await ctx.db.patch(loginAttempt._id, {
+        windowStartedAt: expiredFailureWindow,
       });
     });
 
     await expect(
-      t.mutation(api.auth.login, {
-        username: 'admin',
+      requestLogin(t, {
         password: 'wrong-password',
       })
     ).resolves.toEqual({ ok: false });
 
-    const user = await t.run(async (ctx) => await ctx.db.get(userId));
-    expect(user?.failedLoginAttempts).toBe(1);
-    expect(user?.lastFailedLoginAt).toBeGreaterThan(expiredFailureWindow);
-    expect(user?.lockoutUntil).toBeUndefined();
+    const loginAttempt = await t.run(async (ctx) => {
+      return await ctx.db
+        .query('adminLoginAttempts')
+        .withIndex('by_attemptKey', (q) =>
+          q.eq('attemptKey', `${LOGIN_SOURCE_A}:admin`)
+        )
+        .unique();
+    });
+    expect(loginAttempt?.failedAttempts).toBe(1);
+    expect(loginAttempt?.windowStartedAt).toBeGreaterThan(expiredFailureWindow);
+    expect(loginAttempt?.blockedUntil).toBeUndefined();
   });
 
-  it('allows a valid login after lockout expiry and clears failure state', async () => {
+  it('allows a valid login after a source block expires and clears it', async () => {
     const t = convexTest(schema, modules);
     const { userId } = await bootstrapAdmin(t);
 
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await requestLogin(t, { password: 'wrong-password' });
+    }
     await t.run(async (ctx) => {
-      await ctx.db.patch(userId, {
-        failedLoginAttempts: 5,
-        lastFailedLoginAt: Date.now() - 1_000,
-        lockoutUntil: Date.now() - 1,
+      const loginAttempt = await ctx.db
+        .query('adminLoginAttempts')
+        .withIndex('by_attemptKey', (q) =>
+          q.eq('attemptKey', `${LOGIN_SOURCE_A}:admin`)
+        )
+        .unique();
+      if (!loginAttempt) throw new Error('Expected a login-attempt record');
+      await ctx.db.patch(loginAttempt._id, {
+        windowStartedAt: Date.now() - 16 * 60 * 1_000,
+        blockedUntil: Date.now() - 1,
       });
     });
 
     await expect(loginAdmin(t)).resolves.toMatchObject({ ok: true });
 
-    const user = await t.run(async (ctx) => await ctx.db.get(userId));
-    expect(user?.failedLoginAttempts).toBeUndefined();
-    expect(user?.lastFailedLoginAt).toBeUndefined();
-    expect(user?.lockoutUntil).toBeUndefined();
-    expect(user?.lastLogin).toBeTypeOf('number');
+    const state = await t.run(async (ctx) => {
+      const user = await ctx.db.get(userId);
+      const attempts = await ctx.db.query('adminLoginAttempts').collect();
+      return { user, attempts };
+    });
+    expect(state.user?.failedLoginAttempts).toBeUndefined();
+    expect(state.user?.lastFailedLoginAt).toBeUndefined();
+    expect(state.user?.lockoutUntil).toBeUndefined();
+    expect(state.user?.lastLogin).toBeTypeOf('number');
+    expect(state.attempts).toHaveLength(0);
   });
 
   it('migrates a valid legacy password hash after login', async () => {
@@ -151,7 +238,7 @@ describe('admin authentication', () => {
       });
     });
 
-    const login = await t.mutation(api.auth.login, {
+    const login = await requestLogin(t, {
       username: 'legacy-admin',
       password: ADMIN_PASSWORD,
     });
@@ -161,6 +248,28 @@ describe('admin authentication', () => {
     expect(migrated?.passwordHash).toMatch(
       /^pbkdf2_sha256\$310000\$[0-9a-f]{32}\$[0-9a-f]{64}$/
     );
+  });
+
+  it('burns a PBKDF2 derivation for an invalid legacy password', async () => {
+    const t = convexTest(schema, modules);
+    await t.run(async (ctx) => {
+      await ctx.db.insert('users', {
+        username: 'legacy-admin',
+        passwordHash: legacySimpleHash(ADMIN_PASSWORD),
+        role: 'admin',
+        createdAt: Date.now(),
+      });
+    });
+    const deriveBits = vi.spyOn(crypto.subtle, 'deriveBits');
+
+    await expect(
+      requestLogin(t, {
+        username: 'legacy-admin',
+        password: 'wrong-password',
+      })
+    ).resolves.toEqual({ ok: false });
+
+    expect(deriveBits).toHaveBeenCalledTimes(1);
   });
 
   it('revokes sibling sessions after a password change', async () => {
@@ -182,14 +291,12 @@ describe('admin authentication', () => {
       t.query(api.auth.verifySession, { sessionToken: second.token })
     ).resolves.toBeNull();
     await expect(
-      t.mutation(api.auth.login, {
-        username: 'admin',
+      requestLogin(t, {
         password: ADMIN_PASSWORD,
       })
     ).resolves.toEqual({ ok: false });
     await expect(
-      t.mutation(api.auth.login, {
-        username: 'admin',
+      requestLogin(t, {
         password: 'new-correct-password',
       })
     ).resolves.toMatchObject({ ok: true });
@@ -242,7 +349,7 @@ describe('guide authorization and validation', () => {
         sessionToken: login.token,
         name: 'Invalid build',
         description: 'Should not persist',
-        icon: 'Sparkles',
+        icon: 'star',
         color: 'bg-purple-500',
         borderColor: 'border-purple-500',
         isRecommended: false,

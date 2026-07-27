@@ -40,6 +40,8 @@ const synergyValidator = v.union(
   v.literal('Situational'),
   v.literal('Poor')
 );
+const GUIDE_BUILD_ICONS = new Set(['star', 'shield', 'zap']);
+const MAX_GUIDE_BUILD_DOCUMENT_BYTES = 900_000;
 
 // Drops the auth token from mutation args before persisting the rest.
 function stripSessionToken<T extends { sessionToken: string }>(
@@ -125,6 +127,15 @@ function normalizeSkillLevels(levels: string[]): string[] {
       throw new Error('Ultimate can only be assigned at levels 6, 11, and 16');
     }
     counts[normalized as keyof typeof counts] += 1;
+    if (normalized !== 'R') {
+      const championLevel = index + 1;
+      const availableRanks = Math.min(5, Math.ceil(championLevel / 2));
+      if (counts[normalized as 'Q' | 'W' | 'E'] > availableRanks) {
+        throw new Error(
+          `${normalized} rank ${counts[normalized as 'Q' | 'W' | 'E']} is not available at level ${championLevel}`
+        );
+      }
+    }
     return normalized;
   });
 
@@ -136,6 +147,25 @@ function normalizeSkillLevels(levels: string[]): string[] {
   }
 
   return normalizedLevels;
+}
+
+function normalizeBuildIcon(value: string): string {
+  const normalized = normalizeRequiredString(value, 'Build icon');
+  if (!GUIDE_BUILD_ICONS.has(normalized)) {
+    throw new Error('Build icon must be one of star, shield, or zap');
+  }
+  return normalized;
+}
+
+function assertBuildDocumentSize(build: unknown): void {
+  const documentBytes = new TextEncoder().encode(
+    JSON.stringify(build)
+  ).byteLength;
+  if (documentBytes > MAX_GUIDE_BUILD_DOCUMENT_BYTES) {
+    throw new Error(
+      `Build exceeds the ${MAX_GUIDE_BUILD_DOCUMENT_BYTES} byte storage budget`
+    );
+  }
 }
 
 function normalizeBuildItems(
@@ -202,10 +232,10 @@ function normalizeBuildPayload(args: {
     notes: string;
   };
 }) {
-  return {
+  const normalizedBuild = {
     name: normalizeRequiredString(args.name, 'Build name'),
     description: normalizeRequiredString(args.description, 'Build description'),
-    icon: normalizeRequiredString(args.icon, 'Build icon'),
+    icon: normalizeBuildIcon(args.icon),
     color: normalizeRequiredString(args.color, 'Build color class'),
     borderColor: normalizeRequiredString(
       args.borderColor,
@@ -248,6 +278,9 @@ function normalizeBuildPayload(args: {
       notes: normalizeOptionalString(args.skillOrder.notes),
     },
   };
+
+  assertBuildDocumentSize(normalizedBuild);
+  return normalizedBuild;
 }
 
 // ============ ITEMS ============
@@ -807,21 +840,30 @@ export const setMetadata = mutation({
   handler: async (ctx, args) => {
     requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
 
+    const normalizedKey = normalizeRequiredString(args.key, 'Metadata key');
+    const normalizedValue = normalizeRequiredString(
+      args.value,
+      'Metadata value'
+    );
     const existing = await ctx.db
       .query('guideMetadata')
-      .withIndex('by_key', (q) => q.eq('key', args.key))
-      .first();
+      .withIndex('by_key', (q) => q.eq('key', normalizedKey))
+      .collect();
 
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        value: normalizeRequiredString(args.value, 'Metadata value'),
+    if (existing.length > 0) {
+      const canonical = existing[0]!;
+      await ctx.db.patch(canonical._id, {
+        value: normalizedValue,
         updatedAt: Date.now(),
       });
-      return existing._id;
+      for (const duplicate of existing.slice(1)) {
+        await ctx.db.delete(duplicate._id);
+      }
+      return canonical._id;
     } else {
       return await ctx.db.insert('guideMetadata', {
-        key: normalizeRequiredString(args.key, 'Metadata key'),
-        value: normalizeRequiredString(args.value, 'Metadata value'),
+        key: normalizedKey,
+        value: normalizedValue,
         updatedAt: Date.now(),
       });
     }

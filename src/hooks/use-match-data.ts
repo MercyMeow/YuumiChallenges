@@ -48,9 +48,7 @@ function getMatchRequestError(
 
 export function useMatchData(matchId: string) {
   const normalizedMatchId = normalizeRiotMatchId(matchId);
-  const validationError = normalizedMatchId
-    ? getRiotMatchIdValidationError(normalizedMatchId)
-    : null;
+  const validationError = getRiotMatchIdValidationError(normalizedMatchId);
   const [data, setData] = useState<MatchDetailsSuccessPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [requestError, setRequestError] = useState<string | null>(null);

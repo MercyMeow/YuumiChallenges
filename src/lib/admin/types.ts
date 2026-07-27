@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { ADMIN_BUILD_ICON_KEYS, type AdminBuildIcon } from './build-icons';
+import { MAX_ADMIN_PRIORITY } from './integer-input';
+import { getSkillOrderValidationError } from './skill-order';
 
 export type AdminRole = 'admin' | 'editor';
 
@@ -48,9 +51,10 @@ export interface AdminBuild {
 
 export interface AdminBuildPayload extends Omit<
   AdminBuild,
-  'id' | 'updatedAt'
+  'id' | 'updatedAt' | 'icon'
 > {
   id?: string;
+  icon: AdminBuildIcon;
 }
 
 export type AdminItemCategory = 'starter' | 'early' | 'core' | 'situational';
@@ -71,6 +75,7 @@ export interface AdminItemPayload extends Omit<AdminItem, 'id' | 'updatedAt'> {
 }
 
 const MAX_ADMIN_TEXT_LENGTH = 10_000;
+export const MAX_ADMIN_BUILD_DOCUMENT_BYTES = 900_000;
 const requiredShortTextSchema = z.string().trim().min(1).max(256);
 const requiredLongTextSchema = z
   .string()
@@ -78,7 +83,7 @@ const requiredLongTextSchema = z
   .min(1)
   .max(MAX_ADMIN_TEXT_LENGTH);
 const optionalLongTextSchema = z.string().trim().max(MAX_ADMIN_TEXT_LENGTH);
-const prioritySchema = z.number().int().min(0).max(1_000_000);
+const prioritySchema = z.number().int().min(0).max(MAX_ADMIN_PRIORITY);
 const itemIdSchema = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 const buildItemSchema = z
   .object({
@@ -99,35 +104,12 @@ const skillOrderSchema = z
   })
   .strict()
   .superRefine(({ levels }, context) => {
-    if (levels.length !== 18) {
-      return;
-    }
-
-    const counts = { Q: 0, W: 0, E: 0, R: 0 };
-    const ultimateIndices = new Set([5, 10, 15]);
-    levels.forEach((level, index) => {
-      counts[level] += 1;
-      if (level === 'R' && !ultimateIndices.has(index)) {
-        context.addIssue({
-          code: 'custom',
-          path: ['levels', index],
-          message: 'Ultimate can only be assigned at levels 6, 11, and 16',
-        });
-      }
-    });
-
-    if (counts.R !== 3) {
+    const validationError = getSkillOrderValidationError(levels);
+    if (validationError) {
       context.addIssue({
         code: 'custom',
         path: ['levels'],
-        message: 'Skill order must include exactly 3 ultimate levels',
-      });
-    }
-    if (counts.Q > 5 || counts.W > 5 || counts.E > 5) {
-      context.addIssue({
-        code: 'custom',
-        path: ['levels'],
-        message: 'Q, W, and E can each be leveled at most 5 times',
+        message: validationError,
       });
     }
   });
@@ -156,7 +138,7 @@ export const adminBuildPayloadSchema = z
     id: adminDocumentIdSchema.optional(),
     name: requiredShortTextSchema,
     description: requiredLongTextSchema,
-    icon: requiredShortTextSchema,
+    icon: z.enum(ADMIN_BUILD_ICON_KEYS),
     color: requiredShortTextSchema,
     borderColor: requiredShortTextSchema,
     isRecommended: z.boolean(),
@@ -182,4 +164,15 @@ export const adminBuildPayloadSchema = z
       .strict(),
     skillOrder: skillOrderSchema,
   })
-  .strict();
+  .strict()
+  .superRefine((build, context) => {
+    const documentBytes = new TextEncoder().encode(
+      JSON.stringify(build)
+    ).byteLength;
+    if (documentBytes > MAX_ADMIN_BUILD_DOCUMENT_BYTES) {
+      context.addIssue({
+        code: 'custom',
+        message: `Build exceeds the ${MAX_ADMIN_BUILD_DOCUMENT_BYTES.toLocaleString()} byte storage budget`,
+      });
+    }
+  });

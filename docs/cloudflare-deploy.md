@@ -9,7 +9,7 @@ The Next.js app runs on Cloudflare via [@opennextjs/cloudflare](https://opennext
 | `npm run dev` | Next + Convex (unchanged) |
 | `npm run build` | Local production-style Next.js build (`next build --webpack`) |
 | `npm run build:next` | Plain `next build` without OpenNext |
-| `npm run build:cloudflare` | OpenNext Workers bundle; runs `convex deploy --cmd "npx opennextjs-cloudflare build"` when deploy credentials exist |
+| `npm run build:cloudflare` | OpenNext Workers bundle; when deploy credentials exist, a successful bundle is followed by a Convex deploy |
 | `npm run preview` | Build + `wrangler dev` (production-like runtime) |
 | `npm run deploy` | Build + deploy to Worker `yuumi-challenges` |
 | `npm run test` | Run Vitest suite (supports TS/React and jsdom by default) |
@@ -29,11 +29,13 @@ Set these in the Cloudflare dashboard (**Workers & Pages → yuumi-challenges �
 | `NEXT_PUBLIC_CONVEX_URL` | Yes | Convex deployment URL used by server routes and the client |
 | `NEXT_PUBLIC_SITE_URL` | Yes (prod) | `https://yuumi.quest`; used for metadata, auth redirects, and Stripe return URLs |
 | `NEXT_PUBLIC_APP_URL` | Recommended | Explicit canonical origin for match share URLs and metadata |
+| `NEXT_PUBLIC_USE_EXAMPLE_DATA` | Optional | Serve bundled example match payloads instead of live Riot data |
 | `YUUMI_DISCORD_SERVER_ID` | Optional | Community links / embeds |
 | `RIOT_API_KEY` | Yes | Required by Next.js match APIs |
 | `DISCORD_CLIENT_ID` | Yes for web auth | Discord OAuth login route |
 | `DISCORD_CLIENT_SECRET` | Yes for web auth | Discord OAuth callback route |
 | `AUTH_BRIDGE_SECRET` | Yes for web auth / Stripe | Shared secret for Next.js bridge calls into Convex; must exactly match the Convex environment value |
+| `ADMIN_LOGIN_BRIDGE_SECRET` | Yes for admin login | Distinct server-only secret for the source-aware admin login bridge; must exactly match the Convex environment value |
 | `STRIPE_SECRET_KEY` | Yes for Supporter checkout | Stripe Checkout session creation |
 | `STRIPE_WEBHOOK_SECRET` | Yes for Supporter webhooks | Stripe signature verification |
 
@@ -45,10 +47,11 @@ Set these with `npx convex env set ...` on the target deployment:
 |----------|----------|--------|
 | `RIOT_API_KEY` | Yes | Required by Convex actions that call Riot |
 | `AUTH_BRIDGE_SECRET` | Yes for web auth / Stripe | Must exactly match the Cloudflare / Next runtime value |
+| `ADMIN_LOGIN_BRIDGE_SECRET` | Yes for admin login | Must exactly match the Cloudflare / Next runtime value |
 
 ### Build-only variables
 
-These are only needed when a build step should deploy Convex before building the app:
+These are only needed when a successful app build should be followed by a Convex deployment:
 
 | Variable | Required | Notes |
 |----------|----------|--------|
@@ -57,6 +60,23 @@ These are only needed when a build step should deploy Convex before building the
 | `CONVEX_SELF_HOSTED_ADMIN_KEY` | Self-hosted Convex only | Self-hosted admin key |
 
 Public `NEXT_PUBLIC_*` and server secrets must be available at **build time** for OpenNext (see [env vars guide](https://opennext.js.org/cloudflare/howtos/env-vars#workers-builds)).
+
+### Stripe webhook endpoint
+
+`NEXT_PUBLIC_SITE_URL` supplies the canonical origin used for redirects and
+Stripe return URLs; it does not register inbound webhooks. In the Stripe
+Dashboard, separately register
+`https://<your-domain>/api/stripe/webhook`, then configure that endpoint's
+signing secret as `STRIPE_WEBHOOK_SECRET` in the Cloudflare / Next runtime.
+
+### Admin login bridge
+
+Generate a high-entropy `ADMIN_LOGIN_BRIDGE_SECRET` that is distinct from
+`AUTH_BRIDGE_SECRET`, then configure the exact same value in the Cloudflare /
+Next runtime and Convex. Next uses it to HMAC Cloudflare's trusted
+`cf-connecting-ip` source before calling Convex. Production admin login fails
+closed if either the secret or that header is absent; local development uses
+one shared fallback rate-limit bucket.
 
 ## First admin bootstrap
 
@@ -77,7 +97,7 @@ If you target a non-default deployment, use `--deployment <name>` instead of
 ## Workers Builds (GitHub)
 
 1. Connect the repo in **Workers & Pages → Create → Workers Builds**.
-2. **Build command:** `npm run build:cloudflare` (or `npx convex deploy --cmd "npx opennextjs-cloudflare build"` if Convex deploy on build is required).
+2. **Build command:** `npm run build:cloudflare` (or `npx convex deploy --cmd "npx opennextjs-cloudflare build"` if Convex should deploy after a successful app build).
 3. **Deploy command:** `npx wrangler deploy` (or use `npm run deploy` as a single step if you only use manual deploy).
 4. Add build variables/secrets above.
 

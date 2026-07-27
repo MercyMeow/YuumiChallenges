@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  MAX_ADMIN_BUILD_DOCUMENT_BYTES,
   adminBuildPayloadSchema,
   adminDocumentIdSchema,
   adminItemPayloadSchema,
@@ -9,7 +10,7 @@ function validBuildPayload() {
   return {
     name: '  Aery Support  ',
     description: 'Standard support build',
-    icon: 'Sparkles',
+    icon: 'star',
     color: 'text-blue-300',
     borderColor: 'border-blue-300',
     isRecommended: true,
@@ -104,6 +105,73 @@ describe('admin API schemas', () => {
     invalidSkillOrder.skillOrder.levels[0] = 'r';
     invalidSkillOrder.skillOrder.levels[5] = 'e';
     expect(adminBuildPayloadSchema.safeParse(invalidSkillOrder).success).toBe(
+      false
+    );
+
+    const unavailableSkillRank = validBuildPayload();
+    unavailableSkillRank.skillOrder.levels = [
+      'Q',
+      'Q',
+      'Q',
+      'Q',
+      'Q',
+      'R',
+      'E',
+      'E',
+      'E',
+      'E',
+      'R',
+      'E',
+      'W',
+      'W',
+      'W',
+      'R',
+      'W',
+      'W',
+    ];
+    expect(
+      adminBuildPayloadSchema.safeParse(unavailableSkillRank).success
+    ).toBe(false);
+
+    expect(
+      adminItemPayloadSchema.safeParse({
+        name: 'Moonstone Renewer',
+        itemId: 6617.5,
+        category: 'core',
+        reason: 'Reliable healing',
+        priority: 1.5,
+        isActive: true,
+      }).success
+    ).toBe(false);
+  });
+
+  it('accepts only icons rendered by the public guide', () => {
+    const unsupportedIcon = validBuildPayload();
+    unsupportedIcon.icon = 'wand';
+    expect(adminBuildPayloadSchema.safeParse(unsupportedIcon).success).toBe(
+      false
+    );
+  });
+
+  it('rejects aggregate build documents above the storage budget', () => {
+    const largeItem = {
+      id: 6617,
+      name: 'Moonstone Renewer',
+      reason: 'x'.repeat(10_000),
+    };
+    const oversizedBuild = {
+      ...validBuildPayload(),
+      items: {
+        starter: Array.from({ length: 50 }, () => ({ ...largeItem })),
+        core: Array.from({ length: 50 }, () => ({ ...largeItem })),
+        situational: [],
+      },
+    };
+
+    expect(
+      new TextEncoder().encode(JSON.stringify(oversizedBuild)).byteLength
+    ).toBeGreaterThan(MAX_ADMIN_BUILD_DOCUMENT_BYTES);
+    expect(adminBuildPayloadSchema.safeParse(oversizedBuild).success).toBe(
       false
     );
   });

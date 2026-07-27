@@ -1216,11 +1216,12 @@ git commit -m "feat: add High Elo games feed to navigation"
 npm run lint && npm run type-check && npm run test:run && npm run format:check && npm run build
 ```
 
-Historical note: when this plan was written, `npm run build` deployed Convex
-first. The current script runs only `next build --webpack` and does not deploy
-Convex. Use `npm run convex:deploy` for an explicit Convex deployment;
-`npm run build:cloudflare` creates the OpenNext bundle and may deploy Convex
-first when deployment credentials are configured.
+Historical note: when this plan was written, `npm run build` wrapped the Next.js
+build in a Convex deployment command when credentials were present. The current
+script runs only `next build --webpack` and does not deploy Convex. Use
+`npm run convex:deploy` for an explicit Convex deployment;
+`npm run build:cloudflare` creates the OpenNext bundle and, when deployment
+credentials are configured, deploys Convex after that build succeeds.
 
 **Step 2:** Deploy backend + set the API key (Convex env, NOT .env):
 

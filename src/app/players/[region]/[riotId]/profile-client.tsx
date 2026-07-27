@@ -582,7 +582,7 @@ function ProfileAccountRow({ puuid }: { puuid: string }) {
                     );
                   }
                   // Show the challenge from the authoritative source.
-                  refreshMe();
+                  await refreshMe();
                 })
                 .catch(() =>
                   setNotice('Could not start verification — try again later.')
@@ -640,14 +640,14 @@ function ProfileAccountRow({ puuid }: { puuid: string }) {
                     error?: string;
                   };
                   if (data.linked) {
-                    refreshMe();
+                    await refreshMe();
                   } else if (data.reason === 'icon_mismatch') {
                     setNotice(
                       "Icon doesn't match yet — save it in the client, wait a few seconds, and try again."
                     );
                   } else {
                     setNotice(data.error ?? 'Challenge expired — start again.');
-                    refreshMe();
+                    await refreshMe();
                   }
                 })
                 .catch(() => setNotice('Verification failed — try again.'))

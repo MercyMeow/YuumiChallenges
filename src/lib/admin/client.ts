@@ -26,6 +26,7 @@ type AdminAuthorizationFailureListener = (
 
 const authorizationFailureListeners =
   new Set<AdminAuthorizationFailureListener>();
+let authorizationGeneration = 0;
 
 export class AdminClientError extends Error {
   status: number;
@@ -46,8 +47,18 @@ export function subscribeToAdminAuthorizationFailures(
   };
 }
 
-function reportAdminAuthorizationFailure(status: number): void {
+function establishAdminAuthorizationState(): void {
+  authorizationGeneration += 1;
+}
+
+function reportAdminAuthorizationFailure(
+  status: number,
+  requestGeneration: number
+): void {
   if (status !== 401 && status !== 403) {
+    return;
+  }
+  if (requestGeneration !== authorizationGeneration) {
     return;
   }
 
@@ -67,8 +78,10 @@ async function readJsonPayload(response: Response): Promise<unknown> {
 async function adminRequest<T>(
   input: RequestInfo,
   init: RequestInit,
-  fallbackMessage: string
+  fallbackMessage: string,
+  reportAuthorizationFailure = true
 ): Promise<T> {
+  const requestGeneration = authorizationGeneration;
   const response = await fetch(input, {
     cache: 'no-store',
     credentials: 'same-origin',
@@ -76,7 +89,9 @@ async function adminRequest<T>(
   });
   const payload = await readJsonPayload(response);
   if (!response.ok) {
-    reportAdminAuthorizationFailure(response.status);
+    if (reportAuthorizationFailure) {
+      reportAdminAuthorizationFailure(response.status, requestGeneration);
+    }
     throw new AdminClientError(
       getAdminErrorMessage(payload, fallbackMessage),
       response.status
@@ -91,6 +106,7 @@ export async function fetchAdminSession(): Promise<AdminUser | null> {
     { method: 'GET' },
     'Unable to verify your admin session.'
   );
+  establishAdminAuthorizationState();
   return payload.user;
 }
 
@@ -105,8 +121,10 @@ export async function loginAdminRequest(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
     },
-    'Invalid credentials'
+    'Invalid credentials',
+    false
   );
+  establishAdminAuthorizationState();
   return payload.user;
 }
 
@@ -116,6 +134,7 @@ export async function logoutAdminRequest(): Promise<void> {
     { method: 'POST' },
     'Unable to log out right now.'
   );
+  establishAdminAuthorizationState();
 }
 
 export async function fetchAdminBuildsRequest(): Promise<AdminBuild[]> {

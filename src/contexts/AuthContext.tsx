@@ -31,6 +31,11 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const LEGACY_SESSION_KEY = 'yuumi_guide_session';
+const ADMIN_AUTH_CHANNEL = 'yuumi-guide-admin-auth';
+
+type AdminAuthMessage = {
+  type: 'session-changed' | 'signed-out';
+};
 
 function readErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof AdminClientError || error instanceof Error) {
@@ -43,12 +48,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const sessionGenerationRef = useRef(0);
+  const authChannelRef = useRef<BroadcastChannel | null>(null);
 
-  const invalidateSession = useCallback(() => {
+  const clearSession = useCallback(() => {
     sessionGenerationRef.current += 1;
     setUser(null);
     setIsLoading(false);
   }, []);
+
+  const broadcastAuthMessage = useCallback((message: AdminAuthMessage) => {
+    authChannelRef.current?.postMessage(message);
+  }, []);
+
+  const invalidateSession = useCallback(() => {
+    clearSession();
+    broadcastAuthMessage({ type: 'signed-out' });
+  }, [broadcastAuthMessage, clearSession]);
 
   const refreshSession = useCallback(async (): Promise<AdminUser | null> => {
     const requestGeneration = sessionGenerationRef.current;
@@ -77,6 +92,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') {
+      return;
+    }
+
+    const channel = new BroadcastChannel(ADMIN_AUTH_CHANNEL);
+    authChannelRef.current = channel;
+    channel.onmessage = (event: MessageEvent<AdminAuthMessage>) => {
+      if (event.data?.type === 'signed-out') {
+        clearSession();
+        return;
+      }
+      if (event.data?.type === 'session-changed') {
+        void refreshSession();
+      }
+    };
+
+    return () => {
+      authChannelRef.current = null;
+      channel.close();
+    };
+  }, [clearSession, refreshSession]);
+
+  useEffect(() => {
     try {
       window.localStorage.removeItem(LEGACY_SESSION_KEY);
     } catch {
@@ -92,12 +130,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [refreshSession]);
 
-  const login = useCallback(async (username: string, password: string) => {
-    const nextUser = await loginAdminRequest(username, password);
-    sessionGenerationRef.current += 1;
-    setUser(nextUser);
-    setIsLoading(false);
-  }, []);
+  useEffect(() => {
+    const refreshOnFocus = () => {
+      void refreshSession();
+    };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') {
+        void refreshSession();
+      }
+    };
+
+    window.addEventListener('focus', refreshOnFocus);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => {
+      window.removeEventListener('focus', refreshOnFocus);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    };
+  }, [refreshSession]);
+
+  const login = useCallback(
+    async (username: string, password: string) => {
+      const nextUser = await loginAdminRequest(username, password);
+      sessionGenerationRef.current += 1;
+      setUser(nextUser);
+      setIsLoading(false);
+      broadcastAuthMessage({ type: 'session-changed' });
+    },
+    [broadcastAuthMessage]
+  );
 
   const logout = useCallback(async () => {
     try {
@@ -105,10 +165,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionGenerationRef.current += 1;
       setUser(null);
       setIsLoading(false);
+      broadcastAuthMessage({ type: 'signed-out' });
     } catch (error) {
       throw new Error(readErrorMessage(error, 'Unable to log out right now.'));
     }
-  }, []);
+  }, [broadcastAuthMessage]);
 
   const value = useMemo<AuthContextType>(
     () => ({

@@ -238,15 +238,16 @@ an admin already exists.
 | Variable | Required | Purpose |
 | --- | :---: | --- |
 | `NEXT_PUBLIC_CONVEX_URL` | ✅ | Convex deployment URL used by Next.js routes and clients |
-| `NEXT_PUBLIC_SITE_URL` | prod | Canonical site URL for redirects, metadata, and webhooks |
+| `NEXT_PUBLIC_SITE_URL` | prod | Canonical site URL for redirects and metadata |
 | `NEXT_PUBLIC_APP_URL` | recommended | Explicit share/OG origin when it differs from request headers |
 | `NEXT_PUBLIC_USE_EXAMPLE_DATA` | optional | Serve bundled example match payloads |
 | `YUUMI_DISCORD_SERVER_ID` | optional | Discord community links and embeds |
 | `RIOT_API_KEY` | live data | Required in both the Cloudflare/Next runtime and the Convex environment |
 | `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` | accounts | Discord OAuth web sign-in on the Next.js side |
 | `AUTH_BRIDGE_SECRET` | accounts | Shared secret between Next API routes and Convex bridge mutations; the value must match in both environments |
+| `ADMIN_LOGIN_BRIDGE_SECRET` | admin | Distinct server-only secret for the source-aware admin login bridge; the value must match in both environments |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | supporter | Stripe checkout + webhook verification on the Next.js side |
-| `CONVEX_DEPLOY_KEY` | cloud deploy | Lets `build:cloudflare` / `build:vercel` run `convex deploy` before the app build |
+| `CONVEX_DEPLOY_KEY` | cloud deploy | Lets `build:cloudflare` / `build:vercel` deploy Convex after the app build succeeds |
 | `CONVEX_SELF_HOSTED_URL` | self-host | Self-hosted Convex endpoint for deploy/build flows |
 | `CONVEX_SELF_HOSTED_ADMIN_KEY` | self-host | Self-hosted Convex admin key for deploy/build flows |
 
@@ -254,9 +255,20 @@ Grab a development key from the [Riot Developer Portal](https://developer.riotga
 
 Deployment secret split:
 
-- Cloudflare / Next runtime: `NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_APP_URL`, `RIOT_API_KEY`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `AUTH_BRIDGE_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, plus `YUUMI_DISCORD_SERVER_ID` if you use community links there.
-- Convex environment: `RIOT_API_KEY` and `AUTH_BRIDGE_SECRET`.
+- Cloudflare / Next runtime: `NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_USE_EXAMPLE_DATA`, `RIOT_API_KEY`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `AUTH_BRIDGE_SECRET`, `ADMIN_LOGIN_BRIDGE_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, plus `YUUMI_DISCORD_SERVER_ID` if you use community links there.
+- Convex environment: `RIOT_API_KEY`, `AUTH_BRIDGE_SECRET`, and `ADMIN_LOGIN_BRIDGE_SECRET`.
 - Build-time only: `CONVEX_DEPLOY_KEY` for Convex Cloud, or `CONVEX_SELF_HOSTED_URL` + `CONVEX_SELF_HOSTED_ADMIN_KEY` for self-hosted Convex.
+
+Use an independent, high-entropy value for `ADMIN_LOGIN_BRIDGE_SECRET`, and
+configure the exact same value in the Next runtime and Convex. Next uses it to
+HMAC Cloudflare's trusted `cf-connecting-ip` value before calling Convex.
+Production admin login fails closed if either the secret or that header is
+missing; local development intentionally uses one shared fallback rate-limit
+bucket.
+
+Stripe webhook setup is separate from `NEXT_PUBLIC_SITE_URL`. Register
+`https://<your-domain>/api/stripe/webhook` as an endpoint in Stripe, then store
+that endpoint's signing secret in `STRIPE_WEBHOOK_SECRET`.
 
 </details>
 
@@ -318,8 +330,8 @@ YuumiChallenges/
 | `npm run dev:next` | Next.js only — Convex-less, static fallbacks |
 | `npm run convex:dev` | Convex dev server only |
 | `npm run build` | Local production-style Next.js build (`next build --webpack`) |
-| `npm run build:cloudflare` | OpenNext Cloudflare bundle; deploys Convex first when deploy credentials are present |
-| `npm run build:vercel` | Legacy Vercel build path; deploys Convex first when configured |
+| `npm run build:cloudflare` | Build the OpenNext Cloudflare bundle; when deploy credentials are present, Convex deploys after the bundle succeeds |
+| `npm run build:vercel` | Legacy Vercel build path; when configured, Convex deploys after the Next.js build succeeds |
 | `npm run lint` / `lint:fix` | ESLint — check / auto-fix |
 | `npm run format` / `format:check` | Prettier — write / check |
 | `npm run type-check` | TypeScript diagnostics, no emit |

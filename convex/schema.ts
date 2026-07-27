@@ -24,6 +24,20 @@ export default defineSchema({
     .index('by_token', ['token'])
     .index('by_userId', ['userId']),
 
+  // Failed admin logins are throttled by a keyed, server-generated source
+  // identifier rather than by account. This prevents an anonymous caller from
+  // locking a known administrator out while keeping raw client addresses out
+  // of Convex.
+  adminLoginAttempts: defineTable({
+    attemptKey: v.string(),
+    failedAttempts: v.number(),
+    windowStartedAt: v.number(),
+    blockedUntil: v.optional(v.number()),
+    updatedAt: v.number(),
+  })
+    .index('by_attemptKey', ['attemptKey'])
+    .index('by_updatedAt', ['updatedAt']),
+
   // Site visitors signed in via Discord OAuth (distinct from admin
   // `users`). Subscription state is stamped by the Stripe webhook route;
   // linkedPuuid is set only after icon-based Riot account verification.
@@ -89,8 +103,12 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index('by_userId', ['userId'])
+    .index('by_userId_status_updatedAt', ['userId', 'status', 'updatedAt'])
+    .index('by_userId_status_expiresAt', ['userId', 'status', 'expiresAt'])
+    .index('by_updatedAt', ['updatedAt'])
     .index('by_idempotencyKey', ['idempotencyKey'])
-    .index('by_stripeSessionId', ['stripeSessionId']),
+    .index('by_stripeSessionId', ['stripeSessionId'])
+    .index('by_stripeSubscriptionId', ['stripeSubscriptionId']),
 
   // Stripe can deliver the same webhook more than once. This event ledger
   // leases processing and makes every event idempotent across worker retries.
@@ -110,8 +128,18 @@ export default defineSchema({
     leaseToken: v.optional(v.string()),
     customerId: v.optional(v.string()),
     objectId: v.optional(v.string()),
+    // Preserves a deletion's authoritative access horizon when the
+    // cancellation races ahead of the Checkout completion that binds it.
+    subscriptionEndAt: v.optional(v.number()),
     lastError: v.optional(v.string()),
-  }).index('by_eventId', ['eventId']),
+  })
+    .index('by_eventId', ['eventId'])
+    .index('by_objectId_type_lastReceivedAt', [
+      'objectId',
+      'type',
+      'lastReceivedAt',
+    ])
+    .index('by_lastReceivedAt', ['lastReceivedAt']),
 
   // Guide sections (editable text content)
   guideSections: defineTable({

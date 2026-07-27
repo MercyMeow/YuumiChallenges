@@ -9,6 +9,10 @@ import {
   fetchAdminBuildsRequest,
   fetchAdminItemsRequest,
 } from '@/lib/admin/client';
+import {
+  formatAdminDashboardCount,
+  loadAdminDashboardData,
+} from '@/lib/admin/dashboard-data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,8 +22,8 @@ import { LogOut, Layers, Settings, FileText } from 'lucide-react';
 export default function AdminDashboard() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading, logout } = useAuth();
-  const [buildsCount, setBuildsCount] = useState(0);
-  const [itemsCount, setItemsCount] = useState(0);
+  const [buildsCount, setBuildsCount] = useState<number | null>(null);
+  const [itemsCount, setItemsCount] = useState<number | null>(null);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [dataError, setDataError] = useState<string | null>(null);
 
@@ -39,32 +43,52 @@ export default function AdminDashboard() {
       setIsDataLoading(true);
       setDataError(null);
 
-      void Promise.all([fetchAdminBuildsRequest(), fetchAdminItemsRequest()])
-        .then(([builds, items]) => {
+      void loadAdminDashboardData(
+        fetchAdminBuildsRequest,
+        fetchAdminItemsRequest
+      )
+        .then(({ buildsCount: builds, itemsCount: items, failures }) => {
           if (cancelled) {
             return;
           }
-          setBuildsCount(builds.length);
-          setItemsCount(items.length);
-        })
-        .catch((error) => {
-          if (cancelled) {
-            return;
-          }
-          if (
-            error instanceof AdminClientError &&
-            (error.status === 401 || error.status === 403)
-          ) {
+
+          const authorizationFailure = failures.find(
+            ({ reason }) =>
+              reason instanceof AdminClientError &&
+              (reason.status === 401 || reason.status === 403)
+          );
+          if (authorizationFailure) {
             router.push('/admin/login');
             return;
           }
-          setBuildsCount(0);
-          setItemsCount(0);
-          setDataError(
-            error instanceof Error
-              ? error.message
-              : 'Unable to load admin dashboard data.'
-          );
+
+          setBuildsCount(builds);
+          setItemsCount(items);
+          if (failures.length > 0) {
+            setDataError(
+              failures
+                .map(({ resource, reason }) => {
+                  const label = resource === 'builds' ? 'Builds' : 'Items';
+                  const message =
+                    reason instanceof Error
+                      ? reason.message
+                      : `Unable to load ${resource}.`;
+                  return `${label}: ${message}`;
+                })
+                .join(' ')
+            );
+          }
+        })
+        .catch((error) => {
+          if (!cancelled) {
+            setBuildsCount(null);
+            setItemsCount(null);
+            setDataError(
+              error instanceof Error
+                ? error.message
+                : 'Unable to load admin dashboard data.'
+            );
+          }
         })
         .finally(() => {
           if (!cancelled) {
@@ -277,10 +301,10 @@ export default function AdminDashboard() {
                         {stat.title}
                       </p>
                       <p className="mt-1 text-3xl font-bold text-hx-parchment">
-                        {stat.value}
+                        {formatAdminDashboardCount(stat.value)}
                       </p>
                       <p className="mt-1 text-xs text-hx-gold/60">
-                        {stat.description}
+                        {stat.value === null ? 'Unavailable' : stat.description}
                       </p>
                     </div>
                     <div className={`rounded-sm ${stat.bgColor} p-3`}>

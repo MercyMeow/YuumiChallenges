@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const body = await readAdminJsonBody(request);
     const username = requireStringField(body, 'username', 'Missing username');
     const password = requireStringField(body, 'password', 'Missing password');
-    const result = await loginAdmin(username, password);
+    const result = await loginAdmin(request, username, password);
     const response = createNoStoreJsonResponse({
       user: result.user,
     });

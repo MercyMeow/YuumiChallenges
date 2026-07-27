@@ -5,6 +5,6 @@
 // map prevents Vitest declarations from being registered as Convex functions.
 export const modules = import.meta.glob([
   './**/*.{ts,js}',
-  '!./**/*.test.ts',
+  '!./**/*.{test,spec}.{ts,js}',
   '!./test.setup.ts',
 ]);

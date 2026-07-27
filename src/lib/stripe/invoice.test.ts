@@ -98,4 +98,69 @@ describe('resolvePaidSupporterInvoicePeriodEnd', () => {
       }
     );
   });
+
+  it.each([
+    ['missing', undefined],
+    ['non-boolean', 'false'],
+  ])(
+    'rejects an embedded invoice page with %s has_more',
+    async (_label, hasMore) => {
+      const fetchMock = vi.fn();
+      vi.stubGlobal('fetch', fetchMock);
+
+      await expect(
+        resolvePaidSupporterInvoicePeriodEnd(
+          'sk_test',
+          'in_malformed_embedded',
+          {
+            lines: {
+              data: [{ id: 'il_unrelated' }],
+              ...(hasMore !== undefined ? { has_more: hasMore } : {}),
+            },
+          },
+          SUPPORTER_SUMMARY
+        )
+      ).rejects.toThrow('malformed invoice line page');
+      expect(fetchMock).not.toHaveBeenCalled();
+    }
+  );
+
+  it('rejects an invoice with no embedded line list', async () => {
+    await expect(
+      resolvePaidSupporterInvoicePeriodEnd(
+        'sk_test',
+        'in_missing_lines',
+        {},
+        SUPPORTER_SUMMARY
+      )
+    ).rejects.toThrow('malformed invoice line page');
+  });
+
+  it('rejects a fetched invoice page with invalid has_more', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        json: async () => ({
+          data: [{ id: 'il_supporter' }],
+          has_more: null,
+        }),
+        ok: true,
+        status: 200,
+      })
+    );
+
+    await expect(
+      resolvePaidSupporterInvoicePeriodEnd(
+        'sk_test',
+        'in_malformed_page',
+        {
+          lines: {
+            data: [{ id: 'il_first' }],
+            has_more: true,
+          },
+        },
+        SUPPORTER_SUMMARY
+      )
+    ).rejects.toThrow('malformed invoice line page');
+  });
 });

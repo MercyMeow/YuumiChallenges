@@ -10,7 +10,17 @@ import {
   fetchAdminBuildsRequest,
   saveAdminBuildRequest,
 } from '@/lib/admin/client';
+import {
+  MAX_ADMIN_PRIORITY,
+  parseAdminIntegerInput,
+} from '@/lib/admin/integer-input';
+import { isAdminBuildIcon } from '@/lib/admin/build-icons';
+import { getSkillOrderValidationError } from '@/lib/admin/skill-order';
 import type { AdminBuild } from '@/lib/admin/types';
+import {
+  AdminStatusBanner,
+  type AdminStatusState,
+} from '@/components/admin/StatusBanner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,12 +37,10 @@ import {
   Pencil,
   Trash2,
   Layers,
-  AlertCircle,
   Sparkles,
   Package,
   Target,
   Star,
-  CheckCircle2,
   Loader2,
 } from 'lucide-react';
 import { Skeleton, PanelSkeleton } from '@/components/ui/skeleton';
@@ -50,11 +58,6 @@ import {
 
 type BuildId = string;
 type Build = AdminBuild;
-
-type StatusState = {
-  type: 'pending' | 'success' | 'error';
-  message: string;
-} | null;
 
 function cloneBuildItems(items: BuildItem[]): BuildItem[] {
   return items.map((item) => ({ ...item }));
@@ -86,12 +89,12 @@ function mapBuildToFormData(build: Build): BuildFormData {
     id: build.id,
     name: build.name,
     description: build.description,
-    icon: build.icon,
+    icon: isAdminBuildIcon(build.icon) ? build.icon : 'star',
     color: build.color,
     borderColor: build.borderColor,
     isRecommended: build.isRecommended,
     isActive: build.isActive,
-    priority: build.priority,
+    priority: String(build.priority),
     runes: {
       ...build.runes,
       primary: [...build.runes.primary],
@@ -122,7 +125,12 @@ function validateBuildFormData(formData: BuildFormData): string | null {
   if (!formData.borderColor.trim()) {
     return 'Build border color class is required.';
   }
-  if (!Number.isInteger(formData.priority) || formData.priority < 0) {
+  if (
+    parseAdminIntegerInput(formData.priority, {
+      minimum: 0,
+      maximum: MAX_ADMIN_PRIORITY,
+    }) === null
+  ) {
     return 'Build priority must be a non-negative integer.';
   }
   if (!formData.runes.name.trim()) return 'Rune page name is required.';
@@ -144,26 +152,11 @@ function validateBuildFormData(formData: BuildFormData): string | null {
   if (!formData.skillOrder.priority.trim()) {
     return 'Skill order priority is required.';
   }
-  if (formData.skillOrder.levels.length !== 18) {
-    return 'Skill order must have exactly 18 levels.';
-  }
-
-  const counts = { Q: 0, W: 0, E: 0, R: 0 };
-  for (const [index, rawLevel] of formData.skillOrder.levels.entries()) {
-    const level = rawLevel.trim().toUpperCase();
-    if (!['Q', 'W', 'E', 'R'].includes(level)) {
-      return `Skill level ${index + 1} must be Q, W, E, or R.`;
-    }
-    if (level === 'R' && ![5, 10, 15].includes(index)) {
-      return 'Ultimate can only be assigned at levels 6, 11, and 16.';
-    }
-    counts[level as keyof typeof counts] += 1;
-  }
-  if (counts.R !== 3) {
-    return 'Skill order must include exactly 3 ultimate levels.';
-  }
-  if (counts.Q > 5 || counts.W > 5 || counts.E > 5) {
-    return 'Q, W, and E can each be leveled at most 5 times.';
+  const skillOrderError = getSkillOrderValidationError(
+    formData.skillOrder.levels
+  );
+  if (skillOrderError) {
+    return skillOrderError;
   }
 
   for (const [category, items] of Object.entries(formData.items)) {
@@ -184,15 +177,23 @@ function validateBuildFormData(formData: BuildFormData): string | null {
 }
 
 function normalizeBuildPayload(formData: BuildFormData) {
+  const priority = parseAdminIntegerInput(formData.priority, {
+    minimum: 0,
+    maximum: MAX_ADMIN_PRIORITY,
+  });
+  if (priority === null) {
+    throw new Error('Build priority must be a valid integer.');
+  }
+
   return {
     name: formData.name.trim(),
     description: formData.description.trim(),
-    icon: formData.icon.trim(),
+    icon: formData.icon,
     color: formData.color.trim(),
     borderColor: formData.borderColor.trim(),
     isRecommended: formData.isRecommended,
     isActive: formData.isActive,
-    priority: formData.priority,
+    priority,
     runes: {
       name: formData.runes.name.trim(),
       primaryTree: formData.runes.primaryTree.trim(),
@@ -235,55 +236,6 @@ function normalizeBuildPayload(formData: BuildFormData) {
   };
 }
 
-function StatusBanner({ status }: { status: Exclude<StatusState, null> }) {
-  const styles =
-    status.type === 'error'
-      ? {
-          card: 'border-red-500/30 bg-red-500/10',
-          icon: 'text-red-300',
-          title: 'text-red-200',
-          body: 'text-red-200/80',
-          Icon: AlertCircle,
-          titleText: 'Action failed',
-        }
-      : status.type === 'success'
-        ? {
-            card: 'border-emerald-500/30 bg-emerald-500/10',
-            icon: 'text-emerald-300',
-            title: 'text-emerald-200',
-            body: 'text-emerald-200/80',
-            Icon: CheckCircle2,
-            titleText: 'Saved',
-          }
-        : {
-            card: 'border-hx-gold/30 bg-hx-gold/10',
-            icon: 'text-hx-gold-bright',
-            title: 'text-hx-gold-bright',
-            body: 'text-hx-gold/80',
-            Icon: Loader2,
-            titleText: 'Working',
-          };
-
-  return (
-    <Card className={`rounded-sm backdrop-blur-md ${styles.card}`}>
-      <CardContent
-        className="flex items-start gap-3 p-4"
-        role={status.type === 'error' ? 'alert' : 'status'}
-      >
-        <styles.Icon
-          className={`mt-0.5 h-5 w-5 shrink-0 ${styles.icon} ${
-            status.type === 'pending' ? 'animate-spin' : ''
-          }`}
-        />
-        <div>
-          <h4 className={`font-medium ${styles.title}`}>{styles.titleText}</h4>
-          <p className={`mt-1 text-sm ${styles.body}`}>{status.message}</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 export default function BuildsEditorPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -295,7 +247,7 @@ export default function BuildsEditorPage() {
     createInitialBuildFormData()
   );
   const [activeTab, setActiveTab] = useState('general');
-  const [status, setStatus] = useState<StatusState>(null);
+  const [status, setStatus] = useState<AdminStatusState>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<BuildId | null>(null);
@@ -572,7 +524,7 @@ export default function BuildsEditorPage() {
 
         {status && (
           <div className="mb-6">
-            <StatusBanner status={status} />
+            <AdminStatusBanner status={status} />
           </div>
         )}
 
@@ -703,7 +655,7 @@ export default function BuildsEditorPage() {
             <form onSubmit={handleSubmit}>
               {submitError && (
                 <div className="mb-4">
-                  <StatusBanner
+                  <AdminStatusBanner
                     status={{ type: 'error', message: submitError }}
                   />
                 </div>

@@ -1,27 +1,36 @@
-import { readFileSync } from 'node:fs';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { readFile } from 'fs/promises';
 import { NextRequest } from 'next/server';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RiotAPI, RiotApiError } from '@/lib/apis/riot';
 import { getMatchCache } from '@/lib/cache/match-cache';
 import { GET } from './route';
 
-vi.mock('fs/promises', async (importActual) => {
-  const actual = await importActual<typeof import('fs/promises')>();
-  return {
-    ...actual,
-    readFile: vi.fn(),
-  };
-});
+const exampleMatchData: Record<string, unknown> = {
+  metadata: {
+    dataVersion: '2',
+    matchId: 'EUW1_123456',
+    participants: [],
+  },
+  info: {
+    participants: [],
+    queueId: 420,
+    teams: [],
+  },
+};
 
-const exampleMatchData = JSON.parse(
-  readFileSync(path.join(process.cwd(), 'exampleMatchData.json'), 'utf8')
-) as Record<string, unknown>;
-
-const exampleTimelineData = JSON.parse(
-  readFileSync(path.join(process.cwd(), 'exampleTimelineData.json'), 'utf8')
-) as Record<string, unknown>;
+const exampleTimelineData: Record<string, unknown> = {
+  metadata: {
+    dataVersion: '2',
+    matchId: 'EUW1_123456',
+    participants: [],
+  },
+  info: {
+    frameInterval: 60000,
+    frames: [],
+  },
+};
 
 function createMatchFixture(matchId: string) {
   const matchData = structuredClone(exampleMatchData) as {
@@ -43,6 +52,21 @@ function createContext(matchId: string) {
   };
 }
 
+async function createExampleDataDirectory(matchId: string) {
+  const directory = await mkdtemp(path.join(tmpdir(), 'yuumi-match-test-'));
+  await Promise.all([
+    writeFile(
+      path.join(directory, 'exampleMatchData.json'),
+      JSON.stringify(createMatchFixture(matchId))
+    ),
+    writeFile(
+      path.join(directory, 'exampleTimelineData.json'),
+      JSON.stringify(exampleTimelineData)
+    ),
+  ]);
+  return directory;
+}
+
 describe('match details route', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -53,15 +77,13 @@ describe('match details route', () => {
     process.env.NEXT_PUBLIC_USE_EXAMPLE_DATA = 'false';
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('keeps example and live cache entries isolated for the same match id', async () => {
-    const readFileMock = vi.mocked(readFile);
-    readFileMock.mockImplementation(async (filePath) => {
-      const pathText = String(filePath);
-      if (pathText.endsWith('exampleTimelineData.json')) {
-        return JSON.stringify(exampleTimelineData);
-      }
-      return JSON.stringify(createMatchFixture('EUW1_123456'));
-    });
+    const fixtureDirectory = await createExampleDataDirectory('EUW1_123456');
+    const cwdSpy = vi.spyOn(process, 'cwd').mockReturnValue(fixtureDirectory);
 
     const detailsSpy = vi
       .spyOn(RiotAPI.prototype, 'getMatchDetails')
@@ -70,42 +92,53 @@ describe('match details route', () => {
       .spyOn(RiotAPI.prototype, 'getMatchTimeline')
       .mockResolvedValue(exampleTimelineData);
 
-    const exampleResponse = await GET(
-      createRequest(
-        'http://localhost/api/match-details/EUW1_123456?useExample=1'
-      ),
-      createContext('EUW1_123456')
-    );
-    const liveResponse = await GET(
-      createRequest('http://localhost/api/match-details/EUW1_123456'),
-      createContext('EUW1_123456')
-    );
-    const cachedExampleResponse = await GET(
-      createRequest(
-        'http://localhost/api/match-details/EUW1_123456?useExample=1'
-      ),
-      createContext('EUW1_123456')
-    );
-    const cachedLiveResponse = await GET(
-      createRequest('http://localhost/api/match-details/EUW1_123456'),
-      createContext('EUW1_123456')
-    );
+    try {
+      const exampleResponse = await GET(
+        createRequest(
+          'http://localhost/api/match-details/EUW1_123456?useExample=1'
+        ),
+        createContext('EUW1_123456')
+      );
+      const liveResponse = await GET(
+        createRequest('http://localhost/api/match-details/EUW1_123456'),
+        createContext('EUW1_123456')
+      );
+      const cachedExampleResponse = await GET(
+        createRequest(
+          'http://localhost/api/match-details/EUW1_123456?useExample=1'
+        ),
+        createContext('EUW1_123456')
+      );
+      const cachedLiveResponse = await GET(
+        createRequest('http://localhost/api/match-details/EUW1_123456'),
+        createContext('EUW1_123456')
+      );
 
-    const exampleBody = await exampleResponse.json();
-    const liveBody = await liveResponse.json();
-    const cachedExampleBody = await cachedExampleResponse.json();
-    const cachedLiveBody = await cachedLiveResponse.json();
+      const exampleBody = await exampleResponse.json();
+      const liveBody = await liveResponse.json();
+      const cachedExampleBody = await cachedExampleResponse.json();
+      const cachedLiveBody = await cachedLiveResponse.json();
 
-    expect(exampleBody.example).toBe(true);
-    expect(exampleBody.cached).toBe(false);
-    expect(liveBody.example).toBe(false);
-    expect(liveBody.cached).toBe(false);
-    expect(cachedExampleBody.cached).toBe(true);
-    expect(cachedLiveBody.cached).toBe(true);
+      expect(exampleBody).toMatchObject({
+        success: true,
+        example: true,
+        cached: false,
+      });
+      expect(liveBody).toMatchObject({
+        success: true,
+        example: false,
+        cached: false,
+      });
+      expect(cachedExampleBody.cached).toBe(true);
+      expect(cachedLiveBody.cached).toBe(true);
 
-    expect(detailsSpy).toHaveBeenCalledTimes(1);
-    expect(timelineSpy).toHaveBeenCalledTimes(1);
-    expect(getMatchCache().size()).toBe(2);
+      expect(detailsSpy).toHaveBeenCalledTimes(1);
+      expect(timelineSpy).toHaveBeenCalledTimes(1);
+      expect(getMatchCache().size()).toBe(2);
+    } finally {
+      cwdSpy.mockRestore();
+      await rm(fixtureDirectory, { recursive: true, force: true });
+    }
   });
 
   it('coalesces concurrent live misses and tolerates timeline fetch failure', async () => {
@@ -188,6 +221,7 @@ describe('match details route', () => {
   it('returns an explicit service error instead of silently using example data without a key', async () => {
     delete process.env.RIOT_API_KEY;
     const detailsSpy = vi.spyOn(RiotAPI.prototype, 'getMatchDetails');
+    const cwdSpy = vi.spyOn(process, 'cwd');
 
     const response = await GET(
       createRequest('http://localhost/api/match-details/EUW1_888888'),
@@ -201,6 +235,6 @@ describe('match details route', () => {
       code: 'MISSING_RIOT_API_KEY',
     });
     expect(detailsSpy).not.toHaveBeenCalled();
-    expect(readFile).not.toHaveBeenCalled();
+    expect(cwdSpy).not.toHaveBeenCalled();
   });
 });

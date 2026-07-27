@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import {
+  AdminApiError,
   createAdminErrorResponse,
   createNoStoreJsonResponse,
   enforceAdminOrigin,
@@ -16,10 +17,8 @@ export async function POST(request: NextRequest) {
       try {
         await logoutAdmin(token);
       } catch (error) {
-        // Local logout must still discard the browser credential if Convex is
-        // temporarily unavailable. The server-side session will expire on its
-        // normal TTL and cannot be read back from the httpOnly cookie.
         console.error('[admin] session revocation failed:', error);
+        throw new AdminApiError(502, 'Unable to revoke admin session');
       }
     }
     const response = createNoStoreJsonResponse({ ok: true });

@@ -11,6 +11,14 @@ function jsonResponse(body: unknown, status = 200): Response {
   } as Response;
 }
 
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}
+
 describe('AuthProvider', () => {
   afterEach(() => {
     cleanup();
@@ -53,4 +61,88 @@ describe('AuthProvider', () => {
       });
     }
   );
+
+  it('ignores an authorization failure from a request started before a newer login', async () => {
+    const originalUser = {
+      id: 'original-admin',
+      username: 'original',
+      role: 'admin' as const,
+    };
+    const newerUser = {
+      id: 'new-admin',
+      username: 'new-admin',
+      role: 'admin' as const,
+    };
+    const delayedBuildsResponse = deferred<Response>();
+    const fetchMock = vi.fn((input: RequestInfo) => {
+      if (input === '/api/admin/session') {
+        return Promise.resolve(jsonResponse({ user: originalUser }));
+      }
+      if (input === '/api/admin/builds') {
+        return delayedBuildsResponse.promise;
+      }
+      if (input === '/api/admin/login') {
+        return Promise.resolve(jsonResponse({ user: newerUser }));
+      }
+      throw new Error(`Unexpected request: ${String(input)}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: AuthProvider,
+    });
+
+    await waitFor(() => {
+      expect(result.current.user).toEqual(originalUser);
+    });
+
+    const buildsRequest = fetchAdminBuildsRequest();
+    await act(async () => {
+      await result.current.login('new-admin', 'password');
+    });
+
+    expect(result.current.user).toEqual(newerUser);
+
+    await act(async () => {
+      delayedBuildsResponse.resolve(
+        jsonResponse({ error: 'Old session expired' }, 401)
+      );
+      await expect(buildsRequest).rejects.toEqual(
+        expect.objectContaining<Partial<AdminClientError>>({ status: 401 })
+      );
+    });
+
+    expect(result.current.user).toEqual(newerUser);
+    expect(result.current.isAuthenticated).toBe(true);
+  });
+
+  it('rechecks the shared session when another tab may have changed it', async () => {
+    const user = {
+      id: 'admin-user',
+      username: 'admin',
+      role: 'admin' as const,
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ user }))
+      .mockResolvedValueOnce(jsonResponse({ user: null }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: AuthProvider,
+    });
+
+    await waitFor(() => {
+      expect(result.current.user).toEqual(user);
+    });
+
+    act(() => {
+      window.dispatchEvent(new Event('focus'));
+    });
+
+    await waitFor(() => {
+      expect(result.current.user).toBeNull();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+  });
 });

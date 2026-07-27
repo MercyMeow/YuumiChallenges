@@ -78,6 +78,17 @@ describe('useMatchData', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('treats whitespace-only input as a missing match ID', () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { result } = renderHook(() => useMatchData('   \t  '));
+
+    expect(result.current.loading).toBe(false);
+    expect(result.current.error).toBe('Match ID is required.');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('uses the example query flag and exposes derived team data on success', async () => {
     window.history.pushState({}, '', '/match/EUW1_123456?useExample=1');
     const fetchMock = vi.fn().mockResolvedValue({

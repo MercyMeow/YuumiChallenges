@@ -15,17 +15,21 @@ vi.mock('convex/browser', () => ({
 }));
 
 import { POST as login } from './login/route';
+import { POST as logout } from './logout/route';
 import { GET as readSession } from './session/route';
+import { GET as readItems } from './items/route';
 
 describe('admin API route contracts', () => {
   beforeEach(() => {
     convexMocks.mutation.mockReset();
     convexMocks.query.mockReset();
     vi.stubEnv('NEXT_PUBLIC_CONVEX_URL', 'https://convex.example');
+    vi.stubEnv('ADMIN_LOGIN_BRIDGE_SECRET', 'test-admin-login-bridge-secret');
   });
 
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.restoreAllMocks();
   });
 
   it('rejects a cross-origin login before contacting Convex', async () => {
@@ -67,6 +71,99 @@ describe('admin API route contracts', () => {
     expect(setCookie).not.toContain('Secure');
   });
 
+  it('does not mutate cookies when a cross-site session GET has no cookie', async () => {
+    const response = await readSession(
+      new NextRequest('https://yuumi.quest/api/admin/session', {
+        headers: { Origin: 'https://attacker.example' },
+      })
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ user: null });
+    expect(response.headers.get('set-cookie')).toBeNull();
+    expect(convexMocks.query).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when the admin-login bridge secret is missing', async () => {
+    vi.stubEnv('ADMIN_LOGIN_BRIDGE_SECRET', '');
+    const response = await login(
+      new NextRequest('https://yuumi.quest/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: 'https://yuumi.quest',
+          'cf-connecting-ip': '203.0.113.42',
+        },
+        body: JSON.stringify({
+          username: 'admin',
+          password: 'correct-horse',
+        }),
+      })
+    );
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toEqual({
+      error: 'Admin login unavailable',
+    });
+    expect(response.headers.get('set-cookie')).toBeNull();
+    expect(convexMocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it('keeps the admin cookie when server-side logout revocation fails', async () => {
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    convexMocks.mutation.mockRejectedValue(
+      new Error('Uncaught Error: Unauthorized')
+    );
+
+    const response = await logout(
+      new NextRequest('https://yuumi.quest/api/admin/logout', {
+        method: 'POST',
+        headers: {
+          Origin: 'https://yuumi.quest',
+          Cookie: 'yq_admin_session=session-token',
+        },
+      })
+    );
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({
+      error: 'Unable to revoke admin session',
+    });
+    expect(response.headers.get('set-cookie')).toBeNull();
+    expect(convexMocks.mutation).toHaveBeenCalledWith(expect.anything(), {
+      sessionToken: 'session-token',
+    });
+    expect(consoleError).toHaveBeenCalledOnce();
+  });
+
+  it('translates a late Convex authorization failure to 401', async () => {
+    convexMocks.query
+      .mockResolvedValueOnce({
+        user: { id: 'admin-id', username: 'admin', role: 'admin' },
+      })
+      .mockRejectedValueOnce(
+        new Error(
+          '[CONVEX Q(guide:getAllItems)] Server Error\n' +
+            'Uncaught Error: Unauthorized\n' +
+            '    at handler'
+        )
+      );
+
+    const response = await readItems(
+      new NextRequest('https://yuumi.quest/api/admin/items', {
+        headers: { Cookie: 'yq_admin_session=session-token' },
+      })
+    );
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({
+      error: 'Unauthorized',
+    });
+    expect(response.headers.get('set-cookie')).toContain('yq_admin_session=');
+  });
+
   it.each([
     ['http://localhost', false],
     ['https://yuumi.quest', true],
@@ -85,6 +182,7 @@ describe('admin API route contracts', () => {
           headers: {
             'Content-Type': 'application/json',
             Origin: origin,
+            'cf-connecting-ip': '203.0.113.42',
           },
           body: JSON.stringify({
             username: 'admin',
@@ -99,6 +197,15 @@ describe('admin API route contracts', () => {
       expect(setCookie).toContain('HttpOnly');
       expect(setCookie).toContain('SameSite=strict');
       expect(setCookie.includes('Secure')).toBe(secure);
+      expect(convexMocks.mutation).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          secret: 'test-admin-login-bridge-secret',
+          sourceId: expect.stringMatching(/^[0-9a-f]{64}$/),
+          username: 'admin',
+          password: 'correct-horse',
+        })
+      );
     }
   );
 });

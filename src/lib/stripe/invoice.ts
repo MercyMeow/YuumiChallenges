@@ -13,15 +13,22 @@ function readString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;
 }
 
-function readStripeListData(value: unknown): Record<string, unknown>[] {
-  if (!isRecord(value) || !Array.isArray(value.data)) {
+function readStripeListPage(value: unknown): {
+  data: Record<string, unknown>[];
+  hasMore: boolean;
+} {
+  if (
+    !isRecord(value) ||
+    !Array.isArray(value.data) ||
+    typeof value.has_more !== 'boolean'
+  ) {
     throw new Error('Stripe returned a malformed invoice line page');
   }
   const records = value.data.filter(isRecord);
   if (records.length !== value.data.length) {
     throw new Error('Stripe returned a malformed invoice line item');
   }
-  return records;
+  return { data: records, hasMore: value.has_more };
 }
 
 async function readAllStripeInvoiceLines(
@@ -29,9 +36,12 @@ async function readAllStripeInvoiceLines(
   invoiceId: string,
   invoice: Record<string, unknown>
 ): Promise<Record<string, unknown>[]> {
-  const embeddedPage = isRecord(invoice.lines) ? invoice.lines : null;
-  const lines = embeddedPage ? readStripeListData(embeddedPage) : [];
-  let hasMore = embeddedPage?.has_more === true;
+  if (!isRecord(invoice.lines)) {
+    throw new Error('Stripe returned a malformed invoice line page');
+  }
+  const firstPage = readStripeListPage(invoice.lines);
+  const lines = firstPage.data;
+  let hasMore = firstPage.hasMore;
   let cursor = readString(lines.at(-1)?.id);
   let pageCount = 0;
 
@@ -57,13 +67,13 @@ async function readAllStripeInvoiceLines(
     }
 
     const page = await response.json();
-    const pageLines = readStripeListData(page);
-    if (pageLines.length === 0 && isRecord(page) && page.has_more === true) {
+    const nextPage = readStripeListPage(page);
+    if (nextPage.data.length === 0 && nextPage.hasMore) {
       throw new Error(`Stripe invoice ${invoiceId} pagination did not advance`);
     }
 
-    lines.push(...pageLines);
-    hasMore = isRecord(page) && page.has_more === true;
+    lines.push(...nextPage.data);
+    hasMore = nextPage.hasMore;
     cursor = readString(lines.at(-1)?.id);
     pageCount += 1;
   }

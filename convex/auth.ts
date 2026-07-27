@@ -8,14 +8,18 @@ const PASSWORD_HASH_VERSION = 'pbkdf2_sha256';
 const PBKDF2_ITERATIONS = 310000;
 const PBKDF2_SALT_BYTES = 16;
 const PBKDF2_KEY_BYTES = 32;
-const MAX_FAILED_LOGIN_ATTEMPTS = 5;
+const MAX_SOURCE_LOGIN_ATTEMPTS = 5;
 const FAILED_LOGIN_WINDOW_MS = 15 * 60 * 1000;
-const LOGIN_LOCKOUT_MS = 15 * 60 * 1000;
+const SOURCE_LOGIN_BLOCK_MS = 15 * 60 * 1000;
+const LOGIN_ATTEMPT_RETENTION_MS =
+  FAILED_LOGIN_WINDOW_MS + SOURCE_LOGIN_BLOCK_MS;
+const LOGIN_ATTEMPT_PRUNE_BATCH_SIZE = 20;
 const USERNAME_MIN_LENGTH = 3;
 const USERNAME_MAX_LENGTH = 32;
 const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_MAX_LENGTH = 128;
 const USERNAME_PATTERN = /^[A-Za-z0-9._-]+$/;
+const LOGIN_SOURCE_ID_PATTERN = /^[0-9a-f]{64}$/;
 const DUMMY_PASSWORD_HASH =
   'pbkdf2_sha256$310000$000102030405060708090a0b0c0d0e0f$' +
   '000102030405060708090a0b0c0d0e0f' +
@@ -219,11 +223,46 @@ async function verifyPassword(
   const legacyHash = textEncoder.encode(simpleHash(password));
   const storedHash = textEncoder.encode(passwordHash);
   const valid = timingSafeEqual(legacyHash, storedHash);
+  if (!valid) {
+    await burnInvalidPasswordAttempt(password);
+  }
   return { valid, needsUpgrade: valid };
 }
 
 async function burnInvalidPasswordAttempt(password: string): Promise<void> {
-  await verifyPassword(password, DUMMY_PASSWORD_HASH);
+  const dummyHash = parsePasswordHash(DUMMY_PASSWORD_HASH);
+  if (!dummyHash) {
+    throw new Error('Invalid dummy password hash');
+  }
+  await derivePasswordHash(password, dummyHash.salt, dummyHash.iterations);
+}
+
+async function requireAdminLoginBridgeSecret(secret: string): Promise<void> {
+  const expected = process.env.ADMIN_LOGIN_BRIDGE_SECRET;
+  if (!expected) {
+    throw new Error('Unauthorized bridge call');
+  }
+
+  const [actualDigest, expectedDigest] = await Promise.all([
+    crypto.subtle.digest('SHA-256', textEncoder.encode(secret)),
+    crypto.subtle.digest('SHA-256', textEncoder.encode(expected)),
+  ]);
+  if (
+    !timingSafeEqual(
+      new Uint8Array(actualDigest),
+      new Uint8Array(expectedDigest)
+    )
+  ) {
+    throw new Error('Unauthorized bridge call');
+  }
+}
+
+function validateLoginSourceId(sourceId: string): string {
+  const normalized = sourceId.toLowerCase();
+  if (!LOGIN_SOURCE_ID_PATTERN.test(normalized)) {
+    throw new Error('Unauthorized bridge call');
+  }
+  return normalized;
 }
 
 async function patchUser(
@@ -266,22 +305,67 @@ async function deleteSessionsForUser(
   }
 }
 
-function buildFailedLoginPatch(user: AuthUser, now: number): UserPatch {
-  const withinWindow =
-    user.lastFailedLoginAt !== undefined &&
-    now - user.lastFailedLoginAt <= FAILED_LOGIN_WINDOW_MS;
-  const failedLoginAttempts = withinWindow
-    ? (user.failedLoginAttempts ?? 0) + 1
-    : 1;
+function buildLoginAttemptKey(sourceId: string, username: string): string {
+  return `${sourceId}:${username.toLowerCase()}`;
+}
 
-  return {
-    failedLoginAttempts,
-    lastFailedLoginAt: now,
-    lockoutUntil:
-      failedLoginAttempts >= MAX_FAILED_LOGIN_ATTEMPTS
-        ? now + LOGIN_LOCKOUT_MS
-        : undefined,
+async function pruneExpiredLoginAttempts(
+  ctx: MutationCtx,
+  now: number
+): Promise<void> {
+  const expiredAttempts = await ctx.db
+    .query('adminLoginAttempts')
+    .withIndex('by_updatedAt', (q) =>
+      q.lt('updatedAt', now - LOGIN_ATTEMPT_RETENTION_MS)
+    )
+    .take(LOGIN_ATTEMPT_PRUNE_BATCH_SIZE);
+  for (const attempt of expiredAttempts) {
+    await ctx.db.delete(attempt._id);
+  }
+}
+
+async function readLoginAttempt(
+  ctx: MutationCtx,
+  attemptKey: string
+): Promise<Doc<'adminLoginAttempts'> | null> {
+  return await ctx.db
+    .query('adminLoginAttempts')
+    .withIndex('by_attemptKey', (q) => q.eq('attemptKey', attemptKey))
+    .unique();
+}
+
+async function recordFailedLoginAttempt(
+  ctx: MutationCtx,
+  attemptKey: string,
+  previousAttempt: Doc<'adminLoginAttempts'> | null,
+  now: number
+): Promise<void> {
+  const withinWindow =
+    previousAttempt !== null &&
+    now - previousAttempt.windowStartedAt <= FAILED_LOGIN_WINDOW_MS;
+  const failedAttempts = withinWindow ? previousAttempt.failedAttempts + 1 : 1;
+  const blockedUntil =
+    failedAttempts >= MAX_SOURCE_LOGIN_ATTEMPTS
+      ? now + SOURCE_LOGIN_BLOCK_MS
+      : undefined;
+  const values = {
+    failedAttempts,
+    windowStartedAt: withinWindow ? previousAttempt.windowStartedAt : now,
+    blockedUntil,
+    updatedAt: now,
   };
+
+  if (previousAttempt) {
+    await ctx.db.patch(previousAttempt._id, values);
+  } else {
+    await ctx.db.insert('adminLoginAttempts', {
+      attemptKey,
+      failedAttempts: values.failedAttempts,
+      windowStartedAt: values.windowStartedAt,
+      updatedAt: values.updatedAt,
+      ...(blockedUntil === undefined ? {} : { blockedUntil }),
+    });
+  }
 }
 
 async function requireUserSession(
@@ -389,16 +473,28 @@ export const createUser = mutation({
 
 export const login = mutation({
   args: {
+    secret: v.string(),
+    sourceId: v.string(),
     username: v.string(),
     password: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdminLoginBridgeSecret(args.secret);
+    const sourceId = validateLoginSourceId(args.sourceId);
     const username = validateUsernameForLogin(args.username);
     const password = validatePasswordForLogin(args.password);
     if (!username || !password) {
       return { ok: false as const };
     }
     const now = Date.now();
+    await pruneExpiredLoginAttempts(ctx, now);
+    const attemptKey = buildLoginAttemptKey(sourceId, username);
+    const previousAttempt = await readLoginAttempt(ctx, attemptKey);
+    if ((previousAttempt?.blockedUntil ?? 0) > now) {
+      await burnInvalidPasswordAttempt(password);
+      return { ok: false as const };
+    }
+
     const userDoc = await ctx.db
       .query('users')
       .withIndex('by_username', (q) => q.eq('username', username))
@@ -406,24 +502,20 @@ export const login = mutation({
 
     if (!userDoc) {
       await burnInvalidPasswordAttempt(password);
+      await recordFailedLoginAttempt(ctx, attemptKey, previousAttempt, now);
       return { ok: false as const };
     }
 
     const user = userDoc;
-    if ((user.lockoutUntil ?? 0) > now) {
-      await burnInvalidPasswordAttempt(password);
-      return { ok: false as const };
-    }
-
     const passwordCheck = await verifyPassword(password, user.passwordHash);
     if (!passwordCheck.valid) {
-      const failedPatch = buildFailedLoginPatch(user, now);
-      await patchUser(ctx, user._id, failedPatch);
-      // Convex rolls back every database write when a mutation throws. Return
-      // a generic failure instead so the lockout counters are committed.
+      await recordFailedLoginAttempt(ctx, attemptKey, previousAttempt, now);
       return { ok: false as const };
     }
 
+    if (previousAttempt) {
+      await ctx.db.delete(previousAttempt._id);
+    }
     await cleanupExpiredSessionsForUser(ctx, user._id, now);
 
     const successPatch: UserPatch = {

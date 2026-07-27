@@ -10,7 +10,15 @@ import {
   fetchAdminItemsRequest,
   saveAdminItemRequest,
 } from '@/lib/admin/client';
+import {
+  MAX_ADMIN_PRIORITY,
+  parseAdminIntegerInput,
+} from '@/lib/admin/integer-input';
 import type { AdminItem, AdminItemCategory } from '@/lib/admin/types';
+import {
+  AdminStatusBanner,
+  type AdminStatusState,
+} from '@/components/admin/StatusBanner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,8 +46,6 @@ import {
   Pencil,
   Trash2,
   Package,
-  AlertCircle,
-  CheckCircle2,
   Loader2,
 } from 'lucide-react';
 import { Skeleton, PanelSkeleton } from '@/components/ui/skeleton';
@@ -50,24 +56,19 @@ type GuideItemId = string;
 interface ItemFormData {
   id?: GuideItemId;
   name: string;
-  itemId: number;
+  itemId: string;
   category: ItemCategory;
   reason: string;
-  priority: number;
+  priority: string;
   isActive: boolean;
 }
 
-type StatusState = {
-  type: 'pending' | 'success' | 'error';
-  message: string;
-} | null;
-
 const initialFormData: ItemFormData = {
   name: '',
-  itemId: 0,
+  itemId: '',
   category: 'core',
   reason: '',
-  priority: 0,
+  priority: '0',
   isActive: true,
 };
 
@@ -95,74 +96,43 @@ function getErrorMessage(error: unknown, fallback: string): string {
 
 function validateItemFormData(formData: ItemFormData): string | null {
   if (!formData.name.trim()) return 'Item name is required.';
-  if (!Number.isInteger(formData.itemId) || formData.itemId <= 0) {
+  if (
+    parseAdminIntegerInput(formData.itemId, {
+      minimum: 1,
+    }) === null
+  ) {
     return 'Item ID must be a positive integer.';
   }
   if (!formData.reason.trim()) return 'Item reason is required.';
-  if (!Number.isInteger(formData.priority) || formData.priority < 0) {
+  if (
+    parseAdminIntegerInput(formData.priority, {
+      minimum: 0,
+      maximum: MAX_ADMIN_PRIORITY,
+    }) === null
+  ) {
     return 'Item priority must be a non-negative integer.';
   }
   return null;
 }
 
 function normalizeItemPayload(formData: ItemFormData) {
+  const itemId = parseAdminIntegerInput(formData.itemId, { minimum: 1 });
+  const priority = parseAdminIntegerInput(formData.priority, {
+    minimum: 0,
+    maximum: MAX_ADMIN_PRIORITY,
+  });
+  if (itemId === null || priority === null) {
+    throw new Error('Item numeric fields must be valid integers.');
+  }
+
   return {
     name: formData.name.trim(),
-    itemId: formData.itemId,
+    itemId,
     category: formData.category,
     reason: formData.reason.trim(),
-    priority: formData.priority,
+    priority,
     isActive: formData.isActive,
   };
-}
-
-function StatusBanner({ status }: { status: Exclude<StatusState, null> }) {
-  const styles =
-    status.type === 'error'
-      ? {
-          card: 'border-red-500/30 bg-red-500/10',
-          icon: 'text-red-300',
-          title: 'text-red-200',
-          body: 'text-red-200/80',
-          Icon: AlertCircle,
-          titleText: 'Action failed',
-        }
-      : status.type === 'success'
-        ? {
-            card: 'border-emerald-500/30 bg-emerald-500/10',
-            icon: 'text-emerald-300',
-            title: 'text-emerald-200',
-            body: 'text-emerald-200/80',
-            Icon: CheckCircle2,
-            titleText: 'Saved',
-          }
-        : {
-            card: 'border-hx-gold/30 bg-hx-gold/10',
-            icon: 'text-hx-gold-bright',
-            title: 'text-hx-gold-bright',
-            body: 'text-hx-gold/80',
-            Icon: Loader2,
-            titleText: 'Working',
-          };
-
-  return (
-    <Card className={`rounded-sm backdrop-blur-md ${styles.card}`}>
-      <CardContent
-        className="flex items-start gap-3 p-4"
-        role={status.type === 'error' ? 'alert' : 'status'}
-      >
-        <styles.Icon
-          className={`mt-0.5 h-5 w-5 shrink-0 ${styles.icon} ${
-            status.type === 'pending' ? 'animate-spin' : ''
-          }`}
-        />
-        <div>
-          <h4 className={`font-medium ${styles.title}`}>{styles.titleText}</h4>
-          <p className={`mt-1 text-sm ${styles.body}`}>{status.message}</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
 }
 
 export default function ItemsEditorPage() {
@@ -175,7 +145,7 @@ export default function ItemsEditorPage() {
   const [formData, setFormData] = useState<ItemFormData>(
     createInitialFormData()
   );
-  const [status, setStatus] = useState<StatusState>(null);
+  const [status, setStatus] = useState<AdminStatusState>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<GuideItemId | null>(null);
@@ -370,10 +340,10 @@ export default function ItemsEditorPage() {
     setFormData({
       id: item.id,
       name: item.name,
-      itemId: item.itemId,
+      itemId: String(item.itemId),
       category: item.category,
       reason: item.reason,
-      priority: item.priority,
+      priority: String(item.priority),
       isActive: item.isActive,
     });
     setIsDialogOpen(true);
@@ -493,7 +463,7 @@ export default function ItemsEditorPage() {
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 {submitError && (
-                  <StatusBanner
+                  <AdminStatusBanner
                     status={{ type: 'error', message: submitError }}
                   />
                 )}
@@ -522,9 +492,11 @@ export default function ItemsEditorPage() {
                         onChange={(event) =>
                           setFormData({
                             ...formData,
-                            itemId: parseInt(event.target.value, 10) || 0,
+                            itemId: event.target.value,
                           })
                         }
+                        min="1"
+                        step="1"
                         className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                         required
                       />
@@ -563,9 +535,12 @@ export default function ItemsEditorPage() {
                         onChange={(event) =>
                           setFormData({
                             ...formData,
-                            priority: parseInt(event.target.value, 10) || 0,
+                            priority: event.target.value,
                           })
                         }
+                        min="0"
+                        max={MAX_ADMIN_PRIORITY}
+                        step="1"
                         className="rounded-sm border-hx-gold-dark/60 bg-hx-black/60 text-hx-parchment placeholder:text-hx-gold/40"
                       />
                     </div>
@@ -626,7 +601,7 @@ export default function ItemsEditorPage() {
 
         {status && (
           <div className="mb-6">
-            <StatusBanner status={status} />
+            <AdminStatusBanner status={status} />
           </div>
         )}
 

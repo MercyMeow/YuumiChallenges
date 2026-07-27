@@ -168,6 +168,10 @@ export async function POST(request: NextRequest) {
     eventAt !== undefined
       ? eventAt + SUB_WINDOW_MS
       : Date.now() + SUB_WINDOW_MS;
+  const subscriptionEndAt =
+    event.type === 'customer.subscription.deleted'
+      ? getCancellationEnd(object)
+      : undefined;
 
   const convex = new ConvexHttpClient(convexUrl);
   const eventLease = await convex.mutation(
@@ -180,6 +184,7 @@ export async function POST(request: NextRequest) {
       ...(eventAt !== undefined ? { stripeCreatedAt: eventAt } : {}),
       ...(customer !== undefined ? { customerId: customer } : {}),
       ...(objectId !== undefined ? { objectId } : {}),
+      ...(subscriptionEndAt !== undefined ? { subscriptionEndAt } : {}),
     }
   );
   if (!eventLease.shouldProcess) {
@@ -190,7 +195,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'missing lease token' }, { status: 500 });
   }
   const apply = (args: {
-    userId?: string;
     stripeCustomerId?: string;
     stripeSubscriptionId?: string;
     subscribedUntil: number;
@@ -201,10 +205,6 @@ export async function POST(request: NextRequest) {
     convex.mutation(api.webauth.applySubscription, {
       secret: bridgeSecret,
       ...(eventAt !== undefined ? { eventAt } : {}),
-      ...(args.userId !== undefined
-        ? // Convex ids serialize as strings; the mutation validates.
-          { userId: args.userId as never }
-        : {}),
       ...(args.stripeCustomerId !== undefined
         ? { stripeCustomerId: args.stripeCustomerId }
         : {}),
@@ -259,25 +259,21 @@ export async function POST(request: NextRequest) {
               stripeSessionId: objectId,
               status: 'completed',
               stripeSubscriptionId: subscriptionSummary.subscriptionId,
+              subscribedUntil:
+                subscriptionSummary.currentPeriodEnd ?? fallbackExtendUntil,
+              ...(authoritativeCustomer !== undefined
+                ? { stripeCustomerId: authoritativeCustomer }
+                : {}),
+              ...(eventAt !== undefined ? { eventAt } : {}),
               now: Date.now(),
             }
           );
-          if (!settled.applied || !settled.userId) {
+          if (
+            !settled.applied &&
+            settled.reason !== 'superseded' &&
+            settled.reason !== 'stale'
+          ) {
             throw new Error('Checkout completed for an unknown local session');
-          }
-          const subscribedUntil =
-            subscriptionSummary?.currentPeriodEnd ?? fallbackExtendUntil;
-          const result = await apply({
-            userId: settled.userId,
-            subscribedUntil,
-            mode: 'extend',
-            ...(authoritativeCustomer !== undefined
-              ? { setCustomerId: authoritativeCustomer }
-              : {}),
-            setSubscriptionId: subscriptionSummary.subscriptionId,
-          });
-          if (!result.applied && result.reason !== 'stale') {
-            throw new Error('Checkout completed without a local user target');
           }
         }
         break;
