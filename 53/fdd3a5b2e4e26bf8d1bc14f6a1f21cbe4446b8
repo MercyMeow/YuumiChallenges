@@ -1,0 +1,51 @@
+convex/seed.ts
+  s_d86e1a894323f2::t_c5b07742ca8921 116
+src/providers/ConvexProvider.tsx
+  s_d86e1a894323f2::t_c31beb43de7820 7,19-20
+CLAUDE.md
+  s_d86e1a894323f2::t_e327ddf2a127ad 30
+  s_d86e1a894323f2::t_c5b07742ca8921 225,262,266
+convex/webauth.ts
+  s_d86e1a894323f2::t_c5b07742ca8921 14-18,42
+convex/schema.ts
+  s_d86e1a894323f2::t_c5b07742ca8921 5,14,24-25
+convex/guide.ts
+  s_d86e1a894323f2::t_9a1cdd4cd379bb 2,64
+  s_d86e1a894323f2::t_c31beb43de7820 148-150
+README.md
+  s_83f7724fa537cf::t_00d7c6e483c079 130,132
+src/app/guide-client.tsx
+  s_d86e1a894323f2::t_bf37ef84d196fc 51
+src/components/shell/SiteShell.tsx
+  s_d86e1a894323f2::t_a73a931a12f775 5
+src/components/shell/TopNav.tsx
+  s_d86e1a894323f2::t_e507fb2126192d 6
+src/lib/builds/guide-builds.ts
+  s_d86e1a894323f2::t_9acff2a24901fb 1-4
+src/providers/ClientProviders.tsx
+  s_d86e1a894323f2::t_6fc49de0725d2f 10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "53fdd3a5b2e4e26bf8d1bc14f6a1f21cbe4446b8",
+  "prompts": {},
+  "sessions": {
+    "s_83f7724fa537cf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb28c-016b-76e1-8be4-750dd6a54aa8",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    },
+    "s_d86e1a894323f2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb288-24f7-7483-96ed-c7a2dd81e9cd",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
