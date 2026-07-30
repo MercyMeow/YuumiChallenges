@@ -2,7 +2,7 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
 export default defineSchema({
-  // Admin users for authentication
+  // Legacy admin-auth records retained until production data is migrated.
   users: defineTable({
     username: v.string(),
     passwordHash: v.string(),
@@ -11,7 +11,7 @@ export default defineSchema({
     lastLogin: v.optional(v.number()),
   }).index('by_username', ['username']),
 
-  // Sessions for auth
+  // Legacy admin sessions retained for schema compatibility during removal.
   sessions: defineTable({
     userId: v.id('users'),
     token: v.string(),
@@ -21,8 +21,8 @@ export default defineSchema({
     .index('by_token', ['token'])
     .index('by_userId', ['userId']),
 
-  // Site visitors signed in via Discord OAuth (distinct from admin
-  // `users`). Subscription state is stamped by the Stripe webhook route;
+  // Site visitors signed in via Discord OAuth. Subscription state is stamped
+  // by the Stripe webhook route;
   // linkedPuuid is set only after icon-based Riot account verification.
   webUsers: defineTable({
     discordId: v.string(),

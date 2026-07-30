@@ -113,7 +113,7 @@ export const seedAll = internalMutation({
       parseAutoBuild(autoMeta?.value)
     );
 
-    // ---- wipe seeded tables (leave users/sessions/scrape data/metadata) ----
+    // ---- wipe seeded tables (leave legacy auth/scrape data/metadata) ----
     const tables = [
       'guideBuilds',
       'guideItems',

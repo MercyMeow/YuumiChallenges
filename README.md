@@ -127,12 +127,11 @@ _site-wide banner_
 </td>
 <td width="50%" valign="top">
 
-### 🖼️ Rule Gallery &nbsp;·&nbsp; 🛠️ Admin
+### 🖼️ Rule Gallery
 
-`/gallery` &nbsp;·&nbsp; `/admin`
+`/gallery`
 
 - Discord-shareable rule GIFs with rich embeds
-- Auth-gated management for builds, items, and text sections
 
 </td>
 </tr>
@@ -150,7 +149,6 @@ flowchart LR
     Feed["High-Elo Games"]
     Ladder["Ladder & Profiles"]
     Stats["Meta Report"]
-    Admin["Admin Panel"]
   end
   subgraph Edge["API Routes"]
     MatchAPI["/api/match-details"]
@@ -172,7 +170,6 @@ flowchart LR
   Ladder --> DB
   Feed --> DB
   Stats --> DB
-  Admin --> DB
   Ladder --> AccountAPI --> DB
   Guide --> DDragon
   Feed --> DDragon
@@ -252,7 +249,6 @@ YuumiChallenges/
 │   │   ├── stats/           # Meta Report — winrates, synergies, builds & runes
 │   │   ├── match/           # match viewer
 │   │   ├── gallery/         # rule GIF gallery
-│   │   ├── admin/           # auth-gated content management
 │   │   └── rule[id].gif/    # Discord-embeddable rule routes
 │   ├── components/
 │   │   ├── guide/           # ability guide, matchup scrolls, rail panels

@@ -11,11 +11,11 @@ import type { Doc } from './_generated/dataModel';
 
 // ============ DISCORD WEB AUTH, ACCOUNT LINKING & SUPPORTER SUBS ============
 //
-// Site-visitor accounts (Discord OAuth), separate from the admin `users`
-// table. The Next.js routes under src/app/api/auth|stripe are the only
-// callers of the bridge mutations; they authenticate with a shared secret
-// (AUTH_BRIDGE_SECRET, set in BOTH the Next and Convex environments)
-// because the Convex HTTP client cannot call internal functions.
+// Site-visitor accounts (Discord OAuth). The Next.js routes under
+// src/app/api/auth|stripe are the only callers of the bridge mutations; they
+// authenticate with a shared secret (AUTH_BRIDGE_SECRET, set in BOTH the Next
+// and Convex environments) because the Convex HTTP client cannot call internal
+// functions.
 //
 // Riot account linking is icon-verified: we challenge the user to switch
 // their summoner icon to a starter icon (ids 0-29 — owned by every
@@ -39,7 +39,7 @@ function requireBridgeSecret(secret: string): void {
 }
 
 function randomToken(): string {
-  // 128 bits, hex — matches the admin-auth session token strength.
+  // 128 bits, hex.
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
   return [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');

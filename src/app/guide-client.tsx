@@ -48,7 +48,7 @@ const BUILD_ICONS: Record<string, ReactNode> = {
   zap: <Zap className="h-5 w-5" />,
 };
 
-// Static fallback builds; Convex guideBuilds (seeded + admin-curated)
+// Static fallback builds; Convex guideBuilds (seeded)
 // replaces these when reachable.
 const BUILDS: Build[] = DEFAULT_BUILDS;
 

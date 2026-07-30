@@ -4,9 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   BarChart3,
-  BookOpen,
   Crown,
-  Flame,
   Home,
   ImageIcon,
   Layers,
@@ -31,10 +29,8 @@ const RESOURCE_LINKS = [
   { label: 'High Elo Games', href: '/games', icon: Trophy },
   { label: 'Yuumi Players', href: '/players', icon: Crown },
   { label: 'Meta Stats', href: '/stats', icon: BarChart3 },
-  { label: 'Mayhem Augments', href: '/mayhem', icon: Flame },
   { label: 'Match Viewer', href: '/match', icon: Swords },
   { label: 'Rule Gallery', href: '/gallery', icon: ImageIcon },
-  { label: 'Guide Admin', href: '/admin', icon: BookOpen },
 ] as const;
 
 /** Left rail: Yuumi medallion, engraved nav groups, live patch crystal. */
