@@ -15,7 +15,6 @@ This document provides comprehensive guidance for AI assistants working on this 
 - **Self-derived Build** - The homepage build is recomputed daily from our own Master+ ladder aggregate (`convex/autobuild.ts`); the OP.GG scraper remains a manual fallback
 - **Accounts & Supporter** - Discord OAuth sign-in, icon-verified Riot account linking, and a 1€/month Stripe supporter subscription (`convex/webauth.ts`)
 - **Rule Gallery** - Discord-shareable rule GIFs at `/gallery`
-- **Admin Panel** - Authenticated content management for guide data at `/admin`
 - **Data Scraper** - Tools to import data from external sources (U.GG, OP.GG, etc.)
 
 ## Tech Stack
@@ -28,7 +27,7 @@ This document provides comprehensive guidance for AI assistants working on this 
 | Styling | Tailwind CSS 4.x (CSS-first config in `globals.css` via `@theme`) + tailwindcss-animate |
 | UI Components | Radix UI primitives + custom components |
 | Forms | React Hook Form + Zod validation |
-| State | React Context (Auth, Theme) + Convex queries |
+| State | React Context (Theme) + Convex queries |
 | Runtime | Node.js 20.9+ |
 
 ## Directory Structure
@@ -38,11 +37,6 @@ YuumiChallenges/
 ├── src/
 │   ├── app/                    # Next.js App Router
 │   │   ├── api/               # API routes (match-details, account, auth, stripe, data-dragon)
-│   │   ├── admin/             # Admin panel routes
-│   │   │   ├── builds/        # Unified builds management
-│   │   │   ├── items/         # Item configuration
-│   │   │   ├── login/         # Admin authentication
-│   │   │   └── scraper/       # Data import tools
 │   │   ├── gallery/           # Rule GIF gallery
 │   │   ├── games/             # High-elo Yuumi game feed
 │   │   ├── players/           # Yuumi ladder + player profiles
@@ -57,7 +51,6 @@ YuumiChallenges/
 │   │   ├── shell/             # App shell (SiteShell, TopNav, SideRail, PawEmblem)
 │   │   └── ui/                # Reusable UI primitives (shadcn-style + hextech-panel)
 │   ├── contexts/              # React Context providers
-│   │   ├── AuthContext.tsx    # Admin authentication state
 │   │   └── theme-context.tsx  # Theme management
 │   ├── lib/
 │   │   ├── api/               # API utilities and helpers
@@ -75,10 +68,9 @@ YuumiChallenges/
 ├── convex/                    # Convex backend
 │   ├── _generated/            # Auto-generated Convex types
 │   ├── schema.ts              # Database schema definitions
-│   ├── auth.ts                # Admin authentication functions
 │   ├── autobuild.ts           # Daily homepage build derived from own ladder data
 │   ├── crons.ts               # Cron schedule (build derive, polling, meta stats)
-│   ├── guide.ts               # Guide CRUD operations
+│   ├── guide.ts               # Public guide read queries
 │   ├── highelo.ts             # High-elo feed (Riot polling, roster, backfill)
 │   ├── meta.ts                # Ladder meta stats + daily snapshots (DB-only crons)
 │   ├── webauth.ts             # Web accounts (Discord auth, Riot linking, Stripe)
@@ -227,26 +219,13 @@ export const getBuilds = query({
 });
 ```
 
-**Mutations** (write data with auth):
-```typescript
-export const upsertBuild = mutation({
-  args: { sessionToken: v.string(), /* ...data */ },
-  handler: async (ctx, args) => {
-    const userId = await verifyAuth(ctx, args.sessionToken);
-    if (!userId) throw new Error('Unauthorized');
-    // ... perform mutation
-  },
-});
-```
-
 **Using in React**:
 ```tsx
-import { useQuery, useMutation } from 'convex/react';
+import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 
 function Component() {
   const builds = useQuery(api.guide.getBuilds);
-  const upsertBuild = useMutation(api.guide.upsertBuild);
 }
 ```
 
@@ -279,11 +258,11 @@ npx convex run scraper:autoUpdateBuild     # OP.GG fallback if no ladder data ye
 |------|---------|
 | `src/app/page.tsx` | Main Yuumi guide (hero, builds, matchups, right rail) |
 | `src/app/layout.tsx` | Root layout, metadata, providers, SiteShell |
-| `src/components/shell/SiteShell.tsx` | LoL-client chrome (TopNav + SideRail; admin renders bare) |
+| `src/components/shell/SiteShell.tsx` | LoL-client chrome (TopNav + SideRail) |
 | `src/components/ui/hextech-panel.tsx` | Ornate panel + OrnateHeading primitives |
 | `src/lib/builds/default-builds.ts` | Static builds — fallback + seed source of truth |
 | `convex/schema.ts` | Database schema definitions |
-| `convex/guide.ts` | Guide CRUD operations |
+| `convex/guide.ts` | Public guide read queries |
 | `convex/seed.ts` | Guide table seeding (`seed:seedAll`) |
 | `convex/meta.ts` | Hourly meta-stats aggregation + daily ladder snapshots |
 | `convex/autobuild.ts` | Daily homepage build derived from the ladder aggregate |
@@ -309,11 +288,6 @@ npx convex run scraper:autoUpdateBuild     # OP.GG fallback if no ladder data ye
 **Via Code** (static fallback + seed source): Edit
 `src/lib/builds/default-builds.ts` (builds) or `src/lib/matchups/` (matchup
 notes), then re-run `npx convex run seed:seedAll` so the database matches.
-
-**Via Admin Panel** (dynamic):
-1. Navigate to `/admin/login`
-2. Authenticate
-3. Use `/admin/builds`, `/admin/items`, or `/admin/scraper`
 
 ### Adding API Routes
 
@@ -367,11 +341,9 @@ Example: `feat: Add Guardian rune page to builds system`
 ## Security Notes
 
 - Never commit `.env*` files or API keys
-- Admin auth uses session tokens stored in Convex
 - Web auth (Discord OAuth) stores session tokens in httpOnly cookies; Next API routes call Convex bridge mutations guarded by `AUTH_BRIDGE_SECRET`
 - Stripe webhooks are signature-verified (`STRIPE_WEBHOOK_SECRET`) with replay/ordering guards on subscription events
 - Riot API key is server-side only (not exposed to client)
-- Password hashing handled in `convex/auth.ts`
 
 ## External Data Sources
 

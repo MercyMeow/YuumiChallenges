@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Gem, LogIn, LogOut, Menu, Settings, X } from 'lucide-react';
+import { Gem, LogIn, LogOut, Menu, X } from 'lucide-react';
 import { PawEmblem } from './PawEmblem';
 import { discordAvatarUrl, useWebUser } from '@/lib/hooks/use-web-user';
 import { HOME_SECTION_IDS, isGuideLinkActive } from './nav';
@@ -19,7 +19,6 @@ const NAV_LINKS: ReadonlyArray<{ label: string; href: string }> = [
   { label: 'Matchups', href: '/#matchups' },
   { label: 'High Elo', href: '/games' },
   { label: 'Stats', href: '/stats' },
-  { label: 'Mayhem', href: '/mayhem' },
   { label: 'Match Viewer', href: '/match' },
   { label: 'Gallery', href: '/gallery' },
 ];
@@ -208,13 +207,6 @@ export function TopNav() {
               />
               Patch {patch ?? '…'}
             </span>
-            <Link
-              href="/admin"
-              aria-label="Admin console"
-              className="hidden text-hx-gold/50 transition-colors hover:text-hx-gold-bright sm:block"
-            >
-              <Settings className="h-4.5 w-4.5" />
-            </Link>
             <button
               type="button"
               className="btn-hextech rounded-sm p-2 lg:hidden"
@@ -258,15 +250,6 @@ export function TopNav() {
               {link.label}
             </Link>
           ))}
-          <Link
-            href="/admin"
-            className="hex-rail-link"
-            data-active={pathname.startsWith('/admin')}
-            onClick={() => setMenuOpen(false)}
-          >
-            <Settings className="h-3.5 w-3.5" aria-hidden />
-            Admin
-          </Link>
           <MobileAccountRow
             account={account}
             onNavigate={() => setMenuOpen(false)}

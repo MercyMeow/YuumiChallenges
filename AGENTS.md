@@ -29,7 +29,7 @@
 
 ## Testing Guidelines
 - Vitest uses `jsdom` for frontend tests under `src/**/*.{test,spec}.*` or `test/`; colocate Convex tests under `convex/**/*.{test,spec}.{ts,tsx}` (the `edge-runtime` project).
-- Default validation is `npm run lint`, `npm run type-check`, and `npm run test:run`; add manual checks for guide, advanced match, gallery, and admin flows when UI or data plumbing changes.
+- Default validation is `npm run lint`, `npm run type-check`, and `npm run test:run`; add manual checks for guide, advanced match, and gallery flows when UI or data plumbing changes.
 - Run `npm run dev` to manually validate guide, advanced match, and gallery flows.
 - Name exploratory scripts clearly and clean up before committing.
 
@@ -43,8 +43,6 @@
 ## Security & Configuration Tips
 - Never commit secrets; rely on `.env.local` for Riot API keys.
 - Keep `AUTH_BRIDGE_SECRET` identical in both the Next.js/Cloudflare runtime and the Convex environment, or Discord auth and Stripe bridge mutations will fail.
-- Keep the distinct `ADMIN_LOGIN_BRIDGE_SECRET` identical in both environments, or the server-only admin login bridge will fail closed.
-- First-admin bootstrap is a one-shot internal mutation: `npx convex run auth:createAdminUser '{"username":"...","password":"..."}'` for dev, add `--prod` for the default production deployment.
 - Confirm integrations stay within documented scopes; update `docs/` when adding new providers.
 
 ## Refactoring & Code Quality

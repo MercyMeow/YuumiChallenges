@@ -1,101 +1,5 @@
 import { v } from 'convex/values';
-import { mutation, query } from './_generated/server';
-import type { DatabaseReader } from './_generated/server';
-import { Id } from './_generated/dataModel';
-import {
-  adminBuildPayloadSchema,
-  adminItemPayloadSchema,
-} from '../src/lib/admin/guide-validation';
-import { MAX_ADMIN_PRIORITY } from '../src/lib/admin/integer-input';
-import { getSkillOrderValidationError } from '../src/lib/admin/skill-order';
-
-// Helper to verify session
-async function verifyGuideEditor(
-  ctx: { db: DatabaseReader },
-  sessionToken: string
-): Promise<Id<'users'> | null> {
-  const session = await ctx.db
-    .query('sessions')
-    .withIndex('by_token', (q) => q.eq('token', sessionToken))
-    .first();
-
-  if (!session || session.expiresAt < Date.now()) {
-    return null;
-  }
-
-  const user = session.userId ? await ctx.db.get(session.userId) : null;
-  if (!user || (user.role !== 'admin' && user.role !== 'editor')) {
-    return null;
-  }
-
-  return user._id;
-}
-
-// Shared matchup enum validators — used by upsertMatchup and
-// bulkImportMatchups so the two endpoints can never drift apart.
-const difficultyValidator = v.union(
-  v.literal('Easy'),
-  v.literal('Medium'),
-  v.literal('Hard')
-);
-const synergyValidator = v.union(
-  v.literal('Excellent'),
-  v.literal('Very Good'),
-  v.literal('Good'),
-  v.literal('Average'),
-  v.literal('Situational'),
-  v.literal('Poor')
-);
-
-// Drops the auth token from mutation args before persisting the rest.
-function stripSessionToken<T extends { sessionToken: string }>(
-  args: T
-): Omit<T, 'sessionToken'> {
-  const { sessionToken: _sessionToken, ...rest } = args;
-  void _sessionToken;
-  return rest;
-}
-
-function requireGuideEditorSession(userId: Id<'users'> | null): Id<'users'> {
-  if (!userId) {
-    throw new Error('Unauthorized');
-  }
-  return userId;
-}
-
-function normalizeRequiredString(value: string, fieldName: string): string {
-  const normalized = value.trim();
-  if (!normalized) {
-    throw new Error(`${fieldName} is required`);
-  }
-  return normalized;
-}
-
-function normalizePriority(value: number, fieldName: string): number {
-  if (!Number.isInteger(value) || value < 0 || value > MAX_ADMIN_PRIORITY) {
-    throw new Error(
-      `${fieldName} must be an integer from 0 to ${MAX_ADMIN_PRIORITY}`
-    );
-  }
-  return value;
-}
-
-function normalizeSkillLevels(levels: string[]): string[] {
-  const normalized = levels.map((level) => level.trim().toUpperCase());
-  const validationError = getSkillOrderValidationError(normalized);
-  if (validationError) {
-    throw new Error(validationError);
-  }
-  return normalized;
-}
-
-function normalizeGuideItemPayload(args: unknown) {
-  return adminItemPayloadSchema.parse(args);
-}
-
-function normalizeBuildPayload(args: unknown) {
-  return adminBuildPayloadSchema.parse(args);
-}
+import { query } from './_generated/server';
 
 // ============ ITEMS ============
 
@@ -103,15 +7,13 @@ export const getItems = query({
   args: {},
   handler: async (ctx) => {
     const items = await ctx.db.query('guideItems').collect();
-    return items
-      .filter((item) => item.isActive)
-      .sort((a, b) => {
-        const categoryOrder = ['starter', 'early', 'core', 'situational'];
-        const catDiff =
-          categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category);
-        if (catDiff !== 0) return catDiff;
-        return a.priority - b.priority;
-      });
+    return items.sort((a, b) => {
+      const categoryOrder = ['starter', 'early', 'core', 'situational'];
+      const catDiff =
+        categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category);
+      if (catDiff !== 0) return catDiff;
+      return a.priority - b.priority;
+    });
   },
 });
 
@@ -125,83 +27,10 @@ export const getItemsByCategory = query({
     ),
   },
   handler: async (ctx, args) => {
-    const items = await ctx.db
+    return await ctx.db
       .query('guideItems')
       .withIndex('by_category', (q) => q.eq('category', args.category))
       .collect();
-    return items
-      .filter((item) => item.isActive)
-      .sort((a, b) => a.priority - b.priority);
-  },
-});
-
-export const getAllItems = query({
-  args: {
-    sessionToken: v.string(),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
-    const items = await ctx.db.query('guideItems').collect();
-    return items.sort((a, b) => {
-      const categoryOrder = ['starter', 'early', 'core', 'situational'];
-      const catDiff =
-        categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category);
-      if (catDiff !== 0) return catDiff;
-      return a.priority - b.priority;
-    });
-  },
-});
-
-export const upsertItem = mutation({
-  args: {
-    sessionToken: v.string(),
-    id: v.optional(v.id('guideItems')),
-    name: v.string(),
-    itemId: v.number(),
-    category: v.union(
-      v.literal('starter'),
-      v.literal('early'),
-      v.literal('core'),
-      v.literal('situational')
-    ),
-    reason: v.string(),
-    priority: v.number(),
-    isActive: v.boolean(),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
-    const { id, ...data } = stripSessionToken(args);
-    const itemData = {
-      ...normalizeGuideItemPayload(data),
-      updatedAt: Date.now(),
-    };
-
-    if (id) {
-      await ctx.db.patch(id, itemData);
-      const saved = await ctx.db.get(id);
-      if (!saved) throw new Error('Saved item was not found');
-      return saved;
-    } else {
-      const savedId = await ctx.db.insert('guideItems', itemData);
-      const saved = await ctx.db.get(savedId);
-      if (!saved) throw new Error('Saved item was not found');
-      return saved;
-    }
-  },
-});
-
-export const deleteItem = mutation({
-  args: {
-    sessionToken: v.string(),
-    id: v.id('guideItems'),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
-    await ctx.db.delete(args.id);
-    return { success: true };
   },
 });
 
@@ -215,54 +44,6 @@ export const getRunes = query({
   },
 });
 
-export const upsertRune = mutation({
-  args: {
-    sessionToken: v.string(),
-    id: v.optional(v.id('guideRunes')),
-    name: v.string(),
-    primaryTree: v.string(),
-    keystone: v.string(),
-    primarySlot1: v.string(),
-    primarySlot2: v.string(),
-    primarySlot3: v.string(),
-    secondaryTree: v.string(),
-    secondarySlot1: v.string(),
-    secondarySlot2: v.string(),
-    statShard1: v.string(),
-    statShard2: v.string(),
-    statShard3: v.string(),
-    description: v.optional(v.string()),
-    isRecommended: v.boolean(),
-    priority: v.number(),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
-    const { id, ...data } = stripSessionToken(args);
-    const runeData = { ...data, updatedAt: Date.now() };
-
-    if (id) {
-      await ctx.db.patch(id, runeData);
-      return id;
-    } else {
-      return await ctx.db.insert('guideRunes', runeData);
-    }
-  },
-});
-
-export const deleteRune = mutation({
-  args: {
-    sessionToken: v.string(),
-    id: v.id('guideRunes'),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
-    await ctx.db.delete(args.id);
-    return { success: true };
-  },
-});
-
 // ============ SKILL ORDER ============
 
 export const getSkillOrders = query({
@@ -273,54 +54,6 @@ export const getSkillOrders = query({
   },
 });
 
-export const upsertSkillOrder = mutation({
-  args: {
-    sessionToken: v.string(),
-    id: v.optional(v.id('guideSkillOrder')),
-    name: v.string(),
-    description: v.string(),
-    levels: v.array(v.string()),
-    isRecommended: v.boolean(),
-    priority: v.number(),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
-    const { id, ...data } = stripSessionToken(args);
-    const skillData = {
-      ...data,
-      name: normalizeRequiredString(data.name, 'Skill order name'),
-      description: normalizeRequiredString(
-        data.description,
-        'Skill order description'
-      ),
-      levels: normalizeSkillLevels(data.levels),
-      priority: normalizePriority(data.priority, 'Skill order priority'),
-      updatedAt: Date.now(),
-    };
-
-    if (id) {
-      await ctx.db.patch(id, skillData);
-      return id;
-    } else {
-      return await ctx.db.insert('guideSkillOrder', skillData);
-    }
-  },
-});
-
-export const deleteSkillOrder = mutation({
-  args: {
-    sessionToken: v.string(),
-    id: v.id('guideSkillOrder'),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
-    await ctx.db.delete(args.id);
-    return { success: true };
-  },
-});
-
 // ============ UNIFIED BUILDS ============
 
 export const getBuilds = query({
@@ -328,18 +61,14 @@ export const getBuilds = query({
   handler: async (ctx) => {
     const builds = await ctx.db.query('guideBuilds').collect();
     return builds
-      .filter((b) => b.isActive)
+      .filter((build) => build.isActive)
       .sort((a, b) => a.priority - b.priority);
   },
 });
 
 export const getAllBuilds = query({
-  args: {
-    sessionToken: v.string(),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
+  args: {},
+  handler: async (ctx) => {
     const builds = await ctx.db.query('guideBuilds').collect();
     return builds.sort((a, b) => a.priority - b.priority);
   },
@@ -350,162 +79,7 @@ export const getBuildById = query({
     id: v.id('guideBuilds'),
   },
   handler: async (ctx, args) => {
-    const build = await ctx.db.get(args.id);
-    return build?.isActive ? build : null;
-  },
-});
-
-export const upsertBuild = mutation({
-  args: {
-    sessionToken: v.string(),
-    id: v.optional(v.id('guideBuilds')),
-    name: v.string(),
-    description: v.string(),
-    icon: v.string(),
-    color: v.string(),
-    borderColor: v.string(),
-    isRecommended: v.boolean(),
-    isActive: v.boolean(),
-    priority: v.number(),
-    runes: v.object({
-      name: v.string(),
-      primaryTree: v.string(),
-      keystone: v.string(),
-      primary: v.array(v.string()),
-      secondaryTree: v.string(),
-      secondary: v.array(v.string()),
-      shards: v.array(v.string()),
-    }),
-    items: v.object({
-      starter: v.array(
-        v.object({
-          id: v.number(),
-          name: v.string(),
-          reason: v.string(),
-        })
-      ),
-      core: v.array(
-        v.object({
-          id: v.number(),
-          name: v.string(),
-          reason: v.string(),
-        })
-      ),
-      situational: v.array(
-        v.object({
-          id: v.number(),
-          name: v.string(),
-          reason: v.string(),
-        })
-      ),
-    }),
-    skillOrder: v.object({
-      priority: v.string(),
-      levels: v.array(v.string()),
-      notes: v.string(),
-    }),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
-    const { id, ...data } = stripSessionToken(args);
-    const buildData = {
-      ...normalizeBuildPayload(data),
-      updatedAt: Date.now(),
-    };
-
-    if (id) {
-      await ctx.db.patch(id, buildData);
-      const saved = await ctx.db.get(id);
-      if (!saved) throw new Error('Saved build was not found');
-      return saved;
-    } else {
-      const savedId = await ctx.db.insert('guideBuilds', buildData);
-      const saved = await ctx.db.get(savedId);
-      if (!saved) throw new Error('Saved build was not found');
-      return saved;
-    }
-  },
-});
-
-export const deleteBuild = mutation({
-  args: {
-    sessionToken: v.string(),
-    id: v.id('guideBuilds'),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
-    await ctx.db.delete(args.id);
-    return { success: true };
-  },
-});
-
-export const bulkImportBuilds = mutation({
-  args: {
-    sessionToken: v.string(),
-    builds: v.array(
-      v.object({
-        name: v.string(),
-        description: v.string(),
-        icon: v.string(),
-        color: v.string(),
-        borderColor: v.string(),
-        isRecommended: v.boolean(),
-        isActive: v.boolean(),
-        priority: v.number(),
-        runes: v.object({
-          name: v.string(),
-          primaryTree: v.string(),
-          keystone: v.string(),
-          primary: v.array(v.string()),
-          secondaryTree: v.string(),
-          secondary: v.array(v.string()),
-          shards: v.array(v.string()),
-        }),
-        items: v.object({
-          starter: v.array(
-            v.object({
-              id: v.number(),
-              name: v.string(),
-              reason: v.string(),
-            })
-          ),
-          core: v.array(
-            v.object({
-              id: v.number(),
-              name: v.string(),
-              reason: v.string(),
-            })
-          ),
-          situational: v.array(
-            v.object({
-              id: v.number(),
-              name: v.string(),
-              reason: v.string(),
-            })
-          ),
-        }),
-        skillOrder: v.object({
-          priority: v.string(),
-          levels: v.array(v.string()),
-          notes: v.string(),
-        }),
-      })
-    ),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
-    const ids = [];
-    for (const build of args.builds) {
-      const id = await ctx.db.insert('guideBuilds', {
-        ...normalizeBuildPayload(build),
-        updatedAt: Date.now(),
-      });
-      ids.push(id);
-    }
-    return ids;
+    return await ctx.db.get(args.id);
   },
 });
 
@@ -543,52 +117,6 @@ export const getMatchupByChampion = query({
   },
 });
 
-export const upsertMatchup = mutation({
-  args: {
-    sessionToken: v.string(),
-    id: v.optional(v.id('guideMatchups')),
-    championName: v.string(),
-    championId: v.string(),
-    matchupType: v.union(v.literal('enemy_support'), v.literal('ally_adc')),
-    difficulty: v.optional(difficultyValidator),
-    synergy: v.optional(synergyValidator),
-    tips: v.array(v.string()),
-    recommendedRunes: v.optional(v.string()),
-    recommendedItems: v.optional(v.string()),
-    earlyItems: v.optional(v.array(v.string())),
-    notes: v.optional(v.string()),
-    playstyle: v.optional(v.string()),
-    optimalAttachTargets: v.optional(v.string()),
-    buildAdjustments: v.optional(v.array(v.string())),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
-    const { id, ...data } = stripSessionToken(args);
-    const matchupData = { ...data, updatedAt: Date.now() };
-
-    if (id) {
-      await ctx.db.patch(id, matchupData);
-      return id;
-    } else {
-      return await ctx.db.insert('guideMatchups', matchupData);
-    }
-  },
-});
-
-export const deleteMatchup = mutation({
-  args: {
-    sessionToken: v.string(),
-    id: v.id('guideMatchups'),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
-    await ctx.db.delete(args.id);
-    return { success: true };
-  },
-});
-
 // ============ GUIDE SECTIONS ============
 
 export const getSections = query({
@@ -611,157 +139,14 @@ export const getSectionByKey = query({
   },
 });
 
-export const upsertSection = mutation({
-  args: {
-    sessionToken: v.string(),
-    id: v.optional(v.id('guideSections')),
-    sectionKey: v.string(),
-    title: v.string(),
-    content: v.string(),
-    order: v.number(),
-  },
-  handler: async (ctx, args) => {
-    const userId = requireGuideEditorSession(
-      await verifyGuideEditor(ctx, args.sessionToken)
-    );
-
-    const { id, ...data } = stripSessionToken(args);
-    const sectionData = {
-      ...data,
-      sectionKey: normalizeRequiredString(data.sectionKey, 'Section key'),
-      title: normalizeRequiredString(data.title, 'Section title'),
-      content: normalizeRequiredString(data.content, 'Section content'),
-      order: normalizePriority(data.order, 'Section order'),
-      updatedAt: Date.now(),
-      updatedBy: userId,
-    };
-
-    if (id) {
-      await ctx.db.patch(id, sectionData);
-      return id;
-    } else {
-      return await ctx.db.insert('guideSections', sectionData);
-    }
-  },
-});
-
 // ============ METADATA ============
 
 export const getMetadata = query({
   args: {},
   handler: async (ctx) => {
     const metadata = await ctx.db.query('guideMetadata').collect();
-    return Object.fromEntries(metadata.map((m) => [m.key, m.value]));
-  },
-});
-
-export const setMetadata = mutation({
-  args: {
-    sessionToken: v.string(),
-    key: v.string(),
-    value: v.string(),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
-    const normalizedKey = normalizeRequiredString(args.key, 'Metadata key');
-    const normalizedValue = normalizeRequiredString(
-      args.value,
-      'Metadata value'
+    return Object.fromEntries(
+      metadata.map((entry) => [entry.key, entry.value])
     );
-    const existing = await ctx.db
-      .query('guideMetadata')
-      .withIndex('by_key', (q) => q.eq('key', normalizedKey))
-      .collect();
-
-    if (existing.length > 0) {
-      const canonical = existing[0]!;
-      await ctx.db.patch(canonical._id, {
-        value: normalizedValue,
-        updatedAt: Date.now(),
-      });
-      for (const duplicate of existing.slice(1)) {
-        await ctx.db.delete(duplicate._id);
-      }
-      return canonical._id;
-    } else {
-      return await ctx.db.insert('guideMetadata', {
-        key: normalizedKey,
-        value: normalizedValue,
-        updatedAt: Date.now(),
-      });
-    }
-  },
-});
-
-// ============ BULK IMPORT (for initial data) ============
-
-export const bulkImportItems = mutation({
-  args: {
-    sessionToken: v.string(),
-    items: v.array(
-      v.object({
-        name: v.string(),
-        itemId: v.number(),
-        category: v.union(
-          v.literal('starter'),
-          v.literal('early'),
-          v.literal('core'),
-          v.literal('situational')
-        ),
-        reason: v.string(),
-        priority: v.number(),
-        isActive: v.boolean(),
-      })
-    ),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
-    const ids = [];
-    for (const item of args.items) {
-      const id = await ctx.db.insert('guideItems', {
-        ...normalizeGuideItemPayload(item),
-        updatedAt: Date.now(),
-      });
-      ids.push(id);
-    }
-    return ids;
-  },
-});
-
-export const bulkImportMatchups = mutation({
-  args: {
-    sessionToken: v.string(),
-    matchups: v.array(
-      v.object({
-        championName: v.string(),
-        championId: v.string(),
-        matchupType: v.union(v.literal('enemy_support'), v.literal('ally_adc')),
-        difficulty: v.optional(difficultyValidator),
-        synergy: v.optional(synergyValidator),
-        tips: v.array(v.string()),
-        recommendedRunes: v.optional(v.string()),
-        recommendedItems: v.optional(v.string()),
-        earlyItems: v.optional(v.array(v.string())),
-        notes: v.optional(v.string()),
-        playstyle: v.optional(v.string()),
-        optimalAttachTargets: v.optional(v.string()),
-        buildAdjustments: v.optional(v.array(v.string())),
-      })
-    ),
-  },
-  handler: async (ctx, args) => {
-    requireGuideEditorSession(await verifyGuideEditor(ctx, args.sessionToken));
-
-    const ids = [];
-    for (const matchup of args.matchups) {
-      const id = await ctx.db.insert('guideMatchups', {
-        ...matchup,
-        updatedAt: Date.now(),
-      });
-      ids.push(id);
-    }
-    return ids;
   },
 });

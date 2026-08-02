@@ -1,21 +1,9 @@
-'use client';
-
 import type { ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
 import { TopNav } from './TopNav';
 import { SideRail } from './SideRail';
 
-/**
- * LoL-client chrome for public pages: top bar + left rail around the page
- * content. Admin routes render bare and keep their own console styling.
- */
+/** LoL-client chrome: top bar + left rail around the page content. */
 export function SiteShell({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-
-  if (pathname.startsWith('/admin')) {
-    return <>{children}</>;
-  }
-
   return (
     <div className="flex min-h-screen flex-col">
       <TopNav />

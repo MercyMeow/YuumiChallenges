@@ -127,12 +127,11 @@ _site-wide banner_
 </td>
 <td width="50%" valign="top">
 
-### 🖼️ Rule Gallery &nbsp;·&nbsp; 🛠️ Admin
+### 🖼️ Rule Gallery
 
-`/gallery` &nbsp;·&nbsp; `/admin`
+`/gallery`
 
 - Discord-shareable rule GIFs with rich embeds
-- Auth-gated management for builds, items, and text sections
 
 </td>
 </tr>
@@ -150,7 +149,6 @@ flowchart LR
     Feed["High-Elo Games"]
     Ladder["Ladder & Profiles"]
     Stats["Meta Report"]
-    Admin["Admin Panel"]
   end
   subgraph Edge["API Routes"]
     MatchAPI["/api/match-details"]
@@ -172,7 +170,6 @@ flowchart LR
   Ladder --> DB
   Feed --> DB
   Stats --> DB
-  Admin --> DB
   Ladder --> AccountAPI --> DB
   Guide --> DDragon
   Feed --> DDragon
@@ -210,20 +207,6 @@ npx convex deploy               # push schema & functions
 npx convex run seed:seedAll     # seed builds, matchups & sections
 ```
 
-**First admin bootstrap?** Create exactly one admin with the internal Convex
-mutation in the target deployment:
-
-```bash
-# personal dev deployment
-npx convex run auth:createAdminUser '{"username":"admin","password":"change-me-now"}'
-
-# default production deployment
-npx convex run auth:createAdminUser '{"username":"admin","password":"change-me-now"}' --prod
-```
-
-`convex/auth.ts` enforces this as a one-shot bootstrap: the command fails once
-an admin already exists.
-
 > The site degrades gracefully — without Convex it falls back to the very same static data the seeder uses, so the database and the fallback never drift apart. The recommended build refreshes itself daily, and the high-elo feed fills in within minutes of the first scheduled run.
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:785A28,50:C8AA6E,100:785A28&height=3" width="100%" alt="" />
@@ -245,7 +228,6 @@ an admin already exists.
 | `RIOT_API_KEY` | live data | Required in both the Cloudflare/Next runtime and the Convex environment |
 | `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` | accounts | Discord OAuth web sign-in on the Next.js side |
 | `AUTH_BRIDGE_SECRET` | accounts | Shared secret between Next API routes and Convex bridge mutations; the value must match in both environments |
-| `ADMIN_LOGIN_BRIDGE_SECRET` | admin | Distinct server-only secret for the source-aware admin login bridge; the value must match in both environments |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | supporter | Stripe checkout + webhook verification on the Next.js side |
 | `CONVEX_DEPLOY_KEY` | cloud deploy | Lets `build:cloudflare` / `build:vercel` deploy Convex after the app build succeeds |
 | `CONVEX_SELF_HOSTED_URL` | self-host | Self-hosted Convex endpoint for deploy/build flows |
@@ -255,16 +237,9 @@ Grab a development key from the [Riot Developer Portal](https://developer.riotga
 
 Deployment secret split:
 
-- Cloudflare / Next runtime: `NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_USE_EXAMPLE_DATA`, `RIOT_API_KEY`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `AUTH_BRIDGE_SECRET`, `ADMIN_LOGIN_BRIDGE_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, plus `YUUMI_DISCORD_SERVER_ID` if you use community links there.
-- Convex environment: `RIOT_API_KEY`, `AUTH_BRIDGE_SECRET`, and `ADMIN_LOGIN_BRIDGE_SECRET`.
+- Cloudflare / Next runtime: `NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_USE_EXAMPLE_DATA`, `RIOT_API_KEY`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `AUTH_BRIDGE_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, plus `YUUMI_DISCORD_SERVER_ID` if you use community links there.
+- Convex environment: `RIOT_API_KEY` and `AUTH_BRIDGE_SECRET`.
 - Build-time only: `CONVEX_DEPLOY_KEY` for Convex Cloud, or `CONVEX_SELF_HOSTED_URL` + `CONVEX_SELF_HOSTED_ADMIN_KEY` for self-hosted Convex.
-
-Use an independent, high-entropy value for `ADMIN_LOGIN_BRIDGE_SECRET`, and
-configure the exact same value in the Next runtime and Convex. Next uses it to
-HMAC Cloudflare's trusted `cf-connecting-ip` value before calling Convex.
-Production admin login fails closed if either the secret or that header is
-missing; local development intentionally uses one shared fallback rate-limit
-bucket.
 
 Stripe webhook setup is separate from `NEXT_PUBLIC_SITE_URL`. Register
 `https://<your-domain>/api/stripe/webhook` as an endpoint in Stripe, then store
@@ -286,7 +261,6 @@ YuumiChallenges/
 │   │   ├── stats/           # Meta Report — winrates, synergies, builds & runes
 │   │   ├── match/           # match viewer
 │   │   ├── gallery/         # rule GIF gallery
-│   │   ├── admin/           # auth-gated content management
 │   │   └── rule[id].gif/    # Discord-embeddable rule routes
 │   ├── components/
 │   │   ├── guide/           # ability guide, matchup scrolls, rail panels

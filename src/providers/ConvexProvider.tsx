@@ -17,6 +17,5 @@ const convexUrl =
 
 export function ConvexProvider({ children }: { children: ReactNode }) {
   const client = useMemo(() => new ConvexReactClient(convexUrl), []);
-
   return <ConvexReactProvider client={client}>{children}</ConvexReactProvider>;
 }

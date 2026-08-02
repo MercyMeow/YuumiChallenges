@@ -1,7 +1,7 @@
-// Guide builds curated in Convex (seeded via convex/seed.ts, edited in
-// /admin/builds). Fail-soft: any error yields null and callers fall back to
-// the static build data. Uses ConvexHttpClient so public pages don't depend
-// on the React provider being configured.
+// Guide builds curated in Convex and seeded via convex/seed.ts. Fail-soft:
+// any error yields null and callers fall back to the static build data. Uses
+// ConvexHttpClient so public pages don't depend on the React provider being
+// configured.
 
 import type { FunctionReturnType } from 'convex/server';
 import { api } from '../../../convex/_generated/api';

@@ -35,7 +35,6 @@ Set these in the Cloudflare dashboard (**Workers & Pages â†’ yuumi-challenges â†
 | `DISCORD_CLIENT_ID` | Yes for web auth | Discord OAuth login route |
 | `DISCORD_CLIENT_SECRET` | Yes for web auth | Discord OAuth callback route |
 | `AUTH_BRIDGE_SECRET` | Yes for web auth / Stripe | Shared secret for Next.js bridge calls into Convex; must exactly match the Convex environment value |
-| `ADMIN_LOGIN_BRIDGE_SECRET` | Yes for admin login | Distinct server-only secret for the source-aware admin login bridge; must exactly match the Convex environment value |
 | `STRIPE_SECRET_KEY` | Yes for Supporter checkout | Stripe Checkout session creation |
 | `STRIPE_WEBHOOK_SECRET` | Yes for Supporter webhooks | Stripe signature verification |
 
@@ -47,7 +46,6 @@ Set these with `npx convex env set ...` on the target deployment:
 |----------|----------|--------|
 | `RIOT_API_KEY` | Yes | Required by Convex actions that call Riot |
 | `AUTH_BRIDGE_SECRET` | Yes for web auth / Stripe | Must exactly match the Cloudflare / Next runtime value |
-| `ADMIN_LOGIN_BRIDGE_SECRET` | Yes for admin login | Must exactly match the Cloudflare / Next runtime value |
 
 ### Build-only variables
 
@@ -68,31 +66,6 @@ Stripe return URLs; it does not register inbound webhooks. In the Stripe
 Dashboard, separately register
 `https://<your-domain>/api/stripe/webhook`, then configure that endpoint's
 signing secret as `STRIPE_WEBHOOK_SECRET` in the Cloudflare / Next runtime.
-
-### Admin login bridge
-
-Generate a high-entropy `ADMIN_LOGIN_BRIDGE_SECRET` that is distinct from
-`AUTH_BRIDGE_SECRET`, then configure the exact same value in the Cloudflare /
-Next runtime and Convex. Next uses it to HMAC Cloudflare's trusted
-`cf-connecting-ip` source before calling Convex. Production admin login fails
-closed if either the secret or that header is absent; local development uses
-one shared fallback rate-limit bucket.
-
-## First admin bootstrap
-
-The admin console is backed by `convex/auth.ts` `createAdminUser`, an
-internal-only one-shot mutation that refuses to run once an admin exists.
-
-```bash
-# personal dev deployment
-npx convex run auth:createAdminUser '{"username":"admin","password":"change-me-now"}'
-
-# default production deployment
-npx convex run auth:createAdminUser '{"username":"admin","password":"change-me-now"}' --prod
-```
-
-If you target a non-default deployment, use `--deployment <name>` instead of
-`--prod`.
 
 ## Workers Builds (GitHub)
 
