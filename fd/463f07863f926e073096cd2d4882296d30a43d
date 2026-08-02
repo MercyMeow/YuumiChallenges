@@ -1,0 +1,52 @@
+AGENTS.md
+  s_d86e1a894323f2::t_b5eb93ea202471 32
+convex/schema.ts
+  s_d86e1a894323f2::t_b5eb93ea202471 27-28
+  s_d86e1a894323f2::t_dee6bd073bb7af 5,17,39-40
+README.md
+  s_d86e1a894323f2::t_b5eb93ea202471 130,132,240-241
+CLAUDE.md
+  s_d86e1a894323f2::t_b5eb93ea202471 30,73,224,261,265
+convex/guide.ts
+  s_d86e1a894323f2::t_555f6218ac59c7 2,20,30-33,64,70-71,82,148-149
+convex/test.setup.ts
+  s_d86e1a894323f2::t_b5eb93ea202471 3-5
+convex/seed.ts
+  s_a06bf705800547::t_f6840db92f772f 116
+convex/webauth.ts
+  s_a06bf705800547::t_402af65875bd6c 14-18,42
+src/app/guide-client.tsx
+  s_a06bf705800547::t_a20dc3ee0de5a6 51
+src/components/shell/SiteShell.tsx
+  s_a06bf705800547::t_58024eddc41173 5
+src/components/shell/TopNav.tsx
+  s_a06bf705800547::t_f1aeba17196d2a 7
+src/lib/builds/guide-builds.ts
+  s_a06bf705800547::t_29239628ba4de8 1-4
+src/providers/ClientProviders.tsx
+  s_a06bf705800547::t_c2efefb2d2af47 10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "fd463f07863f926e073096cd2d4882296d30a43d",
+  "prompts": {},
+  "sessions": {
+    "s_a06bf705800547": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "06a830a4-42dc-4721-8b2f-8ad20e9157b7",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    },
+    "s_d86e1a894323f2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb288-24f7-7483-96ed-c7a2dd81e9cd",
+        "model": "gpt-5.6-luna"
+      },
+      "human_author": "Mercy <100085299+MercyMeow@users.noreply.github.com>"
+    }
+  }
+}
